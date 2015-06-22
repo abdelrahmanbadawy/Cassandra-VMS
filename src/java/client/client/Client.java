@@ -4,19 +4,25 @@ import com.datastax.driver.core.*;
 import com.datastax.driver.core.policies.DCAwareRoundRobinPolicy;
 import com.datastax.driver.core.policies.DefaultRetryPolicy;
 import com.datastax.driver.core.policies.TokenAwarePolicy;
-import com.datastax.driver.core.querybuilder.QueryBuilder;
-import com.datastax.driver.core.querybuilder.Select;
-import com.sun.org.apache.xpath.internal.SourceTree;
-
 import java.util.List;
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.XMLConfiguration;
 
 
 public class Client {
-	
-	
-	
-	Client(){
-		
+
+	static Cluster currentCluster = null;
+	private static XMLConfiguration databaseConfig;
+
+	Client() {
+
+		databaseConfig = new XMLConfiguration();
+		databaseConfig.setDelimiterParsingDisabled(true);
+		try {
+			databaseConfig.load("client/resources/DatabaseConfig.xml");
+		} catch (ConfigurationException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public static Cluster connectToCluster(String ipAddress) {
@@ -33,10 +39,13 @@ public class Client {
 			e.printStackTrace();
 		}
 
+		currentCluster = cluster; 
 		return cluster;	
 	}
-	
+
+
 	public static void disconnectFromCluster(Cluster cluster) {
+
 		try {
 			cluster.close();
 		} catch (Exception e) {
@@ -44,198 +53,71 @@ public class Client {
 		}	
 	}
 
-	public static void createKeySpace(String ipAddress,String keyspace){
-		
+	public static boolean clusterIsConnected(Cluster cluster){
+
+		if(cluster.isClosed()){
+			return false;
+		}
+
+		return true;
 	}
-	
-		
-	/*public static boolean createKeySpace(Cluster cluster, String keyspace) {
 
-		ResultSet selectQueryResults = null;
-		Session session = null;
+	public static boolean createKeySpace(String keyspace){
 
-		try {
-			session = cluster.connect();
-			Select.Where select = QueryBuilder.select()
-					.all()
-					.from("system", "schema_keyspaces")
-					.where(QueryBuilder.eq("keyspace_name", keyspace));
+		Session session =  currentCluster.connect();
 
-			selectQueryResults = session.execute(select);
+		StringBuilder queryString = new StringBuilder();
+		queryString.append("CREATE KEYSPACE IF NOT EXISTS ").append(keyspace).append(" WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 1};");	
 
-			String selectQueryResultString = selectQueryResults.all().toString();
+		System.out.println(queryString.toString());
+		ResultSet queryResults = session.execute(queryString.toString());
 
-			System.out.println("Results of the Keyspace Select Query = " + selectQueryResultString);
-			
-			if (selectQueryResultString.length() == 2 && selectQueryResultString.equals("[]")) {
-				selectQueryResultString = "";
+		return true;
+	}
+
+	public static boolean createTable(){
+
+		List<String> keyspace = databaseConfig.getList("dbSchema.tableDefinition.keyspace");
+		List<String> tableName  = databaseConfig.getList("dbSchema.tableDefinition.name");
+		Integer nrTables =  databaseConfig.getInt("dbSchema.tableNumber");
+		List<String> primarykeyType =  databaseConfig.getList("dbSchema.tableDefinition.primaryKey.type");
+		List<String> primarykeyName =  databaseConfig.getList("dbSchema.tableDefinition.primaryKey.name");
+		Integer nrColumns = databaseConfig.getInt("dbSchema.tableDefinition.columnNumber");
+		List<String> colFamily  = databaseConfig.getList("dbSchema.tableDefinition.column.family");
+		List<String> colName  = databaseConfig.getList("dbSchema.tableDefinition.column.name");
+		List<String> colType  = databaseConfig.getList("dbSchema.tableDefinition.column.type");
+
+		for(int i=0;i<nrTables;i++){
+			StringBuilder createQuery = new StringBuilder();
+			createQuery.append("CREATE TABLE ").append(keyspace.get(i)).append(".").append(tableName.get(i)+"(")
+			.append(primarykeyName.get(i)+" ").append(primarykeyType.get(i)).append(" PRIMARY KEY,");
+
+			for(int j=0;j<nrColumns;j++){
+				createQuery.append(colName.get(j)+" ").append(colType.get(j)+",");
 			}
 
-			System.out.println("ResultString = " + selectQueryResultString);
+			createQuery.deleteCharAt(createQuery.length()-1);
+			createQuery.append(");");
+
+			Session session = null;
 			
-			if (selectQueryResultString == null || "".equalsIgnoreCase(selectQueryResultString)) {
-				
-				////logger.debug("Creating keyspace {}", keyspace);
-				
-				String query = "CREATE SCHEMA " +
-						keyspace + " WITH replication = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };";
-				selectQueryResults = session.execute(query);
-				
-			} else {
-				////logger.debug("Keyspace {} already present", keyspace);
+			System.out.println(createQuery.toString());
+
+			try{
+				session = currentCluster.connect();
+				ResultSet queryResults = session.execute(createQuery.toString());
+			}catch(Exception e) {
+				e.printStackTrace();
+				return false;
 			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			return false;
-		} finally {
-			session.close();
-		}
-
+		}		
+		
 		return true;
 	}
 
-	public static Cluster getConnection(String ip) {
 
-		Cluster cluster = null;
-		
-		try {
-			
-			cluster = Cluster.builder()
-	                .addContactPoint(ip)
-	                .withRetryPolicy(DefaultRetryPolicy.INSTANCE)
-	                .withLoadBalancingPolicy(new TokenAwarePolicy(new DCAwareRoundRobinPolicy()))
-	                .build();
-			
-		} catch (Exception e) {
-			////logger.error("Error occurred in Client| getConnection | " + e);
-			e.printStackTrace();
-		}
-		
-		return cluster;
-	}
 
-	public static boolean closeConnection(Cluster cluster) {
-		try {
-			cluster.close();
-			////logger.info("Connection is successfully closed!!");
-		} catch (Exception e) {
-			e.printStackTrace();
-			return false;
-		}
-		return true;
-	}
 
-	public static boolean createTable(Cluster cluster, Table table) {
 
-		ResultSet results = null;
-		Session session = null;
-
-		try {
-			session = cluster.connect();
-			
-			StringBuilder query = new StringBuilder();
-			query.append("create table " + table.getKeySpace() + "." + table.getName() + " (");
-			
-			List<Column> columns = table.getColumns();
-			for (Column col : columns) {
-				String primaryKey = col.isPrimaryKey() ? " PRIMARY KEY" : "";
-				query.append(col.getName() + " " + col.getDataType() + primaryKey + ",");
-			}
-			
-			String finalQuery = query.substring(0, query.length() - 1) + ");";
-			System.out.println("Final query = " + finalQuery);
-			results = session.execute(finalQuery);
-
-			////logger.debug("Successfully created table {}.{}", table.getKeySpace(), table.getName());
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			return false;
-		} finally {
-			session.close();
-		}
-
-		return true;
-	}
-
-	public static boolean deleteTable(Cluster cluster, Table table) {
-		
-		ResultSet results = null;
-		Session session = null;
-		
-		try {
-			session = cluster.connect();
-			StringBuilder query = new StringBuilder();
-			query.append("delete table " + table.getKeySpace() + "." + table.getName() + ";");
-
-			System.out.println("Final query = " + query);
-			results = session.execute(query.toString());
-
-			////logger.debug("Successfully delete table {}.{}", table.getKeySpace(), table.getName());
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			return false;
-		} finally {
-			session.close();
-		}
-
-		return true;
-	}
-
-	public static boolean searchTable(Cluster cluster, Table table) {
-		
-		ResultSet results = null;
-		Session session = null;
-		
-		try {
-			session = cluster.connect();
-			StringBuilder query = new StringBuilder();
-			query.append("Select columnfamily_name from system.schema_columnfamilies where columnfamily_name = '"+ table.getName() +"' ALLOW FILTERING ;");
-
-			System.out.println("Final query = " + query);
-			
-			results = session.execute(query.toString());
-			String resultString = results.all().toString();
-			
-			////logger.debug("Resultset {}", resultString);
-			
-			if (resultString.contains(table.getName())) {
-				return true;
-			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			return false;
-		} finally {
-			session.close();
-		}
-
-		return false;
-	}
-
-	public static boolean commandExecution(Cluster cluster, String query){
-		ResultSet results = null;
-		Session session = null;
-		
-		try {
-			session = cluster.connect();
-			System.out.println("Final query = " + query);
-			
-			results = session.execute(query);
-			String resultString = results.all().toString();
-			
-			////logger.debug("Resultset {}", resultString);
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			return false;
-		} finally {
-			session.close();
-		}
-
-		return true;
-	}*/
 
 }

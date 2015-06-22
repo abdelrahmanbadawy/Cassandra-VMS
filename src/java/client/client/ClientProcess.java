@@ -13,19 +13,21 @@ import com.datastax.driver.core.Cluster;
 
 public class ClientProcess {
 
-	
+
 	private static Cluster cluster = null;
 	private static XMLConfiguration databaseConfig;
+	static Client client;
 
 
 	public static void main(String[] args){
-		
-		cluster =  Client.connectToCluster("localhost");
-		
+
+		client = new Client();
+		cluster =  client.connectToCluster("localhost");
+
 		databaseConfig = new XMLConfiguration();
 		databaseConfig.setDelimiterParsingDisabled(true);
 		try {
-			databaseConfig.load("resources/DatabaseConfig.xml");
+			databaseConfig.load("client/resources/DatabaseConfig.xml");
 		} catch (ConfigurationException e) {
 			e.printStackTrace();
 		}
@@ -36,30 +38,33 @@ public class ClientProcess {
 				System.out.println("Possible commands are:");
 				System.out.println("-----exit");
 				System.out.println("-----help");
-				System.out.println("-----create keyspace -name-");
-				System.out.println("-----create table -name-");
+				System.out.println("-----create keyspace ");
+				System.out.println("-----create table ");
+				System.out.println("-----drop table ");
+				System.out.println("-----drop keyspace ");
 			}else{
 
-				if(args[0].equals("create") && args[1].equals("keyspace") ){	
+				if(args[0].equals("create") && args[1].equals("keyspace") ){
+
 					List<String> keyspaceEntries  = databaseConfig.getList("dbSchema.tableDefinition.keyspace");
 					HashSet<String> uniqueKeyspaceEntries = new HashSet<String>();
 					uniqueKeyspaceEntries.addAll(keyspaceEntries);
-					
+
 					for(String keyspace:uniqueKeyspaceEntries){
-						System.out.println(keyspace);
-						System.out.println(cluster);
-						Client.createKeySpace(cluster,keyspace);	
+						if(client.createKeySpace(keyspace)){
+							System.out.println("Keyspace has been added");
+						}
 					}			
 				}
 
-				if(args[0].equals("create") && args[1].equals("table") ){
-					List<String> tableSchemaEntries  = databaseConfig.getList("dbSchema.tableDefinition");
 
-					for(int i=0;i<tableSchemaEntries.size();i++){
-						
-					}	
+				if(args[0].equals("create") && args[1].equals("table") ){
+					if(client.createTable()){
+						System.out.println("Base tables have been inserted");
+					}
 				}
 			}
+
 
 			BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 			try {
