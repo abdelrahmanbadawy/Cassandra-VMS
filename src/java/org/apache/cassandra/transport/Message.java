@@ -27,6 +27,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.FileHandler;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
@@ -50,16 +51,22 @@ import org.apache.cassandra.transport.messages.*;
 import org.apache.cassandra.service.QueryState;
 import org.apache.cassandra.utils.JVMStabilityInspector;
 
-import javax.xml.validation.SchemaFactoryLoader;
+
 
 /**
  * A message from the CQL binary protocol.
  */
 public abstract class Message {
+	
 	protected static final Logger logger = LoggerFactory
 			.getLogger(Message.class);
+	
 
-	static PrintWriter pw;
+	static Logger commitLogger = LoggerFactory.getLogger("commitLogger");
+
+	
+	//static PrintWriter pw;
+
 	static long transactionId = 0;
 
 	/**
@@ -154,12 +161,13 @@ public abstract class Message {
 
 	protected Message(Type type) {
 		this.type = type;
-		try {
-			pw = new PrintWriter("output.txt");
-
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+//		try {
+//			pw = new PrintWriter("output.txt");
+//			
+//
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
 	}
 
 	public void attach(Connection connection) {
@@ -423,10 +431,10 @@ public abstract class Message {
 								|| request.toString().toLowerCase()
 										.contains("update") || (request
 								.toString().toLowerCase().contains("delete")))) {
-					pw.append(request.toString() + '\n');
-					this.parseInputForViewMaintenance2(request.toString() + '\n');
+					
+					this.parseInputForViewMaintenance(request.toString() + '\n');
 
-					pw.flush();
+					
 				}
 
 			} catch (Throwable t) {
@@ -444,7 +452,7 @@ public abstract class Message {
 			flush(new FlushItem(ctx, response, request.getSourceFrame()));
 		}
 
-		private void parseInputForViewMaintenance2(String rawInput) {
+		private void parseInputForViewMaintenance(String rawInput) {
 
 			transactionId++;
 
@@ -453,8 +461,9 @@ public abstract class Message {
 					.get(0);
 			String tableName;
 
-			pw.append(rawInput);
+			
 
+			//update
 			if (queryType.toLowerCase().equals("update")) {
 
 				tableName = rawInput.split(" ")[2];
@@ -488,10 +497,10 @@ public abstract class Message {
 					condition_values[i] = condition[1];
 				}
 
-				pw.append(convertUpdateToJSON(queryType, keySpaceName,
+				commitLogger.info(convertUpdateToJSON(queryType, keySpaceName,
 						tableName, condition_columns, condition_values,
 						set_data_columns, set_data_values, transactionId)
-						.toJSONString() + "\n");
+						.toJSONString());
 
 			} else {
 				// insert
@@ -506,7 +515,7 @@ public abstract class Message {
 					String[] values = splitRaw[1].split(";")[0]
 							.replace("(", "").replace(")", "").split(", ");
 
-					pw.append(convertInsertToJSON(queryType, keySpaceName,
+					commitLogger.info(convertInsertToJSON(queryType, keySpaceName,
 							tableName, columns, values, transactionId)
 							.toJSONString());
 
@@ -532,7 +541,7 @@ public abstract class Message {
 						condition_values[i] = condition[1];
 					}
 
-					pw.append(convertDeleteToJSON(queryType, keySpaceName,
+					commitLogger.info(convertDeleteToJSON(queryType, keySpaceName,
 							tableName, condition_columns, condition_values,
 							transactionId).toJSONString());
 				}
@@ -590,6 +599,9 @@ public abstract class Message {
 			return jsonObject;
 		}
 
+		/*
+		 * Converts delete query to JSON Object
+		 */
 		private JSONObject convertDeleteToJSON(String type, String ks,
 				String table, String[] condition_columns,
 				String[] condition_values, long tid) {

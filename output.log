@@ -1,0 +1,17 @@
+130487 [SharedPool-Worker-1] INFO  commitLogger - QUERY INSERT INTO users (user_id,  fname, lname)
+  VALUES (1745, 'john', 'smith');
+ 
+130487 [SharedPool-Worker-1] INFO  commitLogger - QUERY INSERT INTO users (user_id,  fname, lname)
+  VALUES (1745, 'john', 'smith');
+ 
+130488 [SharedPool-Worker-1] INFO  commitLogger - {"keyspace":"mykeyspace","data":{"lname\n":"'smith'","user_id":"1745","fname":"'john'"},"table":"users","tid":1,"type":"insert"} 
+2015-06-21 14:43:59,920 41022  INFO  - QUERY INSERT INTO users (user_id,  fname, lname)   VALUES (1745, 'john', 'smith');
+ 
+2015-06-21 14:43:59,921 41023  INFO  - QUERY INSERT INTO users (user_id,  fname, lname)   VALUES (1745, 'john', 'smith');
+ 
+2015-06-21 14:43:59,921 41023  INFO  - {"keyspace":"mykeyspace","data":{"lname":"'smith'","user_id":"1745","fname":"'john'"},"table":"users","tid":1,"type":"insert"} 
+2015-06-21 14:44:56,605 97707  INFO  - QUERY INSERT INTO users (user_id,  fname, lname)   VALUES (1745, 'john', 'smith');
+ 
+2015-06-21 14:44:56,606 97708  INFO  - QUERY INSERT INTO users (user_id,  fname, lname)   VALUES (1745, 'john', 'smith');
+ 
+2015-06-21 14:44:56,607 97709  INFO  - {"keyspace":"mykeyspace","data":{"lname":"'smith'","user_id":"1745","fname":"'john'"},"table":"users","tid":2,"type":"insert"} 
