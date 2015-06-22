@@ -1,4 +1,4 @@
-package client;
+package client.client;
 
 import com.datastax.driver.core.*;
 import com.datastax.driver.core.policies.DCAwareRoundRobinPolicy;
