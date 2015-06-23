@@ -47,7 +47,7 @@ public class TokenDistributor {
 		parseConfigFile();
 		retrieveTokens();
 
-
+        
 
 
 
@@ -86,6 +86,8 @@ public class TokenDistributor {
 			}
 
 			client.disconnectFromCluster();
+			
+			System.out.println("Tokens have been retrieved");
 
 		}catch(Exception e) {
 			e.printStackTrace();

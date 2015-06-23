@@ -43,8 +43,7 @@ public class ClientProcess {
 				System.out.println("-----create keyspace ");
 				System.out.println("-----create table ");
 				System.out.println("-----insert basetable data ");
-				System.out.println("-----drop table ");
-				System.out.println("-----drop keyspace ");
+				
 			}else{
 
 				if(args[0].equals("create") && args[1].equals("keyspace") ){
@@ -57,19 +56,34 @@ public class ClientProcess {
 						if(client.createKeySpace(keyspace)){
 							System.out.println("Keyspace has been added");
 						}
-					}			
-				}
-
-
-				if(args[0].equals("create") && args[1].equals("table") ){
+					}	
+					
+				}else if(args[0].equals("create") && args[1].equals("table") ){
 					if(client.createTable()){
 						System.out.println("Base tables have been inserted");
 					}
-				}
-				
-				if(args[0].equals("insert") && args[1].equals("basetable") && args[2].equals("data") ){
+					
+				}else if(args[0].equals("insert") && args[1].equals("basetable") && args[2].equals("data") ){
 					client.disconnectFromCluster(Client.currentCluster);
 					tokenDist.tokenDistributorProcess();
+
+				}else if(args[0].equals("help")){
+
+					System.out.println("Possible commands are:");
+					System.out.println("-----exit");
+					System.out.println("-----help");
+					System.out.println("-----create keyspace ");
+					System.out.println("-----create table ");
+					System.out.println("-----insert basetable data ");
+					
+				}else{
+
+					System.out.println("Possible commands are:");
+					System.out.println("-----exit");
+					System.out.println("-----help");
+					System.out.println("-----create keyspace ");
+					System.out.println("-----create table ");
+					System.out.println("-----insert basetable data ");
 					
 				}
 			}
@@ -84,6 +98,8 @@ public class ClientProcess {
 			}
 
 		}
+		
+		client.currentCluster.close();
 
 	}
 
