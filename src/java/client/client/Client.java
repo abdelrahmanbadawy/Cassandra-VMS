@@ -52,6 +52,15 @@ public class Client {
 			e.printStackTrace();
 		}	
 	}
+	
+	public static void disconnectFromCluster() {
+
+		try {
+			currentCluster.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}	
+	}
 
 	public static boolean clusterIsConnected(Cluster cluster){
 
@@ -60,6 +69,10 @@ public class Client {
 		}
 
 		return true;
+	}
+	
+	public Cluster getClusterInstance(){
+		return currentCluster;
 	}
 
 	public static boolean createKeySpace(String keyspace){
@@ -89,7 +102,7 @@ public class Client {
 
 		for(int i=0;i<nrTables;i++){
 			StringBuilder createQuery = new StringBuilder();
-			createQuery.append("CREATE TABLE ").append(keyspace.get(i)).append(".").append(tableName.get(i)+"(")
+			createQuery.append("CREATE TABLE IF NOT EXISTS  ").append(keyspace.get(i)).append(".").append(tableName.get(i)+"(")
 			.append(primarykeyName.get(i)+" ").append(primarykeyType.get(i)).append(" PRIMARY KEY,");
 
 			for(int j=0;j<nrColumns;j++){
