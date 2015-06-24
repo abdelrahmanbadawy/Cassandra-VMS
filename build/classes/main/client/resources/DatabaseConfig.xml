@@ -3,6 +3,7 @@
 	<dbSchema>
 		<tableNumber>2</tableNumber>
 		<tableDefinition>
+		    <columnNumber>3</columnNumber>
 			<keyspace>test</keyspace>
 			<name>emp</name>
 			<primaryKey>
@@ -28,6 +29,7 @@
 		<tableDefinition>
 			<keyspace>test</keyspace>
 			<name>student</name>
+			 <columnNumber>4</columnNumber>
 			<primaryKey>
 				<type>int</type>
 				<name>id</name>

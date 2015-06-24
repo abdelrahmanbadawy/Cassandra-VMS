@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<setup>
+	<config>
+		<host>
+			<localhost>192.168.56.101</localhost>
+			<ip>192.168.56.102</ip>
+		</host>
+		<numberNodes>
+			<value>2</value>
+		</numberNodes>
+	</config>
+</setup>

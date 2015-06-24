@@ -1,0 +1,61 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<setup>
+	<dbSchema>
+		<tableNumber>2</tableNumber>
+		<tableDefinition>
+		    <columnNumber>3</columnNumber>
+			<keyspace>test</keyspace>
+			<name>empSelectView</name>
+			<primaryKey>
+				<type>int</type>
+				<name>id</name>
+			</primaryKey>
+			<column>
+				<family>colfam1</family>
+				<type>text</type>
+				<name>name</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>varint</type>
+				<name>salary</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>varint</type>
+				<name>phone</name>
+			</column>
+		</tableDefinition>
+		<tableDefinition>
+			<keyspace>test</keyspace>
+			<name>studentSelectView</name>
+			 <columnNumber>4</columnNumber>
+			<primaryKey>
+				<type>int</type>
+				<name>id</name>
+			</primaryKey>
+			<column>
+				<family>colfam2</family>
+				<type>text</type>
+				<name>name</name>
+			</column>
+			<column>
+				<family>colfam2</family>
+				<type>varint</type>
+				<name>GPA</name>
+			</column>
+			<column>
+				<family>colfam2</family>
+				<type>varint</type>
+				<name>address</name>
+			</column>
+			<column>
+				<family>colfam2</family>
+				<type>text</type>
+				<name>class</name>
+			</column>
+		</tableDefinition>
+	</dbSchema>
+
+
+</setup>

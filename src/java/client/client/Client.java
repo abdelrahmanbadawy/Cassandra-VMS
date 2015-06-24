@@ -5,6 +5,7 @@ import com.datastax.driver.core.policies.DCAwareRoundRobinPolicy;
 import com.datastax.driver.core.policies.DefaultRetryPolicy;
 import com.datastax.driver.core.policies.TokenAwarePolicy;
 import java.util.List;
+import java.util.Iterator;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.XMLConfiguration;
 
@@ -12,7 +13,9 @@ import org.apache.commons.configuration.XMLConfiguration;
 public class Client {
 
 	static Cluster currentCluster = null;
+	
 	private static XMLConfiguration databaseConfig;
+	private static XMLConfiguration viewConfig;
 	private static XMLConfiguration empData;
 	private static XMLConfiguration studentData;
 	public String currentDataFile;
@@ -21,8 +24,13 @@ public class Client {
 
 		databaseConfig = new XMLConfiguration();
 		databaseConfig.setDelimiterParsingDisabled(true);
+		
+		
+		viewConfig = new XMLConfiguration();
+		viewConfig.setDelimiterParsingDisabled(true);
 		try {
 			databaseConfig.load("client/resources/DatabaseConfig.xml");
+			viewConfig.load("client/resources/ViewConfig.xml");
 		} catch (ConfigurationException e) {
 			e.printStackTrace();
 		}
@@ -174,6 +182,87 @@ public class Client {
 			e.printStackTrace();	
 		}
 
+	}
+	
+	/**
+	 * This method creates the select view tables and inserts the data
+	 * accordingly
+	 */
+	public static boolean createViewTable() {
+
+		List<String> keyspace = viewConfig
+				.getList("dbSchema.tableDefinition.keyspace");
+		List<String> tableName = viewConfig
+				.getList("dbSchema.tableDefinition.name");
+		Integer nrTables = viewConfig.getInt("dbSchema.tableNumber");
+		List<String> primarykeyType = viewConfig
+				.getList("dbSchema.tableDefinition.primaryKey.type");
+		List<String> primarykeyName = viewConfig
+				.getList("dbSchema.tableDefinition.primaryKey.name");
+		Integer nrColumns = viewConfig
+				.getInt("dbSchema.tableDefinition.columnNumber");
+		List<String> colFamily = viewConfig
+				.getList("dbSchema.tableDefinition.column.family");
+		List<String> colName = viewConfig
+				.getList("dbSchema.tableDefinition.column.name");
+		List<String> colType = viewConfig
+				.getList("dbSchema.tableDefinition.column.type");
+
+		for (int i = 0; i < nrTables; i++) {
+			StringBuilder createQuery = new StringBuilder();
+			createQuery.append("CREATE TABLE IF NOT EXISTS  ")
+					.append(keyspace.get(i)).append(".")
+					.append(tableName.get(i) + "(")
+					.append(primarykeyName.get(i) + " ")
+					.append(primarykeyType.get(i)).append(" PRIMARY KEY,");
+
+			for (int j = 0; j < nrColumns; j++) {
+				createQuery.append(colName.get(j) + " ").append(
+						colType.get(j) + ",");
+			}
+
+			createQuery.deleteCharAt(createQuery.length() - 1);
+			createQuery.append(");");
+
+			Session session = null;
+
+			System.out.println(createQuery.toString());
+
+			try {
+				session = currentCluster.connect();
+				ResultSet queryResults = session
+						.execute(createQuery.toString());
+			} catch (Exception e) {
+				e.printStackTrace();
+				return false;
+			}
+
+			StringBuilder selectQuery = new StringBuilder();
+
+			selectQuery.append("SELECT * FROM ").append(tableName.get(i))
+					.append(";");
+
+			try {
+				Iterator<Row> queryResults = session.execute(
+						selectQuery.toString()).iterator();
+
+				while (queryResults.hasNext()) {
+					Row currentRow = queryResults.next();
+					List columns = currentRow.getColumnDefinitions().asList();
+					
+					for(int j=0; j<columns.size();j++){
+						
+					}
+				}
+
+			} catch (Exception e) {
+				e.printStackTrace();
+				return false;
+			}
+
+		}
+
+		return true;
 	}
 
 
