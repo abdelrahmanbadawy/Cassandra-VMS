@@ -23,7 +23,7 @@ public class ClientProcess {
 	public static void main(String[] args){
 
 		client = new Client();
-		cluster =  client.connectToCluster("localhost");
+		cluster =  client.connectToCluster("192.168.56.101");
 		tokenDist = new TokenDistributor();
 
 		databaseConfig = new XMLConfiguration();

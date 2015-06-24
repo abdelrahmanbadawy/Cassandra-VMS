@@ -83,6 +83,7 @@ public class TokenDistributor {
 
 	}
 
+	
 	static LongToken generateRandomTokenMurmurPartition(int randKeyGenerated) {
 		BigInteger bigInt = BigInteger.valueOf(randKeyGenerated);
 		Murmur3Partitioner murmur3PartitionerObj = new Murmur3Partitioner();
@@ -95,7 +96,7 @@ public class TokenDistributor {
 
 		int nrPrimaryKeys = empConfig.getInt("NumberOfEntries");
 		int nrNodes = ipAddress.size()+1;
-		int nrEntriesPerNode = nrPrimaryKeys%nrNodes;
+		int nrEntriesPerNode = (nrPrimaryKeys%nrNodes)*nrNodes;
 		Map count = new HashMap<String,Integer>();
 		int fileCursor = 0;
 
@@ -103,7 +104,7 @@ public class TokenDistributor {
 		for(int i=0;i<ipAddress.size();i++){
 			count.put(ipAddress.get(i), nrEntriesPerNode);
 		}
-		count.put(getLocalhost(),nrPrimaryKeys-(nrEntriesPerNode*nrNodes));
+		count.put(getLocalhost(),nrPrimaryKeys-(nrEntriesPerNode*(nrNodes-1)));
 
 
 		/*for(int i=0;i<nrPrimaryKeys;i++){
@@ -122,10 +123,18 @@ public class TokenDistributor {
 			LongToken hashedPK = generateRandomTokenMurmurPartition(pk);
 
 			String suggestedNode = testmap.ceilingEntry(hashedPK.getTokenValue()).getValue();
-			Integer remainingCount = new Integer((int) count.get(suggestedNode));
+			
+			if(suggestedNode==null || !count.containsKey(suggestedNode)){
+				continue;
+			}
+			
+			int remainingCount = (int) count.get(suggestedNode);
 
-			if(remainingCount!=0){
-				count.put(suggestedNode,remainingCount--);
+			if(remainingCount>0){
+				
+				remainingCount--;
+				count.put(suggestedNode,remainingCount);
+				
 				client.insertBaseTable(fileCursor,pk);
 
 				fileCursor++;
