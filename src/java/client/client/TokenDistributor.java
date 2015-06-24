@@ -26,7 +26,7 @@ import com.datastax.driver.core.Metadata;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
-import com.datastax.driver.core.TokenRange;
+//import com.datastax.driver.core.TokenRange;
 import com.datastax.driver.core.policies.DCAwareRoundRobinPolicy;
 import com.datastax.driver.core.policies.LoadBalancingPolicy;
 import com.datastax.driver.core.policies.TokenAwarePolicy;
@@ -40,7 +40,7 @@ public class TokenDistributor {
 	private static Client client;
 	private static List<String> ipAddress;
 	private static List<List<String>> tokenRanges;
-	private static Set<Set<TokenRange>> tokenRanges1;
+	//private static Set<Set<TokenRange>> tokenRanges1;
 	private static NavigableMap<Long,String> testmap;
 	private static XMLConfiguration empConfig;
 
@@ -49,7 +49,7 @@ public class TokenDistributor {
 		client = new Client();
 		clusterConfig = new XMLConfiguration();
 		tokenRanges = new ArrayList<List<String>>(); 
-		tokenRanges1 = new HashSet<Set<TokenRange>>();
+		//tokenRanges1 = new HashSet<Set<TokenRange>>();
 		testmap = new TreeMap();
 
 		clusterConfig.setDelimiterParsingDisabled(true);
@@ -156,7 +156,7 @@ public class TokenDistributor {
 	}
 
 
-	private static void retrieveTokens1(){
+	/*private static void retrieveTokens1(){
 
 		Metadata localhostMetadata = client.connectToCluster(getLocalhost()).getMetadata();
 		Set<TokenRange> localhostTokenRange = localhostMetadata.getTokenRanges();
@@ -173,7 +173,7 @@ public class TokenDistributor {
 
 		}
 
-	}
+	}*/
 
 	private static void retrieveTokens(){
 
