@@ -13,6 +13,9 @@ public class Client {
 
 	static Cluster currentCluster = null;
 	private static XMLConfiguration databaseConfig;
+	private static XMLConfiguration empData;
+	private static XMLConfiguration studentData;
+	public String currentDataFile;
 
 	Client() {
 
@@ -23,6 +26,24 @@ public class Client {
 		} catch (ConfigurationException e) {
 			e.printStackTrace();
 		}
+
+		empData = new XMLConfiguration();
+		empData.setDelimiterParsingDisabled(true);
+		try {
+			empData.load("client/data/emp.xml");
+		} catch (ConfigurationException e) {
+			e.printStackTrace();
+		}
+
+		studentData = new XMLConfiguration();
+		studentData.setDelimiterParsingDisabled(true);
+		try {
+			studentData.load("client/data/emp.xml"); //change
+		} catch (ConfigurationException e) {
+			e.printStackTrace();
+		}
+
+
 	}
 
 	public static Cluster connectToCluster(String ipAddress) {
@@ -52,7 +73,7 @@ public class Client {
 			e.printStackTrace();
 		}	
 	}
-	
+
 	public static void disconnectFromCluster() {
 
 		try {
@@ -70,7 +91,7 @@ public class Client {
 
 		return true;
 	}
-	
+
 	public Cluster getClusterInstance(){
 		return currentCluster;
 	}
@@ -113,7 +134,7 @@ public class Client {
 			createQuery.append(");");
 
 			Session session = null;
-			
+
 			System.out.println(createQuery.toString());
 
 			try{
@@ -124,12 +145,36 @@ public class Client {
 				return false;
 			}
 		}		
-		
+
 		return true;
 	}
 
 
 
+	public void insertBaseTable(int fileCursor,int pk) {
+
+		XMLConfiguration dataHandel = new XMLConfiguration();
+
+		if(currentDataFile=="emp"){
+			dataHandel = empData;
+		}else if (currentDataFile=="student"){
+			dataHandel = studentData;
+		}
+
+		currentDataFile = "emp";
+		Session session = null;
+
+		String insertQuery = "insert into test."+currentDataFile+"(id,name,phone,salary)"+"values("+pk+",'sara',012425262,4000);";
+		System.out.println(insertQuery);
+		
+		try{
+			session = currentCluster.connect();
+			ResultSet queryResults = session.execute(insertQuery.toString());
+		}catch(Exception e) {
+			e.printStackTrace();	
+		}
+
+	}
 
 
 
