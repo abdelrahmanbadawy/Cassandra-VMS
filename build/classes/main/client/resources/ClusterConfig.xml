@@ -2,11 +2,10 @@
 <setup>
 	<config>
 		<host>
-			<localhost>192.168.56.101</localhost>
-			<ip>192.168.56.102</ip>
+			<localhost>127.0.0.1</localhost>
 		</host>
 		<numberNodes>
-			<value>2</value>
+			<value>1</value>
 		</numberNodes>
 	</config>
 </setup>

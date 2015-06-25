@@ -17,14 +17,14 @@ public class ClientProcess {
 	private static Cluster cluster = null;
 	private static XMLConfiguration databaseConfig;
 	static Client client;
-	static TokenDistributor tokenDist;
+//	static TokenDistributor tokenDist;
 
 
 	public static void main(String[] args){
 
 		client = new Client();
 		cluster =  client.connectToCluster("192.168.56.101");
-		tokenDist = new TokenDistributor();
+//		tokenDist = new TokenDistributor();
 
 		databaseConfig = new XMLConfiguration();
 		databaseConfig.setDelimiterParsingDisabled(true);
@@ -43,6 +43,7 @@ public class ClientProcess {
 				System.out.println("-----create keyspace ");
 				System.out.println("-----create table ");
 				System.out.println("-----insert basetable data ");
+				System.out.println("-----insert viewtable ");
 				
 			}else{
 
@@ -65,9 +66,17 @@ public class ClientProcess {
 					
 				}else if(args[0].equals("insert") && args[1].equals("basetable") && args[2].equals("data") ){
 					client.disconnectFromCluster(Client.currentCluster);
-					tokenDist.tokenDistributorProcess();
+				//	tokenDist.tokenDistributorProcess();
 
-				}else if(args[0].equals("help")){
+				}else if(args[0].equals("insert") && args[1].equals("viewtable")){
+					if(client.createViewTable()){
+						System.out.println("View tables have been inserted");
+					}
+				}
+					
+					
+					
+				else	if(args[0].equals("help")){
 
 					System.out.println("Possible commands are:");
 					System.out.println("-----exit");
@@ -75,6 +84,7 @@ public class ClientProcess {
 					System.out.println("-----create keyspace ");
 					System.out.println("-----create table ");
 					System.out.println("-----insert basetable data ");
+					System.out.println("-----insert viewtable ");
 					
 				}else{
 
@@ -84,6 +94,7 @@ public class ClientProcess {
 					System.out.println("-----create keyspace ");
 					System.out.println("-----create table ");
 					System.out.println("-----insert basetable data ");
+					System.out.println("-----insert viewtable ");
 					
 				}
 			}

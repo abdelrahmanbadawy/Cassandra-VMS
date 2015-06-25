@@ -515,6 +515,7 @@ public abstract class Message {
 					String[] values = splitRaw[1].split(";")[0]
 							.replace("(", "").replace(")", "").split(", ");
 
+					if(!tableName.contains("SelectView"))
 					commitLogger.info(convertInsertToJSON(queryType, keySpaceName,
 							tableName, columns, values, transactionId)
 							.toJSONString());
