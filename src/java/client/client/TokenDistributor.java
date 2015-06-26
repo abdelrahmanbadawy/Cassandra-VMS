@@ -193,7 +193,7 @@ public class TokenDistributor {
 
 		try{
 
-			session = client.connectToCluster(ipAddress.get(0)).connect();
+			//session = client.connectToCluster(ipAddress.get(0)).connect();
 			tokenSelectQuery = "select tokens from system.peers where peer='"+getLocalhost()+"';";			
 
 			result = session.execute(tokenSelectQuery);
@@ -205,7 +205,7 @@ public class TokenDistributor {
 
 			client.disconnectFromCluster();
 
-			session = client.connectToCluster(getLocalhost()).connect();
+			//session = client.connectToCluster(getLocalhost()).connect();
 
 			for(int i=0;i<ipAddress.size();i++){ 
 				tokenSelectQuery = "select tokens from system.peers where peer='"+ipAddress.get(i)+"';";			

@@ -40,7 +40,7 @@ public class Client {
 
 	}
 
-	public static Cluster connectToCluster(String ipAddress) {
+	public static void connectToCluster(String ipAddress) {
 
 		Cluster cluster = null;
 
@@ -57,7 +57,7 @@ public class Client {
 		}
 
 		currentCluster = cluster;
-		return cluster;
+		
 	}
 
 	public static void disconnectFromCluster(Cluster cluster) {
@@ -87,7 +87,7 @@ public class Client {
 		return true;
 	}
 
-	public Cluster getClusterInstance() {
+	public static Cluster getClusterInstance() {
 		return currentCluster;
 	}
 

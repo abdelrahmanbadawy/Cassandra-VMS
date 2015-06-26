@@ -31,8 +31,8 @@ public class CommitLogReader {
 
 	public void read() {
 
-		Client client = new Client();
-		Cluster cluster = client.connectToCluster("192.168.56.101");
+		
+		Client.connectToCluster("192.168.56.101");
 		
 		String raw;
 		try {
@@ -98,7 +98,7 @@ public class CommitLogReader {
 						
 						System.out.println(insertQuery);
 						
-						Session session = cluster.connect();
+						Session session = Client.getClusterInstance().connect();
 						
 						session
 						.execute(insertQuery.toString());
@@ -123,7 +123,7 @@ public class CommitLogReader {
 				raw = br.readLine();
 			}
 			
-			cluster.close();
+			Client.getClusterInstance().close();
 			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
