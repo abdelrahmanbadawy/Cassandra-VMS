@@ -17,23 +17,15 @@ public class ClientProcess {
 	private static Cluster cluster = null;
 	private static XMLConfiguration databaseConfig;
 	static Client client;
-//	static TokenDistributor tokenDist;
 
 
 	public static void main(String[] args){
 
 		client = new Client();
 		cluster =  client.connectToCluster("192.168.56.101");
-//		tokenDist = new TokenDistributor();
 
-		databaseConfig = new XMLConfiguration();
-		databaseConfig.setDelimiterParsingDisabled(true);
-		try {
-			databaseConfig.load("client/resources/DatabaseConfig.xml");
-		} catch (ConfigurationException e) {
-			e.printStackTrace();
-		}
-
+		loadXmlFiles();
+		
 		while(args.length == 0 || !args[0].equals("exit")){
 
 			if(args == null || args.length == 0){
@@ -61,7 +53,7 @@ public class ClientProcess {
 					
 				}else if(args[0].equals("create") && args[1].equals("table") ){
 					if(client.createTable()){
-						System.out.println("Base tables have been inserted");
+						System.out.println("Base table schemas have been inserted");
 					}
 					
 				}else if(args[0].equals("insert") && args[1].equals("basetable") && args[2].equals("data") ){
@@ -114,7 +106,17 @@ public class ClientProcess {
 
 	}
 
-
+    
+	private static void loadXmlFiles(){
+		
+		databaseConfig = new XMLConfiguration();
+		databaseConfig.setDelimiterParsingDisabled(true);
+		try {
+			databaseConfig.load("client/resources/DatabaseConfig.xml");
+		} catch (ConfigurationException e) {
+			e.printStackTrace();
+		}
+	}
 
 
 }

@@ -132,8 +132,8 @@ public class Client {
 				.getList("dbSchema.tableDefinition.primaryKey.type");
 		List<String> primarykeyName = databaseConfig
 				.getList("dbSchema.tableDefinition.primaryKey.name");
-		Integer nrColumns = databaseConfig
-				.getInt("dbSchema.tableDefinition.columnNumber");
+		List<String> nrColumns = databaseConfig
+				.getList("dbSchema.tableDefinition.columnNumber");
 		List<String> colFamily = databaseConfig
 				.getList("dbSchema.tableDefinition.column.family");
 		List<String> colName = databaseConfig
@@ -141,6 +141,8 @@ public class Client {
 		List<String> colType = databaseConfig
 				.getList("dbSchema.tableDefinition.column.type");
 
+		int cursor = 0;
+		
 		for (int i = 0; i < nrTables; i++) {
 			StringBuilder createQuery = new StringBuilder();
 			createQuery.append("CREATE TABLE IF NOT EXISTS  ")
@@ -149,11 +151,13 @@ public class Client {
 					.append(primarykeyName.get(i) + " ")
 					.append(primarykeyType.get(i)).append(" PRIMARY KEY,");
 
-			for (int j = 0; j < nrColumns; j++) {
-				createQuery.append(colName.get(j) + " ").append(
+			for (int j = 0; j < Integer.parseInt(nrColumns.get(i)); j++) {
+				createQuery.append(colName.get(cursor+j) + " ").append(
 						colType.get(j) + ",");
 			}
 
+			cursor+=Integer.parseInt(nrColumns.get(i));  
+			
 			createQuery.deleteCharAt(createQuery.length() - 1);
 			createQuery.append(");");
 
