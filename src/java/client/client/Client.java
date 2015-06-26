@@ -16,25 +16,11 @@ public class Client {
 
 	static Cluster currentCluster = null;
 
-	private static XMLConfiguration databaseConfig;
-	private static XMLConfiguration viewConfig;
 	private static XMLConfiguration empData;
 	private static XMLConfiguration studentData;
 	public String currentDataFile;
 
 	public Client() {
-
-		databaseConfig = new XMLConfiguration();
-		databaseConfig.setDelimiterParsingDisabled(true);
-
-		viewConfig = new XMLConfiguration();
-		viewConfig.setDelimiterParsingDisabled(true);
-		try {
-			databaseConfig.load("client/resources/DatabaseConfig.xml");
-			viewConfig.load("client/resources/ViewConfig.xml");
-		} catch (ConfigurationException e) {
-			e.printStackTrace();
-		}
 
 		empData = new XMLConfiguration();
 		empData.setDelimiterParsingDisabled(true);
@@ -123,22 +109,23 @@ public class Client {
 
 	public static boolean createTable() {
 
-		List<String> keyspace = databaseConfig
+		List<String> keyspace = XmlHandler.getInstance().getDatabaseConfig()
 				.getList("dbSchema.tableDefinition.keyspace");
-		List<String> tableName = databaseConfig
+		List<String> tableName = XmlHandler.getInstance().getDatabaseConfig()
 				.getList("dbSchema.tableDefinition.name");
-		Integer nrTables = databaseConfig.getInt("dbSchema.tableNumber");
-		List<String> primarykeyType = databaseConfig
+		Integer nrTables = XmlHandler.getInstance().getDatabaseConfig()
+				.getInt("dbSchema.tableNumber");
+		List<String> primarykeyType =XmlHandler.getInstance().getDatabaseConfig()
 				.getList("dbSchema.tableDefinition.primaryKey.type");
-		List<String> primarykeyName = databaseConfig
+		List<String> primarykeyName =XmlHandler.getInstance().getDatabaseConfig()
 				.getList("dbSchema.tableDefinition.primaryKey.name");
-		List<String> nrColumns = databaseConfig
+		List<String> nrColumns = XmlHandler.getInstance().getDatabaseConfig()
 				.getList("dbSchema.tableDefinition.columnNumber");
-		List<String> colFamily = databaseConfig
+		List<String> colFamily = XmlHandler.getInstance().getDatabaseConfig()
 				.getList("dbSchema.tableDefinition.column.family");
-		List<String> colName = databaseConfig
+		List<String> colName = XmlHandler.getInstance().getDatabaseConfig()
 				.getList("dbSchema.tableDefinition.column.name");
-		List<String> colType = databaseConfig
+		List<String> colType = XmlHandler.getInstance().getDatabaseConfig()
 				.getList("dbSchema.tableDefinition.column.type");
 
 		int cursor = 0;
@@ -211,22 +198,23 @@ public class Client {
 	 */
 	public static boolean createViewTable() {
 
-		List<String> keyspace = viewConfig
+		List<String> keyspace = XmlHandler.getInstance().getViewConfig()
 				.getList("dbSchema.tableDefinition.keyspace");
-		List<String> tableName = viewConfig
+		List<String> tableName = XmlHandler.getInstance().getViewConfig()
 				.getList("dbSchema.tableDefinition.name");
-		Integer nrTables = viewConfig.getInt("dbSchema.tableNumber");
-		List<String> primarykeyType = viewConfig
+		Integer nrTables = XmlHandler.getInstance().getViewConfig()
+				.getInt("dbSchema.tableNumber");
+		List<String> primarykeyType = XmlHandler.getInstance().getViewConfig()
 				.getList("dbSchema.tableDefinition.primaryKey.type");
-		List<String> primarykeyName = viewConfig
+		List<String> primarykeyName = XmlHandler.getInstance().getViewConfig()
 				.getList("dbSchema.tableDefinition.primaryKey.name");
-		Integer nrColumns = viewConfig
+		Integer nrColumns = XmlHandler.getInstance().getViewConfig()
 				.getInt("dbSchema.tableDefinition.columnNumber");
-		List<String> colFamily = viewConfig
+		List<String> colFamily = XmlHandler.getInstance().getViewConfig()
 				.getList("dbSchema.tableDefinition.column.family");
-		List<String> colName = viewConfig
+		List<String> colName = XmlHandler.getInstance().getViewConfig()
 				.getList("dbSchema.tableDefinition.column.name");
-		List<String> colType = viewConfig
+		List<String> colType = XmlHandler.getInstance().getViewConfig()
 				.getList("dbSchema.tableDefinition.column.type");
 
 		for (int i = 0; i < nrTables -1; i++) {

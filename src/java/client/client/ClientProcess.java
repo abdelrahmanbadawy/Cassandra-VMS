@@ -6,8 +6,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashSet;
 import java.util.List;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.XMLConfiguration;
+
 import com.datastax.driver.core.Cluster;
 
 
@@ -15,17 +14,14 @@ public class ClientProcess {
 
 
 	private static Cluster cluster = null;
-	private static XMLConfiguration databaseConfig;
 	static Client client;
-
 
 	public static void main(String[] args){
 
 		client = new Client();
-		cluster =  client.connectToCluster("192.168.56.101");
-
-		loadXmlFiles();
+		cluster =  client.connectToCluster(XmlHandler.getInstance().getClusterConfig().getString("config.host.localhost"));
 		
+
 		while(args.length == 0 || !args[0].equals("exit")){
 
 			if(args == null || args.length == 0){
@@ -41,7 +37,8 @@ public class ClientProcess {
 
 				if(args[0].equals("create") && args[1].equals("keyspace") ){
 
-					List<String> keyspaceEntries  = databaseConfig.getList("dbSchema.tableDefinition.keyspace");
+					List<String> keyspaceEntries  = XmlHandler.getInstance().getDatabaseConfig().
+							getList("dbSchema.tableDefinition.keyspace");
 					HashSet<String> uniqueKeyspaceEntries = new HashSet<String>();
 					uniqueKeyspaceEntries.addAll(keyspaceEntries);
 
@@ -105,18 +102,5 @@ public class ClientProcess {
 		client.currentCluster.close();
 
 	}
-
-    
-	private static void loadXmlFiles(){
-		
-		databaseConfig = new XMLConfiguration();
-		databaseConfig.setDelimiterParsingDisabled(true);
-		try {
-			databaseConfig.load("client/resources/DatabaseConfig.xml");
-		} catch (ConfigurationException e) {
-			e.printStackTrace();
-		}
-	}
-
 
 }
