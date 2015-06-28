@@ -25,13 +25,14 @@ public class ClientProcess {
 				System.out.println("-----help");
 				System.out.println("-----create keyspace ");
 				System.out.println("-----create table ");
-				System.out.println("-----insert basetable data ");
+				System.out.println("-----insert basetable --name(emp,student) ");
 				System.out.println("-----insert viewtable ");
 				
 			}else{
 
 				if(args[0].equals("create") && args[1].equals("keyspace") ){
 
+					@SuppressWarnings("unchecked")
 					List<String> keyspaceEntries  = XmlHandler.getInstance().getDatabaseConfig().
 							getList("dbSchema.tableDefinition.keyspace");
 					HashSet<String> uniqueKeyspaceEntries = new HashSet<String>();
@@ -48,8 +49,8 @@ public class ClientProcess {
 						System.out.println("Base table schemas have been inserted");
 					}
 					
-				}else if(args[0].equals("insert") && args[1].equals("basetable") && args[2].equals("data") ){
-					
+				}else if(args[0].equals("insert") && args[1].equals("basetable")){
+					Client.insertBaseTable(args[2]);
 
 				}else if(args[0].equals("insert") && args[1].equals("viewtable")){
 					if(Client.createViewTable()){
@@ -63,7 +64,7 @@ public class ClientProcess {
 					System.out.println("-----help");
 					System.out.println("-----create keyspace ");
 					System.out.println("-----create table ");
-					System.out.println("-----insert basetable data ");
+					System.out.println("-----insert basetable --name(emp,student) ");
 					System.out.println("-----insert viewtable ");
 					
 				}else{
@@ -73,7 +74,7 @@ public class ClientProcess {
 					System.out.println("-----help");
 					System.out.println("-----create keyspace ");
 					System.out.println("-----create table ");
-					System.out.println("-----insert basetable data ");
+					System.out.println("-----insert basetable --name(emp,student) ");
 					System.out.println("-----insert viewtable ");
 					
 				}
