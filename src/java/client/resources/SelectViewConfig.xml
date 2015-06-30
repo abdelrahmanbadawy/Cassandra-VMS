@@ -3,6 +3,8 @@
 	<dbSchema>
 		<tableNumber>2</tableNumber>
 		<tableDefinition>
+		    <baseTable>emp</baseTable>
+			<condition>salary >= 2000</condition>
 		    <columnNumber>3</columnNumber>
 			<keyspace>test</keyspace>
 			<name>empSelectView</name>
@@ -29,6 +31,8 @@
 		<tableDefinition>
 			<keyspace>test</keyspace>
 			<name>studentSelectView</name>
+		    <baseTable>student</baseTable>
+			<condition>GPA >= 2</condition>
 			 <columnNumber>4</columnNumber>
 			<primaryKey>
 				<type>int</type>
