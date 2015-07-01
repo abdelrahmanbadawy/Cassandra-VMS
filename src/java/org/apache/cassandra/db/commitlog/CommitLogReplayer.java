@@ -19,28 +19,33 @@
 package org.apache.cassandra.db.commitlog;
 
 import java.io.*;
+import java.nio.ByteBuffer;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.datastax.driver.core.utils.Bytes;
 import com.google.common.base.Predicate;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Ordering;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.apache.cassandra.concurrent.Stage;
 import org.apache.cassandra.concurrent.StageManager;
+import org.apache.cassandra.config.CFMetaData;
+import org.apache.cassandra.config.ColumnDefinition;
 import org.apache.cassandra.config.Schema;
 import org.apache.cassandra.db.*;
+import org.apache.cassandra.db.composites.CellName;
 import org.apache.cassandra.io.util.FastByteArrayInputStream;
 import org.apache.cassandra.io.util.FileUtils;
 import org.apache.cassandra.io.util.RandomAccessReader;
 import org.apache.cassandra.utils.*;
-
 import org.cliffc.high_scale_lib.NonBlockingHashSet;
 
 public class CommitLogReplayer
@@ -227,6 +232,7 @@ public class CommitLogReplayer
 
     public void recover(File file) throws IOException
     {
+    	//System.out.println("---------- Inside recover function in CommitLogReplayer.java ");
         final ReplayFilter replayFilter = ReplayFilter.create();
         logger.info("Replaying {}", file.getPath());
         CommitLogDescriptor desc = CommitLogDescriptor.fromFileName(file.getName());
@@ -263,16 +269,16 @@ public class CommitLogReplayer
                 if (end < prevEnd)
                     break;
 
-                if (logger.isDebugEnabled())
-                    logger.debug("Replaying {} between {} and {}", file, offset, end);
+               // if (logger.isDebugEnabled())
+                    logger.info("Replaying {} between {} and {}", file, offset, end);
 
                 reader.seek(offset);
 
                  /* read the logs populate Mutation and apply */
                 while (reader.getPosition() < end && !reader.isEOF())
                 {
-                    if (logger.isDebugEnabled())
-                        logger.debug("Reading mutation at {}", reader.getFilePointer());
+                   // if (logger.isDebugEnabled())
+                        logger.info("Reading mutation at {}", reader.getFilePointer());
 
                     long claimedCRC32;
                     int serializedSize;
@@ -282,7 +288,7 @@ public class CommitLogReplayer
                         serializedSize = reader.readInt();
                         if (serializedSize == LEGACY_END_OF_SEGMENT_MARKER)
                         {
-                            logger.debug("Encountered end of segment marker at {}", reader.getFilePointer());
+                            logger.info("Encountered end of segment marker at {}", reader.getFilePointer());
                             break main;
                         }
 
@@ -377,7 +383,50 @@ public class CommitLogReplayer
 
                     if (logger.isDebugEnabled())
                         logger.debug("replaying mutation for {}.{}: {}", mutation.getKeyspaceName(), ByteBufferUtil.bytesToHex(mutation.key()), "{" + StringUtils.join(mutation.getColumnFamilies().iterator(), ", ") + "}");
+                        /*Collection<ColumnFamily> myCollection  = mutation.getColumnFamilies();
+                        for(ColumnFamily cf:myCollection) {
+                        
+                        	CFMetaData cfm = cf.metadata();
+                            
 
+                            for (Cell cell : cf) 
+                            {
+                               try 
+                               {
+                            	   
+                            	  List<ColumnDefinition> colDef = cfm.partitionKeyColumns();
+
+                            	  logger.info("partition key={}.",cf.metadata().partitionKeyColumns().get(0).name.toString()); 
+                            	
+                            	 
+                            	  
+                            	  logger.info("partition key={}.",colDef.get(0)); 
+                            	  
+                            	 
+                            	  
+                            	  
+                            	   String name = cfm.comparator.getString(cell.name());
+                                   logger.info("name={}.", name);
+
+                                   String value = cfm.getValueValidator(cell.name()).getString(cell.value());
+                                   logger.info("value={}.", value);               
+                               } catch (Exception e) {
+                                   logger.info("Exception={}.", e.getMessage());
+                               }
+                           }
+                        	
+                        	
+                        	Iterable<CellName> IterableCn = cf.getColumnNames();
+                        	for(CellName cn : IterableCn){		
+                   
+                        	    Cell cell = cf.getColumn(cn);  
+                        	    System.out.println("Cell name"+cell.name().toString());
+                        	    System.out.println("Cell value"+ByteBufferUtil.string(cell.value()));
+                        	}*/
+                        //}
+                        
+                        //logger.info("------------- obaaaaaaaaaa");
+                        
                     final long entryLocation = reader.getFilePointer();
                     Runnable runnable = new WrappedRunnable()
                     {

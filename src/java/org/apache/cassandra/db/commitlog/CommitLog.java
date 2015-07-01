@@ -221,6 +221,7 @@ public class CommitLog implements CommitLogMBean
      */
     public ReplayPosition add(Mutation mutation)
     {
+    	 
         assert mutation != null;
 
         
