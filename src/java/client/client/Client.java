@@ -226,29 +226,42 @@ public class Client {
 	}
 
 	/**
-	 * This method creates the select view tables and inserts the data
+	 * This method creates the view tables and inserts the data
 	 * accordingly
 	 */
 	public static boolean createViewTable() {
+		return createSelectViewTable();
+	}
+	
+	
+	/**
+	 * This method creates the select view tables and inserts the data
+	 * accordingly
+	 */
+	public static boolean createSelectViewTable() {
 
-		List<String> keyspace = XmlHandler.getInstance().getViewConfig()
+		List<String> keyspace = XmlHandler.getInstance().getSelectViewConfig()
 				.getList("dbSchema.tableDefinition.keyspace");
-		List<String> tableName = XmlHandler.getInstance().getViewConfig()
+		List<String> tableName = XmlHandler.getInstance().getSelectViewConfig()
 				.getList("dbSchema.tableDefinition.name");
-		Integer nrTables = XmlHandler.getInstance().getViewConfig()
+		Integer nrTables = XmlHandler.getInstance().getSelectViewConfig()
 				.getInt("dbSchema.tableNumber");
-		List<String> primarykeyType = XmlHandler.getInstance().getViewConfig()
+		List<String> primarykeyType = XmlHandler.getInstance().getSelectViewConfig()
 				.getList("dbSchema.tableDefinition.primaryKey.type");
-		List<String> primarykeyName = XmlHandler.getInstance().getViewConfig()
+		List<String> primarykeyName = XmlHandler.getInstance().getSelectViewConfig()
 				.getList("dbSchema.tableDefinition.primaryKey.name");
-		Integer nrColumns = XmlHandler.getInstance().getViewConfig()
+		Integer nrColumns = XmlHandler.getInstance().getSelectViewConfig()
 				.getInt("dbSchema.tableDefinition.columnNumber");
-		List<String> colFamily = XmlHandler.getInstance().getViewConfig()
+		List<String> colFamily = XmlHandler.getInstance().getSelectViewConfig()
 				.getList("dbSchema.tableDefinition.column.family");
-		List<String> colName = XmlHandler.getInstance().getViewConfig()
+		List<String> colName = XmlHandler.getInstance().getSelectViewConfig()
 				.getList("dbSchema.tableDefinition.column.name");
-		List<String> colType = XmlHandler.getInstance().getViewConfig()
+		List<String> colType = XmlHandler.getInstance().getSelectViewConfig()
 				.getList("dbSchema.tableDefinition.column.type");
+		List<String> baseTable = XmlHandler.getInstance().getSelectViewConfig()
+				.getList("dbSchema.tableDefinition.baseTable");
+		List<String> conditions = XmlHandler.getInstance().getSelectViewConfig()
+				.getList("dbSchema.tableDefinition.condition");
 
 		for (int i = 0; i < nrTables -1; i++) {
 
@@ -283,7 +296,9 @@ public class Client {
 			StringBuilder selectQuery = new StringBuilder();
 
 			selectQuery.append("SELECT * FROM ").append(keyspace.get(i))
-			.append(".emp").append(";");
+			.append(".").append(baseTable.get(i)).append(" WHERE ").append(conditions.get(i)).append(";");
+			
+			System.out.println(selectQuery);
 
 			try {
 				Iterator<Row> queryResults = session.execute(
@@ -293,8 +308,7 @@ public class Client {
 
 					Row currentRow = queryResults.next();
 
-					//compare if salary = 2000
-					if(currentRow.getVarint("salary").intValue()>=2000){
+					
 
 						StringBuilder columns = new StringBuilder();
 						StringBuilder values = new StringBuilder();
@@ -338,7 +352,7 @@ public class Client {
 						PrintWriter writer = new PrintWriter("logs/output.log");
 						writer.print("");
 						writer.close();
-					}
+					
 				}
 
 			} catch (Exception e) {

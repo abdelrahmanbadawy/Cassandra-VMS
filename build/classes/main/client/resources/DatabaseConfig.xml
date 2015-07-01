@@ -41,12 +41,12 @@
 			</column>
 			<column>
 				<family>colfam2</family>
-				<type>varint</type>
+				<type>float</type>
 				<name>GPA</name>
 			</column>
 			<column>
 				<family>colfam2</family>
-				<type>varint</type>
+				<type>text</type>
 				<name>address</name>
 			</column>
 			<column>

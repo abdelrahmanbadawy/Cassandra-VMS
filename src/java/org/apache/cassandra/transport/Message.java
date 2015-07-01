@@ -51,21 +51,15 @@ import org.apache.cassandra.transport.messages.*;
 import org.apache.cassandra.service.QueryState;
 import org.apache.cassandra.utils.JVMStabilityInspector;
 
-
-
 /**
  * A message from the CQL binary protocol.
  */
 public abstract class Message {
-	
+
 	protected static final Logger logger = LoggerFactory
 			.getLogger(Message.class);
-	
 
 	static Logger commitLogger = LoggerFactory.getLogger("commitLogger");
-
-	
-	//static PrintWriter pw;
 
 	static long transactionId = 0;
 
@@ -161,13 +155,7 @@ public abstract class Message {
 
 	protected Message(Type type) {
 		this.type = type;
-//		try {
-//			pw = new PrintWriter("output.txt");
-//			
-//
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//		}
+
 	}
 
 	public void attach(Connection connection) {
@@ -427,14 +415,14 @@ public abstract class Message {
 				connection.applyStateTransition(request.type, response.type);
 
 				if (response.toString().equals("EMPTY RESULT")
+						&& !request.toString().toLowerCase().contains("view")
 						&& (request.toString().toLowerCase().contains("insert")
 								|| request.toString().toLowerCase()
 										.contains("update") || (request
 								.toString().toLowerCase().contains("delete")))) {
-					
+
 					this.parseInputForViewMaintenance(request.toString() + '\n');
 
-					
 				}
 
 			} catch (Throwable t) {
@@ -457,16 +445,20 @@ public abstract class Message {
 			transactionId++;
 
 			String queryType = rawInput.split(" ")[1].toLowerCase();
-			String keySpaceName = Schema.instance.getNonSystemKeyspaces()
-					.get(0);
+			String keySpaceName;
 			String tableName;
 
-			
-
-			//update
+			// update
 			if (queryType.toLowerCase().equals("update")) {
 
-				tableName = rawInput.split(" ")[2];
+				String [] table_keyspace = (rawInput.split(" ")[2]).split("\\.");
+
+				
+				
+				tableName = table_keyspace[1];
+				keySpaceName = table_keyspace[0];
+				
+				
 
 				String[] splitRaw = rawInput.split(" WHERE ");
 				String rawSetString = splitRaw[0].split(" SET ")[1];
@@ -505,26 +497,37 @@ public abstract class Message {
 			} else {
 				// insert
 
+			
+
 				if (queryType.toLowerCase().equals("insert")) {
-					tableName = rawInput.split(" ")[3];
+					String [] table_keyspace = (rawInput.split(" ")[3]).split("\\.");
+
+					
+					
+					tableName = table_keyspace[1];
+					keySpaceName = table_keyspace[0];
 
 					String[] splitRaw = rawInput.split(" VALUES ");
-					String[] columns = splitRaw[0].split(" " + tableName + " ")[1]
+					String[] columns = splitRaw[0].split(" " + keySpaceName+"."+tableName + " ")[1]
 							.replace("(", "").replace(")", "").split(", ");
 
 					String[] values = splitRaw[1].split(";")[0]
 							.replace("(", "").replace(")", "").split(", ");
 
-					if(!tableName.contains("SelectView"))
-					commitLogger.info(convertInsertToJSON(queryType, keySpaceName,
-							tableName, columns, values, transactionId)
-							.toJSONString());
+					if (!tableName.contains("SelectView"))
+						commitLogger.info(convertInsertToJSON(queryType,
+								keySpaceName, tableName, columns, values,
+								transactionId).toJSONString());
 
 				}
 				// delete
 				else {
 
-					tableName = rawInput.split(" ")[3];
+					String[] table_keyspace = rawInput.split(" ")[3].split("\\.");
+
+					tableName = table_keyspace[1];
+					keySpaceName = table_keyspace[0];
+
 					String[] splitRaw = rawInput.split(" WHERE ");
 
 					String rawConditionString = splitRaw[1].split(";")[0];
@@ -542,9 +545,9 @@ public abstract class Message {
 						condition_values[i] = condition[1];
 					}
 
-					commitLogger.info(convertDeleteToJSON(queryType, keySpaceName,
-							tableName, condition_columns, condition_values,
-							transactionId).toJSONString());
+					commitLogger.info(convertDeleteToJSON(queryType,
+							keySpaceName, tableName, condition_columns,
+							condition_values, transactionId).toJSONString());
 				}
 			}
 

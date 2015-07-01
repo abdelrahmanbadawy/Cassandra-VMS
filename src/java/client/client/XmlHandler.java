@@ -6,7 +6,7 @@ import org.apache.commons.configuration.XMLConfiguration;
 public class XmlHandler {
 
 	private static XMLConfiguration databaseConfig;
-	private static XMLConfiguration viewConfig;
+	private static XMLConfiguration selectViewConfig;
 	private static XMLConfiguration clusterConfig;
 	private static XmlHandler _instance = null;
 
@@ -14,15 +14,15 @@ public class XmlHandler {
 		databaseConfig = new XMLConfiguration();
 		databaseConfig.setDelimiterParsingDisabled(true);
 
-		viewConfig = new XMLConfiguration();
-		viewConfig.setDelimiterParsingDisabled(true);
+		selectViewConfig = new XMLConfiguration();
+		selectViewConfig.setDelimiterParsingDisabled(true);
 
 		clusterConfig = new XMLConfiguration();
 		clusterConfig.setDelimiterParsingDisabled(true);
 
 		try {
 			databaseConfig.load("client/resources/DatabaseConfig.xml");
-			viewConfig.load("client/resources/ViewConfig.xml");
+			selectViewConfig.load("client/resources/SelectViewConfig.xml");
 			clusterConfig.load("client/resources/ClusterConfig.xml");
 		} catch (ConfigurationException e) {
 			e.printStackTrace();
@@ -45,8 +45,8 @@ public class XmlHandler {
 		return clusterConfig;
 	}
 
-	public XMLConfiguration getViewConfig(){
-		return viewConfig;
+	public XMLConfiguration getSelectViewConfig(){
+		return selectViewConfig;
 	}
 
 }
