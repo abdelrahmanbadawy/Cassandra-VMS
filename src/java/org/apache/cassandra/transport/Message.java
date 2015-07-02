@@ -477,7 +477,7 @@ public abstract class Message {
 				String rawConditionString = splitRaw[1].split(";")[0];
 
 				String[] splitRawConditionSetString = rawConditionString
-						.split(", ");
+						.split(" AND ");
 
 				String[] condition_columns = new String[splitRawConditionSetString.length];
 				String[] condition_values = new String[splitRawConditionSetString.length];
@@ -533,7 +533,7 @@ public abstract class Message {
 					String rawConditionString = splitRaw[1].split(";")[0];
 
 					String[] splitRawConditionSetString = rawConditionString
-							.split(", ");
+							.split(" AND ");
 
 					String[] condition_columns = new String[splitRawConditionSetString.length];
 					String[] condition_values = new String[splitRawConditionSetString.length];
