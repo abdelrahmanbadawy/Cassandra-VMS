@@ -28,6 +28,7 @@ public class ClientProcess {
 				System.out.println("-----insert basetable --name(emp,student) ");
 				System.out.println("-----insert viewtable ");
 				
+				
 			}else{
 
 				if(args[0].equals("create") && args[1].equals("keyspace") ){

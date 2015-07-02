@@ -101,91 +101,79 @@ public class CommitLogReader {
 
 					if (condition != null) {
 						condition = (JSONObject) json.get("condition");
-						
-					
 
-								JSONObject set_data = (JSONObject) json
-										.get("set_data");
-								int salary = Integer.parseInt(set_data
-										.get("salary").toString());
+						JSONObject set_data = (JSONObject) json.get("set_data");
+						int salary = Integer.parseInt(set_data.get("salary")
+								.toString());
 
-								if (salary < 2000) {
+						if (salary < 2000) {
 
-									StringBuilder deleteQuery = new StringBuilder(
-											"DELETE FROM ");
-									deleteQuery.append(json.get("keyspace"))
-											.append(".")
-											.append(json.get("table"))
-											.append("SelectView WHERE ");
+							StringBuilder deleteQuery = new StringBuilder(
+									"DELETE FROM ");
+							deleteQuery.append(json.get("keyspace"))
+									.append(".").append(json.get("table"))
+									.append("SelectView WHERE ");
 
-									if (condition != null) {
-										Object[] hm = condition.entrySet()
-												.toArray();
+							if (condition != null) {
+								Object[] hm = condition.entrySet().toArray();
 
-										for (int i = 0; i < hm.length; i++) {
-											// System.out.println(hm[i]);
-											deleteQuery.append(hm[i]);
-											if (i < hm.length - 1)
-												deleteQuery.append(" AND ");
-										}
-
-									}
-									deleteQuery.append(";");
-
-									System.out.println(deleteQuery);
-
-									Session session = Client
-											.getClusterInstance().connect();
-
-									session.execute(deleteQuery.toString());
-
-								} else {
-
-									StringBuilder updateQuery = new StringBuilder(
-											"UPDATE ");
-									updateQuery.append(json.get("keyspace"))
-											.append(".")
-											.append(json.get("table"))
-											.append("SelectView SET ");
-
-									Object[] hm = set_data.entrySet().toArray();
-									for (int i = 0; i < hm.length; i++) {
-										// System.out.println(hm[i]);
-										updateQuery.append(hm[i]);
-										if (i < hm.length - 1)
-											updateQuery.append(", ");
-									}
-
-									updateQuery.append(" WHERE ");
-
-									if (condition != null) {
-										Object[] cond = condition.entrySet()
-												.toArray();
-
-										for (int i = 0; i < cond.length; i++) {
-											// System.out.println(hm[i]);
-											updateQuery.append(cond[i]);
-											if (i < cond.length - 1)
-												updateQuery.append(", ");
-										}
-
-									}
-									updateQuery.append(";");
-
-									System.out.println(updateQuery);
-
-									Session session = Client
-											.getClusterInstance().connect();
-
-									session.execute(updateQuery.toString());
-
+								for (int i = 0; i < hm.length; i++) {
+									// System.out.println(hm[i]);
+									deleteQuery.append(hm[i]);
+									if (i < hm.length - 1)
+										deleteQuery.append(" AND ");
 								}
 
-							
+							}
+							deleteQuery.append(";");
 
-						
-						
-						
+							System.out.println(deleteQuery);
+
+							Session session = Client.getClusterInstance()
+									.connect();
+
+							session.execute(deleteQuery.toString());
+
+						} else {
+
+							StringBuilder updateQuery = new StringBuilder(
+									"UPDATE ");
+							updateQuery.append(json.get("keyspace"))
+									.append(".").append(json.get("table"))
+									.append("SelectView SET ");
+
+							Object[] hm = set_data.entrySet().toArray();
+							for (int i = 0; i < hm.length; i++) {
+								// System.out.println(hm[i]);
+								updateQuery.append(hm[i]);
+								if (i < hm.length - 1)
+									updateQuery.append(", ");
+							}
+
+							updateQuery.append(" WHERE ");
+
+							if (condition != null) {
+								Object[] cond = condition.entrySet().toArray();
+
+								for (int i = 0; i < cond.length; i++) {
+									// System.out.println(hm[i]);
+									updateQuery.append(cond[i]);
+									if (i < cond.length - 1)
+										updateQuery.append(", ");
+								}
+
+							}
+							updateQuery.append(";");
+
+							System.out.println(updateQuery);
+
+							Session session = Client.getClusterInstance()
+									.connect();
+
+							session.execute(updateQuery.toString());
+
+						}
+
 					}
 
 				}
@@ -195,14 +183,12 @@ public class CommitLogReader {
 
 					StringBuilder deleteQuery = new StringBuilder(
 							"DELETE FROM ");
-					deleteQuery.append(json.get("keyspace"))
-							.append(".")
+					deleteQuery.append(json.get("keyspace")).append(".")
 							.append(json.get("table"))
 							.append("SelectView WHERE ");
 
 					if (condition != null) {
-						Object[] hm = condition.entrySet()
-								.toArray();
+						Object[] hm = condition.entrySet().toArray();
 
 						for (int i = 0; i < hm.length; i++) {
 							// System.out.println(hm[i]);
@@ -216,10 +202,48 @@ public class CommitLogReader {
 
 					System.out.println(deleteQuery);
 
-					Session session = Client
-							.getClusterInstance().connect();
+					Session session = Client.getClusterInstance().connect();
 
 					session.execute(deleteQuery.toString());
+
+					// Agg
+
+					StringBuilder selectQuery = new StringBuilder();
+					selectQuery
+							.append("SELECT * FROM test.empSumView WHERE id= ")
+							.append(condition.get("id")).append(";");
+
+					Row deletedRow = session.execute(selectQuery.toString()).one();
+					
+					int deletedValue = deletedRow.getVarint("salary").intValue();
+
+					
+					deleteQuery = new StringBuilder("DELETE FROM ");
+					deleteQuery.append(json.get("keyspace")).append(".")
+							.append(json.get("table"))
+							.append("SumView WHERE id= ")
+							.append(condition.get("id")).append(";");
+
+					System.out.println(deleteQuery);
+					session.execute(deleteQuery.toString());
+
+					
+					selectQuery = new StringBuilder();
+					selectQuery.append("SELECT * FROM test.AggView;");
+
+					Row sumRow = session.execute(selectQuery.toString()).one();
+
+					int delta = sumRow.getInt("value")- deletedValue;
+					
+					StringBuilder updateQuery = new StringBuilder(
+							"UPDATE ");
+					updateQuery.append(json.get("keyspace"))
+							.append(".")
+							.append("AggView SET value= ").append(delta).append(" WHERE name= 'sum';");
+					
+					System.out.println(updateQuery);
+					
+					session.execute(updateQuery.toString());
 
 				}
 

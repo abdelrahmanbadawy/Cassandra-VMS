@@ -8,6 +8,7 @@ public class XmlHandler {
 	private static XMLConfiguration databaseConfig;
 	private static XMLConfiguration selectViewConfig;
 	private static XMLConfiguration clusterConfig;
+	private static XMLConfiguration sumViewConfig;
 	private static XmlHandler _instance = null;
 
 	private XmlHandler() {
@@ -19,11 +20,15 @@ public class XmlHandler {
 
 		clusterConfig = new XMLConfiguration();
 		clusterConfig.setDelimiterParsingDisabled(true);
+		
+		sumViewConfig = new XMLConfiguration();
+		sumViewConfig.setDelimiterParsingDisabled(true);
 
 		try {
 			databaseConfig.load("client/resources/DatabaseConfig.xml");
 			selectViewConfig.load("client/resources/SelectViewConfig.xml");
 			clusterConfig.load("client/resources/ClusterConfig.xml");
+			sumViewConfig.load("client/resources/SumViewConfig.xml");
 		} catch (ConfigurationException e) {
 			e.printStackTrace();
 		}
@@ -47,6 +52,10 @@ public class XmlHandler {
 
 	public XMLConfiguration getSelectViewConfig(){
 		return selectViewConfig;
+	}
+	
+	public XMLConfiguration getSumViewConfig(){
+		return sumViewConfig;
 	}
 
 }

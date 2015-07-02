@@ -1,0 +1,29 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<setup>
+	<dbSchema>
+		<tableNumber>1</tableNumber>
+		<tableDefinition>
+		    <baseTable>emp</baseTable>
+			
+		    <columnNumber>1</columnNumber>
+			<keyspace>test</keyspace>
+			<name>empSumView</name>
+			<primaryKey>
+				<type>int</type>
+				<name>id</name>
+			</primaryKey>
+			
+			<column>
+				<family>colfam1</family>
+				<type>varint</type>
+				<name>salary</name>
+			</column>
+			
+		</tableDefinition>
+		
+		
+		
+	</dbSchema>
+
+
+</setup>
