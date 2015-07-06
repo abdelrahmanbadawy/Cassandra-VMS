@@ -325,7 +325,8 @@ public class Client {
 
 					Row currentRow = queryResults.next();
 
-					int salary = currentRow.getVarint("salary").intValue();
+					int salary = currentRow.getInt("salary");
+							
 					
 					if(salary >= 2000){
 					

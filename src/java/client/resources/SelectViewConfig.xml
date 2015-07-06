@@ -3,7 +3,7 @@
 	<dbSchema>
 		<tableNumber>2</tableNumber>
 		<tableDefinition>
-		    <baseTable>emp</baseTable>
+		    <baseTable>employee</baseTable>
 			<condition>salary >= 2000</condition>
 		    <columnNumber>3</columnNumber>
 			<keyspace>test</keyspace>
@@ -19,7 +19,7 @@
 			</column>
 			<column>
 				<family>colfam1</family>
-				<type>varint</type>
+				<type>int</type>
 				<name>salary</name>
 			</column>
 			<column>
