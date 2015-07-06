@@ -171,7 +171,7 @@ public class Client {
 		String line;
 		Session session = currentCluster.connect();
 
-		if (fileName.equals("emp")) {
+		if (fileName.equals("employee")) {
 			file = csvFile;
 		} else if (fileName.equals("student")) {
 			file = csvFile1;

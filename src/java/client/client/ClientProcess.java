@@ -25,7 +25,7 @@ public class ClientProcess {
 				System.out.println("-----help");
 				System.out.println("-----create keyspace ");
 				System.out.println("-----create table ");
-				System.out.println("-----insert basetable --name(emp,student) ");
+				System.out.println("-----insert basetable --name(employee,student) ");
 				System.out.println("-----insert viewtable ");
 				
 				
