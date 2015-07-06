@@ -106,6 +106,11 @@ public class Client {
 		List<String> primarykeyName = XmlHandler.getInstance()
 				.getDatabaseConfig()
 				.getList("dbSchema.tableDefinition.primaryKey.name");
+		List<String> clusteringKeyName = XmlHandler.getInstance()
+				.getDatabaseConfig()
+				.getList("dbSchema.tableDefinition.clusteringKey.name");
+		List<String> nrClusteringKeys = XmlHandler.getInstance().getDatabaseConfig()
+				.getList("dbSchema.tableDefinition.clusteringKey.componentNumber");
 		List<String> nrColumns = XmlHandler.getInstance().getDatabaseConfig()
 				.getList("dbSchema.tableDefinition.columnNumber");
 		List<String> colFamily = XmlHandler.getInstance().getDatabaseConfig()
@@ -116,6 +121,7 @@ public class Client {
 				.getList("dbSchema.tableDefinition.column.type");
 
 		int cursor = 0;
+		int cluseringCursor = 0;
 
 		for (int i = 0; i < nrTables; i++) {
 			StringBuilder createQuery = new StringBuilder();
@@ -123,17 +129,24 @@ public class Client {
 					.append(keyspace.get(i)).append(".")
 					.append(tableName.get(i) + "(")
 					.append(primarykeyName.get(i) + " ")
-					.append(primarykeyType.get(i)).append(" PRIMARY KEY,");
-
+					.append(primarykeyType.get(i) + ",");
+				
 			for (int j = 0; j < Integer.parseInt(nrColumns.get(i)); j++) {
 				createQuery.append(colName.get(cursor + j) + " ").append(
 						colType.get(cursor + j) + ",");
 			}
+			
+			createQuery.append(" PRIMARY KEY (").append(primarykeyName.get(i) + ",");
+			
+			for (int j = 0; j < Integer.parseInt(nrClusteringKeys.get(i)); j++) {
+				createQuery.append(clusteringKeyName.get(cluseringCursor + j) + ",");
+			}
+			
+			createQuery.deleteCharAt(createQuery.length() - 1);
+			createQuery.append("));");
 
 			cursor += Integer.parseInt(nrColumns.get(i));
-
-			createQuery.deleteCharAt(createQuery.length() - 1);
-			createQuery.append(");");
+			cluseringCursor += Integer.parseInt(nrClusteringKeys.get(i));
 
 			Session session = null;
 

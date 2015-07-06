@@ -3,13 +3,19 @@
 	<dbSchema>
 		<tableNumber>2</tableNumber>
 		<tableDefinition>
-		    <columnNumber>3</columnNumber>
+		    <columnNumber>5</columnNumber>
 			<keyspace>test</keyspace>
-			<name>emp</name>
+			<name>employee</name>
 			<primaryKey>
 				<type>int</type>
 				<name>id</name>
 			</primaryKey>
+			<clusteringKey>
+			    <componentNumber>3</componentNumber>
+				<name>Bonus</name>
+				<name>salary</name>
+				<name>DeptId</name>
+			</clusteringKey>
 			<column>
 				<family>colfam1</family>
 				<type>text</type>
@@ -17,23 +23,40 @@
 			</column>
 			<column>
 				<family>colfam1</family>
-				<type>varint</type>
+				<type>int</type>
 				<name>salary</name>
 			</column>
 			<column>
 				<family>colfam1</family>
-				<type>varint</type>
+				<type>int</type>
 				<name>phone</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>varint</type>
+				<name>Bonus</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>varint</type>
+				<name>DeptId</name>
 			</column>
 		</tableDefinition>
 		<tableDefinition>
 			<keyspace>test</keyspace>
 			<name>student</name>
-			 <columnNumber>4</columnNumber>
+			 <columnNumber>6</columnNumber>
 			<primaryKey>
 				<type>int</type>
 				<name>id</name>
 			</primaryKey>
+			<clusteringKey>
+			    <componentNumber>4</componentNumber>
+				<name>GPA</name>
+				<name>rank</name>
+				<name>major</name>
+				<name>minor</name>
+			</clusteringKey>
 			<column>
 				<family>colfam2</family>
 				<type>text</type>
@@ -52,7 +75,17 @@
 			<column>
 				<family>colfam2</family>
 				<type>text</type>
-				<name>class</name>
+				<name>major</name>
+			</column>
+			<column>
+				<family>colfam2</family>
+				<type>text</type>
+				<name>minor</name>
+			</column>
+			<column>
+				<family>colfam2</family>
+				<type>int</type>
+				<name>rank</name>
 			</column>
 		</tableDefinition>
 	</dbSchema>
