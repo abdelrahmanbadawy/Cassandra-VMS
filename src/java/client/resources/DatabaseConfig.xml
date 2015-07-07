@@ -1,7 +1,7 @@
 <?xml version="1.1" encoding="UTF-8"?>
 <setup>
 	<dbSchema>
-		<tableNumber>2</tableNumber>
+		<tableNumber>3</tableNumber>
 		<tableDefinition>
 		    <columnNumber>5</columnNumber>
 			<keyspace>test</keyspace>
@@ -28,7 +28,7 @@
 			</column>
 			<column>
 				<family>colfam1</family>
-				<type>int</type>
+				<type>varint</type>
 				<name>phone</name>
 			</column>
 			<column>
@@ -86,6 +86,34 @@
 				<family>colfam2</family>
 				<type>int</type>
 				<name>rank</name>
+			</column>
+		</tableDefinition>
+		<tableDefinition>
+			<keyspace>test</keyspace>
+			<name>courses</name>
+			 <columnNumber>3</columnNumber>
+			<primaryKey>
+				<type>int</type>
+				<name>id</name>
+			</primaryKey>
+			<clusteringKey>
+			    <componentNumber>0</componentNumber>
+				
+			</clusteringKey>
+			<column>
+				<family>colfam3</family>
+				<type>text</type>
+				<name>name</name>
+			</column>
+			<column>
+				<family>colfam3</family>
+				<type>int</type>
+				<name>ECTS</name>
+			</column>
+			<column>
+				<family>colfam3</family>
+				<type>text</type>
+				<name>faculty</name>
 			</column>
 		</tableDefinition>
 	</dbSchema>

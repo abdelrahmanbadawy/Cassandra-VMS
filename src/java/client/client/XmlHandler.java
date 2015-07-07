@@ -8,7 +8,8 @@ public class XmlHandler {
 	private static XMLConfiguration databaseConfig;
 	private static XMLConfiguration selectViewConfig;
 	private static XMLConfiguration clusterConfig;
-	private static XMLConfiguration sumViewConfig;
+	private static XMLConfiguration aggViewConfig;
+	private static XMLConfiguration deltaAggViewConfig;
 	private static XmlHandler _instance = null;
 
 	private XmlHandler() {
@@ -21,14 +22,18 @@ public class XmlHandler {
 		clusterConfig = new XMLConfiguration();
 		clusterConfig.setDelimiterParsingDisabled(true);
 		
-		sumViewConfig = new XMLConfiguration();
-		sumViewConfig.setDelimiterParsingDisabled(true);
+		aggViewConfig = new XMLConfiguration();
+		aggViewConfig.setDelimiterParsingDisabled(true);
+		
+		deltaAggViewConfig = new XMLConfiguration();
+		deltaAggViewConfig.setDelimiterParsingDisabled(true);
 
 		try {
 			databaseConfig.load("client/resources/DatabaseConfig.xml");
 			selectViewConfig.load("client/resources/SelectViewConfig.xml");
 			clusterConfig.load("client/resources/ClusterConfig.xml");
-			sumViewConfig.load("client/resources/SumViewConfig.xml");
+			aggViewConfig.load("client/resources/AggregationViewConfig.xml");
+			deltaAggViewConfig.load("client/resources/DeltaAggregationViewConfig.xml");
 		} catch (ConfigurationException e) {
 			e.printStackTrace();
 		}
@@ -54,8 +59,12 @@ public class XmlHandler {
 		return selectViewConfig;
 	}
 	
-	public XMLConfiguration getSumViewConfig(){
-		return sumViewConfig;
+	public XMLConfiguration getAggViewConfig(){
+		return aggViewConfig;
+	}
+	
+	public XMLConfiguration getDeltaAggViewConfig(){
+		return deltaAggViewConfig;
 	}
 
 }
