@@ -1,6 +1,7 @@
 package client.client;
 
 import com.datastax.driver.core.*;
+import com.datastax.driver.core.ColumnDefinitions.Definition;
 import com.datastax.driver.core.policies.DCAwareRoundRobinPolicy;
 import com.datastax.driver.core.policies.DefaultRetryPolicy;
 import com.datastax.driver.core.policies.TokenAwarePolicy;
@@ -9,6 +10,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Iterator;
@@ -25,6 +27,9 @@ public class Client {
 	static String csvFile = "src/java/client/data/emp.csv";
 	static String csvFile1 = "src/java/client/data/student.csv";
 	static String csvFile2 = "src/java/client/data/courses.csv";
+	static Iterator<Row> aggDeltaViewQueryResults;
+	private static ResultSet aggViewResultSet;
+	private static Iterator<Row> aggViewResultSetIterator;
 
 	public static void connectToCluster(String ipAddress) {
 
@@ -37,7 +42,7 @@ public class Client {
 					.withRetryPolicy(DefaultRetryPolicy.INSTANCE)
 					.withLoadBalancingPolicy(
 							new TokenAwarePolicy(new DCAwareRoundRobinPolicy()))
-					.build();
+							.build();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -83,9 +88,9 @@ public class Client {
 
 		StringBuilder queryString = new StringBuilder();
 		queryString
-				.append("CREATE KEYSPACE IF NOT EXISTS ")
-				.append(keyspace)
-				.append(" WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 1};");
+		.append("CREATE KEYSPACE IF NOT EXISTS ")
+		.append(keyspace)
+		.append(" WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 1};");
 
 		System.out.println(queryString.toString());
 		ResultSet queryResults = session.execute(queryString.toString());
@@ -130,10 +135,10 @@ public class Client {
 		for (int i = 0; i < nrTables; i++) {
 			StringBuilder createQuery = new StringBuilder();
 			createQuery.append("CREATE TABLE IF NOT EXISTS  ")
-					.append(keyspace.get(i)).append(".")
-					.append(tableName.get(i) + "(")
-					.append(primarykeyName.get(i) + " ")
-					.append(primarykeyType.get(i) + ",");
+			.append(keyspace.get(i)).append(".")
+			.append(tableName.get(i) + "(")
+			.append(primarykeyName.get(i) + " ")
+			.append(primarykeyType.get(i) + ",");
 
 			for (int j = 0; j < Integer.parseInt(nrColumns.get(i)); j++) {
 				createQuery.append(colName.get(cursor + j) + " ").append(
@@ -253,7 +258,136 @@ public class Client {
 	 */
 	public static boolean createViewTable() {
 
-		return createSelectViewTable() && createAggregationViewTable();
+		return createSelectViewTable() && createAggregationViewTable() ;
+	}
+
+	private static boolean fillAggregationViewTable(String keyspace, String baseTableName,String aggKey,String aggCol, int tableIndex) {
+
+
+		List<String> primarykeyTypeAgg = XmlHandler.getInstance()
+				.getAggViewConfig()
+				.getList("dbSchema.tableDefinition.primaryKey.type");
+		List<String> primarykeyNameAgg = XmlHandler.getInstance()
+				.getAggViewConfig()
+				.getList("dbSchema.tableDefinition.primaryKey.name");
+		List<String> aggViewName = XmlHandler.getInstance()
+				.getAggViewConfig()
+				.getList("dbSchema.tableDefinition.name");
+		List<String> baseTableAgg = XmlHandler.getInstance().getAggViewConfig()
+				.getList("dbSchema.tableDefinition.baseTable");
+		Integer aggregationKeyColNr = XmlHandler.getInstance().getAggViewConfig()
+				.getInt("dbSchema.tableDefinition.aggregationColumns.number");
+		List<String> aggregationColName = XmlHandler.getInstance().getAggViewConfig()
+				.getList("dbSchema.tableDefinition.aggregationColumns.column.name");
+		List<String> aggregationColType = XmlHandler.getInstance().getAggViewConfig()
+				.getList("dbSchema.tableDefinition.aggregationColumns.column.type");
+
+
+		//Selection from BaseTable
+
+		String previousBaseTable = "";	
+		List<Definition> columnNames = new ArrayList<ColumnDefinitions.Definition>();
+
+
+		// dont run select query again , if previous table was same basetable
+		if(! previousBaseTable.equals(baseTableName)){
+
+			StringBuilder selectQuery = new StringBuilder("SELECT * ");
+			selectQuery.append(" FROM ").append(keyspace).append(".")
+			.append(baseTableName).append(";");
+
+			System.out.println(selectQuery);
+
+			try {
+
+				Session session = currentCluster.connect();
+				aggViewResultSet = session.execute(
+						selectQuery.toString());
+
+				aggViewResultSetIterator = aggViewResultSet.iterator();
+
+				columnNames.addAll(aggViewResultSet.getColumnDefinitions().asList());
+
+			} catch (Exception e) {
+				e.printStackTrace();
+				return false;
+			}	
+		}
+
+
+		while (aggViewResultSetIterator.hasNext()) {
+
+			Row currentRow = aggViewResultSetIterator.next();
+
+
+			StringBuilder selectQuery = new StringBuilder("SELECT * ");
+			selectQuery.append(" FROM ").append(keyspace).append(".")
+			.append(aggViewName.get(tableIndex)).append("where ").append(aggCol+"=");
+
+			//get type of aggCol, based on type currentRow.getInt, .getFloat, .....
+
+			ResultSet aggViewSelection;
+			try {
+
+				Session session = currentCluster.connect();
+				aggViewSelection = session.execute(
+						selectQuery.toString());
+
+			} catch (Exception e) {
+				e.printStackTrace();
+				return false;
+			}
+
+			if(aggViewSelection.all().isEmpty()){
+				// if result set is empty, insert a new row, pk = aggkey, sum =aggCol, count = 1, av= sum/count
+
+			}else{
+				// else insert with same pk, count ++, sum *= aggcol, avg = sum/count
+
+			}
+
+
+			//run insert query
+
+
+
+
+
+
+
+
+		}
+
+
+		/*
+		StringBuilder insertQueryAgg;
+
+		for(int k=0;k<primarykeyNameAgg.size();k++){
+
+			StringBuilder selectQueryAgg = new StringBuilder("SELECT ");
+
+			selectQueryAgg.append(primarykeyNameAgg.get(k)).
+			append(" FROM ").append(keyspace.get(i)).append(".")
+			.append(aggViewName.get(i)).append(";");
+
+			ResultSet queryResultsAgg = session.execute(
+					selectQuery.toString());
+
+			if(queryResultsAgg.all().isEmpty()){
+
+				insertQueryAgg = new StringBuilder(
+						"INSERT INTO ");
+				insertQueryAgg.append(keyspace.get(i)).append(".")
+				.append(aggViewName.get(i)).append(" (")
+				.append(columns).append(") VALUES (")
+				.append(primarykeyNameAgg.get(k)).append().append(");");
+			}
+
+		}*/
+
+		previousBaseTable = baseTableName;
+
+		return true;
 	}
 
 	/**
@@ -292,10 +426,10 @@ public class Client {
 
 			StringBuilder createQuery = new StringBuilder();
 			createQuery.append("CREATE TABLE IF NOT EXISTS  ")
-					.append(keyspace.get(i)).append(".")
-					.append(tableName.get(i) + "(")
-					.append(primarykeyName.get(i) + " ")
-					.append(primarykeyType.get(i)).append(" PRIMARY KEY,");
+			.append(keyspace.get(i)).append(".")
+			.append(tableName.get(i) + "(")
+			.append(primarykeyName.get(i) + " ")
+			.append(primarykeyType.get(i)).append(" PRIMARY KEY,");
 
 			for (int j = 0; j < nrColumns; j++) {
 				createQuery.append(colName.get(j) + " ").append(
@@ -321,7 +455,7 @@ public class Client {
 			StringBuilder selectQuery = new StringBuilder();
 
 			selectQuery.append("SELECT * FROM ").append(keyspace.get(i))
-					.append(".").append(baseTable.get(i)).append(";");
+			.append(".").append(baseTable.get(i)).append(";");
 
 			System.out.println(selectQuery);
 
@@ -369,9 +503,9 @@ public class Client {
 						StringBuilder insertQuery = new StringBuilder(
 								"INSERT INTO ");
 						insertQuery.append(keyspace.get(i)).append(".")
-								.append(tableName.get(i)).append(" (")
-								.append(columns).append(") VALUES (")
-								.append(values).append(");");
+						.append(tableName.get(i)).append(" (")
+						.append(columns).append(") VALUES (")
+						.append(values).append(");");
 
 						System.out.println(insertQuery);
 
@@ -423,14 +557,32 @@ public class Client {
 		List<String> baseTable = XmlHandler.getInstance().getAggViewConfig()
 				.getList("dbSchema.tableDefinition.baseTable");
 
+		List<String> primarykeyTypeAgg = XmlHandler.getInstance()
+				.getAggViewConfig()
+				.getList("dbSchema.tableDefinition.primaryKey.type");
+		List<String> primarykeyNameAgg = XmlHandler.getInstance()
+				.getAggViewConfig()
+				.getList("dbSchema.tableDefinition.primaryKey.name");
+		List<String> aggViewName = XmlHandler.getInstance()
+				.getAggViewConfig()
+				.getList("dbSchema.tableDefinition.name");
+		List<String> baseTableAgg = XmlHandler.getInstance().getAggViewConfig()
+				.getList("dbSchema.tableDefinition.baseTable");
+		Integer aggregationKeyColNr = XmlHandler.getInstance().getAggViewConfig()
+				.getInt("dbSchema.tableDefinition.aggregationColumns.number");
+		List<String> aggregationColName = XmlHandler.getInstance().getAggViewConfig()
+				.getList("dbSchema.tableDefinition.aggregationColumns.column.name");
+		List<String> aggregationColType = XmlHandler.getInstance().getAggViewConfig()
+				.getList("dbSchema.tableDefinition.aggregationColumns.column.type");
+
 		for (int i = 0; i < nrTables; i++) {
 
 			StringBuilder createQuery = new StringBuilder();
 			createQuery.append("CREATE TABLE IF NOT EXISTS  ")
-					.append(keyspace.get(i)).append(".")
-					.append(tableName.get(i) + "(")
-					.append(primarykeyName.get(i) + " ")
-					.append(primarykeyType.get(i)).append(" PRIMARY KEY,");
+			.append(keyspace.get(i)).append(".")
+			.append(tableName.get(i) + "(")
+			.append(primarykeyName.get(i) + " ")
+			.append(primarykeyType.get(i)).append(" PRIMARY KEY,");
 
 			for (int j = 0; j < nrColumns; j++) {
 				createQuery.append(colName.get(j) + " ").append(
@@ -453,17 +605,17 @@ public class Client {
 				return false;
 			}
 
-			
+			fillAggregationViewTable(keyspace.get(i),tableName.get(i),primarykeyNameAgg.get(i),aggregationColName.get(i),i);
 
 		}
-		
+
 		createDeltaAggregationViewTable();
-		
+
 		return true;
 
 	}
 
-	
+
 	/**
 	 * This method creates and fills Delta view for Aggregation View
 	 */
@@ -495,15 +647,18 @@ public class Client {
 				.getDeltaAggViewConfig()
 				.getList("dbSchema.tableDefinition.condition");
 
+
+		List<List<BigInteger>>aggColumn = new ArrayList<List<BigInteger>>();
+
 		// delta view
 		for (int i = 0; i < nrTables; i++) {
-			
+
 			StringBuilder createQuery = new StringBuilder();
 			createQuery.append("CREATE TABLE IF NOT EXISTS  ")
-					.append(keyspace.get(i)).append(".")
-					.append(tableName.get(i) + "(")
-					.append(primarykeyName.get(i) + " ")
-					.append(primarykeyType.get(i)).append(" PRIMARY KEY,");
+			.append(keyspace.get(i)).append(".")
+			.append(tableName.get(i) + "(")
+			.append(primarykeyName.get(i) + " ")
+			.append(primarykeyType.get(i)).append(" PRIMARY KEY,");
 
 			for (int j = 0; j < nrColumns; j++) {
 				createQuery.append(colName.get(j) + " ").append(
@@ -526,7 +681,6 @@ public class Client {
 				return false;
 			}
 
-			
 
 
 			StringBuilder selectQuery = new StringBuilder("SELECT * ");
@@ -537,19 +691,20 @@ public class Client {
 			// }
 
 			selectQuery.append(" FROM ").append(keyspace.get(i)).append(".")
-					.append(baseTable.get(i)).append(";");
+			.append(baseTable.get(i)).append(";");
 
 			System.out.println(selectQuery);
 
-			try {
-				 session = currentCluster.connect();
 
-				Iterator<Row> queryResults = session.execute(
+			try {
+				session = currentCluster.connect();
+
+				aggDeltaViewQueryResults = session.execute(
 						selectQuery.toString()).iterator();
 
-				while (queryResults.hasNext()) {
+				while (aggDeltaViewQueryResults.hasNext()) {
 
-					Row currentRow = queryResults.next();
+					Row currentRow = aggDeltaViewQueryResults.next();
 
 					StringBuilder columns = new StringBuilder();
 					StringBuilder values = new StringBuilder();
@@ -569,7 +724,7 @@ public class Client {
 						case "varint":
 							values.append(", ").append(
 									currentRow.getVarint(colName.get(j)));
-							
+
 							break;
 						case "text":
 							values.append(", '").append(
@@ -580,6 +735,7 @@ public class Client {
 									currentRow.getFloat(colName.get(j)));
 							break;
 
+
 						}
 
 					}
@@ -587,9 +743,9 @@ public class Client {
 					StringBuilder insertQuery = new StringBuilder(
 							"INSERT INTO ");
 					insertQuery.append(keyspace.get(i)).append(".")
-							.append(tableName.get(i)).append(" (")
-							.append(columns).append(") VALUES (")
-							.append(values).append(");");
+					.append(tableName.get(i)).append(" (")
+					.append(columns).append(") VALUES (")
+					.append(values).append(");");
 
 					System.out.println(insertQuery);
 
@@ -597,7 +753,6 @@ public class Client {
 
 				}
 
-				// TO DO is TO FILL AggView
 
 				// clear log file
 				PrintWriter writer = new PrintWriter("logs/output.log");
