@@ -1,40 +1,84 @@
 <?xml version="1.1" encoding="UTF-8"?>
 <setup>
 	<dbSchema>
-		<tableNumber>1</tableNumber>
+		<tableNumber>2</tableNumber>
 		<tableDefinition>
-		    <baseTable>courses</baseTable>
-			
-		    <columnNumber>3</columnNumber>
+			<baseTable>courses</baseTable>
+
+			<columnNumber>3</columnNumber>
 			<keyspace>test</keyspace>
-			<name>coursesAggView</name>
+			<name>courses_faculty_AggView</name>
 			<primaryKey>
 				<type>text</type>
 				<name>faculty</name>
 			</primaryKey>
-			
+
 			<column>
 				<family>colfam1</family>
 				<type>int</type>
 				<name>sum</name>
 			</column>
-			
+
 			<column>
 				<family>colfam1</family>
 				<type>float</type>
 				<name>average</name>
 			</column>
-			
+
 			<column>
 				<family>colfam1</family>
 				<type>int</type>
 				<name>count</name>
 			</column>
-			
+
+			<aggregationColumns>
+				<number>1</number>
+				<column>
+					<type>int</type>
+					<name>ECTS</name>
+				</column>
+			</aggregationColumns>
 		</tableDefinition>
-		
-		
-		
+
+		<tableDefinition>
+			<baseTable>courses</baseTable>
+
+			<columnNumber>3</columnNumber>
+			<keyspace>test</keyspace>
+			<name>courses_name_AggView</name>
+			<primaryKey>
+				<type>text</type>
+				<name>name</name>
+			</primaryKey>
+
+			<column>
+				<family>colfam1</family>
+				<type>int</type>
+				<name>sum</name>
+			</column>
+
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>average</name>
+			</column>
+
+			<column>
+				<family>colfam1</family>
+				<type>int</type>
+				<name>count</name>
+			</column>
+
+			<aggregationColumns>
+				<number>1</number>
+				<column>
+					<type>int</type>
+					<name>ECTS</name>
+				</column>
+			</aggregationColumns>
+		</tableDefinition>
+
+
 	</dbSchema>
 
 

@@ -3,7 +3,7 @@
 	<dbSchema>
 		<tableNumber>3</tableNumber>
 		<tableDefinition>
-		    <columnNumber>5</columnNumber>
+			<columnNumber>5</columnNumber>
 			<keyspace>test</keyspace>
 			<name>employee</name>
 			<primaryKey>
@@ -11,7 +11,7 @@
 				<name>id</name>
 			</primaryKey>
 			<clusteringKey>
-			    <componentNumber>3</componentNumber>
+				<componentNumber>3</componentNumber>
 				<name>Bonus</name>
 				<name>salary</name>
 				<name>DeptId</name>
@@ -45,13 +45,13 @@
 		<tableDefinition>
 			<keyspace>test</keyspace>
 			<name>student</name>
-			 <columnNumber>6</columnNumber>
+			<columnNumber>6</columnNumber>
 			<primaryKey>
 				<type>int</type>
 				<name>id</name>
 			</primaryKey>
 			<clusteringKey>
-			    <componentNumber>4</componentNumber>
+				<componentNumber>4</componentNumber>
 				<name>GPA</name>
 				<name>rank</name>
 				<name>major</name>
@@ -91,14 +91,20 @@
 		<tableDefinition>
 			<keyspace>test</keyspace>
 			<name>courses</name>
-			 <columnNumber>3</columnNumber>
+			<columnNumber>3</columnNumber>
+			<name>GPA</name>
+			<name>rank</name>
+			<name>major</name>
+			<name>minor</name>
 			<primaryKey>
 				<type>int</type>
 				<name>id</name>
 			</primaryKey>
 			<clusteringKey>
-			    <componentNumber>0</componentNumber>
-				
+				<componentNumber>3</componentNumber>
+				<name>faculty</name>
+				<name>name</name>
+				<name>ECTS</name>
 			</clusteringKey>
 			<column>
 				<family>colfam3</family>
