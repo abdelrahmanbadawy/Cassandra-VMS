@@ -27,7 +27,7 @@ public class Client {
 	static String csvFile = "src/java/client/data/emp.csv";
 	static String csvFile1 = "src/java/client/data/student.csv";
 	static String csvFile2 = "src/java/client/data/courses.csv";
-	static Iterator<Row> aggDeltaViewQueryResults;
+	static Iterator<Row> deltaViewQueryResults;
 	private static ResultSet aggViewResultSet;
 	private static Iterator<Row> aggViewResultSetIterator;
 
@@ -257,7 +257,8 @@ public class Client {
 	 */
 	public static boolean createViewTable() {
 
-		return createSelectViewTable() && createAggregationViewTable();
+		//return createSelectViewTable() &&
+				return createDeltaViewTable() ;//&& createAggregationViewTable();
 	}
 
 	private static boolean fillAggregationViewTable(String keyspace,
@@ -652,49 +653,54 @@ public class Client {
 
 		}
 
-		createDeltaAggregationViewTable();
+	
 
 		return true;
 
 	}
 
 	/**
-	 * This method creates and fills Delta view for Aggregation View
+	 * This method creates and fills Delta view 
 	 */
-	public static boolean createDeltaAggregationViewTable() {
+	public static boolean createDeltaViewTable() {
 
 		List<String> keyspace = XmlHandler.getInstance()
-				.getDeltaAggViewConfig()
+				.getDeltaViewConfig()
 				.getList("dbSchema.tableDefinition.keyspace");
 		List<String> tableName = XmlHandler.getInstance()
-				.getDeltaAggViewConfig()
+				.getDeltaViewConfig()
 				.getList("dbSchema.tableDefinition.name");
-		Integer nrTables = XmlHandler.getInstance().getDeltaAggViewConfig()
+		Integer nrTables = XmlHandler.getInstance().getDeltaViewConfig()
 				.getInt("dbSchema.tableNumber");
 		List<String> primarykeyType = XmlHandler.getInstance()
-				.getDeltaAggViewConfig()
+				.getDeltaViewConfig()
 				.getList("dbSchema.tableDefinition.primaryKey.type");
 		List<String> primarykeyName = XmlHandler.getInstance()
-				.getDeltaAggViewConfig()
+				.getDeltaViewConfig()
 				.getList("dbSchema.tableDefinition.primaryKey.name");
-		Integer nrColumns = XmlHandler.getInstance().getDeltaAggViewConfig()
-				.getInt("dbSchema.tableDefinition.columnNumber");
+		List<String> nrColumns = XmlHandler.getInstance().getDeltaViewConfig()
+				.getList("dbSchema.tableDefinition.columnNumber");
 		List<String> colFamily = XmlHandler.getInstance()
-				.getDeltaAggViewConfig()
+				.getDeltaViewConfig()
 				.getList("dbSchema.tableDefinition.column.family");
-		List<String> colName = XmlHandler.getInstance().getDeltaAggViewConfig()
+		List<String> colName = XmlHandler.getInstance().getDeltaViewConfig()
 				.getList("dbSchema.tableDefinition.column.name");
-		List<String> colType = XmlHandler.getInstance().getDeltaAggViewConfig()
+		List<String> colType = XmlHandler.getInstance().getDeltaViewConfig()
 				.getList("dbSchema.tableDefinition.column.type");
 		List<String> baseTable = XmlHandler.getInstance()
-				.getDeltaAggViewConfig()
+				.getDeltaViewConfig()
 				.getList("dbSchema.tableDefinition.baseTable");
 		List<String> conditions = XmlHandler.getInstance()
-				.getDeltaAggViewConfig()
+				.getDeltaViewConfig()
 				.getList("dbSchema.tableDefinition.condition");
-
+		
+	
 		List<List<BigInteger>> aggColumn = new ArrayList<List<BigInteger>>();
 
+		
+		
+		int cursor = 0;
+		
 		// delta view
 		for (int i = 0; i < nrTables; i++) {
 
@@ -703,15 +709,19 @@ public class Client {
 					.append(keyspace.get(i)).append(".")
 					.append(tableName.get(i) + "(")
 					.append(primarykeyName.get(i) + " ")
-					.append(primarykeyType.get(i)).append(" PRIMARY KEY,");
+					.append(primarykeyType.get(i)).append(",");
 
-			for (int j = 0; j < nrColumns; j++) {
-				createQuery.append(colName.get(j) + " ").append(
-						colType.get(j) + ",");
+			for (int j = 0; j < Integer.parseInt(nrColumns.get(i)); j++) {
+				createQuery.append(colName.get(cursor + j) + " ").append(
+						colType.get(cursor + j) + ",");
 			}
 
-			createQuery.deleteCharAt(createQuery.length() - 1);
-			createQuery.append(");");
+			createQuery.append(" PRIMARY KEY (").append(
+					primarykeyName.get(i) + "));");
+
+			
+			cursor += Integer.parseInt(nrColumns.get(i));
+		
 
 			Session session = null;
 
@@ -726,12 +736,9 @@ public class Client {
 				return false;
 			}
 
+			
 			StringBuilder selectQuery = new StringBuilder("SELECT * ");
-			// selectQuery.append(primarykeyName.get(i));
-			//
-			// for (int j = 0; j < nrColumns; j++) {
-			// selectQuery.append(", ").append(colName.get((j)));
-			// }
+			
 
 			selectQuery.append(" FROM ").append(keyspace.get(i)).append(".")
 					.append(baseTable.get(i)).append(";");
@@ -741,12 +748,12 @@ public class Client {
 			try {
 				session = currentCluster.connect();
 
-				aggDeltaViewQueryResults = session.execute(
+				deltaViewQueryResults = session.execute(
 						selectQuery.toString()).iterator();
 
-				while (aggDeltaViewQueryResults.hasNext()) {
+				while (deltaViewQueryResults.hasNext()) {
 
-					Row currentRow = aggDeltaViewQueryResults.next();
+					Row currentRow = deltaViewQueryResults.next();
 
 					StringBuilder columns = new StringBuilder();
 					StringBuilder values = new StringBuilder();
@@ -754,8 +761,8 @@ public class Client {
 					columns.append(primarykeyName.get(i));
 					values.append(currentRow.getInt(primarykeyName.get(i)));
 
-					for (int j = 0; j < nrColumns; j++) {
-						columns.append(", ").append(colName.get(j));
+					for (int j = 0; j < Integer.parseInt(nrColumns.get(i)); j++) {
+						columns.append(", ").append(colName.get(j)+"_new");
 
 						switch (colType.get(j)) {
 

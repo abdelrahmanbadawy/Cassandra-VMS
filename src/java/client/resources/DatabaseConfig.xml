@@ -92,10 +92,6 @@
 			<keyspace>test</keyspace>
 			<name>courses</name>
 			<columnNumber>3</columnNumber>
-			<name>GPA</name>
-			<name>rank</name>
-			<name>major</name>
-			<name>minor</name>
 			<primaryKey>
 				<type>int</type>
 				<name>id</name>
