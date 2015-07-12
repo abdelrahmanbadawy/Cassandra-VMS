@@ -10,6 +10,8 @@ public class XmlHandler {
 	private static XMLConfiguration clusterConfig;
 	private static XMLConfiguration aggViewConfig;
 	private static XMLConfiguration deltaViewConfig;
+	private static XMLConfiguration preAggViewConfig;
+	
 	private static XmlHandler _instance = null;
 
 	private XmlHandler() {
@@ -27,13 +29,19 @@ public class XmlHandler {
 		
 		deltaViewConfig = new XMLConfiguration();
 		deltaViewConfig.setDelimiterParsingDisabled(true);
-
+		
+		preAggViewConfig = new XMLConfiguration();
+		preAggViewConfig.setDelimiterParsingDisabled(true);
+		
+		
 		try {
 			databaseConfig.load("client/resources/DatabaseConfig.xml");
 			selectViewConfig.load("client/resources/SelectViewConfig.xml");
 			clusterConfig.load("client/resources/ClusterConfig.xml");
 			aggViewConfig.load("client/resources/AggregationViewConfig.xml");
 			deltaViewConfig.load("client/resources/DeltaViewConfig.xml");
+			preAggViewConfig.load("client/resources/Preaggregation.xml"); 
+			
 		} catch (ConfigurationException e) {
 			e.printStackTrace();
 		}
@@ -66,5 +74,11 @@ public class XmlHandler {
 	public XMLConfiguration getDeltaViewConfig(){
 		return deltaViewConfig;
 	}
+	
+	public XMLConfiguration getPreAggViewConfig(){
+		return preAggViewConfig;
+	}
+	
+
 
 }

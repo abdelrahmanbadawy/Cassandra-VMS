@@ -42,7 +42,7 @@ public class Client {
 					.withRetryPolicy(DefaultRetryPolicy.INSTANCE)
 					.withLoadBalancingPolicy(
 							new TokenAwarePolicy(new DCAwareRoundRobinPolicy()))
-					.build();
+							.build();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -88,9 +88,9 @@ public class Client {
 
 		StringBuilder queryString = new StringBuilder();
 		queryString
-				.append("CREATE KEYSPACE IF NOT EXISTS ")
-				.append(keyspace)
-				.append(" WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 1};");
+		.append("CREATE KEYSPACE IF NOT EXISTS ")
+		.append(keyspace)
+		.append(" WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 1};");
 
 		System.out.println(queryString.toString());
 		ResultSet queryResults = session.execute(queryString.toString());
@@ -135,10 +135,10 @@ public class Client {
 		for (int i = 0; i < nrTables; i++) {
 			StringBuilder createQuery = new StringBuilder();
 			createQuery.append("CREATE TABLE IF NOT EXISTS  ")
-					.append(keyspace.get(i)).append(".")
-					.append(tableName.get(i) + "(")
-					.append(primarykeyName.get(i) + " ")
-					.append(primarykeyType.get(i) + ",");
+			.append(keyspace.get(i)).append(".")
+			.append(tableName.get(i) + "(")
+			.append(primarykeyName.get(i) + " ")
+			.append(primarykeyType.get(i) + ",");
 
 			for (int j = 0; j < Integer.parseInt(nrColumns.get(i)); j++) {
 				createQuery.append(colName.get(cursor + j) + " ").append(
@@ -258,16 +258,16 @@ public class Client {
 	public static boolean createViewTable() {
 
 		//return createSelectViewTable() &&
-				return createDeltaViewTable() ;//&& createAggregationViewTable();
+		return  createDeltaViewTable() && createPreAggregationViewTable() ;//&& createAggregationViewTable();
 	}
 
 	private static boolean fillAggregationViewTable(String keyspace,
 			String baseTableName, String aggKey, String aggCol, String colType, String tableName, int tableIndex) {
 
-		
-		
-		
-		
+
+
+
+
 		// Selection from BaseTable
 
 		String previousBaseTable = "";
@@ -276,11 +276,11 @@ public class Client {
 		// dont run select query again , if previous table was same basetable
 		if (!previousBaseTable.equals(baseTableName)) {
 
-			
-			
+
+
 			StringBuilder selectQuery = new StringBuilder("SELECT * ");
 			selectQuery.append(" FROM ").append(keyspace).append(".")
-					.append(baseTableName).append(";");
+			.append(baseTableName).append(";");
 
 			System.out.println(selectQuery);
 
@@ -299,12 +299,12 @@ public class Client {
 				return false;
 			}
 		}
-		
-		
+
+
 		while (aggViewResultSetIterator.hasNext()) {
 
 			Row currentRow = aggViewResultSetIterator.next();
-			
+
 			String aggValue = null;
 			System.out.println(colType);
 			switch (colType) {
@@ -325,13 +325,13 @@ public class Client {
 
 			}
 
-			
-			
+
+
 			StringBuilder selectQuery = new StringBuilder("SELECT * ");
 			selectQuery.append(" FROM ").append(keyspace).append(".")
-					.append(tableName).append(" where ")
-					.append(aggKey + "=").append(aggValue).append(" ;");
-			
+			.append(tableName).append(" where ")
+			.append(aggKey + "=").append(aggValue).append(" ;");
+
 			System.out.println(selectQuery);
 
 			// get type of aggCol, based on type currentRow.getInt, .getFloat,
@@ -349,13 +349,13 @@ public class Client {
 			}
 
 			//System.out.println("here" + aggViewSelection.all().size());
-			
+
 			StringBuilder insertQueryAgg;
-			
-			
+
+
 			Row theRow = aggViewSelection.one();
-			
-			
+
+
 
 			if (theRow == null) {
 				// if result set is empty, insert a new row, pk = aggkey, sum
@@ -363,14 +363,14 @@ public class Client {
 
 				insertQueryAgg = new StringBuilder("INSERT INTO ");
 				insertQueryAgg.append(keyspace).append(".")
-						.append(tableName).append(" ( ")
-						.append(aggKey)
-						.append(", sum, count, average) VALUES (").append(aggValue).append(", ");
+				.append(tableName).append(" ( ")
+				.append(aggKey)
+				.append(", sum, count, average) VALUES (").append(aggValue).append(", ");
 
 				int sum = currentRow.getInt(aggCol);
 
 				insertQueryAgg.append(sum).append(", 1, ").append(sum)
-						.append(");");
+				.append(");");
 
 				System.out.println(insertQueryAgg);
 
@@ -379,9 +379,9 @@ public class Client {
 				// sum/count
 
 				//System.out.println("here" + aggViewSelection.all().size());
-				
-				
-				
+
+
+
 				System.out.println(theRow);
 
 				int sum = theRow.getInt("sum");
@@ -394,19 +394,19 @@ public class Client {
 
 				insertQueryAgg = new StringBuilder("UPDATE ");
 				insertQueryAgg.append(keyspace).append(".")
-						.append(tableName)
-						.append(" SET sum= ").append(sum).append(", average= ")
-						.append(avg).append(", count= ").append(count)
-						.append(" WHERE ").append(aggKey).append("= ")
-						.append(aggValue).append(";");
-				
-				
+				.append(tableName)
+				.append(" SET sum= ").append(sum).append(", average= ")
+				.append(avg).append(", count= ").append(count)
+				.append(" WHERE ").append(aggKey).append("= ")
+				.append(aggValue).append(";");
+
+
 				System.out.println(insertQueryAgg);
 
 			}
 
 			// run insert query
-			
+
 			try {
 
 				Session session = currentCluster.connect();
@@ -461,10 +461,10 @@ public class Client {
 
 			StringBuilder createQuery = new StringBuilder();
 			createQuery.append("CREATE TABLE IF NOT EXISTS  ")
-					.append(keyspace.get(i)).append(".")
-					.append(tableName.get(i) + "(")
-					.append(primarykeyName.get(i) + " ")
-					.append(primarykeyType.get(i)).append(" PRIMARY KEY,");
+			.append(keyspace.get(i)).append(".")
+			.append(tableName.get(i) + "(")
+			.append(primarykeyName.get(i) + " ")
+			.append(primarykeyType.get(i)).append(" PRIMARY KEY,");
 
 			for (int j = 0; j < nrColumns; j++) {
 				createQuery.append(colName.get(j) + " ").append(
@@ -490,7 +490,7 @@ public class Client {
 			StringBuilder selectQuery = new StringBuilder();
 
 			selectQuery.append("SELECT * FROM ").append(keyspace.get(i))
-					.append(".").append(baseTable.get(i)).append(";");
+			.append(".").append(baseTable.get(i)).append(";");
 
 			System.out.println(selectQuery);
 
@@ -538,9 +538,9 @@ public class Client {
 						StringBuilder insertQuery = new StringBuilder(
 								"INSERT INTO ");
 						insertQuery.append(keyspace.get(i)).append(".")
-								.append(tableName.get(i)).append(" (")
-								.append(columns).append(") VALUES (")
-								.append(values).append(");");
+						.append(tableName.get(i)).append(" (")
+						.append(columns).append(") VALUES (")
+						.append(values).append(");");
 
 						System.out.println(insertQuery);
 
@@ -620,10 +620,10 @@ public class Client {
 
 			StringBuilder createQuery = new StringBuilder();
 			createQuery.append("CREATE TABLE IF NOT EXISTS  ")
-					.append(keyspace.get(i)).append(".")
-					.append(tableName.get(i) + "(")
-					.append(primarykeyName.get(i) + " ")
-					.append(primarykeyType.get(i)).append(" PRIMARY KEY,");
+			.append(keyspace.get(i)).append(".")
+			.append(tableName.get(i) + "(")
+			.append(primarykeyName.get(i) + " ")
+			.append(primarykeyType.get(i)).append(" PRIMARY KEY,");
 
 			for (int j = 0; j < nrColumns; j++) {
 				createQuery.append(colName.get(j) + " ").append(
@@ -646,14 +646,14 @@ public class Client {
 				return false;
 			}
 
-			
-			
+
+
 			fillAggregationViewTable(keyspace.get(i), baseTable.get(i),
 					primarykeyNameAgg.get(i), aggregationColName.get(i), primarykeyType.get(i), tableName.get(i), i);
 
 		}
 
-	
+
 
 		return true;
 
@@ -693,23 +693,23 @@ public class Client {
 		List<String> conditions = XmlHandler.getInstance()
 				.getDeltaViewConfig()
 				.getList("dbSchema.tableDefinition.condition");
-		
-	
+
+
 		List<List<BigInteger>> aggColumn = new ArrayList<List<BigInteger>>();
 
-		
-		
+
+
 		int cursor = 0;
-		
+
 		// delta view
 		for (int i = 0; i < nrTables; i++) {
 
 			StringBuilder createQuery = new StringBuilder();
 			createQuery.append("CREATE TABLE IF NOT EXISTS  ")
-					.append(keyspace.get(i)).append(".")
-					.append(tableName.get(i) + "(")
-					.append(primarykeyName.get(i) + " ")
-					.append(primarykeyType.get(i)).append(",");
+			.append(keyspace.get(i)).append(".")
+			.append(tableName.get(i) + "(")
+			.append(primarykeyName.get(i) + " ")
+			.append(primarykeyType.get(i)).append(",");
 
 			for (int j = 0; j < Integer.parseInt(nrColumns.get(i)); j++) {
 				createQuery.append(colName.get(cursor + j) + " ").append(
@@ -719,9 +719,9 @@ public class Client {
 			createQuery.append(" PRIMARY KEY (").append(
 					primarykeyName.get(i) + "));");
 
-			
+
 			cursor += Integer.parseInt(nrColumns.get(i));
-		
+
 
 			Session session = null;
 
@@ -736,12 +736,12 @@ public class Client {
 				return false;
 			}
 
-			
+
 			StringBuilder selectQuery = new StringBuilder("SELECT * ");
-			
+
 
 			selectQuery.append(" FROM ").append(keyspace.get(i)).append(".")
-					.append(baseTable.get(i)).append(";");
+			.append(baseTable.get(i)).append(";");
 
 			System.out.println(selectQuery);
 
@@ -777,8 +777,8 @@ public class Client {
 							break;
 						case "text":
 							values.append(", '")
-									.append(currentRow.getString(colName.get(j)))
-									.append("'");
+							.append(currentRow.getString(colName.get(j)))
+							.append("'");
 							break;
 						case "float":
 							values.append(", ").append(
@@ -792,9 +792,9 @@ public class Client {
 					StringBuilder insertQuery = new StringBuilder(
 							"INSERT INTO ");
 					insertQuery.append(keyspace.get(i)).append(".")
-							.append(tableName.get(i)).append(" (")
-							.append(columns).append(") VALUES (")
-							.append(values).append(");");
+					.append(tableName.get(i)).append(" (")
+					.append(columns).append(") VALUES (")
+					.append(values).append(");");
 
 					System.out.println(insertQuery);
 
@@ -815,5 +815,85 @@ public class Client {
 
 		return true;
 	}
+
+
+	
+
+	public static boolean createPreAggregationViewTable() {
+
+		List<String> keyspace = XmlHandler.getInstance()
+				.getPreAggViewConfig()
+				.getList("dbSchema.tableDefinition.keyspace");
+		List<String> tableName = XmlHandler.getInstance()
+				.getPreAggViewConfig()
+				.getList("dbSchema.tableDefinition.name");
+		Integer nrTables = XmlHandler.getInstance().getPreAggViewConfig()
+				.getInt("dbSchema.tableNumber");
+		List<String> primarykeyType = XmlHandler.getInstance()
+				.getPreAggViewConfig()
+				.getList("dbSchema.tableDefinition.primaryKey.type");
+		List<String> primarykeyName = XmlHandler.getInstance()
+				.getPreAggViewConfig()
+				.getList("dbSchema.tableDefinition.primaryKey.name");
+		List<String> nrColumns = XmlHandler.getInstance().getPreAggViewConfig()
+				.getList("dbSchema.tableDefinition.columnNumber");
+		List<String> colFamily = XmlHandler.getInstance()
+				.getPreAggViewConfig()
+				.getList("dbSchema.tableDefinition.column.family");
+		List<String> colName = XmlHandler.getInstance().getPreAggViewConfig()
+				.getList("dbSchema.tableDefinition.column.name");
+		List<String> colType = XmlHandler.getInstance().getPreAggViewConfig()
+				.getList("dbSchema.tableDefinition.column.type");
+		List<String> baseTable = XmlHandler.getInstance()
+				.getPreAggViewConfig()
+				.getList("dbSchema.tableDefinition.baseTable");
+
+
+
+		int cursor = 0;
+
+		// preAgg view
+		for (int i = 0; i < nrTables; i++) {
+
+			StringBuilder createQuery = new StringBuilder();
+			createQuery.append("CREATE TABLE IF NOT EXISTS  ")
+			.append(keyspace.get(i)).append(".")
+			.append(tableName.get(i) + "(")
+			.append(primarykeyName.get(i) + " ")
+			.append(primarykeyType.get(i)).append(",");
+
+			for (int j = 0; j < Integer.parseInt(nrColumns.get(i)); j++) {
+				createQuery.append(colName.get(cursor + j) + " ").append(
+						colType.get(cursor + j) + ",");
+			}
+
+			createQuery.append(" PRIMARY KEY (").append(
+					primarykeyName.get(i) + "));");
+
+
+			cursor += Integer.parseInt(nrColumns.get(i));
+
+
+			Session session = null;
+
+			System.out.println(createQuery.toString());
+
+			try {
+				session = currentCluster.connect();
+				ResultSet queryResults = session
+						.execute(createQuery.toString());
+			} catch (Exception e) {
+				e.printStackTrace();
+				return false;
+			}
+
+
+		}
+
+
+
+		return true;
+	}
+
 
 }
