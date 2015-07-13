@@ -7,7 +7,7 @@
 			
 		    <columnNumber>3</columnNumber>
 			<keyspace>test</keyspace>
-			<name>Delta_courses</name>
+			<name>delta_courses</name>
 			 
 			<primaryKey>
 				<type>int</type>
@@ -30,6 +30,7 @@
 				<type>text</type>
 				<name>faculty</name>
 			</column>
+			
 			
 			
 		</tableDefinition>

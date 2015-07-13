@@ -693,35 +693,42 @@ public class Client {
 		List<String> conditions = XmlHandler.getInstance()
 				.getDeltaViewConfig()
 				.getList("dbSchema.tableDefinition.condition");
-
-
+		
+	
 		List<List<BigInteger>> aggColumn = new ArrayList<List<BigInteger>>();
 
-
-
+		
+		
 		int cursor = 0;
-
+		
 		// delta view
 		for (int i = 0; i < nrTables; i++) {
 
 			StringBuilder createQuery = new StringBuilder();
 			createQuery.append("CREATE TABLE IF NOT EXISTS  ")
-			.append(keyspace.get(i)).append(".")
-			.append(tableName.get(i) + "(")
-			.append(primarykeyName.get(i) + " ")
-			.append(primarykeyType.get(i)).append(",");
+					.append(keyspace.get(i)).append(".")
+					.append(tableName.get(i) + "(")
+					.append(primarykeyName.get(i) + " ")
+					.append(primarykeyType.get(i)).append(",");
 
 			for (int j = 0; j < Integer.parseInt(nrColumns.get(i)); j++) {
-				createQuery.append(colName.get(cursor + j) + " ").append(
+				String colNameString = colName.get(cursor + j);
+				String colName_old = colNameString+"_old";
+				String colName_new = colNameString+"_new";
+				
+				createQuery.append(colName_old + " ").append(
+						colType.get(cursor + j) + ",");
+				
+				createQuery.append(colName_new + " ").append(
 						colType.get(cursor + j) + ",");
 			}
 
 			createQuery.append(" PRIMARY KEY (").append(
 					primarykeyName.get(i) + "));");
 
-
+			
 			cursor += Integer.parseInt(nrColumns.get(i));
-
+		
 
 			Session session = null;
 
@@ -736,12 +743,12 @@ public class Client {
 				return false;
 			}
 
-
+			
 			StringBuilder selectQuery = new StringBuilder("SELECT * ");
-
+			
 
 			selectQuery.append(" FROM ").append(keyspace.get(i)).append(".")
-			.append(baseTable.get(i)).append(";");
+					.append(baseTable.get(i)).append(";");
 
 			System.out.println(selectQuery);
 
@@ -777,8 +784,8 @@ public class Client {
 							break;
 						case "text":
 							values.append(", '")
-							.append(currentRow.getString(colName.get(j)))
-							.append("'");
+									.append(currentRow.getString(colName.get(j)))
+									.append("'");
 							break;
 						case "float":
 							values.append(", ").append(
@@ -792,9 +799,9 @@ public class Client {
 					StringBuilder insertQuery = new StringBuilder(
 							"INSERT INTO ");
 					insertQuery.append(keyspace.get(i)).append(".")
-					.append(tableName.get(i)).append(" (")
-					.append(columns).append(") VALUES (")
-					.append(values).append(");");
+							.append(tableName.get(i)).append(" (")
+							.append(columns).append(") VALUES (")
+							.append(values).append(");");
 
 					System.out.println(insertQuery);
 
@@ -816,8 +823,10 @@ public class Client {
 		return true;
 	}
 
-
 	
+
+
+
 
 	public static boolean createPreAggregationViewTable() {
 
@@ -837,17 +846,25 @@ public class Client {
 				.getList("dbSchema.tableDefinition.primaryKey.name");
 		List<String> nrColumns = XmlHandler.getInstance().getPreAggViewConfig()
 				.getList("dbSchema.tableDefinition.columnNumber");
-		List<String> colFamily = XmlHandler.getInstance()
-				.getPreAggViewConfig()
-				.getList("dbSchema.tableDefinition.column.family");
 		List<String> colName = XmlHandler.getInstance().getPreAggViewConfig()
 				.getList("dbSchema.tableDefinition.column.name");
 		List<String> colType = XmlHandler.getInstance().getPreAggViewConfig()
 				.getList("dbSchema.tableDefinition.column.type");
-		List<String> baseTable = XmlHandler.getInstance()
-				.getPreAggViewConfig()
-				.getList("dbSchema.tableDefinition.baseTable");
 
+		List<String> deltaPkName = XmlHandler.getInstance().getPreAggViewConfig()
+				.getList("dbSchema.tableDefinition.delta.primaryKey.name");
+		List<String> deltaPkType = XmlHandler.getInstance().getPreAggViewConfig()
+				.getList("dbSchema.tableDefinition.delta.primaryKey.type");
+		List<String> deltaAggColName = XmlHandler.getInstance().getPreAggViewConfig()
+				.getList("dbSchema.tableDefinition.delta.aggCol.name");
+		List<String> deltaAggColType = XmlHandler.getInstance().getPreAggViewConfig()
+				.getList("dbSchema.tableDefinition.delta.aggCol.type");
+		List<String> deltaAggKeyName = XmlHandler.getInstance().getPreAggViewConfig()
+				.getList("dbSchema.tableDefinition.delta.aggKey.name");
+		List<String> deltaAggKeyType = XmlHandler.getInstance().getPreAggViewConfig()
+				.getList("dbSchema.tableDefinition.delta.aggKey.type");
+		List<String> deltaTableName = XmlHandler.getInstance().getPreAggViewConfig()
+				.getList("dbSchema.tableDefinition.delta.name");
 
 
 		int cursor = 0;
@@ -888,7 +905,52 @@ public class Client {
 			}
 
 
+			// fill preaggregation table
+
+
+			StringBuilder selectQuery = new StringBuilder("SELECT ")
+			.append(deltaPkName.get(i)+" ,")
+			.append(deltaAggKeyName.get(i)+" ,")
+			.append(deltaAggColName.get(i)+" ");
+			selectQuery.append(" FROM ").append(keyspace.get(i)).append(".")
+			.append(deltaTableName.get(i)).append(";");
+
+			System.out.println(selectQuery);
+
+			try {
+
+				session = currentCluster.connect();
+				ResultSet preaggViewResultSet = session.execute(selectQuery.toString());
+
+				Iterator<Row> preViewResultSetIterator = preaggViewResultSet.iterator();
+
+
+
+			} catch (Exception e) {
+				e.printStackTrace();
+				return false;
+			}
+			
+			// insert into preaggView
+			
+			/*StringBuilder insertQuery = new StringBuilder(
+					"INSERT INTO ");
+			insertQuery.append(keyspace.get(i)).append(".")
+			.append(tableName.get(i)).append(" (")
+			.append(columns).append(") VALUES (")
+			.append(values).append(");");
+
+			System.out.println(insertQuery);
+
+			session.execute(insertQuery.toString());*/
+			
+			
+			
+			
 		}
+
+
+
 
 
 

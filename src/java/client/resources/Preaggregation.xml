@@ -3,28 +3,43 @@
 	<dbSchema>
 		<tableNumber>1</tableNumber>
 		<tableDefinition>
-		    <baseTable>courses</baseTable>
-			
-		    <columnNumber>1</columnNumber>
+			<baseTable>courses</baseTable>
+
+			<columnNumber>1</columnNumber>
 			<keyspace>test</keyspace>
-			<name>Preaggregation_courses_faculty_ETC</name>
-			 
+			<name>preaggregation_courses_faculty_ECTS</name>
+
 			<primaryKey>
 				<type>text</type>
 				<name>faculty</name>
 			</primaryKey>
-			
+
 			<column>
 				<family>colfam1</family>
 				<type>map&lt;int,int&gt;</type>
 				<name>list_item</name>
 			</column>
-			
-			
+
+			<delta>
+				<name>delta_courses</name>
+				<primaryKey>
+					<type>int</type>
+					<name>id</name>
+				</primaryKey>
+				<aggKey>
+					<type>text</type>
+					<name>faculty_new</name>
+				</aggKey>
+				<aggCol>
+					<type>int</type>
+					<name>ECTS_new</name>
+				</aggCol>
+			</delta>
+
 		</tableDefinition>
-		
-		
-		
+
+
+
 	</dbSchema>
 
 
