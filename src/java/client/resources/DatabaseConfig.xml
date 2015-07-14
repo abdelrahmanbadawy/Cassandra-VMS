@@ -93,7 +93,7 @@
 			<name>courses</name>
 			<columnNumber>3</columnNumber>
 			<primaryKey>
-				<type>int</type>
+				<type>varint</type>
 				<name>id</name>
 			</primaryKey>
 			<clusteringKey>
@@ -109,7 +109,7 @@
 			</column>
 			<column>
 				<family>colfam3</family>
-				<type>int</type>
+				<type>varint</type>
 				<name>ECTS</name>
 			</column>
 			<column>

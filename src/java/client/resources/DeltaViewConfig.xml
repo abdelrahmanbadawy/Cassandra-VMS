@@ -10,7 +10,7 @@
 			<name>delta_courses</name>
 			 
 			<primaryKey>
-				<type>int</type>
+				<type>varint</type>
 				<name>id</name>
 			</primaryKey>
 			<column>
@@ -21,7 +21,7 @@
 			
 			<column>
 				<family>colfam3</family>
-				<type>int</type>
+				<type>varint</type>
 				<name>ECTS</name>
 			</column>
 			

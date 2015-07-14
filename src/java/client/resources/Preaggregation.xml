@@ -13,17 +13,21 @@
 				<type>text</type>
 				<name>faculty</name>
 			</primaryKey>
-
 			<column>
 				<family>colfam1</family>
-				<type>map&lt;int,int&gt;</type>
+				<type>map&lt;text,text&gt;</type>
 				<name>list_item</name>
 			</column>
+			
+			<aggCol>
+				<type>int</type>
+				<name>ECTS</name>
+			</aggCol>
 
 			<delta>
 				<name>delta_courses</name>
 				<primaryKey>
-					<type>int</type>
+					<type>varint</type>
 					<name>id</name>
 				</primaryKey>
 				<aggKey>
@@ -31,7 +35,7 @@
 					<name>faculty_new</name>
 				</aggKey>
 				<aggCol>
-					<type>int</type>
+					<type>varint</type>
 					<name>ECTS_new</name>
 				</aggCol>
 			</delta>
