@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.DocumentBuilder;
@@ -260,14 +261,80 @@ public class Client {
 	public static boolean createViewTable() {
 
 		//return createSelectViewTable() &&
-		return  createDeltaViewTable() && createPreAggregationViewTable() ;//&& createAggregationViewTable();
+		return  createDeltaViewTable() && createPreAggregationViewTable() && createAggregationViewTable();
 	}
+
+
+	private static boolean fillAggregationViewTable(String keyspace,
+			String preAggTable, String tableName,String aggKey){
+
+		//Selection from PreAggregation
+
+		StringBuilder selectQuery = new StringBuilder("SELECT * ");
+		selectQuery.append(" FROM ").append(keyspace).append(".")
+		.append(preAggTable).append(";");
+
+		System.out.println(selectQuery);
+
+		try {
+
+			Session session = currentCluster.connect();
+			aggViewResultSet = session.execute(selectQuery.toString());
+			aggViewResultSetIterator = aggViewResultSet.iterator();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+
+
+		while (aggViewResultSetIterator.hasNext()) {
+
+			Row theRow = aggViewResultSetIterator.next();
+
+			Map<String, String> tempMapImmutable= theRow.getMap("list_item",String.class, String.class);
+			String pk = theRow.getString("faculty");
+
+			float count = tempMapImmutable.size();
+			float sum = 0;
+			
+			for (String value : tempMapImmutable.values()) {
+			   
+				sum+= Float.valueOf(value);
+			}
+			
+			float avg = sum/count;
+			
+			
+			StringBuilder insertQueryAgg = new StringBuilder("INSERT INTO ");
+			insertQueryAgg.append(keyspace).append(".")
+			.append(tableName).append(" ( ")
+			.append(aggKey)
+			.append(", sum, count, average) VALUES ('").append(pk).append("', ");
+			insertQueryAgg.append((int)sum).append(", ").append((int)count).append(", ").append(avg)
+			.append(");");
+
+			System.out.println(insertQueryAgg);
+			
+			try {
+
+				Session session = currentCluster.connect();
+				session.execute(insertQueryAgg.toString());
+
+			} catch (Exception e) {
+				e.printStackTrace();
+				return false;
+			}
+		}
+
+
+		return true;		
+	}
+
+
 
 	private static boolean fillAggregationViewTable(String keyspace,
 			String baseTableName, String aggKey, String aggCol, String colType, String tableName, int tableIndex) {
-
-
-
 
 
 		// Selection from BaseTable
@@ -593,6 +660,8 @@ public class Client {
 				.getList("dbSchema.tableDefinition.column.type");
 		List<String> baseTable = XmlHandler.getInstance().getAggViewConfig()
 				.getList("dbSchema.tableDefinition.baseTable");
+		List<String> preAggTableName = XmlHandler.getInstance().getAggViewConfig()
+				.getList("dbSchema.tableDefinition.preAggTable");
 
 		List<String> primarykeyTypeAgg = XmlHandler.getInstance()
 				.getAggViewConfig()
@@ -650,9 +719,11 @@ public class Client {
 
 
 
-			fillAggregationViewTable(keyspace.get(i), baseTable.get(i),
-					primarykeyNameAgg.get(i), aggregationColName.get(i), primarykeyType.get(i), tableName.get(i), i);
+			//fillAggregationViewTable(keyspace.get(i), baseTable.get(i),
+				//	primarykeyNameAgg.get(i), aggregationColName.get(i), primarykeyType.get(i), tableName.get(i), i);
 
+			fillAggregationViewTable(keyspace.get(i),preAggTableName.get(i), tableName.get(i),primarykeyNameAgg.get(i));
+			
 		}
 
 
@@ -768,8 +839,8 @@ public class Client {
 					StringBuilder values = new StringBuilder();
 
 					columns.append(primarykeyName.get(i));
-					
-					
+
+
 
 					switch (primarykeyType.get(i)) {
 
@@ -791,8 +862,8 @@ public class Client {
 						break;
 
 					}
-					
-					
+
+
 
 					for (int j = 0; j < Integer.parseInt(nrColumns.get(i)); j++) {
 						columns.append(", ").append(colName.get(j)+"_new");
@@ -982,7 +1053,6 @@ public class Client {
 				.append(primarykeyName.get(i)+ " = ");
 
 
-
 				switch (deltaAggKeyType.get(i)) {
 
 				case "int":
@@ -1030,7 +1100,7 @@ public class Client {
 				.append(tableName.get(i)).append(" ( ")
 				.append(primarykeyName.get(i)+", ")
 				.append(colName.get(i)).append(") VALUES (");
-				
+
 
 				switch (deltaAggKeyType.get(i)) {
 
@@ -1053,8 +1123,7 @@ public class Client {
 				}
 
 				insertQueryAgg.append("?);");
-				PreparedStatement statement = session.prepare(insertQueryAgg.toString());
-				
+
 
 				if (theRow == null) {
 
@@ -1067,8 +1136,6 @@ public class Client {
 
 
 					System.out.println(theRow);
-
-
 
 					Map<String, String> tempMapImmutable= theRow.getMap("list_item",String.class, String.class);
 					//tempMap.put(currentRow.getInt(deltaPkName.get(i)), currentRow.getInt(deltaAggColName.get(i)));
@@ -1087,7 +1154,8 @@ public class Client {
 				try {
 
 					session = currentCluster.connect();
-					
+
+					PreparedStatement statement = session.prepare(insertQueryAgg.toString());
 					BoundStatement boundStatement = statement.bind(tempMap);
 					System.out.println(boundStatement.toString());
 					session.execute(boundStatement);
