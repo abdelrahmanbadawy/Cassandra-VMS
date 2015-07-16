@@ -261,7 +261,7 @@ public class Client {
 	public static boolean createViewTable() {
 
 		//return createSelectViewTable() &&
-		return  createDeltaViewTable() && createPreAggregationViewTable() && createAggregationViewTable();
+		return  createDeltaViewTable() ;//&& createPreAggregationViewTable() && createAggregationViewTable();
 	}
 
 
@@ -760,18 +760,8 @@ public class Client {
 				.getList("dbSchema.tableDefinition.column.name");
 		List<String> colType = XmlHandler.getInstance().getDeltaViewConfig()
 				.getList("dbSchema.tableDefinition.column.type");
-		List<String> baseTable = XmlHandler.getInstance()
-				.getDeltaViewConfig()
-				.getList("dbSchema.tableDefinition.baseTable");
-		List<String> conditions = XmlHandler.getInstance()
-				.getDeltaViewConfig()
-				.getList("dbSchema.tableDefinition.condition");
-
-
-		List<List<BigInteger>> aggColumn = new ArrayList<List<BigInteger>>();
-
-
-
+		
+		
 		int cursor = 0;
 
 		// delta view
@@ -809,108 +799,8 @@ public class Client {
 
 			try {
 				session = currentCluster.connect();
-				ResultSet queryResults = session
-						.execute(createQuery.toString());
-			} catch (Exception e) {
-				e.printStackTrace();
-				return false;
-			}
-
-
-			StringBuilder selectQuery = new StringBuilder("SELECT * ");
-
-
-			selectQuery.append(" FROM ").append(keyspace.get(i)).append(".")
-			.append(baseTable.get(i)).append(";");
-
-			System.out.println(selectQuery);
-
-			try {
-				session = currentCluster.connect();
-
-				deltaViewQueryResults = session.execute(
-						selectQuery.toString()).iterator();
-
-				while (deltaViewQueryResults.hasNext()) {
-
-					Row currentRow = deltaViewQueryResults.next();
-
-					StringBuilder columns = new StringBuilder();
-					StringBuilder values = new StringBuilder();
-
-					columns.append(primarykeyName.get(i));
-
-
-
-					switch (primarykeyType.get(i)) {
-
-					case "int":
-						values.append(currentRow.getInt(primarykeyName.get(i)));
-						break;
-					case "varint":
-						values.append(currentRow.getVarint(primarykeyName.get(i)));
-
-						break;
-					case "text":
-						values.append(", '")
-						.append(currentRow.getString(primarykeyName.get(i)))
-						.append("'");
-						break;
-					case "float":
-						values.append(", ").append(
-								currentRow.getFloat(primarykeyName.get(i)));
-						break;
-
-					}
-
-
-
-					for (int j = 0; j < Integer.parseInt(nrColumns.get(i)); j++) {
-						columns.append(", ").append(colName.get(j)+"_new");
-
-						switch (colType.get(j)) {
-
-						case "int":
-							values.append(", ").append(
-									currentRow.getInt(colName.get(j)));
-							break;
-						case "varint":
-							values.append(", ").append(
-									currentRow.getVarint(colName.get(j)));
-
-							break;
-						case "text":
-							values.append(", '")
-							.append(currentRow.getString(colName.get(j)))
-							.append("'");
-							break;
-						case "float":
-							values.append(", ").append(
-									currentRow.getFloat(colName.get(j)));
-							break;
-
-						}
-
-					}
-
-					StringBuilder insertQuery = new StringBuilder(
-							"INSERT INTO ");
-					insertQuery.append(keyspace.get(i)).append(".")
-					.append(tableName.get(i)).append(" (")
-					.append(columns).append(") VALUES (")
-					.append(values).append(");");
-
-					System.out.println(insertQuery);
-
-					session.execute(insertQuery.toString());
-
-				}
-
-				// clear log file
-				PrintWriter writer = new PrintWriter("logs/output.log");
-				writer.print("");
-				writer.close();
-
+				session.execute(createQuery.toString());
+				
 			} catch (Exception e) {
 				e.printStackTrace();
 				return false;
@@ -1180,5 +1070,6 @@ public class Client {
 		return true;
 	}
 
+	
 
 }

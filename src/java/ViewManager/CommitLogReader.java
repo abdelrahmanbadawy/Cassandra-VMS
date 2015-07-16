@@ -57,12 +57,16 @@ public class CommitLogReader {
 
 				if (type.equals("insert")) {
 
-					vm.insertCourses_Faculty_AggView(json);
-					
+					//vm.insertCourses_Faculty_AggView(json);
+					if(json.get("table").equals("courses")){
+						vm.updateDelta(json);
+					}	
 				}
 
 				if (type.equals("update")) {
-
+					if(json.get("table").equals("courses")){
+						vm.updateDelta(json);
+					}
 				}
 
 				if (type.equals("delete")) {

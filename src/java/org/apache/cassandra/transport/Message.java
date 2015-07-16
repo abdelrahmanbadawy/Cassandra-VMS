@@ -415,7 +415,7 @@ public abstract class Message {
 				connection.applyStateTransition(request.type, response.type);
 
 				if (response.toString().equals("EMPTY RESULT")
-						&& !request.toString().toLowerCase().contains("view")
+						//&& request.toString().toLowerCase().contains("view")
 						&& (request.toString().toLowerCase().contains("insert")
 								|| request.toString().toLowerCase()
 										.contains("update") || (request
@@ -489,7 +489,8 @@ public abstract class Message {
 					condition_values[i] = condition[1];
 				}
 
-				commitLogger.info(convertUpdateToJSON(queryType, keySpaceName,
+				if ( !tableName.contains("delta") )
+					commitLogger.info(convertUpdateToJSON(queryType, keySpaceName,
 						tableName, condition_columns, condition_values,
 						set_data_columns, set_data_values, transactionId)
 						.toJSONString());
@@ -514,7 +515,7 @@ public abstract class Message {
 					String[] values = splitRaw[1].split(";")[0]
 							.replace("(", "").replace(")", "").split(", ");
 
-					if (!tableName.contains("SelectView"))
+					if (!tableName.contains("SelectView") && !tableName.contains("delta") )
 						commitLogger.info(convertInsertToJSON(queryType,
 								keySpaceName, tableName, columns, values,
 								transactionId).toJSONString());
@@ -545,6 +546,7 @@ public abstract class Message {
 						condition_values[i] = condition[1];
 					}
 
+					
 					commitLogger.info(convertDeleteToJSON(queryType,
 							keySpaceName, tableName, condition_columns,
 							condition_values, transactionId).toJSONString());
