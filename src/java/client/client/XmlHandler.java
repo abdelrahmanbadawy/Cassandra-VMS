@@ -1,5 +1,6 @@
 package client.client;
 
+import org.apache.commons.configuration.AbstractConfiguration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.XMLConfiguration;
 
@@ -78,6 +79,7 @@ public class XmlHandler {
 	public XMLConfiguration getPreAggViewConfig(){
 		return preAggViewConfig;
 	}
+
 	
 
 

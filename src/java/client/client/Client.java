@@ -179,6 +179,7 @@ public class Client {
 		return true;
 	}
 
+
 	public static void insertBaseTable(String fileName) {
 
 		String file = null;
@@ -255,13 +256,14 @@ public class Client {
 		}
 	}
 
+
 	/**
 	 * This method creates the view tables and inserts the data accordingly
 	 */
 	public static boolean createViewTable() {
 
 		//return createSelectViewTable() &&
-		return  createDeltaViewTable() ;//&& createPreAggregationViewTable() && createAggregationViewTable();
+		return  createSelectViewTable() && createDeltaViewTable() ;//&& createPreAggregationViewTable() && createAggregationViewTable();
 	}
 
 
@@ -297,15 +299,15 @@ public class Client {
 
 			float count = tempMapImmutable.size();
 			float sum = 0;
-			
+
 			for (String value : tempMapImmutable.values()) {
-			   
+
 				sum+= Float.valueOf(value);
 			}
-			
+
 			float avg = sum/count;
-			
-			
+
+
 			StringBuilder insertQueryAgg = new StringBuilder("INSERT INTO ");
 			insertQueryAgg.append(keyspace).append(".")
 			.append(tableName).append(" ( ")
@@ -315,7 +317,7 @@ public class Client {
 			.append(");");
 
 			System.out.println(insertQueryAgg);
-			
+
 			try {
 
 				Session session = currentCluster.connect();
@@ -494,6 +496,7 @@ public class Client {
 		return true;
 	}
 
+
 	/**
 	 * This method creates the select view tables and inserts the data
 	 * accordingly
@@ -514,8 +517,7 @@ public class Client {
 				.getList("dbSchema.tableDefinition.primaryKey.name");
 		Integer nrColumns = XmlHandler.getInstance().getSelectViewConfig()
 				.getInt("dbSchema.tableDefinition.columnNumber");
-		List<String> colFamily = XmlHandler.getInstance().getSelectViewConfig()
-				.getList("dbSchema.tableDefinition.column.family");
+
 		List<String> colName = XmlHandler.getInstance().getSelectViewConfig()
 				.getList("dbSchema.tableDefinition.column.name");
 		List<String> colType = XmlHandler.getInstance().getSelectViewConfig()
@@ -526,12 +528,12 @@ public class Client {
 				.getSelectViewConfig()
 				.getList("dbSchema.tableDefinition.condition");
 
-		for (int i = 0; i < nrTables - 1; i++) {
+		for (int i = 0; i < nrTables; i++) {
 
 			StringBuilder createQuery = new StringBuilder();
 			createQuery.append("CREATE TABLE IF NOT EXISTS  ")
 			.append(keyspace.get(i)).append(".")
-			.append(tableName.get(i) + "(")
+			.append(tableName.get(i)+ "(")
 			.append(primarykeyName.get(i) + " ")
 			.append(primarykeyType.get(i)).append(" PRIMARY KEY,");
 
@@ -551,78 +553,6 @@ public class Client {
 				session = currentCluster.connect();
 				ResultSet queryResults = session
 						.execute(createQuery.toString());
-			} catch (Exception e) {
-				e.printStackTrace();
-				return false;
-			}
-
-			StringBuilder selectQuery = new StringBuilder();
-
-			selectQuery.append("SELECT * FROM ").append(keyspace.get(i))
-			.append(".").append(baseTable.get(i)).append(";");
-
-			System.out.println(selectQuery);
-
-			try {
-				Iterator<Row> queryResults = session.execute(
-						selectQuery.toString()).iterator();
-
-				while (queryResults.hasNext()) {
-
-					Row currentRow = queryResults.next();
-
-					int salary = currentRow.getInt("salary");
-
-					if (salary >= 2000) {
-
-						StringBuilder columns = new StringBuilder();
-						StringBuilder values = new StringBuilder();
-
-						columns.append(primarykeyName.get(i));
-						values.append(currentRow.getInt(primarykeyName.get(i)));
-
-						for (int j = 0; j < nrColumns; j++) {
-							columns.append(", ").append(colName.get(j));
-
-							switch (colType.get(j)) {
-							case "text":
-								values.append(", ").append(
-										"'"
-												+ currentRow.getString(colName
-														.get(j)) + "'");
-								break;
-							case "int":
-								values.append(", ").append(
-										currentRow.getInt(colName.get(j)));
-								break;
-							case "varint":
-								values.append(", ").append(
-										currentRow.getVarint(colName.get(j)));
-								break;
-
-							}
-
-						}
-
-						StringBuilder insertQuery = new StringBuilder(
-								"INSERT INTO ");
-						insertQuery.append(keyspace.get(i)).append(".")
-						.append(tableName.get(i)).append(" (")
-						.append(columns).append(") VALUES (")
-						.append(values).append(");");
-
-						System.out.println(insertQuery);
-
-						session.execute(insertQuery.toString());
-
-					}
-				}
-
-				// clear log file
-				PrintWriter writer = new PrintWriter("logs/output.log");
-				writer.print("");
-				writer.close();
-
 			} catch (Exception e) {
 				e.printStackTrace();
 				return false;
@@ -720,10 +650,10 @@ public class Client {
 
 
 			//fillAggregationViewTable(keyspace.get(i), baseTable.get(i),
-				//	primarykeyNameAgg.get(i), aggregationColName.get(i), primarykeyType.get(i), tableName.get(i), i);
+			//	primarykeyNameAgg.get(i), aggregationColName.get(i), primarykeyType.get(i), tableName.get(i), i);
 
 			fillAggregationViewTable(keyspace.get(i),preAggTableName.get(i), tableName.get(i),primarykeyNameAgg.get(i));
-			
+
 		}
 
 
@@ -760,8 +690,8 @@ public class Client {
 				.getList("dbSchema.tableDefinition.column.name");
 		List<String> colType = XmlHandler.getInstance().getDeltaViewConfig()
 				.getList("dbSchema.tableDefinition.column.type");
-		
-		
+
+
 		int cursor = 0;
 
 		// delta view
@@ -800,7 +730,7 @@ public class Client {
 			try {
 				session = currentCluster.connect();
 				session.execute(createQuery.toString());
-				
+
 			} catch (Exception e) {
 				e.printStackTrace();
 				return false;
@@ -838,20 +768,10 @@ public class Client {
 		List<String> colType = XmlHandler.getInstance().getPreAggViewConfig()
 				.getList("dbSchema.tableDefinition.column.type");
 
-		List<String> aggColName = XmlHandler.getInstance().getPreAggViewConfig()
-				.getList("dbSchema.tableDefinition.aggCol.name");
-		List<String> aggColType = XmlHandler.getInstance().getPreAggViewConfig()
-				.getList("dbSchema.tableDefinition.aggCol.type");
-
-
 		List<String> deltaPkName = XmlHandler.getInstance().getPreAggViewConfig()
 				.getList("dbSchema.tableDefinition.delta.primaryKey.name");
-		List<String> deltaPkType = XmlHandler.getInstance().getPreAggViewConfig()
-				.getList("dbSchema.tableDefinition.delta.primaryKey.type");
 		List<String> deltaAggColName = XmlHandler.getInstance().getPreAggViewConfig()
 				.getList("dbSchema.tableDefinition.delta.aggCol.name");
-		List<String> deltaAggColType = XmlHandler.getInstance().getPreAggViewConfig()
-				.getList("dbSchema.tableDefinition.delta.aggCol.type");
 		List<String> deltaAggKeyName = XmlHandler.getInstance().getPreAggViewConfig()
 				.getList("dbSchema.tableDefinition.delta.aggKey.name");
 		List<String> deltaAggKeyType = XmlHandler.getInstance().getPreAggViewConfig()
@@ -1070,6 +990,6 @@ public class Client {
 		return true;
 	}
 
-	
+
 
 }

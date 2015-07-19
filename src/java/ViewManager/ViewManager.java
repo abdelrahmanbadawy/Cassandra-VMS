@@ -14,6 +14,7 @@ import client.client.Client;
 import client.client.XmlHandler;
 
 import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.ColumnDefinitions;
 import com.datastax.driver.core.ColumnDefinitions.Definition;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
@@ -51,238 +52,7 @@ public class ViewManager {
 
 	}
 
-	public void insertEmployeeSelectView(JSONObject json) {
-		JSONObject data = (JSONObject) json.get("data");
-		int salary = Integer.parseInt(data.get("salary").toString());
-
-		if (data != null && salary >= 2000) {
-			Object[] hm = data.entrySet().toArray();
-
-			StringBuilder columns = new StringBuilder();
-			StringBuilder values = new StringBuilder();
-
-			for (int i = 0; i < hm.length; i++) {
-				// System.out.println(hm[i]);
-				String[] split = hm[i].toString().split("=");
-
-				columns.append(split[0]);
-				values.append(split[1]);
-
-				if (i < hm.length - 1) {
-					columns.append(", ");
-					values.append(", ");
-				}
-
-			}
-
-			StringBuilder insertQuery = new StringBuilder("INSERT INTO ");
-			insertQuery.append(data.get("keyspace")).append(".")
-			.append(json.get("table")).append("SelectView (")
-			.append(columns).append(") VALUES (").append(values)
-			.append(");");
-
-			System.out.println(insertQuery);
-
-			Session session = Client.getClusterInstance().connect();
-
-			session.execute(insertQuery.toString());
-
-		}
-	}
-
-
-
-	public boolean insertCourses_Faculty_AggView(JSONObject json) {
-
-		JSONObject data = (JSONObject) json.get("data");
-
-		String faculty = data.get("faculty").toString();
-
-		StringBuilder selectQuery = new StringBuilder("SELECT * ");
-		selectQuery.append(" FROM ").append(json.get("keyspace")).append(".")
-		.append(json.get("table")).append("_faculty_AggView WHERE ")
-		.append("faculty= ").append(faculty).append(" ;");
-
-		System.out.println(selectQuery);
-
-		ResultSet aggViewSelection;
-		try {
-
-			Session session = currentCluster.connect();
-			aggViewSelection = session.execute(selectQuery.toString());
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			return false;
-		}
-
-		// System.out.println("here" + aggViewSelection.all().size());
-
-		StringBuilder insertQueryAgg;
-
-		Row theRow = aggViewSelection.one();
-
-		if (theRow == null) {
-			// if result set is empty, insert a new row, pk = aggkey, sum
-			// =aggCol, count = 1, av= sum/count
-
-			insertQueryAgg = new StringBuilder("INSERT INTO ");
-			insertQueryAgg.append(json.get("keyspace")).append(".").append(json.get("table")).append("_faculty_AggView ")
-			.append(" ( ").append("faculty")
-			.append(", sum, count, average) VALUES (").append(data.get("faculty"))
-			.append(", ");
-
-			int sum = Integer.parseInt(data.get("ects").toString());
-
-			insertQueryAgg.append(sum).append(", 1, ").append(sum).append(");");
-
-			System.out.println(insertQueryAgg);
-
-		} else {
-			// else insert with same pk, count ++, sum *= aggcol, avg =
-			// sum/count
-
-			// System.out.println("here" + aggViewSelection.all().size());
-
-			System.out.println(theRow);
-
-			int sum = theRow.getInt("sum");
-			sum +=  Integer.parseInt(data.get("ects").toString());
-
-			int count = theRow.getInt("count");
-			count++;
-
-			float avg = (float) sum / (float) count;
-
-			insertQueryAgg = new StringBuilder("UPDATE ");
-			insertQueryAgg.append(json.get("keyspace")).append(".").append(json.get("table"))
-			.append("_faculty_AggView SET sum= ").append(sum).append(", average= ")
-			.append(avg).append(", count= ").append(count)
-			.append(" WHERE ").append("faculty").append("= ")
-			.append(data.get("faculty")).append(";");
-
-			System.out.println(insertQueryAgg);
-
-		}
-
-		// run insert query
-
-		try {
-
-			Session session = currentCluster.connect();
-			aggViewSelection = session.execute(insertQueryAgg.toString());
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			return false;
-		}
-
-		return true;
-
-	}
-
-	public void updateEmployeeSelectView(JSONObject json) {
-		JSONObject condition = (JSONObject) json.get("condition");
-
-		if (condition != null) {
-			condition = (JSONObject) json.get("condition");
-
-			JSONObject set_data = (JSONObject) json.get("set_data");
-			int salary = Integer.parseInt(set_data.get("salary").toString());
-
-			if (salary < 2000) {
-
-				StringBuilder deleteQuery = new StringBuilder("DELETE FROM ");
-				deleteQuery.append(json.get("keyspace")).append(".")
-				.append(json.get("table")).append("SelectView WHERE ");
-
-				if (condition != null) {
-					Object[] hm = condition.entrySet().toArray();
-
-					for (int i = 0; i < hm.length; i++) {
-						// System.out.println(hm[i]);
-						deleteQuery.append(hm[i]);
-						if (i < hm.length - 1)
-							deleteQuery.append(" AND ");
-					}
-
-				}
-				deleteQuery.append(";");
-
-				System.out.println(deleteQuery);
-
-				Session session = Client.getClusterInstance().connect();
-
-				session.execute(deleteQuery.toString());
-
-			} else {
-
-				StringBuilder updateQuery = new StringBuilder("UPDATE ");
-				updateQuery.append(json.get("keyspace")).append(".")
-				.append(json.get("table")).append("SelectView SET ");
-
-				Object[] hm = set_data.entrySet().toArray();
-				for (int i = 0; i < hm.length; i++) {
-					// System.out.println(hm[i]);
-					updateQuery.append(hm[i]);
-					if (i < hm.length - 1)
-						updateQuery.append(", ");
-				}
-
-				updateQuery.append(" WHERE ");
-
-				if (condition != null) {
-					Object[] cond = condition.entrySet().toArray();
-
-					for (int i = 0; i < cond.length; i++) {
-						// System.out.println(hm[i]);
-						updateQuery.append(cond[i]);
-						if (i < cond.length - 1)
-							updateQuery.append(", ");
-					}
-
-				}
-				updateQuery.append(";");
-
-				System.out.println(updateQuery);
-
-				Session session = Client.getClusterInstance().connect();
-
-				session.execute(updateQuery.toString());
-
-			}
-
-		}
-
-	}
-
-	public void deleteEmployeeSelectView(JSONObject json) {
-		JSONObject condition = (JSONObject) json.get("condition");
-
-		StringBuilder deleteQuery = new StringBuilder("DELETE FROM ");
-		deleteQuery.append(json.get("keyspace")).append(".")
-		.append(json.get("table")).append("SelectView WHERE ");
-
-		if (condition != null) {
-			Object[] hm = condition.entrySet().toArray();
-
-			for (int i = 0; i < hm.length; i++) {
-				// System.out.println(hm[i]);
-				deleteQuery.append(hm[i]);
-				if (i < hm.length - 1)
-					deleteQuery.append(" AND ");
-			}
-
-		}
-		deleteQuery.append(";");
-
-		System.out.println(deleteQuery);
-
-		Session session = Client.getClusterInstance().connect();
-
-		session.execute(deleteQuery.toString());
-	}
-
+	
 	public boolean updateDelta(JSONObject json) {
 
 		List<String> baseTableName = baseTableKeysConfig.getList("tableSchema.table.name");
@@ -362,7 +132,7 @@ public class ViewManager {
 			}
 
 			insertQueryAgg.deleteCharAt(insertQueryAgg.length()-2);
-			insertQueryAgg.append(");");
+			
 
 			System.out.println(insertQueryAgg);
 
@@ -392,7 +162,7 @@ public class ViewManager {
 			for(int i=0;i<nrColumns;i++) {
 
 				switch (theRow.getColumnDefinitions().getType(i).toString()) {
-				
+
 				case "text":
 					if(! theRow.getColumnDefinitions().getName(i).equals(pkName.get(indexBaseTableName))){
 						insertQueryAgg.append(", '"+theRow.getString(i) + "'");
@@ -403,13 +173,13 @@ public class ViewManager {
 						insertQueryAgg.append(", "+theRow.getInt(i));
 					}
 					break;
-			  	case "varint":
+				case "varint":
 					if(! theRow.getColumnDefinitions().getName(i).equals(pkName.get(indexBaseTableName))){
 						insertQueryAgg.append(", "+theRow.getVarint(i));
 					}
 					break;
-					
-			  	case "varchar":
+
+				case "varchar":
 					if(! theRow.getColumnDefinitions().getName(i).equals(pkName.get(indexBaseTableName))){
 						insertQueryAgg.append(", '"+theRow.getString(i)+"'");
 					}
@@ -422,9 +192,11 @@ public class ViewManager {
 
 		try {
 
+			//insertQueryAgg.deleteCharAt(insertQueryAgg.length()-1);
 			insertQueryAgg.append(");");
 			Session session = currentCluster.connect();
 			session.execute(insertQueryAgg.toString());
+			System.out.println(insertQueryAgg.toString());
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -432,9 +204,219 @@ public class ViewManager {
 		}
 
 		System.out.println("Done Delta update");
+
+		decideSelection(keyspace,"delta_"+table,pkName.get(indexBaseTableName),data.get(pkName.get(indexBaseTableName)).toString(),json,theRow);
+
+
 		return true;
 
 	}
 
+	private void decideSelection(String keyspace, String table, String pk, String pkValue, JSONObject json, Row oldDeltaColumns) {
+
+		List<String> deltaTable  = VmXmlHandler.getInstance().getDeltaSelectionMapping().
+				getList("mapping.unit.deltaTable");
+
+		JSONObject data = (JSONObject) json.get("data");
+
+		int position = deltaTable.indexOf(table);
+
+		if(position!=-1){
+
+			String temp= "mapping.unit(";
+			temp+=Integer.toString(position);
+			temp+=")";
+
+			int nrConditions = VmXmlHandler.getInstance().getDeltaSelectionMapping().
+					getInt(temp+".nrCond");
+
+			for(int i=0;i<nrConditions;i++){
+
+				String s = temp+".Cond("+Integer.toString(i)+")";
+
+				String selColName = VmXmlHandler.getInstance().getDeltaSelectionMapping().
+						getString(s+".selectionCol");
+
+				String selecTable = VmXmlHandler.getInstance().getDeltaSelectionMapping().
+						getString(s+".name");
+
+				String operation = VmXmlHandler.getInstance().getDeltaSelectionMapping().
+						getString(s+".operation");
+
+				String value = VmXmlHandler.getInstance().getDeltaSelectionMapping().
+						getString(s+".value");
+
+				String type = VmXmlHandler.getInstance().getDeltaSelectionMapping().
+						getString(s+".type");
+
+
+				if(data.containsKey(selColName)){
+
+					switch (type) {
+
+					case "text":
+
+						break;
+
+					case "int":
+
+						String s1 = data.get(selColName).toString();
+						Integer valueInt = new Integer(s1);
+						int compareValue = valueInt.compareTo(new Integer(value));
+
+						if((operation.equals(">") && (compareValue<0))){
+							return;
+						}else if((operation.equals("<") && (compareValue>0))){
+							return;
+						}else if((operation.equals("=") && (compareValue!=0))){
+							return;
+						}
+
+						break;
+
+					case "varint":
+
+						break;
+
+					case "float":
+
+						break;
+					}
+
+
+					
+				}else{
+										
+				}
+
+				updateSelection(keyspace,selecTable,selColName,pk,pkValue,table);
+
+			}
+		}
+
+	}
+
+	public boolean updatePreaggregation(){
+
+		return false;
+	}
+
+
+	public boolean updateSelection(String keyspace, String selecTable, String selColName, String pk, String pkValue,String deltaTable){
+
+
+		StringBuilder selectQuery = new StringBuilder();
+
+		selectQuery.append("SELECT * FROM ").append(keyspace)
+		.append(".").append(deltaTable)
+		.append(" WHERE ").append(pk).append(" = ").append(pkValue).append(";");
+
+		System.out.println(selectQuery);
+
+		Session session = null;
+		ResultSet queryResults;
+
+		try {
+
+			session = currentCluster.connect();
+			queryResults = session.execute(
+					selectQuery.toString());
+
+		}catch(Exception e){
+			e.printStackTrace();
+			return false;
+		}
+
+
+		Row theRow = queryResults.one();
+		StringBuilder insertionSelection = new StringBuilder() ;
+		StringBuilder insertionSelectionValues = new StringBuilder() ;
+
+		if (theRow == null) {
+			//record got deleted from delta table
+		}else{
+
+			List<Definition> colDef = theRow.getColumnDefinitions().asList();
+
+			for(int i=0;i<colDef.size();i++){
+
+				switch (theRow.getColumnDefinitions().getType(i).toString()) {
+
+				case "text":
+					if(! theRow.getColumnDefinitions().getName(i).contains("_old")){
+						if( theRow.getColumnDefinitions().getName(i).contains("_new")){
+							String[] split = theRow.getColumnDefinitions().getName(i).split("_");
+							insertionSelection.append(split[0]+", ");
+
+						}else{
+							insertionSelection.append(theRow.getColumnDefinitions().getName(i)+", ");	
+						}
+
+						insertionSelectionValues.append("'"+theRow.getString(theRow.getColumnDefinitions().getName(i))+"', ");
+					}
+					break;
+
+				case "int":
+					if(! theRow.getColumnDefinitions().getName(i).contains("_old")){
+
+						if( theRow.getColumnDefinitions().getName(i).contains("_new")){
+							String[] split = theRow.getColumnDefinitions().getName(i).split("_");
+							insertionSelection.append(split[0]+", ");
+						}else{
+							insertionSelection.append(theRow.getColumnDefinitions().getName(i)+", ");
+						}
+
+						insertionSelectionValues.append(theRow.getInt(theRow.getColumnDefinitions().getName(i))+", ");
+					}
+					break;
+
+				case "varint":
+					if(! theRow.getColumnDefinitions().getName(i).contains("_old")){
+
+						if( theRow.getColumnDefinitions().getName(i).contains("_new")){
+							String[] split = theRow.getColumnDefinitions().getName(i).split("_");
+							insertionSelection.append(split[0]+", ");
+						}else{
+							insertionSelection.append(theRow.getColumnDefinitions().getName(i)+", ");
+						}
+						insertionSelectionValues.append(theRow.getVarint(theRow.getColumnDefinitions().getName(i))+", ");
+					}
+					break;
+
+				case "varchar":
+					if(! theRow.getColumnDefinitions().getName(i).contains("_old")){
+
+						if( theRow.getColumnDefinitions().getName(i).contains("_new")){
+							String[] split = theRow.getColumnDefinitions().getName(i).split("_");
+							insertionSelection.append(split[0]+", ");
+						}else{
+
+							insertionSelection.append(theRow.getColumnDefinitions().getName(i)+", ");
+						}
+						insertionSelectionValues.append("'"+theRow.getString(theRow.getColumnDefinitions().getName(i))+"', ");
+					}
+					break;	
+
+				}
+			}
+
+			insertionSelection.deleteCharAt(insertionSelection.length()-2);
+			insertionSelectionValues.deleteCharAt(insertionSelectionValues.length()-2);
+
+			StringBuilder insertQuery = new StringBuilder(
+					"INSERT INTO ");
+			insertQuery.append(keyspace).append(".")
+			.append(selecTable).append(" (")
+			.append(insertionSelection).append(") VALUES (")
+			.append(insertionSelectionValues).append(");");
+
+			System.out.println(insertQuery);
+
+			session.execute(insertQuery.toString());
+
+		}
+
+		return true;
+	}
 
 }

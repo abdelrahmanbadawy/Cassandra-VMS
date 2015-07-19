@@ -1,0 +1,26 @@
+<?xml version="1.1" encoding="UTF-8"?>
+
+<setup>
+	<mapping>
+		
+		<unit>
+			<deltaTable>delta_courses</deltaTable>
+			<nrCond>1</nrCond>
+			<Cond>
+				<name>selection_courses_ects</name>
+				<selectionCol>ECTS</selectionCol>
+				<type>int</type>
+				<operation>></operation>
+				<value>3</value>
+			</Cond>
+			<Cond>
+				<name>selection_courses_ects</name>
+				<selectionCol>ECTS</selectionCol>
+				<condition>ECTS=4</condition>
+			</Cond>
+		</unit>
+
+
+
+	</mapping>
+</setup>

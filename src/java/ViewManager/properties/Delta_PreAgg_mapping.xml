@@ -1,0 +1,21 @@
+<?xml version="1.1" encoding="UTF-8"?>
+
+<setup>
+	<mapping>
+
+		<nrDelta>1</nrDelta>
+		<delta>
+			<name>delta_courses</name>
+			
+			<nrPreAgg>1</nrPreAgg>
+			<PreAgg>
+				<name>preaggregation_courses_faculty_ECTS</name>
+				<AggKey>faculty</AggKey>
+				<AggKeyType>text</AggKeyType>
+				<AggCol>ECTS</AggCol>
+				<AggColType>int</AggColType>
+			</PreAgg>
+		</delta>
+
+	</mapping>
+</setup>
