@@ -7,6 +7,7 @@ public class VmXmlHandler {
 
 	private static XMLConfiguration deltaPreaggMapping;
 	private static XMLConfiguration deltaSelectionMapping;
+	private static XMLConfiguration preaggAggMapping;
 	
 	
 	private static VmXmlHandler _instance = null;
@@ -17,12 +18,16 @@ public class VmXmlHandler {
 		
 		deltaSelectionMapping = new XMLConfiguration();
 		deltaSelectionMapping.setDelimiterParsingDisabled(true);
+		
+		preaggAggMapping = new XMLConfiguration();
+		preaggAggMapping.setDelimiterParsingDisabled(true);
 
 				
 		
 		try {
 			deltaPreaggMapping.load("ViewManager/properties/Delta_PreAgg_mapping.xml");
 			deltaSelectionMapping.load("ViewManager/properties/Delta_Selection_mapping.xml");
+			preaggAggMapping.load("ViewManager/properties/PreAgg_Agg_mapping.xml");
 				
 		} catch (ConfigurationException e) {
 			e.printStackTrace();
@@ -43,6 +48,10 @@ public class VmXmlHandler {
 	
 	public XMLConfiguration getDeltaSelectionMapping(){
 		return deltaSelectionMapping;
+	}
+	
+	public XMLConfiguration getPreaggAggMapping(){
+		return preaggAggMapping;
 	}
 
 

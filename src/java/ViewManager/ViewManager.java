@@ -341,8 +341,10 @@ public class ViewManager {
 
 				if(firstInsertion && data.containsKey(AggKey) && data.containsKey(AggCol)){
 					newInsertPreaggregation(keyspace,preaggTable,pk,pkValue,AggKey,AggKeyType,AggCol,AggColType,json);
+
 				}else if(!firstInsertion && data.containsKey(AggKey) && data.containsKey(AggCol)){
-					InsertPreaggregation(keyspace,preaggTable,pk,pkValue,AggKey,AggKeyType,AggCol,AggColType,json,"delta_"+table);
+					InsertPreaggregation(keyspace,preaggTable,pk,pkValue,AggKey,AggKeyType,AggCol,AggColType,json,"delta_"+table);	
+
 				}else if(!firstInsertion && (!data.containsKey(AggKey)) && data.containsKey(AggCol)){
 					// TO DO 
 				}else if(!firstInsertion && data.containsKey(AggKey) && (!data.containsKey(AggCol))){
@@ -359,6 +361,77 @@ public class ViewManager {
 
 		return true;
 	}
+
+	private boolean updateAggregation(String keyspace, String preaggTable, String aggKey, String aggKeyValue, Map myMap) {
+
+		List<String> PreTable  = VmXmlHandler.getInstance().getPreaggAggMapping().
+				getList("mapping.unit.Preagg");
+		
+		
+		int position = PreTable.indexOf(preaggTable);
+
+		if(position!=-1){
+
+			String temp= "mapping.unit(";
+			temp+=Integer.toString(position);
+			temp+=").Agg";
+
+			String aggTable = VmXmlHandler.getInstance().getPreaggAggMapping().
+					getString(temp+".name");
+
+			String aggKeyType = VmXmlHandler.getInstance().getPreaggAggMapping().
+					getString(temp+".AggKeyType");
+
+			insertAggregation(keyspace,preaggTable,aggKey,aggKeyValue,myMap,aggTable,aggKeyType);		
+
+		}
+
+		return true;
+	}
+
+
+
+
+	private boolean insertAggregation(String keyspace, String preaggTable, String aggKey, String aggKeyValue, Map myMap, String aggTable,String aggKeyType) {
+
+		float count = myMap.size();
+		float sum = 0;
+
+
+		for (Object value : myMap.values()) {
+
+			sum+= Float.valueOf(value.toString());
+		}
+
+		float avg = sum/count;
+
+
+		StringBuilder insertQueryAgg = new StringBuilder("INSERT INTO ");
+		insertQueryAgg.append(keyspace).append(".")
+		.append(aggTable).append(" ( ")
+		.append(aggKey)
+		.append(", sum, count, average) VALUES (");
+
+		insertQueryAgg.append(aggKeyValue+", ").append((int)sum).append(", ").append((int)count).append(", ").append(avg)
+		.append(");");
+
+		System.out.println(insertQueryAgg);
+
+		try {
+
+			Session session = currentCluster.connect();
+			session.execute(insertQueryAgg.toString());
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+
+
+		return true;
+
+	}
+
 
 	private boolean InsertPreaggregation(String keyspace, String preaggTable,
 			String pk, String pkValue, String aggKey, String aggKeyType,
@@ -516,6 +589,8 @@ public class ViewManager {
 						System.out.println(boundStatement.toString());
 						session.execute(boundStatement);
 
+						updateAggregation(keyspace,preaggTable,aggKey,data.get(aggKey).toString(),myMap);
+
 					} catch (Exception e) {
 						e.printStackTrace();
 						return false;
@@ -591,26 +666,33 @@ public class ViewManager {
 						.append("list_item").append(") VALUES (");
 
 
+						StringBuilder aggKeyOld = new StringBuilder() ;
+
 						switch (aggKeyType) {
 
 						case "text":
 							insertQueryAgg.append("'"+theRow.getString(aggKey+"_old")+"', ");
+							aggKeyOld.append("'"+theRow.getString(aggKey+"_old")+"'"); 
 							break;
 
 						case "int":
 							insertQueryAgg.append(theRow.getInt(aggKey+"_old")+", ");
+							aggKeyOld.append(theRow.getInt(aggKey+"_old")); 
 							break;
 
 						case "varint":
 							insertQueryAgg.append(theRow.getVarint(aggKey+"_old")+", ");
+							aggKeyOld.append(theRow.getVarint(aggKey+"_old"));
 							break;
 
 						case "varchar":
 							insertQueryAgg.append("'"+theRow.getString(aggKey+"_old")+"', ");
+							aggKeyOld.append("'"+theRow.getString(aggKey+"_old")+"'");
 							break;	
 
 						case "float":
 							insertQueryAgg.append(theRow.getFloat(aggKey+"_old")+", ");
+							aggKeyOld.append(theRow.getFloat(aggKey+"_old"));
 							break;
 
 						}
@@ -625,12 +707,15 @@ public class ViewManager {
 							System.out.println(boundStatement.toString());
 							session.execute(boundStatement);
 
+							updateAggregation(keyspace,preaggTable,aggKey,aggKeyOld.toString(),myMap);
+
 						} catch (Exception e) {
 							e.printStackTrace();
 							return false;
 						}
 
 						newInsertPreaggregation(keyspace, preaggTable, pk, pkValue, aggKey, aggKeyType, aggCol, aggColType, json);
+
 					}
 				}
 
@@ -652,7 +737,7 @@ public class ViewManager {
 	}
 
 
-	private boolean newInsertPreaggregation(String keyspace, String preaggTable, String pk, String pkValue, String aggKey, String aggKeyType, String aggCol, String aggColType, JSONObject json){
+	private boolean newInsertPreaggregation( String keyspace, String preaggTable, String pk, String pkValue, String aggKey, String aggKeyType, String aggCol, String aggColType, JSONObject json){
 
 
 		JSONObject data = (JSONObject) json.get("data");
@@ -757,6 +842,10 @@ public class ViewManager {
 			return false;
 		}
 
+
+
+		//update Aggregation
+		updateAggregation(keyspace,preaggTable,aggKey,data.get(aggKey).toString(),myMap); 
 
 		return true;
 	}
