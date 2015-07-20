@@ -263,7 +263,7 @@ public class Client {
 	public static boolean createViewTable() {
 
 		//return createSelectViewTable() &&
-		return  createSelectViewTable() && createDeltaViewTable() ;//&& createPreAggregationViewTable() && createAggregationViewTable();
+		return  createSelectViewTable() && createDeltaViewTable() && createPreAggregationViewTable() ;//&& createPreAggregationViewTable() && createAggregationViewTable();
 	}
 
 
@@ -768,17 +768,6 @@ public class Client {
 		List<String> colType = XmlHandler.getInstance().getPreAggViewConfig()
 				.getList("dbSchema.tableDefinition.column.type");
 
-		List<String> deltaPkName = XmlHandler.getInstance().getPreAggViewConfig()
-				.getList("dbSchema.tableDefinition.delta.primaryKey.name");
-		List<String> deltaAggColName = XmlHandler.getInstance().getPreAggViewConfig()
-				.getList("dbSchema.tableDefinition.delta.aggCol.name");
-		List<String> deltaAggKeyName = XmlHandler.getInstance().getPreAggViewConfig()
-				.getList("dbSchema.tableDefinition.delta.aggKey.name");
-		List<String> deltaAggKeyType = XmlHandler.getInstance().getPreAggViewConfig()
-				.getList("dbSchema.tableDefinition.delta.aggKey.type");
-		List<String> deltaTableName = XmlHandler.getInstance().getPreAggViewConfig()
-				.getList("dbSchema.tableDefinition.delta.name");
-
 
 		int cursor = 0;
 
@@ -817,175 +806,7 @@ public class Client {
 				return false;
 			}
 
-
-			// fill preaggregation table
-
-
-			StringBuilder selectQuery = new StringBuilder("SELECT ")
-			.append(deltaPkName.get(i)+" ,")
-			.append(deltaAggKeyName.get(i)+" ,")
-			.append(deltaAggColName.get(i)+" ");
-			selectQuery.append(" FROM ").append(keyspace.get(i)).append(".")
-			.append(deltaTableName.get(i)).append(";");
-
-			System.out.println(selectQuery);
-			Iterator<Row>preViewResultSetIterator;
-
-			try {
-
-				session = currentCluster.connect();
-				ResultSet preaggViewResultSet = session.execute(selectQuery.toString());
-
-				preViewResultSetIterator = preaggViewResultSet.iterator();
-
-
-
-			} catch (Exception e) {
-				e.printStackTrace();
-				return false;
-			}
-
-
-			//===============================================================
-
-
-			while (preViewResultSetIterator.hasNext()) {
-
-				Row currentRow = preViewResultSetIterator.next();
-
-				String aggValue = null;
-
-
-				//select Query should return a map
-				StringBuilder selectPreaggQuery = new StringBuilder("SELECT ").append(colName.get(i));
-				selectPreaggQuery.append(" FROM ").append(keyspace.get(i)).append(".")
-				.append(tableName.get(i)).append(" where ")
-				.append(primarykeyName.get(i)+ " = ");
-
-
-				switch (deltaAggKeyType.get(i)) {
-
-				case "int":
-					selectPreaggQuery.append(currentRow.getInt(deltaAggKeyName.get(i))+";");
-					break;
-
-				case "varint":
-					selectPreaggQuery.append(currentRow.getVarint(deltaAggKeyName.get(i))+";");
-					break;
-
-				case "text":
-					selectPreaggQuery.append("'"+currentRow.getString(deltaAggKeyName.get(i))+"' ;");
-					break;
-
-				case "float":
-					selectPreaggQuery.append(currentRow.getFloat(deltaAggKeyName.get(i))+";");
-					break;
-
-				}
-
-				System.out.println(selectPreaggQuery);
-
-
-				ResultSet PreAggMap;
-				try {
-
-					session = currentCluster.connect();
-					PreAggMap = session.execute(selectPreaggQuery.toString());
-
-				} catch (Exception e) {
-					e.printStackTrace();
-					return false;
-				}
-
-				//System.out.println("here" + aggViewSelection.all().size());
-
-
-				StringBuilder insertQueryAgg = null;
-				Map tempMap;
-
-				Row theRow = PreAggMap.one();
-
-				insertQueryAgg = new StringBuilder("INSERT INTO ");
-				insertQueryAgg.append(keyspace.get(i)).append(".")
-				.append(tableName.get(i)).append(" ( ")
-				.append(primarykeyName.get(i)+", ")
-				.append(colName.get(i)).append(") VALUES (");
-
-
-				switch (deltaAggKeyType.get(i)) {
-
-				case "int":
-					insertQueryAgg.append(currentRow.getInt(deltaAggKeyName.get(i))).append(", ");
-					break;
-
-				case "varint":
-					insertQueryAgg.append(currentRow.getVarint(deltaAggKeyName.get(i))).append(", ");
-					break;
-
-				case "text":
-					insertQueryAgg.append("'"+currentRow.getString(deltaAggKeyName.get(i))).append("', ");
-					break;
-
-				case "float":
-					insertQueryAgg.append(currentRow.getFloat(deltaAggKeyName.get(i))).append(", ");
-					break;
-
-				}
-
-				insertQueryAgg.append("?);");
-
-
-				if (theRow == null) {
-
-					tempMap = new HashMap<java.math.BigInteger, java.math.BigInteger>();
-					tempMap.put(currentRow.getVarint(deltaPkName.get(i)).toString(), currentRow.getVarint(deltaAggColName.get(i)).toString());
-
-					System.out.println(insertQueryAgg);
-
-				} else {
-
-
-					System.out.println(theRow);
-
-					Map<String, String> tempMapImmutable= theRow.getMap("list_item",String.class, String.class);
-					//tempMap.put(currentRow.getInt(deltaPkName.get(i)), currentRow.getInt(deltaAggColName.get(i)));
-
-					tempMap = new HashMap<String,String>();
-					tempMap.putAll(tempMapImmutable);
-					tempMap.put(currentRow.getVarint(deltaPkName.get(i)).toString(), currentRow.getVarint(deltaAggColName.get(i)).toString());
-
-					//insertQueryAgg.append(tempMap.toString()+");");
-
-					System.out.println(insertQueryAgg);
-				}
-
-				// run insert query
-
-				try {
-
-					session = currentCluster.connect();
-
-					PreparedStatement statement = session.prepare(insertQueryAgg.toString());
-					BoundStatement boundStatement = statement.bind(tempMap);
-					System.out.println(boundStatement.toString());
-					session.execute(boundStatement);
-
-				} catch (Exception e) {
-					e.printStackTrace();
-					return false;
-				}
-
-			}
-
-
-
-
 		}
-
-
-
-
-
 
 		return true;
 	}

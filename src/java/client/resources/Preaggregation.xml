@@ -20,7 +20,7 @@
 			</column>
 			
 			<aggCol>
-				<type>int</type>
+				<type>varint</type>
 				<name>ECTS</name>
 			</aggCol>
 

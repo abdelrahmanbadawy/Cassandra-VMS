@@ -21,7 +21,7 @@ public class VmXmlHandler {
 				
 		
 		try {
-			//deltaPreaggMapping.load("ViewManager/properties/Delta_PreAgg_mapping.xml");
+			deltaPreaggMapping.load("ViewManager/properties/Delta_PreAgg_mapping.xml");
 			deltaSelectionMapping.load("ViewManager/properties/Delta_Selection_mapping.xml");
 				
 		} catch (ConfigurationException e) {
