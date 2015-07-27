@@ -46,7 +46,7 @@ public class CommitLogReader {
 				// System.out.println("timestamp=" + splitRaw[0]);
 
 				JSONObject json = (JSONObject) new JSONParser()
-						.parse(jsonString);
+				.parse(jsonString);
 
 				String type = json.get("type").toString();
 
@@ -69,7 +69,14 @@ public class CommitLogReader {
 					}
 				}
 
-				if (type.equals("delete")) {
+				if (type.equals("delete-row")) {
+					if(json.get("table").equals("courses")){
+						vm.deleteRowDelta(json);
+					}
+				}
+
+				if (type.equals("delete-col")) {
+
 
 				}
 

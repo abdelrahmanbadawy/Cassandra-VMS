@@ -533,23 +533,44 @@ public abstract class Message {
 
 					String rawConditionString = splitRaw[1].split(";")[0];
 
-					String[] splitRawConditionSetString = rawConditionString
-							.split(" AND ");
-
-					String[] condition_columns = new String[splitRawConditionSetString.length];
-					String[] condition_values = new String[splitRawConditionSetString.length];
-
-					for (int i = 0; i < splitRawConditionSetString.length; i++) {
-						String[] condition = splitRawConditionSetString[i]
-								.split("= ");
-						condition_columns[i] = condition[0];
-						condition_values[i] = condition[1];
-					}
+				
+					String[] condition_columns; 
+					String[] condition_values;
 
 					
-					commitLogger.info(convertDeleteToJSON(queryType,
-							keySpaceName, tableName, condition_columns,
-							condition_values, transactionId).toJSONString());
+					if(!rawConditionString.contains("IN")){
+						
+						condition_columns = new String[1];
+						String condition_values_string = "" ;
+						
+						String[] condition = rawConditionString.split(" = ");
+						condition_columns[0] = condition[0];
+						condition_values_string = condition[1];
+						
+						commitLogger.info(convertDeleteToJSON(queryType,
+								keySpaceName, tableName, condition_columns,
+								condition_values_string, transactionId).toJSONString());
+						
+					}else{
+						
+						String[] splitRawConditionSetString = rawConditionString
+								.split(" IN ");
+						
+						condition_columns = new String[1];
+						
+						condition_columns[0] = splitRawConditionSetString[0];
+						splitRawConditionSetString[1] = splitRawConditionSetString[1].replace("(", "").replace(")", "");
+						
+						String[] inValues = splitRawConditionSetString[1].split(",");
+						condition_values = new String[inValues.length];
+						
+						for (int i = 0; i < inValues.length; i++) {				
+							commitLogger.info(convertDeleteToJSON(queryType,
+									keySpaceName, tableName, condition_columns,
+									inValues[i], transactionId).toJSONString());
+						}
+						
+					}
 				}
 			}
 
@@ -610,18 +631,18 @@ public abstract class Message {
 		 */
 		private JSONObject convertDeleteToJSON(String type, String ks,
 				String table, String[] condition_columns,
-				String[] condition_values, long tid) {
+				String inValues, long tid) {
 
 			JSONObject jsonObject = new JSONObject();
 
-			jsonObject.put("type", type.toLowerCase());
+			jsonObject.put("type", type.toLowerCase()+"-row");
 			jsonObject.put("tid", tid);
 			jsonObject.put("keyspace", ks);
 			jsonObject.put("table", table);
 
 			JSONObject condition = new JSONObject();
 			for (int i = 0; i < condition_columns.length; i++) {
-				condition.put(condition_columns[i], condition_values[i]);
+				condition.put(condition_columns[i], inValues);
 			}
 			jsonObject.put("condition", condition);
 

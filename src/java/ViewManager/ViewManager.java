@@ -296,7 +296,7 @@ public class ViewManager {
 
 
 				}else{
-
+					return;
 				}
 
 				updateSelection(keyspace,selecTable,selColName,pk,pkValue,table);
@@ -354,7 +354,7 @@ public class ViewManager {
 
 			}
 		}else{
-			System.out.println("No Preaggregatin table for this delta table available");
+			System.out.println("No Preaggregation table for this delta table available");
 			return true;
 		}
 
@@ -366,8 +366,8 @@ public class ViewManager {
 
 		List<String> PreTable  = VmXmlHandler.getInstance().getPreaggAggMapping().
 				getList("mapping.unit.Preagg");
-		
-		
+
+
 		int position = PreTable.indexOf(preaggTable);
 
 		if(position!=-1){
@@ -965,6 +965,41 @@ public class ViewManager {
 		}
 
 		return true;
+	}
+
+
+	public boolean deleteRowDelta(JSONObject json) {
+
+		JSONObject condition = (JSONObject) json.get("condition");
+
+		StringBuilder deleteQuery = new StringBuilder("DELETE FROM ");
+		deleteQuery.append(json.get("keyspace")).append(".")
+		.append("delta_"+json.get("table")).append(" WHERE ");
+
+		
+		
+		Object[] hm = condition.keySet().toArray();
+		
+		for(int i=0;i<hm.length;i++){
+			deleteQuery.append(hm[i]).append(" = ").append(condition.get(hm[i]));
+			deleteQuery.append(";");
+		}
+	
+		System.out.println(deleteQuery);
+		
+		try{
+
+		Session session = currentCluster.connect();
+		session.execute(deleteQuery.toString());
+		}catch(Exception e){
+			e.printStackTrace();
+			return false;
+		}
+		
+		System.out.println("Delete Successful from Delta Table");
+		
+		return true;
+
 	}
 
 }
