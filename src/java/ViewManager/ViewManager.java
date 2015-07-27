@@ -974,10 +974,10 @@ public class ViewManager {
 		deleteRowSelection(json);
 		deleteRowPreaggregation(json);
 		deleteRowAggregation(json);
-
-		//deleteRowDelta(json);
-
-
+		deleteRowDelta(json);
+		
+		System.out.println("Done Cascade Row Delete");
+		
 		return true;
 	}
 
