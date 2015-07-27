@@ -71,7 +71,7 @@ public class CommitLogReader {
 
 				if (type.equals("delete-row")) {
 					if(json.get("table").equals("courses")){
-						vm.deleteRowDelta(json);
+						vm.cascadeDeleteRow(json);
 					}
 				}
 

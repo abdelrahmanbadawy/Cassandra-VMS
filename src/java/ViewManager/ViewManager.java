@@ -968,6 +968,134 @@ public class ViewManager {
 	}
 
 
+	public boolean cascadeDeleteRow(JSONObject json) {
+
+		markDeltaTableRow(json);
+		//deleteRowSelection(json);
+		//deleteRowPreaggregation(json);
+		//deleteRowAggregation(json);
+
+		//deleteRowDelta(json);
+
+
+		return true;
+	}
+
+
+	private boolean markDeltaTableRow(JSONObject json) {
+
+
+		JSONObject condition = (JSONObject) json.get("condition");
+		Object[] hm = condition.keySet().toArray();
+
+		StringBuilder selectQuery = new StringBuilder("SELECT *");
+		selectQuery.append(" FROM ").append(json.get("keyspace")).append(".")
+		.append("delta_"+json.get("table")).append(" WHERE ")
+		.append(hm[0]).append(" = ").append(condition.get(hm[0])+" ;");
+
+		System.out.println(selectQuery);
+
+		ResultSet selectionResult;
+
+		try {
+
+			Session session = currentCluster.connect();
+			selectionResult = session.execute(selectQuery.toString());
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+
+		Row theRow = selectionResult.one();
+		List<Definition> myColDef = theRow.getColumnDefinitions().asList();
+
+		StringBuilder colNames = new StringBuilder();
+		StringBuilder colValues = new StringBuilder();
+
+
+		for(int i=0;i<myColDef.size();i++){
+			colNames.append(myColDef.get(i).getName()+", ");	
+		}
+
+		colNames.deleteCharAt(colNames.length()-2);
+
+		StringBuilder insertQueryAgg = new StringBuilder("INSERT INTO ");
+		insertQueryAgg.append(json.get("keyspace")).append(".").append("delta_"+json.get("table")+" (")
+		.append(colNames).append(") VALUES (");
+
+
+		for(int i=0;i<theRow.getColumnDefinitions().size();i++) {
+
+			switch (theRow.getColumnDefinitions().getType(i).toString()) {
+
+			case "text":
+				if(i==0){
+					colValues.append("'"+theRow.getString(i)+"', ");
+				}else if(i%2!=0){
+					colValues.append("null, ");
+					colValues.append("'"+theRow.getString(i)+"', ");
+				}	
+				break;
+
+			case "int":
+				if(i==0){
+					colValues.append(theRow.getInt(i)+", ");
+				}else if(i%2!=0){
+					colValues.append("null, ");
+					colValues.append(theRow.getInt(i)+", ");
+				}
+				break;
+
+			case "varint":
+				if(i==0){
+					colValues.append(theRow.getVarint(i)+", ");
+				}else if(i%2!=0){
+					colValues.append("null, ");
+					colValues.append(theRow.getVarint(i)+", ");
+				}
+				break;
+
+			case "varchar":
+				if(i==0){
+					colValues.append("'"+theRow.getString(i)+"', ");
+				}else if(i%2!=0){
+					colValues.append("null, ");
+					colValues.append("'"+theRow.getString(i)+"', ");
+				}
+				break;	
+
+			}
+			
+			
+		}
+
+		colValues.deleteCharAt(colValues.length()-2);
+
+		insertQueryAgg.append(colValues).append(");");
+		System.out.println(insertQueryAgg.toString());
+		
+		try {
+
+			Session session = currentCluster.connect();
+			session.execute(insertQueryAgg.toString());
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+
+		System.out.println("Done marking Delta Table rows");
+		return true;
+	}
+
+
+	private void deleteRowAggregation(JSONObject json) {
+		// TODO Auto-generated method stub
+
+	}
+
+
 	public boolean deleteRowDelta(JSONObject json) {
 
 		JSONObject condition = (JSONObject) json.get("condition");
@@ -987,10 +1115,11 @@ public class ViewManager {
 
 		System.out.println(deleteQuery);
 
+		ResultSet deleteResult;
 		try{
 
 			Session session = currentCluster.connect();
-			session.execute(deleteQuery.toString());
+			deleteResult = session.execute(deleteQuery.toString());
 		}catch(Exception e){
 			e.printStackTrace();
 			return false;
@@ -999,10 +1128,22 @@ public class ViewManager {
 		System.out.println("Delete Successful from Delta Table");
 
 		deleteRowSelection(json);
+		deleteRowPreaggregation(json);
+
 
 		return true;
 
 	}
+
+	private boolean deleteRowPreaggregation(JSONObject json) {
+
+
+
+
+		return true;
+
+	}
+
 
 	public boolean deleteRowSelection(JSONObject json) {
 
