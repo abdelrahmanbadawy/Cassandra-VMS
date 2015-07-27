@@ -976,30 +976,93 @@ public class ViewManager {
 		deleteQuery.append(json.get("keyspace")).append(".")
 		.append("delta_"+json.get("table")).append(" WHERE ");
 
-		
-		
+
+
 		Object[] hm = condition.keySet().toArray();
-		
+
 		for(int i=0;i<hm.length;i++){
 			deleteQuery.append(hm[i]).append(" = ").append(condition.get(hm[i]));
 			deleteQuery.append(";");
 		}
-	
+
 		System.out.println(deleteQuery);
-		
+
 		try{
 
-		Session session = currentCluster.connect();
-		session.execute(deleteQuery.toString());
+			Session session = currentCluster.connect();
+			session.execute(deleteQuery.toString());
 		}catch(Exception e){
 			e.printStackTrace();
 			return false;
 		}
-		
+
 		System.out.println("Delete Successful from Delta Table");
-		
+
+		deleteRowSelection(json);
+
 		return true;
 
 	}
+
+	public boolean deleteRowSelection(JSONObject json) {
+
+		List<String> deltaTable  = VmXmlHandler.getInstance().getDeltaSelectionMapping().
+				getList("mapping.unit.deltaTable");
+
+		int position = deltaTable.indexOf("delta_"+json.get("table"));
+
+		if(position!=-1){
+
+			String temp= "mapping.unit(";
+			temp+=Integer.toString(position);
+			temp+=")";
+
+
+			int nrConditions = VmXmlHandler.getInstance().getDeltaSelectionMapping().
+					getInt(temp+".nrCond");
+
+			for(int i=0;i<nrConditions;i++){
+
+				String s = temp+".Cond("+Integer.toString(i)+")";
+				String selecTable = VmXmlHandler.getInstance().getDeltaSelectionMapping().
+						getString(s+".name");
+
+
+
+				StringBuilder deleteQuery = new StringBuilder("DELETE FROM ");
+				deleteQuery.append(json.get("keyspace")).append(".")
+				.append(selecTable).append(" WHERE ");
+
+
+				JSONObject condition = (JSONObject) json.get("condition");
+				Object[] hm = condition.keySet().toArray();
+
+				for(int i1=0;i1<hm.length;i1++){
+					deleteQuery.append(hm[i1]).append(" = ").append(condition.get(hm[i1]));
+					deleteQuery.append(";");
+				}
+
+				System.out.println(deleteQuery);
+
+				try{
+
+					Session session = currentCluster.connect();
+					session.execute(deleteQuery.toString());
+				}catch(Exception e){
+					e.printStackTrace();
+					return false;
+				}
+
+
+			}
+		}
+
+		System.out.println("Possible Deletes Successful from Selection View");
+
+		return true;
+
+	}
+
+
 
 }

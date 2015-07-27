@@ -16,7 +16,9 @@
 			<Cond>
 				<name>selection_courses_ects</name>
 				<selectionCol>ECTS</selectionCol>
-				<condition>ECTS=4</condition>
+				<type>int</type>
+				<operation>=</operation>
+				<value>4</value>
 			</Cond>
 		</unit>
 
