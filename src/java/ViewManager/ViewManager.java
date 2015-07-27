@@ -973,7 +973,7 @@ public class ViewManager {
 		markDeltaTableRow(json);
 		deleteRowSelection(json);
 		deleteRowPreaggregation(json);
-		//deleteRowAggregation(json);
+		deleteRowAggregation(json);
 
 		//deleteRowDelta(json);
 
@@ -1090,8 +1090,87 @@ public class ViewManager {
 	}
 
 
-	private void deleteRowAggregation(JSONObject json) {
-		// TODO Auto-generated method stub
+	private boolean deleteRowAggregation(JSONObject json) {
+
+		List<String> deltaTable  = VmXmlHandler.getInstance().getPreaggAggMapping().
+				getList("mapping.unit.deltaTable");
+
+
+		int position = deltaTable.indexOf("delta_"+json.get("table"));
+
+		JSONObject condition = (JSONObject) json.get("condition");
+		Object[] hm = condition.keySet().toArray();
+
+		if(position!=-1){
+
+			String temp= "mapping.unit(";
+			temp+=Integer.toString(position);
+			temp+=").Agg";
+
+			String aggTableName = VmXmlHandler.getInstance().getPreaggAggMapping().
+					getString(temp+".name");
+
+			String aggKey = VmXmlHandler.getInstance().getPreaggAggMapping().
+					getString(temp+".AggKey");
+
+			String aggKeyType = VmXmlHandler.getInstance().getPreaggAggMapping().
+					getString(temp+".AggKeyType");
+
+			StringBuilder selectQuery = new StringBuilder("SELECT ").append(aggKey+"_old");
+			selectQuery.append(" FROM ").append(json.get("keyspace")).append(".")
+			.append("delta_"+json.get("table")).append(" WHERE ")
+			.append(hm[0]).append(" = ").append(condition.get(hm[0])+" ;");
+
+			System.out.println(selectQuery);
+
+			ResultSet selectionResult;
+
+			try {
+
+				Session session = currentCluster.connect();
+				selectionResult = session.execute(selectQuery.toString());
+
+			} catch (Exception e) {
+				e.printStackTrace();
+				return false;
+			}
+
+			StringBuilder deleteQuery = new StringBuilder("delete from ");
+			deleteQuery.append(json.get("keyspace")).append(".")
+			.append(aggTableName).append(" WHERE ").append(aggKey+" = ");
+
+			switch(aggKeyType){
+			case "text":
+				deleteQuery.append("'"+selectionResult.one().getString(aggKey+"_old")+"';");
+				break;
+
+			case "int":
+				deleteQuery.append(selectionResult.one().getInt(aggKey+"_old")+";");
+				break;
+
+			case "varint":
+				deleteQuery.append(selectionResult.one().getVarint(aggKey+"_old")+";");
+				break;
+
+			case "varchar":
+				deleteQuery.append("'"+selectionResult.one().getString(aggKey+"_old")+"';");
+				break;	
+
+			}
+
+			try {
+
+				Session session = currentCluster.connect();
+				session.execute(deleteQuery.toString());
+
+			} catch (Exception e) {
+				e.printStackTrace();
+				return false;
+			}
+		}
+		
+		System.out.println("Done deleting row in Agg Table");
+		return true;
 
 	}
 
@@ -1224,6 +1303,7 @@ public class ViewManager {
 			}
 		}
 
+		System.out.println("Done deleting row in Agg Table");
 
 		return true;
 

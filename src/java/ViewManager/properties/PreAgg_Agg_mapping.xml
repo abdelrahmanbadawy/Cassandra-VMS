@@ -4,8 +4,8 @@
 	<mapping>
 
 		<unit>
+			<deltaTable>delta_courses</deltaTable>
 			<Preagg>preaggregation_courses_faculty_ECTS</Preagg>
-			
 			<Agg>
 				<name>agg_courses_faculty_ects</name>
 				<AggKey>faculty</AggKey>
