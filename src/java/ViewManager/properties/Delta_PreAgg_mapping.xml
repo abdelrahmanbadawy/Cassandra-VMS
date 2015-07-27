@@ -2,7 +2,7 @@
 
 <setup>
 	<mapping>
-
+		<nrUnit>1</nrUnit>
 		<unit>
 			<deltaTable>delta_courses</deltaTable>
 			<nrPreagg>1</nrPreagg>
@@ -12,6 +12,17 @@
 				<AggKeyType>text</AggKeyType>
 				<AggCol>ECTS</AggCol>
 				<AggColType>varint</AggColType>
+			</Preagg>
+		</unit>
+		<unit>
+			<deltaTable>delta_emp</deltaTable>
+			<nrPreagg>1</nrPreagg>
+			<Preagg>
+				<name></name>
+				<AggKey></AggKey>
+				<AggKeyType></AggKeyType>
+				<AggCol></AggCol>
+				<AggColType></AggColType>
 			</Preagg>
 		</unit>
 

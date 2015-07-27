@@ -415,7 +415,8 @@ public abstract class Message {
 				connection.applyStateTransition(request.type, response.type);
 
 				if (response.toString().equals("EMPTY RESULT")
-						//&& request.toString().toLowerCase().contains("view")
+						&& ! request.toString().toLowerCase().contains("selection")
+						&& ! request.toString().toLowerCase().contains("preaggregation")
 						&& (request.toString().toLowerCase().contains("insert")
 								|| request.toString().toLowerCase()
 										.contains("update") || (request

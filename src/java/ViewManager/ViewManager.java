@@ -971,8 +971,8 @@ public class ViewManager {
 	public boolean cascadeDeleteRow(JSONObject json) {
 
 		markDeltaTableRow(json);
-		//deleteRowSelection(json);
-		//deleteRowPreaggregation(json);
+		deleteRowSelection(json);
+		deleteRowPreaggregation(json);
 		//deleteRowAggregation(json);
 
 		//deleteRowDelta(json);
@@ -1066,15 +1066,15 @@ public class ViewManager {
 				break;	
 
 			}
-			
-			
+
+
 		}
 
 		colValues.deleteCharAt(colValues.length()-2);
 
 		insertQueryAgg.append(colValues).append(");");
 		System.out.println(insertQueryAgg.toString());
-		
+
 		try {
 
 			Session session = currentCluster.connect();
@@ -1137,7 +1137,92 @@ public class ViewManager {
 
 	private boolean deleteRowPreaggregation(JSONObject json) {
 
+		List<String> deltaTable  = VmXmlHandler.getInstance().getDeltaPreaggMapping().
+				getList("mapping.unit.deltaTable");
 
+
+		int position = deltaTable.indexOf("delta_"+json.get("table"));
+
+
+		JSONObject condition = (JSONObject) json.get("condition");
+		Object[] hm = condition.keySet().toArray();
+
+		if(position!=-1){
+
+			String temp= "mapping.unit(";
+			temp+=Integer.toString(position);
+			temp+=")";
+
+			int nrPreagg = VmXmlHandler.getInstance().getDeltaPreaggMapping().
+					getInt(temp+".nrPreagg");
+
+			for(int i=0;i<nrPreagg;i++){
+
+				String s = temp+".Preagg("+Integer.toString(i)+")";
+
+				String aggTable = VmXmlHandler.getInstance().getDeltaPreaggMapping().
+						getString(s+".name");
+
+				String aggKey = VmXmlHandler.getInstance().getDeltaPreaggMapping().
+						getString(s+".AggKey");
+
+				String aggKeyType = VmXmlHandler.getInstance().getDeltaPreaggMapping().
+						getString(s+".AggKeyType");
+
+				StringBuilder selectQuery = new StringBuilder("SELECT ").append(aggKey+"_old");
+				selectQuery.append(" FROM ").append(json.get("keyspace")).append(".")
+				.append("delta_"+json.get("table")).append(" WHERE ")
+				.append(hm[0]).append(" = ").append(condition.get(hm[0])+" ;");
+
+				System.out.println(selectQuery);
+
+				ResultSet selectionResult;
+
+				try {
+
+					Session session = currentCluster.connect();
+					selectionResult = session.execute(selectQuery.toString());
+
+				} catch (Exception e) {
+					e.printStackTrace();
+					return false;
+				}
+
+				StringBuilder deleteQuery = new StringBuilder("delete from ");
+				deleteQuery.append(json.get("keyspace")).append(".")
+				.append(aggTable).append(" WHERE ").append(aggKey+" = ");
+
+				switch(aggKeyType){
+				case "text":
+					deleteQuery.append("'"+selectionResult.one().getString(aggKey+"_old")+"';");
+					break;
+
+				case "int":
+					deleteQuery.append(selectionResult.one().getInt(aggKey+"_old")+";");
+					break;
+
+				case "varint":
+					deleteQuery.append(selectionResult.one().getVarint(aggKey+"_old")+";");
+					break;
+
+				case "varchar":
+					deleteQuery.append("'"+selectionResult.one().getString(aggKey+"_old")+"';");
+					break;	
+
+				}
+
+				try {
+
+					Session session = currentCluster.connect();
+					session.execute(deleteQuery.toString());
+
+				} catch (Exception e) {
+					e.printStackTrace();
+					return false;
+				}
+
+			}
+		}
 
 
 		return true;
