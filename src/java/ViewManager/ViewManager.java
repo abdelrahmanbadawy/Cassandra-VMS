@@ -975,9 +975,9 @@ public class ViewManager {
 		deleteRowPreaggregation(json);
 		deleteRowAggregation(json);
 		deleteRowDelta(json);
-		
+
 		System.out.println("Done Cascade Row Delete");
-		
+
 		return true;
 	}
 
@@ -1116,7 +1116,13 @@ public class ViewManager {
 			String aggKeyType = VmXmlHandler.getInstance().getPreaggAggMapping().
 					getString(temp+".AggKeyType");
 
-			StringBuilder selectQuery = new StringBuilder("SELECT ").append(aggKey+"_old");
+			String aggCol = VmXmlHandler.getInstance().getPreaggAggMapping().
+					getString(temp+".AggCol");
+
+			String aggColType = VmXmlHandler.getInstance().getPreaggAggMapping().
+					getString(temp+".AggColType");
+
+			StringBuilder selectQuery = new StringBuilder("SELECT ").append(aggKey+"_old ,").append(aggCol+"_old");
 			selectQuery.append(" FROM ").append(json.get("keyspace")).append(".")
 			.append("delta_"+json.get("table")).append(" WHERE ")
 			.append(hm[0]).append(" = ").append(condition.get(hm[0])+" ;");
@@ -1134,44 +1140,161 @@ public class ViewManager {
 				e.printStackTrace();
 				return false;
 			}
+			
+			Row deltaResult = selectionResult.one();
+			//==========================================================================
 
-			StringBuilder deleteQuery = new StringBuilder("delete from ");
-			deleteQuery.append(json.get("keyspace")).append(".")
-			.append(aggTableName).append(" WHERE ").append(aggKey+" = ");
 
-			switch(aggKeyType){
+			StringBuilder selectQuery1 = new StringBuilder("Select sum, count, average from ");
+			selectQuery1.append(json.get("keyspace")).append(".")
+			.append(aggTableName).append(" where ")
+			.append(aggKey).append(" = ");
+			
+			String aggKeyValue = null;
+			
+			switch (aggKeyType) {
+
 			case "text":
-				deleteQuery.append("'"+selectionResult.one().getString(aggKey+"_old")+"';");
+				selectQuery1.append("'"+deltaResult.getString(aggKey+"_old")+"';");
+				aggKeyValue = "'"+deltaResult.getString(aggKey+"_old")+"'";
 				break;
 
 			case "int":
-				deleteQuery.append(selectionResult.one().getInt(aggKey+"_old")+";");
+				selectQuery1.append(deltaResult.getInt(aggKey+"_old")+";");
+				aggKeyValue = Integer.toString(deltaResult.getInt(aggKey+"_old"));
 				break;
 
 			case "varint":
-				deleteQuery.append(selectionResult.one().getVarint(aggKey+"_old")+";");
+				selectQuery1.append(deltaResult.getVarint(aggKey+"_old")+";");
+				aggKeyValue =deltaResult.getVarint(aggKey+"_old").toString();
+				
 				break;
 
+			case "float":
+				selectQuery1.append(deltaResult.getFloat(aggKey+"_old")+";");
+				aggKeyValue =Float.toString(deltaResult.getFloat(aggKey+"_old"));
+				
+				break;
+				
 			case "varchar":
-				deleteQuery.append("'"+selectionResult.one().getString(aggKey+"_old")+"';");
-				break;	
-
+				selectQuery1.append("'"+deltaResult.getString(aggKey+"_old")+"';");
+				aggKeyValue = "'"+deltaResult.getString(aggKey+"_old")+"'";
+				break;
 			}
 
+			System.out.println(selectQuery1);
+
+			ResultSet selectResult;
 			try {
 
 				Session session = currentCluster.connect();
-				session.execute(deleteQuery.toString());
+				selectResult = session.execute(selectQuery1.toString());
 
 			} catch (Exception e) {
 				e.printStackTrace();
 				return false;
 			}
+
+			Row theRow = selectResult.one();
+
+			if(theRow.getInt("count")==1){
+				deleteEntireRowAggregation(json,aggTableName,aggKey,aggKeyType,aggKeyValue);
+			}else{
+				
+				StringBuilder insertQueryAgg = new StringBuilder("INSERT INTO ");
+				insertQueryAgg.append(json.get("keyspace")).append(".")
+				.append(aggTableName).append(" ( ")
+				.append(aggKey)
+				.append(", sum, count, average) VALUES (");
+
+				
+				switch (aggKeyType) {
+
+				case "text":
+					insertQueryAgg.append("'"+deltaResult.getString(aggKey+"_old")+"', ");
+					break;
+
+				case "int":
+					insertQueryAgg.append(deltaResult.getInt(aggKey+"_old")+", ");
+					break;
+
+				case "varint":
+					insertQueryAgg.append(deltaResult.getVarint(aggKey+"_old")+", ");
+					break;
+
+				case "float":
+					insertQueryAgg.append(deltaResult.getFloat(aggKey+"_old")+", ");
+					break;
+					
+				case "varchar":
+					insertQueryAgg.append("'"+deltaResult.getString(aggKey+"_old")+"', ");
+					break;
+				}
+
+				float Sum = 0;
+				
+				switch(aggColType){
+				
+				case "int":
+					Sum = theRow.getInt("sum")-deltaResult.getInt(aggCol+"_old");
+					break;
+
+				case "varint":
+					Sum = theRow.getInt("sum")-deltaResult.getVarint(aggCol+"_old").intValue();
+					break;
+
+				case "float":
+					Sum = theRow.getInt("sum")-deltaResult.getFloat(aggCol+"_old");
+					break;
+				
+				}
+				
+
+				float Count = theRow.getInt("count")-1;
+				float Average = Sum/Count;
+				
+				insertQueryAgg.append((int)Sum+", ").append((int)Count+", ").append(Average).append(");");
+
+				System.out.println(insertQueryAgg);
+
+				try {
+
+					Session session = currentCluster.connect();
+					session.execute(insertQueryAgg.toString());
+
+				} catch (Exception e) {
+					e.printStackTrace();
+					return false;
+				}
+				
+			}
+
 		}
-		
+
 		System.out.println("Done deleting row in Agg Table");
 		return true;
 
+	}
+
+
+	private boolean deleteEntireRowAggregation(JSONObject json, String aggTableName, String aggKey, String aggKeyType, String aggKeyValue) {
+		
+		StringBuilder deleteQuery = new StringBuilder("delete from ");
+		deleteQuery.append(json.get("keyspace")).append(".")
+		.append(aggTableName).append(" WHERE ").append(aggKey+" = ").append(aggKeyValue).append(";");
+
+		try {
+
+			Session session = currentCluster.connect();
+			session.execute(deleteQuery.toString());
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+
+		
+		return true;
 	}
 
 
@@ -1205,10 +1328,6 @@ public class ViewManager {
 		}
 
 		System.out.println("Delete Successful from Delta Table");
-
-		deleteRowSelection(json);
-		deleteRowPreaggregation(json);
-
 
 		return true;
 
@@ -1257,56 +1376,155 @@ public class ViewManager {
 
 				ResultSet selectionResult;
 
+
 				try {
 
 					Session session = currentCluster.connect();
 					selectionResult = session.execute(selectQuery.toString());
 
+
 				} catch (Exception e) {
 					e.printStackTrace();
 					return false;
 				}
 
-				StringBuilder deleteQuery = new StringBuilder("delete from ");
-				deleteQuery.append(json.get("keyspace")).append(".")
-				.append(aggTable).append(" WHERE ").append(aggKey+" = ");
+
+				//=================================================================================
+				//Select from PreAggtable to prevent overwrites
+
+				StringBuilder selectPreaggQuery = new StringBuilder("SELECT ").append("list_item");
+				selectPreaggQuery.append(" FROM ").append(json.get("keyspace")).append(".")
+				.append(aggTable).append(" WHERE ")
+				.append(aggKey+ " = ");
+
+
+				String aggKeyValue = new String();
 
 				switch(aggKeyType){
 				case "text":
-					deleteQuery.append("'"+selectionResult.one().getString(aggKey+"_old")+"';");
+					String s1 = selectionResult.one().getString(aggKey+"_old");
+					selectPreaggQuery.append("'"+s1+"';");
+					aggKeyValue = "'"+s1+"'";
 					break;
 
 				case "int":
-					deleteQuery.append(selectionResult.one().getInt(aggKey+"_old")+";");
+					String s2 = Integer.toString(selectionResult.one().getInt(aggKey+"_old"));
+					selectPreaggQuery.append(s2+";");
+					aggKeyValue = s2;
+
 					break;
 
 				case "varint":
-					deleteQuery.append(selectionResult.one().getVarint(aggKey+"_old")+";");
+					String s3 = selectionResult.one().getVarint(aggKey+"_old").toString();
+					selectPreaggQuery.append(s3+";");
+					aggKeyValue = s3;
+
 					break;
 
 				case "varchar":
-					deleteQuery.append("'"+selectionResult.one().getString(aggKey+"_old")+"';");
+					String s4 = selectionResult.one().getString(aggKey+"_old");
+					selectPreaggQuery.append("'"+s4+"';");
+					aggKeyValue = "'"+s4+"'";
 					break;	
 
 				}
 
+				System.out.println(selectPreaggQuery);
+
+				ResultSet PreAggMap;
 				try {
 
 					Session session = currentCluster.connect();
-					session.execute(deleteQuery.toString());
+					PreAggMap = session.execute(selectPreaggQuery.toString());
 
 				} catch (Exception e) {
 					e.printStackTrace();
 					return false;
 				}
 
+
+				Row theRow = PreAggMap.one();
+
+				Map myMap;
+
+				if (theRow == null) {
+					//should not happen
+				} else {
+
+
+					System.out.println(theRow);
+
+					Map<String, String> tempMapImmutable= theRow.getMap("list_item",String.class, String.class);
+					myMap = new HashMap<String,String>();
+					myMap.putAll(tempMapImmutable);
+
+					if(myMap.size()==1){
+						deleteEntireRowPreagg(json,aggTable,aggKey,aggKeyValue);
+					}else{
+
+						Iterator<Map.Entry<String, String>> mapIter = myMap.entrySet().iterator();
+						
+						while(mapIter.hasNext()){
+							Map.Entry<String, String> entry = mapIter.next();
+							if(entry.getKey().equals(condition.get(hm[0]).toString())){
+								mapIter.remove();
+							}
+						}
+						
+
+						StringBuilder insertQueryAgg = new StringBuilder("INSERT INTO ");
+						insertQueryAgg.append(json.get("keyspace")).append(".")
+						.append(aggTable).append(" ( ")
+						.append(aggKey+", ")
+						.append("list_item").append(") VALUES (").append(aggKeyValue+", ");
+						insertQueryAgg.append("?);");
+						System.out.println(insertQueryAgg);
+
+						try {
+
+							Session session = currentCluster.connect();
+
+							PreparedStatement statement = session.prepare(insertQueryAgg.toString());
+							BoundStatement boundStatement = statement.bind(myMap);
+							System.out.println(boundStatement.toString());
+							session.execute(boundStatement);
+
+						} catch (Exception e) {
+							e.printStackTrace();
+							return false;
+						}
+
+					}
+
+
+				}
 			}
 		}
 
-		System.out.println("Done deleting row in Agg Table");
+		System.out.println("Done deleting row in PreAgg Table");
 
 		return true;
 
+	}
+
+
+	private boolean deleteEntireRowPreagg(JSONObject json, String aggTable, String aggKey, String aggKeyValue) {
+
+		StringBuilder deleteQuery = new StringBuilder("delete from ");
+		deleteQuery.append(json.get("keyspace")).append(".")
+		.append(aggTable).append(" WHERE ").append(aggKey+" = ").append(aggKeyValue+";");
+
+		try {
+
+			Session session = currentCluster.connect();
+			session.execute(deleteQuery.toString());
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+
+		return true;
 	}
 
 
