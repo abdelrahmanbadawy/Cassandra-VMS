@@ -30,9 +30,18 @@ import com.datastax.driver.core.policies.TokenAwarePolicy;
 public class ViewManager {
 
 	Cluster currentCluster = null;
+	private Row deltaUpdatedRow;
 
 	public ViewManager(Cluster currenCluster){
 		this.currentCluster = currenCluster;
+	}
+	
+	public Row getDeltaUpdatedRow(){
+		return deltaUpdatedRow;
+	}
+	
+	private void setDeltaUpdatedRow(Row row){
+		 deltaUpdatedRow = row;
 	}
 
 	public boolean updateDelta(JSONObject json, int indexBaseTableName, String baseTablePrimaryKey) {
@@ -186,9 +195,26 @@ public class ViewManager {
 		}
 
 		System.out.println("Done Delta update");
+		
+		//5. get the entire row from delta where update has happened
+		//5.a save the row and send bk to controller
+		
+		 StringBuilder selectQuery1 = new StringBuilder("SELECT * ")
+		.append(" FROM ").append(keyspace).append(".")
+		.append("delta_"+table).append(" WHERE ")
+		.append(baseTablePrimaryKey+" = ").append(data.get(baseTablePrimaryKey)+" ;");
 
+		System.out.println(selectQuery1);
+
+		try {
+			Session session = currentCluster.connect();
+			 setDeltaUpdatedRow(session.execute(selectQuery.toString()).one());
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+		
 		//decideSelection(keyspace,"delta_"+table,pkName.get(indexBaseTableName),data.get(pkName.get(indexBaseTableName)).toString(),json,theRow);
-
 		//updatePreaggregation(firstInsertion,keyspace,table,pkName.get(indexBaseTableName),data.get(pkName.get(indexBaseTableName)).toString(),json);
 
 		firstInsertion = false;

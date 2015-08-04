@@ -9,6 +9,7 @@ import org.json.simple.JSONObject;
 import client.client.XmlHandler;
 
 import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.Row;
 import com.datastax.driver.core.policies.DCAwareRoundRobinPolicy;
 import com.datastax.driver.core.policies.DefaultRetryPolicy;
 import com.datastax.driver.core.policies.TokenAwarePolicy;
@@ -72,8 +73,11 @@ public class ViewManagerController {
 		int indexBaseTableName = baseTableName.indexOf((String) json.get("table"));
         String baseTablePrimaryKey = pkName.get(indexBaseTableName);
 		
+        
+        // 1. update Delta Table
+        // 1.a If successful, retrieve entire updated Row from Delta
 		if(vm.updateDelta(json,indexBaseTableName,baseTablePrimaryKey)){
-			
+			Row deltaUpdatedRow = vm.getDeltaUpdatedRow();
 			
 		}
 
