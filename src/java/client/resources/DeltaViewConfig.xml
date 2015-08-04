@@ -22,7 +22,7 @@
 			<column>
 				<family>colfam3</family>
 				<type>varint</type>
-				<name>ECTS</name>
+				<name>ects</name>
 			</column>
 			
 			<column>

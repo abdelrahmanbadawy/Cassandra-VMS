@@ -2,19 +2,19 @@
 <setup>
 	<dbSchema>
 		<tableNumber>1</tableNumber>
-		
+
 		<tableDefinition>
-		    <keyspace>test</keyspace>
-		    <baseTable>courses</baseTable>
-			<condition>ECTS>3</condition>
+			<keyspace>test</keyspace>
+			<baseTable>courses</baseTable>
+			<condition>ects>3</condition>
 			<name>selection_courses_ects</name>
-		 
-		    <columnNumber>3</columnNumber>
+
+			<columnNumber>3</columnNumber>
 			<primaryKey>
 				<type>int</type>
 				<name>id</name>
 			</primaryKey>
-						<column>
+			<column>
 				<family>colfam3</family>
 				<type>text</type>
 				<name>name</name>
@@ -22,14 +22,14 @@
 			<column>
 				<family>colfam3</family>
 				<type>varint</type>
-				<name>ECTS</name>
+				<name>ects</name>
 			</column>
 			<column>
 				<family>colfam3</family>
 				<type>text</type>
 				<name>faculty</name>
 			</column>
-			
+
 		</tableDefinition>
 	</dbSchema>
 

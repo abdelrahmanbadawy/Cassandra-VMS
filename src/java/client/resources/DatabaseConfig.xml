@@ -12,9 +12,9 @@
 			</primaryKey>
 			<clusteringKey>
 				<componentNumber>3</componentNumber>
-				<name>Bonus</name>
+				<name>bonus</name>
 				<name>salary</name>
-				<name>DeptId</name>
+				<name>deptId</name>
 			</clusteringKey>
 			<column>
 				<family>colfam1</family>
@@ -34,28 +34,27 @@
 			<column>
 				<family>colfam1</family>
 				<type>varint</type>
-				<name>Bonus</name>
+				<name>bonus</name>
 			</column>
 			<column>
 				<family>colfam1</family>
 				<type>varint</type>
-				<name>DeptId</name>
+				<name>deptId</name>
 			</column>
 		</tableDefinition>
+	
 		<tableDefinition>
 			<keyspace>test</keyspace>
 			<name>student</name>
-			<columnNumber>6</columnNumber>
+			<columnNumber>4</columnNumber>
 			<primaryKey>
 				<type>int</type>
 				<name>id</name>
 			</primaryKey>
 			<clusteringKey>
-				<componentNumber>4</componentNumber>
-				<name>GPA</name>
-				<name>rank</name>
-				<name>major</name>
-				<name>minor</name>
+				<componentNumber>2</componentNumber>
+				<name>gpa</name>
+				<name>age</name>
 			</clusteringKey>
 			<column>
 				<family>colfam2</family>
@@ -65,27 +64,17 @@
 			<column>
 				<family>colfam2</family>
 				<type>float</type>
-				<name>GPA</name>
+				<name>gpa</name>
 			</column>
 			<column>
 				<family>colfam2</family>
 				<type>text</type>
-				<name>address</name>
-			</column>
-			<column>
-				<family>colfam2</family>
-				<type>text</type>
-				<name>major</name>
-			</column>
-			<column>
-				<family>colfam2</family>
-				<type>text</type>
-				<name>minor</name>
+				<name>faculty</name>
 			</column>
 			<column>
 				<family>colfam2</family>
 				<type>int</type>
-				<name>rank</name>
+				<name>age</name>
 			</column>
 		</tableDefinition>
 		<tableDefinition>
@@ -100,7 +89,7 @@
 				<componentNumber>3</componentNumber>
 				<name>faculty</name>
 				<name>name</name>
-				<name>ECTS</name>
+				<name>ects</name>
 			</clusteringKey>
 			<column>
 				<family>colfam3</family>
@@ -110,7 +99,7 @@
 			<column>
 				<family>colfam3</family>
 				<type>varint</type>
-				<name>ECTS</name>
+				<name>ects</name>
 			</column>
 			<column>
 				<family>colfam3</family>

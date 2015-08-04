@@ -31,8 +31,6 @@ public class Client {
 	static String csvFile1 = "src/java/client/data/student.csv";
 	static String csvFile2 = "src/java/client/data/courses.csv";
 	static Iterator<Row> deltaViewQueryResults;
-	private static ResultSet aggViewResultSet;
-	private static Iterator<Row> aggViewResultSetIterator;
 
 	public static void connectToCluster(String ipAddress) {
 
@@ -96,7 +94,7 @@ public class Client {
 		.append(" WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 1};");
 
 		System.out.println(queryString.toString());
-		ResultSet queryResults = session.execute(queryString.toString());
+		session.execute(queryString.toString());
 
 		return true;
 	}
@@ -168,8 +166,7 @@ public class Client {
 
 			try {
 				session = currentCluster.connect();
-				ResultSet queryResults = session
-						.execute(createQuery.toString());
+				session.execute(createQuery.toString());
 			} catch (Exception e) {
 				e.printStackTrace();
 				return false;
@@ -244,7 +241,7 @@ public class Client {
 
 				try {
 
-					ResultSet queryResults = session.execute(insertQuery
+					session.execute(insertQuery
 							.toString());
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -262,7 +259,7 @@ public class Client {
 	 */
 	public static boolean createViewTable() {
 
-		return  createSelectViewTable() && createDeltaViewTable() && createPreAggregationViewTable() && createAggregationViewTable() ;
+		return  createSelectViewTable() && createDeltaViewTable() && createPreAggregationViewTable() ;
 	}
 
 
@@ -332,98 +329,6 @@ public class Client {
 		return true;
 	}
 
-	/*
-	 * This method creates the Agg View (sum,count,avg)
-	 */
-	public static boolean createAggregationViewTable() {
-
-		List<String> keyspace = XmlHandler.getInstance().getAggViewConfig()
-				.getList("dbSchema.tableDefinition.keyspace");
-		List<String> tableName = XmlHandler.getInstance().getAggViewConfig()
-				.getList("dbSchema.tableDefinition.name");
-		Integer nrTables = XmlHandler.getInstance().getAggViewConfig()
-				.getInt("dbSchema.tableNumber");
-		List<String> primarykeyType = XmlHandler.getInstance()
-				.getAggViewConfig()
-				.getList("dbSchema.tableDefinition.primaryKey.type");
-		List<String> primarykeyName = XmlHandler.getInstance()
-				.getAggViewConfig()
-				.getList("dbSchema.tableDefinition.primaryKey.name");
-		Integer nrColumns = XmlHandler.getInstance().getAggViewConfig()
-				.getInt("dbSchema.tableDefinition.columnNumber");
-		List<String> colFamily = XmlHandler.getInstance().getAggViewConfig()
-				.getList("dbSchema.tableDefinition.column.family");
-		List<String> colName = XmlHandler.getInstance().getAggViewConfig()
-				.getList("dbSchema.tableDefinition.column.name");
-		List<String> colType = XmlHandler.getInstance().getAggViewConfig()
-				.getList("dbSchema.tableDefinition.column.type");
-		List<String> baseTable = XmlHandler.getInstance().getAggViewConfig()
-				.getList("dbSchema.tableDefinition.baseTable");
-		List<String> preAggTableName = XmlHandler.getInstance().getAggViewConfig()
-				.getList("dbSchema.tableDefinition.preAggTable");
-
-		List<String> primarykeyTypeAgg = XmlHandler.getInstance()
-				.getAggViewConfig()
-				.getList("dbSchema.tableDefinition.primaryKey.type");
-		List<String> primarykeyNameAgg = XmlHandler.getInstance()
-				.getAggViewConfig()
-				.getList("dbSchema.tableDefinition.primaryKey.name");
-		List<String> aggViewName = XmlHandler.getInstance().getAggViewConfig()
-				.getList("dbSchema.tableDefinition.name");
-		List<String> baseTableAgg = XmlHandler.getInstance().getAggViewConfig()
-				.getList("dbSchema.tableDefinition.baseTable");
-		Integer aggregationKeyColNr = XmlHandler.getInstance()
-				.getAggViewConfig()
-				.getInt("dbSchema.tableDefinition.aggregationColumns.number");
-		List<String> aggregationColName = XmlHandler
-				.getInstance()
-				.getAggViewConfig()
-				.getList(
-						"dbSchema.tableDefinition.aggregationColumns.column.name");
-		List<String> aggregationColType = XmlHandler
-				.getInstance()
-				.getAggViewConfig()
-				.getList(
-						"dbSchema.tableDefinition.aggregationColumns.column.type");
-
-		for (int i = 0; i < nrTables; i++) {
-
-			StringBuilder createQuery = new StringBuilder();
-			createQuery.append("CREATE TABLE IF NOT EXISTS  ")
-			.append(keyspace.get(i)).append(".")
-			.append(tableName.get(i) + "(")
-			.append(primarykeyName.get(i) + " ")
-			.append(primarykeyType.get(i)).append(" PRIMARY KEY,");
-
-			for (int j = 0; j < nrColumns; j++) {
-				createQuery.append(colName.get(j) + " ").append(
-						colType.get(j) + ",");
-			}
-
-			createQuery.deleteCharAt(createQuery.length() - 1);
-			createQuery.append(");");
-
-			Session session = null;
-
-			System.out.println(createQuery.toString());
-
-			try {
-				session = currentCluster.connect();
-				ResultSet queryResults = session
-						.execute(createQuery.toString());
-			} catch (Exception e) {
-				e.printStackTrace();
-				return false;
-			}
-
-			
-		}
-
-
-
-		return true;
-
-	}
 
 	/**
 	 * This method creates and fills Delta view 
@@ -562,8 +467,7 @@ public class Client {
 
 			try {
 				session = currentCluster.connect();
-				ResultSet queryResults = session
-						.execute(createQuery.toString());
+				session.execute(createQuery.toString());
 			} catch (Exception e) {
 				e.printStackTrace();
 				return false;

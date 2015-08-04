@@ -25,9 +25,6 @@ public class XmlHandler {
 		clusterConfig = new XMLConfiguration();
 		clusterConfig.setDelimiterParsingDisabled(true);
 		
-		aggViewConfig = new XMLConfiguration();
-		aggViewConfig.setDelimiterParsingDisabled(true);
-		
 		deltaViewConfig = new XMLConfiguration();
 		deltaViewConfig.setDelimiterParsingDisabled(true);
 		
@@ -39,7 +36,6 @@ public class XmlHandler {
 			databaseConfig.load("client/resources/DatabaseConfig.xml");
 			selectViewConfig.load("client/resources/SelectViewConfig.xml");
 			clusterConfig.load("client/resources/ClusterConfig.xml");
-			aggViewConfig.load("client/resources/AggregationViewConfig.xml");
 			deltaViewConfig.load("client/resources/DeltaViewConfig.xml");
 			preAggViewConfig.load("client/resources/Preaggregation.xml"); 
 			
@@ -66,10 +62,6 @@ public class XmlHandler {
 
 	public XMLConfiguration getSelectViewConfig(){
 		return selectViewConfig;
-	}
-	
-	public XMLConfiguration getAggViewConfig(){
-		return aggViewConfig;
 	}
 	
 	public XMLConfiguration getDeltaViewConfig(){
