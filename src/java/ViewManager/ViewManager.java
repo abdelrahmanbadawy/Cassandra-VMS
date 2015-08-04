@@ -35,13 +35,13 @@ public class ViewManager {
 	public ViewManager(Cluster currenCluster){
 		this.currentCluster = currenCluster;
 	}
-	
+
 	public Row getDeltaUpdatedRow(){
 		return deltaUpdatedRow;
 	}
-	
+
 	private void setDeltaUpdatedRow(Row row){
-		 deltaUpdatedRow = row;
+		deltaUpdatedRow = row;
 	}
 
 	public boolean updateDelta(JSONObject json, int indexBaseTableName, String baseTablePrimaryKey) {
@@ -195,11 +195,11 @@ public class ViewManager {
 		}
 
 		System.out.println("Done Delta update");
-		
+
 		//5. get the entire row from delta where update has happened
 		//5.a save the row and send bk to controller
-		
-		 StringBuilder selectQuery1 = new StringBuilder("SELECT * ")
+
+		StringBuilder selectQuery1 = new StringBuilder("SELECT * ")
 		.append(" FROM ").append(keyspace).append(".")
 		.append("delta_"+table).append(" WHERE ")
 		.append(baseTablePrimaryKey+" = ").append(data.get(baseTablePrimaryKey)+" ;");
@@ -208,12 +208,12 @@ public class ViewManager {
 
 		try {
 			Session session = currentCluster.connect();
-			 setDeltaUpdatedRow(session.execute(selectQuery.toString()).one());
+			setDeltaUpdatedRow(session.execute(selectQuery1.toString()).one());
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
 		}
-		
+
 		//decideSelection(keyspace,"delta_"+table,pkName.get(indexBaseTableName),data.get(pkName.get(indexBaseTableName)).toString(),json,theRow);
 		//updatePreaggregation(firstInsertion,keyspace,table,pkName.get(indexBaseTableName),data.get(pkName.get(indexBaseTableName)).toString(),json);
 
@@ -307,62 +307,194 @@ public class ViewManager {
 
 	}
 	 */
-	/*public boolean updatePreaggregation(boolean firstInsertion, String keyspace, String table, String pk, String pkValue, JSONObject json){
 
-		List<String> deltaTable  = VmXmlHandler.getInstance().getDeltaPreaggMapping().
-				getList("mapping.unit.deltaTable");
-
-		JSONObject data = (JSONObject) json.get("data");
-
-		int position = deltaTable.indexOf("delta_"+table);
-
-		if(position!=-1){
-
-			String temp= "mapping.unit(";
-			temp+=Integer.toString(position);
-			temp+=")";
-
-			int nrPreagg = VmXmlHandler.getInstance().getDeltaPreaggMapping().
-					getInt(temp+".nrPreagg");
-
-			for(int i=0;i<nrPreagg;i++){
-
-				String s = temp+".Preagg("+Integer.toString(i)+")";
-				String AggKey = VmXmlHandler.getInstance().getDeltaPreaggMapping().
-						getString(s+".AggKey");
-				String AggKeyType = VmXmlHandler.getInstance().getDeltaPreaggMapping().
-						getString(s+".AggKeyType");
-				String preaggTable = VmXmlHandler.getInstance().getDeltaPreaggMapping().
-						getString(s+".name");
-				String AggCol = VmXmlHandler.getInstance().getDeltaPreaggMapping().
-						getString(s+".AggCol");
-				String AggColType = VmXmlHandler.getInstance().getDeltaPreaggMapping().
-						getString(s+".AggColType");
+	public boolean updatePreaggregation(Row deltaUpdatedRow, String aggKey, String aggKeyType, JSONObject json, String preaggTable, String baseTablePrimaryKey){
 
 
-				if(firstInsertion && data.containsKey(AggKey) && data.containsKey(AggCol)){
-					newInsertPreaggregation(keyspace,preaggTable,pk,pkValue,AggKey,AggKeyType,AggCol,AggColType,json);
+		//1. check if the aggKey has been updated or not from delta Stream given as input
+		// sameKeyValue = true , if 1) aggkey hasnt been updated or for first insertion where _old value is null
+		// 1.b save aggKeyValue in loop
 
-				}else if(!firstInsertion && data.containsKey(AggKey) && data.containsKey(AggCol)){
-					InsertPreaggregation(keyspace,preaggTable,pk,pkValue,AggKey,AggKeyType,AggCol,AggColType,json,"delta_"+table);	
+		boolean sameKeyValue = false;
+		String aggKeyValue = "";
+		ColumnDefinitions colDef = null;
 
-				}else if(!firstInsertion && (!data.containsKey(AggKey)) && data.containsKey(AggCol)){
-					// TO DO 
-				}else if(!firstInsertion && data.containsKey(AggKey) && (!data.containsKey(AggCol))){
-					// TO DO
+		if(deltaUpdatedRow!=null){
+			colDef = deltaUpdatedRow.getColumnDefinitions();
+			int indexNew = colDef.getIndexOf(aggKey+"_new");
+			int indexOld = colDef.getIndexOf(aggKey+"_old");
+
+
+			switch (aggKeyType) {
+
+			case "text":
+				if(deltaUpdatedRow.getString(indexNew).equals(deltaUpdatedRow.getString(indexOld)) || deltaUpdatedRow.isNull(indexOld) ){
+					sameKeyValue = true;
 				}
+				aggKeyValue ="'"+deltaUpdatedRow.getString(indexNew)+"'";
+				break;
 
+			case "int":
+				if(deltaUpdatedRow.getInt(indexNew)==(deltaUpdatedRow.getInt(indexOld)) || deltaUpdatedRow.isNull(indexOld)){
+					sameKeyValue = true;
+				}
+				aggKeyValue =""+deltaUpdatedRow.getInt(indexNew)+"";
 
+				break;
+
+			case "varint":
+				if(deltaUpdatedRow.getVarint(indexNew)==(deltaUpdatedRow.getVarint(indexOld)) || deltaUpdatedRow.isNull(indexOld)){
+					sameKeyValue = true;
+				}
+				aggKeyValue =""+deltaUpdatedRow.getVarint(indexNew)+"";
+
+				break;
+
+			case "varchar":
+				if(deltaUpdatedRow.getString(indexNew).equals(deltaUpdatedRow.getString(indexOld)) || deltaUpdatedRow.isNull(indexOld)){
+					sameKeyValue = true;
+				}
+				aggKeyValue ="'"+deltaUpdatedRow.getString(indexNew)+"'";
+				break;	
+
+			case "float":
+				if(deltaUpdatedRow.getFloat(indexNew)==(deltaUpdatedRow.getFloat(indexOld)) || deltaUpdatedRow.isNull(indexOld)){
+					sameKeyValue = true;
+				}
+				aggKeyValue =""+deltaUpdatedRow.getFloat(indexNew)+"";
+
+				break;
 			}
-		}else{
-			System.out.println("No Preaggregation table for this delta table available");
-			return true;
+
 		}
 
+		//1.b get all column values (_new) from delta table + including pk
+		// & save them in myList
+
+		ArrayList<String> myList = new ArrayList<String>();
+		List<Definition> def = colDef.asList();
+
+		for(int i=0;i<def.size();i++){
+
+			switch (def.get(i).getType().toString()) {
+
+			case "text":
+				if(!def.get(i).getName().contains("_old")){
+					myList.add(deltaUpdatedRow.getString(i));
+				}
+
+				break;
+
+			case "int":
+				if(!def.get(i).getName().contains("_old")){
+					myList.add(""+deltaUpdatedRow.getInt(i)+"");
+				}
+				break;
+
+			case "varint":
+				if(!def.get(i).getName().contains("_old")){
+					myList.add(""+deltaUpdatedRow.getVarint(i)+"");
+				}
+				break;
+
+			case "varchar":
+				if(!def.get(i).getName().contains("_old")){
+					myList.add(deltaUpdatedRow.getString(i));
+				}
+				break;	
+
+			case "float":
+				if(!def.get(i).getName().contains("_old")){
+					myList.add(""+deltaUpdatedRow.getFloat(i)+"");
+				}
+				break;
+			}
+
+		}
+
+		// 2. if AggKey hasnt been updated or first insertion
+		if(sameKeyValue){
+
+			//2.a select from preagg table row with AggKey as PK
+
+			StringBuilder selectPreaggQuery1 = new StringBuilder("SELECT ").append("list_item");
+			selectPreaggQuery1.append(" FROM ").append((String)json.get("keyspace")).append(".")
+			.append(preaggTable).append(" where ")
+			.append(aggKey+ " = ").append(aggKeyValue).append(";");
+
+			System.out.println(selectPreaggQuery1);
+
+			//2.b execute select statement
+			ResultSet PreAggMap;
+			try {
+
+				Session session = currentCluster.connect();
+				PreAggMap = session.execute(selectPreaggQuery1.toString());
+
+			} catch (Exception e) {
+				e.printStackTrace();
+				return false;
+			}
+
+
+			Row theRow1 = PreAggMap.one();
+
+			HashMap<String, List<String>> myMap = new HashMap<>();
+			// 2.c If row retrieved is null, then this is the first insertion for this given Agg key
+			if (theRow1 == null) {
+
+				//2.d create a map, add pk and list with delta _new values
+
+				myMap = new HashMap<String, List<String>>();
+
+				String pk = myList.get(0); myList.remove(0);
+				myMap.put(pk,myList);
+
+			} else {
+
+				//2.d If row is not null, then this is not the first insertion for this agg Key	
+				Map<String, List> tempMapImmutable= theRow1.getMap("list_item",String.class,List.class);
+
+				/*	HashMap<String, String> myMap = new HashMap<String,String>();
+					myMap.putAll(tempMapImmutable);
+					myMap.remove(pkValue);
+
+					myMap.put(pkValue, stringRepresenation);
+					StringBuilder insertQueryAgg = new StringBuilder("INSERT INTO ");
+					insertQueryAgg.append(keyspace).append(".")
+					.append(preaggTable).append(" ( ")
+					.append(aggKey+", ")
+					.append("list_item").append(") VALUES (")
+					.append(data.get(aggKey)+", ").append("?);");*/
+
+			}try {
+
+
+				StringBuilder insertQueryAgg = new StringBuilder("INSERT INTO ");
+				insertQueryAgg.append((String)json.get("keyspace")).append(".")
+				.append(preaggTable).append(" ( ")
+				.append(aggKey+", ")
+				.append("list_item").append(") VALUES (")
+				.append(aggKeyValue+", ").append("?);");
+
+				Session session = currentCluster.connect();
+
+				PreparedStatement statement = session.prepare(insertQueryAgg.toString());
+				BoundStatement boundStatement = new BoundStatement(statement);
+				session.execute(boundStatement.bind(myMap));
+				System.out.println(boundStatement.toString());
+
+			} catch (Exception e) {
+				e.printStackTrace();
+				return false;
+			}
+		}else {
+
+		}
 
 		return true;
 	}
-	 */
+
 	/*private boolean updateAggregation(String keyspace, String preaggTable, String aggKey, String aggKeyValue, Map myMap) {
 
 		List<String> PreTable  = VmXmlHandler.getInstance().getPreaggAggMapping().

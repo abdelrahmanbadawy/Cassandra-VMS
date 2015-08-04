@@ -8,14 +8,14 @@
 			<nrCond>1</nrCond>
 			<Cond>
 				<name>selection_courses_ects</name>
-				<selectionCol>ECTS</selectionCol>
+				<selectionCol>ects</selectionCol>
 				<type>int</type>
 				<operation>></operation>
 				<value>3</value>
 			</Cond>
 			<Cond>
 				<name>selection_courses_ects</name>
-				<selectionCol>ECTS</selectionCol>
+				<selectionCol>ects</selectionCol>
 				<type>int</type>
 				<operation>=</operation>
 				<value>4</value>

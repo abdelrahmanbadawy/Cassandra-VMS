@@ -7,10 +7,10 @@
 			<deltaTable>delta_courses</deltaTable>
 			<nrPreagg>1</nrPreagg>
 			<Preagg>
-				<name>preaggregation_courses_faculty_ECTS</name>
+				<name>preagg_agg_courses_faculty_ects</name>
 				<AggKey>faculty</AggKey>
 				<AggKeyType>text</AggKeyType>
-				<AggCol>ECTS</AggCol>
+				<AggCol>ects</AggCol>
 				<AggColType>varint</AggColType>
 			</Preagg>
 		</unit>

@@ -1,0 +1,51 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<setup>
+	<dbSchema>
+		<tableNumber>1</tableNumber>
+
+		<tableDefinition>
+			<baseTable>delta_courses</baseTable>
+
+			<columnNumber>4</columnNumber>
+			<keyspace>test</keyspace>
+			<name>preagg_agg_courses_faculty_ects</name>
+
+			<primaryKey>
+				<type>text</type>
+				<name>faculty</name>
+			</primaryKey>
+
+			<column>
+				<family>colfam1</family>
+				<type>map&lt;text,frozen&lt;list&lt;text&gt;&gt;&gt;</type>
+				<name>list_item</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>int</type>
+				<name>sum</name>
+			</column>
+
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>average</name>
+			</column>
+
+			<column>
+				<family>colfam1</family>
+				<type>int</type>
+				<name>count</name>
+			</column>
+
+			<aggCol>
+				<type>varint</type>
+				<name>ects</name>
+			</aggCol>
+
+		</tableDefinition>
+
+	</dbSchema>
+
+
+</setup>

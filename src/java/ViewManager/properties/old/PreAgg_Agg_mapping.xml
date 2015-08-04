@@ -10,7 +10,7 @@
 				<name>agg_courses_faculty_ects</name>
 				<AggKey>faculty</AggKey>
 				<AggKeyType>text</AggKeyType>
-				<AggCol>ECTS</AggCol>
+				<AggCol>ects</AggCol>
 				<AggColType>varint</AggColType>
 			</Agg>
 		</unit>
