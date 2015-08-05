@@ -129,8 +129,6 @@ public class ViewManagerController {
 					vm.updatePreaggregation(deltaUpdatedRow,AggKey,AggKeyType,json,preaggTable,baseTablePrimaryKey,AggCol,AggColType,false);
 				}
 				
-				
-
 			}
 		}else{
 			System.out.println("No Preaggregation table for this delta table "+" delta_"+(String) json.get("table")+" available");
@@ -170,6 +168,21 @@ public class ViewManagerController {
 	}
 
 	public void cascadeDelete(JSONObject json){
+		
+		 //===================================================================================
+
+		//get position of basetable from xml list
+		//retrieve pk of basetable and delta from XML mapping file
+		int indexBaseTableName = baseTableName.indexOf((String) json.get("table"));
+		String baseTablePrimaryKey = pkName.get(indexBaseTableName);
+		Row deltaDeletedRow = null;
+
+		// 1. update Delta Table
+        // 1.a If successful, retrieve entire updated Row from Delta to pass on as streams
+
+		if(vm.deleteRowDelta(json)){
+			deltaDeletedRow = vm.getDeltaDeletedRow();	
+		}
 
 	}
 

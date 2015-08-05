@@ -35,6 +35,7 @@ public class ViewManager {
 
 	Cluster currentCluster = null;
 	private Row deltaUpdatedRow;
+	private Row deltaDeletedRow;
 
 	public ViewManager(Cluster currenCluster){
 		this.currentCluster = currenCluster;
@@ -227,6 +228,73 @@ public class ViewManager {
 
 	}
 
+
+	public boolean deleteRowDelta(JSONObject json) {
+
+		JSONObject condition = (JSONObject) json.get("condition");
+		Object[] hm = condition.keySet().toArray();
+
+		//1. retrieve the row to be deleted from delta table
+
+		StringBuilder selectQuery = new StringBuilder("SELECT *");
+		selectQuery.append(" FROM ").append(json.get("keyspace")).append(".")
+		.append("delta_"+json.get("table")).append(" WHERE ")
+		.append(hm[0]).append(" = ").append(condition.get(hm[0])+" ;");
+
+		System.out.println(selectQuery);
+
+		ResultSet selectionResult;
+
+		try {
+
+			Session session = currentCluster.connect();
+			selectionResult = session.execute(selectQuery.toString());
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+
+		//2. set DeltaDeletedRow variable for streaming
+		setDeltaDeletedRow(selectionResult.one());
+
+
+		//3. delete row from delta
+
+		StringBuilder deleteQuery = new StringBuilder("DELETE FROM ");
+		deleteQuery.append(json.get("keyspace")).append(".")
+		.append("delta_"+json.get("table")).append(" WHERE ");
+
+
+
+		Object[] hm1 = condition.keySet().toArray();
+
+		for(int i=0;i<hm1.length;i++){
+			deleteQuery.append(hm1[i]).append(" = ").append(condition.get(hm1[i]));
+			deleteQuery.append(";");
+		}
+
+		System.out.println(deleteQuery);
+
+		ResultSet deleteResult;
+		try{
+
+			Session session = currentCluster.connect();
+			deleteResult = session.execute(deleteQuery.toString());
+		}catch(Exception e){
+			e.printStackTrace();
+			return false;
+		}
+
+		System.out.println("Delete Successful from Delta Table");
+
+		return true;
+
+	}
+
+
+
+
 	/*	private void decideSelection(String keyspace, String table, String pk, String pkValue, JSONObject json, Row oldDeltaColumns) {
 
 		List<String> deltaTable  = VmXmlHandler.getInstance().getDeltaSelectionMapping().
@@ -311,6 +379,14 @@ public class ViewManager {
 
 	}
 	 */
+
+	private void setDeltaDeletedRow(Row one) {
+		deltaDeletedRow	=one ;
+	}
+	
+	public Row getDeltaDeletedRow(){
+		return deltaDeletedRow;
+	}
 
 	public boolean updatePreaggregation(Row deltaUpdatedRow, String aggKey, String aggKeyType, JSONObject json, String preaggTable, String baseTablePrimaryKey, String aggCol, String aggColType, boolean override){
 
@@ -512,20 +588,20 @@ public class ViewManager {
 				myMap.putAll(tempMapImmutable);
 
 				int prev_count = myMap.keySet().size();
-				
+
 				String pk = myList.get(0); myList.remove(0);
 				myMap.put(pk,myList.toString());
 
-				
+
 				//2.e set agg col values
 
 				count = myMap.keySet().size();
-				
+
 				if(count>prev_count)
 					sum = theRow1.getInt("sum")+aggColValue;
 				else
 					sum = theRow1.getInt("sum") - aggColValue_old +aggColValue;
-				
+
 				average = sum/count;	
 
 			}try {
@@ -574,14 +650,14 @@ public class ViewManager {
 				e.printStackTrace();
 				return false;
 			}
-			
+
 			Row theRow = PreAggMap.one();
 			if(theRow!=null){
-				
+
 				//3.check size of map for given old agg key
 				// if map.size is 1 then whole row can be deleted
 				// if map.size is larger than 1 then iterate over map & delete desired entry with the correct pk as key
-				
+
 				Map<String, String> tempMapImmutable= theRow.getMap("list_item",String.class,String.class);
 
 				System.out.println(tempMapImmutable);
@@ -590,23 +666,23 @@ public class ViewManager {
 
 				if(myMap.size()==1){
 					//4. delete the whole row
-					
+
 					//4.a perform a new insertion with new values
 					updatePreaggregation(deltaUpdatedRow,aggKey,aggKeyType,json,preaggTable,baseTablePrimaryKey,aggCol,aggColType,true);
 
 				}else{
-				
+
 					//5. retrieve the pk value that has to be removed from the map
 					String pk = myList.get(0); myList.remove(0);
-					
+
 					//5.a remove entry from map with that pk
 					myMap.remove(pk);
-					
+
 					//5.c adjust sum,count,average values
 					count = myMap.size();
 					sum = theRow.getInt("sum")-aggColValue;
 					average = sum/count;
-					
+
 					//6. Execute insertion statement of the row with the aggKeyValue_old to refelect changes
 
 					StringBuilder insertQueryAgg = new StringBuilder("INSERT INTO ");
@@ -622,7 +698,7 @@ public class ViewManager {
 					BoundStatement boundStatement = new BoundStatement(statement1);	
 					session1.execute(boundStatement.bind(myMap,(int)sum,(int)count,average));
 					System.out.println(boundStatement.toString());
-					
+
 					//perform a new insertion for the new aggkey given in json
 					updatePreaggregation(deltaUpdatedRow,aggKey,aggKeyType,json,preaggTable,baseTablePrimaryKey,aggCol,aggColType,true);
 				}
@@ -1797,10 +1873,10 @@ public class ViewManager {
 		}
 
 		return true;
-	}
+	}*/
 
 
-	public boolean deleteRowSelection(JSONObject json) {
+	/*public boolean deleteRowSelection(JSONObject json) {
 
 		List<String> deltaTable  = VmXmlHandler.getInstance().getDeltaSelectionMapping().
 				getList("mapping.unit.deltaTable");
