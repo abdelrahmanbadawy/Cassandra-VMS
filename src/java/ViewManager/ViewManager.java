@@ -17,8 +17,6 @@ import org.json.simple.JSONObject;
 import client.client.Client;
 import client.client.XmlHandler;
 
-import com.datastax.driver.mapping.annotation.*;
-import com.datastax.driver.mapping.builder.MappingBuilder;
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.ColumnDefinitions;
@@ -424,23 +422,23 @@ public class ViewManager {
 		switch (deltaDeletedRow.getColumnDefinitions().asList().get(0).getType().toString()) {
 
 		case "text":
-			pk = deltaUpdatedRow.getString(0);
+			pk = deltaDeletedRow.getString(0);
 			break;
 
 		case "int":
-			pk = Integer.toString(deltaUpdatedRow.getInt(0));
+			pk = Integer.toString(deltaDeletedRow.getInt(0));
 			break;
 
 		case "varint":
-			pk = deltaUpdatedRow.getVarint(0).toString();
+			pk = deltaDeletedRow.getVarint(0).toString();
 			break;
 
 		case "varchar":
-			pk = deltaUpdatedRow.getString(0);
+			pk = deltaDeletedRow.getString(0);
 			break;	
 
 		case "float":
-			pk = Float.toString(deltaUpdatedRow.getFloat(0));
+			pk = Float.toString(deltaDeletedRow.getFloat(0));
 			break;
 		}
 
