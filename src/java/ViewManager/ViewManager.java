@@ -383,9 +383,177 @@ public class ViewManager {
 	private void setDeltaDeletedRow(Row one) {
 		deltaDeletedRow	=one ;
 	}
-	
+
 	public Row getDeltaDeletedRow(){
 		return deltaDeletedRow;
+	}
+
+
+	public boolean deleteRowPreaggAgg(Row deltaDeletedRow, String baseTablePrimaryKey, JSONObject json, String preaggTable, String aggKey, String aggKeyType, String aggCol, String aggColType){
+
+		float count = 0;
+		float sum = 0;
+		float average = 0;
+
+		//1. retrieve agg key value from delta stream to retrieve the correct row from preagg
+		String aggKeyValue = "";
+		float aggColValue = 0;
+
+
+		switch (aggKeyType) {
+
+		case "text":
+			aggKeyValue = "'"+deltaDeletedRow.getString(aggKey+"_new")+"'";
+			break;
+
+		case "int":
+			aggKeyValue = ""+deltaDeletedRow.getInt(aggKey+"_new")+"";
+			break;
+
+		case "varint":
+			aggKeyValue = ""+deltaDeletedRow.getVarint(aggKey+"_new")+"";
+			break;
+
+		case "float":
+			aggKeyValue = ""+deltaDeletedRow.getFloat(aggKey+"_new")+"";
+			break;
+		}
+
+		//1.b Retrieve row key from delta stream
+		String pk = "";
+		switch (deltaDeletedRow.getColumnDefinitions().asList().get(0).getType().toString()) {
+
+		case "text":
+			pk = deltaUpdatedRow.getString(0);
+			break;
+
+		case "int":
+			pk = Integer.toString(deltaUpdatedRow.getInt(0));
+			break;
+
+		case "varint":
+			pk = deltaUpdatedRow.getVarint(0).toString();
+			break;
+
+		case "varchar":
+			pk = deltaUpdatedRow.getString(0);
+			break;	
+
+		case "float":
+			pk = Float.toString(deltaUpdatedRow.getFloat(0));
+			break;
+		}
+
+
+		// 2. select row with aggkeyValue from delta stream
+		StringBuilder selectPreaggQuery1 = new StringBuilder("SELECT ").append("list_item, ").append("sum, ").append("count, ").append("average ");
+		selectPreaggQuery1.append(" FROM ").append((String)json.get("keyspace")).append(".")
+		.append(preaggTable).append(" where ")
+		.append(aggKey+ " = ").append(aggKeyValue).append(";");
+
+		System.out.println(selectPreaggQuery1);
+
+		//2.b execute select statement
+		ResultSet PreAggMap;
+		try {
+
+			Session session = currentCluster.connect();
+			PreAggMap = session.execute(selectPreaggQuery1.toString());
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+
+		Row theRow = PreAggMap.one();
+		if(theRow!=null){
+
+			//3.check size of map for given  agg key
+			// if map.size is 1 then whole row can be deleted
+			// if map.size is larger than 1 then iterate over map & delete desired entry with the correct pk as key
+
+			Map<String, String> tempMapImmutable= theRow.getMap("list_item",String.class,String.class);
+
+			System.out.println(tempMapImmutable);
+			Map<String, String> myMap= new HashMap<String, String>();
+			myMap.putAll(tempMapImmutable);
+
+			if(myMap.size()==1){
+				//4. delete the whole row
+				deleteEntireRowWithPK((String)json.get("keyspace"),preaggTable,aggKey,aggKeyValue);
+			}else{
+
+				//5.a remove entry from map with that pk
+				myMap.remove(pk);
+
+
+				//5.b retrieve aggCol value
+				switch (aggColType) {
+
+				case "int":
+					aggColValue = deltaDeletedRow.getInt(aggCol+"_new");
+					break;
+
+				case "varint":
+					aggColValue = deltaDeletedRow.getVarint(aggCol+"_new").floatValue();
+					break;
+
+				case "float":
+					aggColValue = deltaDeletedRow.getFloat(aggCol+"_new");
+					break;
+				}
+
+				//5.c adjust sum,count,average values
+				count = myMap.size();
+				sum = theRow.getInt("sum")-aggColValue;
+				average = sum/count;
+
+				//6. Execute insertion statement of the row with the aggKeyValue_old to refelect changes
+
+				StringBuilder insertQueryAgg = new StringBuilder("INSERT INTO ");
+				insertQueryAgg.append((String)json.get("keyspace")).append(".")
+				.append(preaggTable).append(" ( ")
+				.append(aggKey+", ")
+				.append("list_item, ").append("sum, count, average").append(") VALUES (")
+				.append(aggKeyValue+", ").append("?, ?, ?, ?);");
+
+				Session session1 = currentCluster.connect();
+
+				PreparedStatement statement1 = session1.prepare(insertQueryAgg.toString());
+				BoundStatement boundStatement = new BoundStatement(statement1);	
+				session1.execute(boundStatement.bind(myMap,(int)sum,(int)count,average));
+				System.out.println(boundStatement.toString());
+
+			}
+
+		}
+
+		System.out.println("Done deleting from preagg and agg table");
+
+		return true;
+	}
+
+
+
+
+	private boolean deleteEntireRowWithPK(String keyspace,String tableName,String pk,String pkValue) {
+
+		StringBuilder deleteQuery = new StringBuilder("delete from ");
+		deleteQuery.append(keyspace).append(".")
+		.append(tableName).append(" WHERE ").append(pk+" = ").append(pkValue).append(";");
+
+		try {
+
+			Session session = currentCluster.connect();
+			session.execute(deleteQuery.toString());
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+
+
+		return true;
 	}
 
 	public boolean updatePreaggregation(Row deltaUpdatedRow, String aggKey, String aggKeyType, JSONObject json, String preaggTable, String baseTablePrimaryKey, String aggCol, String aggColType, boolean override){
@@ -625,7 +793,7 @@ public class ViewManager {
 				e.printStackTrace();
 				return false;
 			}
-		}else if(!sameKeyValue && !override) {
+		}else if((!sameKeyValue && !override)) {
 
 
 			//1. retrieve old agg key value from delta stream to retrieve the correct row from preagg
@@ -666,6 +834,7 @@ public class ViewManager {
 
 				if(myMap.size()==1){
 					//4. delete the whole row
+					deleteEntireRowWithPK((String)json.get("keyspace"),preaggTable,aggKey,aggKeyValue_old);
 
 					//4.a perform a new insertion with new values
 					updatePreaggregation(deltaUpdatedRow,aggKey,aggKeyType,json,preaggTable,baseTablePrimaryKey,aggCol,aggColType,true);
@@ -680,7 +849,7 @@ public class ViewManager {
 
 					//5.c adjust sum,count,average values
 					count = myMap.size();
-					sum = theRow.getInt("sum")-aggColValue;
+					sum = theRow.getInt("sum")-aggColValue_old;
 					average = sum/count;
 
 					//6. Execute insertion statement of the row with the aggKeyValue_old to refelect changes
