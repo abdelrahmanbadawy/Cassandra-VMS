@@ -126,7 +126,7 @@ public class ViewManagerController {
 				if(! isNull){
 					
 					// by passing the whole delta Row, we have agg key value even if it is not in json
-					vm.updatePreaggregation(deltaUpdatedRow,AggKey,AggKeyType,json,preaggTable,baseTablePrimaryKey,AggCol,AggColType);
+					vm.updatePreaggregation(deltaUpdatedRow,AggKey,AggKeyType,json,preaggTable,baseTablePrimaryKey,AggCol,AggColType,false);
 				}
 				
 				
