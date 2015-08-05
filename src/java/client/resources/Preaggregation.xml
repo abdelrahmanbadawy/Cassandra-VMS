@@ -17,7 +17,10 @@
 
 			<column>
 				<family>colfam1</family>
+				<!--
 				<type>map&lt;text,frozen&lt;list&lt;text&gt;&gt;&gt;</type>
+				-->
+				<type>map&lt;text,text&gt;</type>
 				<name>list_item</name>
 			</column>
 			<column>

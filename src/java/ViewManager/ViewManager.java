@@ -1,5 +1,7 @@
 package ViewManager;
 
+import java.math.BigInteger;
+import java.sql.Blob;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -15,6 +17,8 @@ import org.json.simple.JSONObject;
 import client.client.Client;
 import client.client.XmlHandler;
 
+import com.datastax.driver.mapping.annotation.*;
+import com.datastax.driver.mapping.builder.MappingBuilder;
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.ColumnDefinitions;
@@ -308,16 +312,20 @@ public class ViewManager {
 	}
 	 */
 
-	public boolean updatePreaggregation(Row deltaUpdatedRow, String aggKey, String aggKeyType, JSONObject json, String preaggTable, String baseTablePrimaryKey){
+	public boolean updatePreaggregation(Row deltaUpdatedRow, String aggKey, String aggKeyType, JSONObject json, String preaggTable, String baseTablePrimaryKey, String aggCol, String aggColType){
 
 
 		//1. check if the aggKey has been updated or not from delta Stream given as input
-		// sameKeyValue = true , if 1) aggkey hasnt been updated or for first insertion where _old value is null
+		// sameKeyValue = true , if 1) aggkey hasnt been updated or 2) for first insertion where _old value is null
 		// 1.b save aggKeyValue in loop
 
 		boolean sameKeyValue = false;
 		String aggKeyValue = "";
 		ColumnDefinitions colDef = null;
+		float average = 0;
+		float sum = 0;
+		float count = 0;
+		float aggColValue = 0;
 
 		if(deltaUpdatedRow!=null){
 			colDef = deltaUpdatedRow.getColumnDefinitions();
@@ -412,12 +420,51 @@ public class ViewManager {
 
 		}
 
+		//1.c Get the old and new aggCol value from delta table (_new), (_old)
+
+		int aggColIndexNew;
+		int aggColIndexOld;
+		float aggColValue_old = 0;
+
+		if(deltaUpdatedRow!=null){
+			colDef = deltaUpdatedRow.getColumnDefinitions();
+			aggColIndexNew = colDef.getIndexOf(aggCol+"_new");
+			aggColIndexOld = colDef.getIndexOf(aggCol+"_old");
+
+			switch (aggColType) {
+
+			case "int":
+				aggColValue =deltaUpdatedRow.getInt(aggColIndexNew);
+				aggColValue_old =deltaUpdatedRow.getInt(aggColIndexOld);
+
+				break;
+
+			case "varint":
+				aggColValue =deltaUpdatedRow.getVarint(aggColIndexNew).floatValue();
+				BigInteger temp =deltaUpdatedRow.getVarint(aggColIndexOld);
+				
+				if(temp!=null){
+					aggColValue_old = temp.floatValue();
+				}else{
+					aggColValue_old  = 0;
+				}
+				
+				break;
+
+			case "float":
+				aggColValue =deltaUpdatedRow.getFloat(aggColIndexNew);	
+				aggColValue_old =deltaUpdatedRow.getFloat(aggColIndexOld);	
+				break;
+			}
+		}
+
+
 		// 2. if AggKey hasnt been updated or first insertion
 		if(sameKeyValue){
 
 			//2.a select from preagg table row with AggKey as PK
 
-			StringBuilder selectPreaggQuery1 = new StringBuilder("SELECT ").append("list_item");
+			StringBuilder selectPreaggQuery1 = new StringBuilder("SELECT ").append("list_item, ").append("sum, ").append("count, ").append("average ");
 			selectPreaggQuery1.append(" FROM ").append((String)json.get("keyspace")).append(".")
 			.append(preaggTable).append(" where ")
 			.append(aggKey+ " = ").append(aggKeyValue).append(";");
@@ -439,56 +486,59 @@ public class ViewManager {
 
 			Row theRow1 = PreAggMap.one();
 
-			HashMap<String, List<String>> myMap = new HashMap<>();
+			HashMap<String,String> myMap = new HashMap<>();
 			// 2.c If row retrieved is null, then this is the first insertion for this given Agg key
 			if (theRow1 == null) {
 
-				//2.d create a map, add pk and list with delta _new values
-
-				myMap = new HashMap<String, List<String>>();
-
+				//2.c.1 create a map, add pk and list with delta _new values
 				String pk = myList.get(0); myList.remove(0);
-				myMap.put(pk,myList);
+				myMap.put(pk,myList.toString());
+
+				//2.c.2 set the agg col values
+				sum += aggColValue;
+				count = 1;
+				average = sum/count;
 
 			} else {
 
 				//2.d If row is not null, then this is not the first insertion for this agg Key	
-				Map<String, List> tempMapImmutable= theRow1.getMap("list_item",String.class,List.class);
+				Map<String, String> tempMapImmutable= theRow1.getMap("list_item",String.class,String.class);
 
-				/*	HashMap<String, String> myMap = new HashMap<String,String>();
-					myMap.putAll(tempMapImmutable);
-					myMap.remove(pkValue);
+				System.out.println(tempMapImmutable);
+				myMap.putAll(tempMapImmutable);
 
-					myMap.put(pkValue, stringRepresenation);
-					StringBuilder insertQueryAgg = new StringBuilder("INSERT INTO ");
-					insertQueryAgg.append(keyspace).append(".")
-					.append(preaggTable).append(" ( ")
-					.append(aggKey+", ")
-					.append("list_item").append(") VALUES (")
-					.append(data.get(aggKey)+", ").append("?);");*/
+
+				String pk = myList.get(0); myList.remove(0);
+				myMap.put(pk,myList.toString());
+
+				//2.e set agg col values
+
+				sum = theRow1.getInt("sum") - aggColValue_old +aggColValue;
+				count = myMap.keySet().size();
+				average = sum/count;	
 
 			}try {
 
-
+				// 3. execute the insertion
 				StringBuilder insertQueryAgg = new StringBuilder("INSERT INTO ");
 				insertQueryAgg.append((String)json.get("keyspace")).append(".")
 				.append(preaggTable).append(" ( ")
 				.append(aggKey+", ")
-				.append("list_item").append(") VALUES (")
-				.append(aggKeyValue+", ").append("?);");
+				.append("list_item, ").append("sum, count, average").append(") VALUES (")
+				.append(aggKeyValue+", ").append("?, ?, ?, ?);");
 
-				Session session = currentCluster.connect();
+				Session session1 = currentCluster.connect();
 
-				PreparedStatement statement = session.prepare(insertQueryAgg.toString());
-				BoundStatement boundStatement = new BoundStatement(statement);
-				session.execute(boundStatement.bind(myMap));
+				PreparedStatement statement1 = session1.prepare(insertQueryAgg.toString());
+				BoundStatement boundStatement = new BoundStatement(statement1);	
+				session1.execute(boundStatement.bind(myMap,(int)sum,(int)count,average));
 				System.out.println(boundStatement.toString());
 
 			} catch (Exception e) {
 				e.printStackTrace();
 				return false;
 			}
-		}else {
+		}else if(!sameKeyValue) {
 
 		}
 
