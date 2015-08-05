@@ -7,7 +7,7 @@
 			<keyspace>test</keyspace>
 			<baseTable>courses</baseTable>
 			<condition>ects>3</condition>
-			<name>selection_courses_ects</name>
+			<name>selection_courses_ects_cond1</name>
 
 			<columnNumber>3</columnNumber>
 			<primaryKey>

@@ -47,6 +47,7 @@ public class ViewManager {
 		deltaUpdatedRow = row;
 	}
 
+
 	public boolean updateDelta(JSONObject json, int indexBaseTableName, String baseTablePrimaryKey) {
 
 		//retrieve values from json

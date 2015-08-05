@@ -88,6 +88,70 @@ public class ViewManagerController {
 		}
 
 		//===================================================================================
+		 //update selection view
+		// for each delta, loop on all selection views possible
+		//check if selection condition is met
+		// if yes then update selection, if not ignore
+		
+		/*int position1 = deltaTableName.indexOf("delta_"+(String) json.get("table"));
+
+		if(position1!=-1){
+
+			String temp= "mapping.unit(";
+			temp+=Integer.toString(position1);
+			temp+=")";
+
+			int nrConditions = VmXmlHandler.getInstance().getDeltaSelectionMapping().
+					getInt(temp+".nrCond");
+
+			for(int i=0;i<nrConditions;i++){
+
+				String s = temp+".Cond("+Integer.toString(i)+")";
+				String selColName = VmXmlHandler.getInstance().getDeltaSelectionMapping().
+						getString(s+".selectionCol");
+				String selecTable = VmXmlHandler.getInstance().getDeltaSelectionMapping().
+						getString(s+".name");
+				String operation = VmXmlHandler.getInstance().getDeltaSelectionMapping().
+						getString(s+".operation");
+				String value = VmXmlHandler.getInstance().getDeltaSelectionMapping().
+						getString(s+".value");
+				String type = VmXmlHandler.getInstance().getDeltaSelectionMapping().
+						getString(s+".type");
+
+					switch (type) {
+
+					case "text":
+						break;
+
+					case "int":
+						String s1 = Integer.toString(deltaUpdatedRow.getInt(selColName));
+						Integer valueInt = new Integer(s1);
+						int compareValue = valueInt.compareTo(new Integer(value));
+
+						if((operation.equals(">") && (compareValue<0))){
+							continue;
+						}else if((operation.equals("<") && (compareValue>0))){
+							continue;
+						}else if((operation.equals("=") && (compareValue!=0))){
+							continue;
+						}else{
+							updateSelection(keyspace,selecTable,selColName,pk,pkValue,table);
+						}
+
+						break;
+
+					case "varint":
+						break;
+
+					case "float":
+						break;
+					}
+
+			}
+		}
+*/
+		
+		//===================================================================================
 		//2. for the delta table updated, get the depending preaggregation/agg tables
 		//preagg tables hold all column values, hence they have to be updated
 
