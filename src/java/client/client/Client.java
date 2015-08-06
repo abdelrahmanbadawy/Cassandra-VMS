@@ -259,9 +259,81 @@ public class Client {
 	 */
 	public static boolean createViewTable() {
 
-		return  createSelectViewTable() && createDeltaViewTable() && createPreAggregationViewTable() ;
+		return  createSelectViewTable() && createDeltaViewTable() && createPreAggregationViewTable() 
+				&& createReverseJoinViewTable();
 	}
 
+
+	/**
+	 * This method creates the  reverse join view tables
+	 */	
+	public static boolean createReverseJoinViewTable() {
+		// TODO Auto-generated method stub
+		
+		
+		List<String> keyspace = XmlHandler.getInstance()
+				.getRJViewConfig()
+				.getList("dbSchema.tableDefinition.keyspace");
+		List<String> tableName = XmlHandler.getInstance()
+				.getRJViewConfig()
+				.getList("dbSchema.tableDefinition.name");
+		Integer nrTables = XmlHandler.getInstance().getRJViewConfig()
+				.getInt("dbSchema.tableNumber");
+		List<String> primarykeyType = XmlHandler.getInstance()
+				.getRJViewConfig()
+				.getList("dbSchema.tableDefinition.primaryKey.type");
+		List<String> primarykeyName = XmlHandler.getInstance()
+				.getRJViewConfig()
+				.getList("dbSchema.tableDefinition.primaryKey.name");
+		List<String> nrColumns = XmlHandler.getInstance().getRJViewConfig()
+				.getList("dbSchema.tableDefinition.columnNumber");
+		List<String> colName = XmlHandler.getInstance().getRJViewConfig()
+				.getList("dbSchema.tableDefinition.column.name");
+		List<String> colType = XmlHandler.getInstance().getRJViewConfig()
+				.getList("dbSchema.tableDefinition.column.type");
+
+
+		int cursor = 0;
+
+		// preAgg view
+		for (int i = 0; i < nrTables; i++) {
+
+			StringBuilder createQuery = new StringBuilder();
+			createQuery.append("CREATE TABLE IF NOT EXISTS  ")
+			.append(keyspace.get(i)).append(".")
+			.append(tableName.get(i) + "(")
+			.append(primarykeyName.get(i) + " ")
+			.append(primarykeyType.get(i)).append(",");
+
+			for (int j = 0; j < Integer.parseInt(nrColumns.get(i)); j++) {
+				createQuery.append(colName.get(cursor + j) + " ").append(
+						colType.get(cursor + j) + ",");
+			}
+
+			createQuery.append(" PRIMARY KEY (").append(
+					primarykeyName.get(i) + "));");
+
+
+			cursor += Integer.parseInt(nrColumns.get(i));
+
+
+			Session session = null;
+
+			System.out.println(createQuery.toString());
+
+			try {
+				session = currentCluster.connect();
+				session.execute(createQuery.toString());
+			} catch (Exception e) {
+				e.printStackTrace();
+				return false;
+			}
+
+		}
+		
+		
+		return true;
+	}
 
 	/**
 	 * This method creates the select view tables and inserts the data

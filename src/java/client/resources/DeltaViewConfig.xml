@@ -1,7 +1,7 @@
 <?xml version="1.1" encoding="UTF-8"?>
 <setup>
 	<dbSchema>
-		<tableNumber>1</tableNumber>
+		<tableNumber>2</tableNumber>
 		<tableDefinition>
 		    <baseTable>courses</baseTable>
 			
@@ -35,6 +35,41 @@
 			
 		</tableDefinition>
 		
+		
+		<tableDefinition>
+		    <baseTable>student</baseTable>
+			
+		    <columnNumber>4</columnNumber>
+			<keyspace>test</keyspace>
+			<name>delta_student</name>
+			 
+			<primaryKey>
+				<type>varint</type>
+				<name>id</name>
+			</primaryKey>
+			<column>
+				<family>colfam2</family>
+				<type>text</type>
+				<name>name</name>
+			</column>
+			<column>
+				<family>colfam2</family>
+				<type>float</type>
+				<name>gpa</name>
+			</column>
+			<column>
+				<family>colfam2</family>
+				<type>text</type>
+				<name>faculty</name>
+			</column>
+			<column>
+				<family>colfam2</family>
+				<type>int</type>
+				<name>age</name>
+			</column>
+			
+			
+		</tableDefinition>
 		
 		
 	</dbSchema>

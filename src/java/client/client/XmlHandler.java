@@ -9,9 +9,9 @@ public class XmlHandler {
 	private static XMLConfiguration databaseConfig;
 	private static XMLConfiguration selectViewConfig;
 	private static XMLConfiguration clusterConfig;
-	private static XMLConfiguration aggViewConfig;
 	private static XMLConfiguration deltaViewConfig;
 	private static XMLConfiguration preAggViewConfig;
+	private static XMLConfiguration RJViewConfig;
 	
 	private static XmlHandler _instance = null;
 
@@ -31,6 +31,9 @@ public class XmlHandler {
 		preAggViewConfig = new XMLConfiguration();
 		preAggViewConfig.setDelimiterParsingDisabled(true);
 		
+		RJViewConfig = new XMLConfiguration();
+		RJViewConfig.setDelimiterParsingDisabled(true);
+		
 		
 		try {
 			databaseConfig.load("client/resources/DatabaseConfig.xml");
@@ -38,6 +41,7 @@ public class XmlHandler {
 			clusterConfig.load("client/resources/ClusterConfig.xml");
 			deltaViewConfig.load("client/resources/DeltaViewConfig.xml");
 			preAggViewConfig.load("client/resources/Preaggregation.xml"); 
+			RJViewConfig.load("client/resources/ReverseJoinViewConfig.xml"); 
 			
 		} catch (ConfigurationException e) {
 			e.printStackTrace();
@@ -72,7 +76,9 @@ public class XmlHandler {
 		return preAggViewConfig;
 	}
 
-	
+	public XMLConfiguration getRJViewConfig(){
+		return RJViewConfig;
+	}
 
 
 }

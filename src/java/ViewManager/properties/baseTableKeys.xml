@@ -2,7 +2,7 @@
 
 <setup>
 	<tableSchema>
-		<tableNumber>1</tableNumber>
+		<tableNumber>2</tableNumber>
 		
 		<table>
 			<name>courses</name>
@@ -10,5 +10,10 @@
 			<pkType>varint</pkType>
 		</table>
 		
+		<table>
+			<name>student</name>
+			<pkName>id</pkName>
+			<pkType>varint</pkType>
+		</table>
 	</tableSchema>
 </setup>
