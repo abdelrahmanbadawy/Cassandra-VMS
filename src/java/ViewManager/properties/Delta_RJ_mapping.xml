@@ -1,0 +1,20 @@
+<?xml version="1.1" encoding="UTF-8"?>
+
+<setup>
+	<mapping>
+		<nrUnit>1</nrUnit>
+		<unit>
+		    <nrDelta>2</nrDelta>
+			<Join>
+				<name>RJ_courses_student_faculty_faculty</name>
+				<JoinKey>faculty</JoinKey>
+				<JoinKey>faculty</JoinKey>
+				<type>text</type>
+				
+			</Join>
+		</unit>
+		
+
+
+	</mapping>
+</setup>
