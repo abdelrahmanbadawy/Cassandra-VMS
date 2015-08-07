@@ -1,5 +1,6 @@
 package ViewManager;
 
+import java.math.BigInteger;
 import java.util.List;
 
 import org.apache.commons.configuration.ConfigurationException;
@@ -88,69 +89,218 @@ public class ViewManagerController {
 		}
 
 		//===================================================================================
-		 //update selection view
+		//update selection view
 		// for each delta, loop on all selection views possible
-		//check if selection condition is met
+		//check if selection condition is met based on selection key
 		// if yes then update selection, if not ignore
-		
-		/*int position1 = deltaTableName.indexOf("delta_"+(String) json.get("table"));
+		//also compare old values of selection condition, if they have changed then delete row from table
+
+		int position1 = deltaTableName.indexOf("delta_"+(String) json.get("table"));
 
 		if(position1!=-1){
 
-			String temp= "mapping.unit(";
-			temp+=Integer.toString(position1);
-			temp+=")";
+			String temp4= "mapping.unit(";
+			temp4+=Integer.toString(position1);
+			temp4+=")";
 
 			int nrConditions = VmXmlHandler.getInstance().getDeltaSelectionMapping().
-					getInt(temp+".nrCond");
+					getInt(temp4+".nrCond");
 
 			for(int i=0;i<nrConditions;i++){
 
-				String s = temp+".Cond("+Integer.toString(i)+")";
-				String selColName = VmXmlHandler.getInstance().getDeltaSelectionMapping().
-						getString(s+".selectionCol");
+				String s = temp4+".Cond("+Integer.toString(i)+")";
 				String selecTable = VmXmlHandler.getInstance().getDeltaSelectionMapping().
 						getString(s+".name");
-				String operation = VmXmlHandler.getInstance().getDeltaSelectionMapping().
-						getString(s+".operation");
-				String value = VmXmlHandler.getInstance().getDeltaSelectionMapping().
-						getString(s+".value");
-				String type = VmXmlHandler.getInstance().getDeltaSelectionMapping().
-						getString(s+".type");
+
+				String nrAnd = VmXmlHandler.getInstance().getDeltaSelectionMapping().
+						getString(s+".nrAnd");
+
+				boolean eval = true;
+				boolean eval_old = true;
+
+				for(int j=0;j<Integer.parseInt(nrAnd);j++) {
+
+					String s11 = s+".And(";
+					s11+=Integer.toString(j);
+					s11+=")";
+
+					String operation = VmXmlHandler.getInstance().getDeltaSelectionMapping().
+							getString(s11+".operation");
+					String value = VmXmlHandler.getInstance().getDeltaSelectionMapping().
+							getString(s11+".value");
+					String type = VmXmlHandler.getInstance().getDeltaSelectionMapping().
+							getString(s11+".type");
+
+					String selColName = VmXmlHandler.getInstance().getDeltaSelectionMapping().
+							getString(s11+".selectionCol");
+
 
 					switch (type) {
 
 					case "text":
+
+						if(operation.equals("=")){
+							if(deltaUpdatedRow.getString(selColName+"_new").equals(value)){
+								eval &= true;
+							}else{
+								eval &= false;
+							}
+
+							if(deltaUpdatedRow.getString(selColName+"_old")==null){
+								eval_old = false;
+							}else if(deltaUpdatedRow.getString(selColName+"_old").equals(value)){
+								eval_old &= true;
+							}else{
+								eval_old &= false;
+							}
+						}else if(operation.equals("!=")){
+							if(!deltaUpdatedRow.getString(selColName+"_new").equals(value)){
+								eval = true;
+							}else{
+								eval = false;
+							}
+
+							if(deltaUpdatedRow.getString(selColName+"_old")==null){
+								eval_old = false;
+							}else if(!deltaUpdatedRow.getString(selColName+"_old").equals(value)){
+								eval_old &= true;
+							}else{
+								eval_old &= false;
+							}
+						}
+
 						break;
 
+					case "varchar":
+
+						if(operation.equals("=")){
+							if(deltaUpdatedRow.getString(selColName+"_new").equals(value)){
+								eval &= true;
+							}else{
+								eval &= false;
+							}
+
+							if(deltaUpdatedRow.getString(selColName+"_old")==null){
+								eval_old = false;
+							}else if(deltaUpdatedRow.getString(selColName+"_old").equals(value)){
+								eval_old &= true;
+							}else{
+								eval_old &= false;
+							}
+						}else if(operation.equals("!=")){
+							if(!deltaUpdatedRow.getString(selColName+"_new").equals(value)){
+								eval &= true;
+							}else{
+								eval &= false;
+							}
+
+							if(deltaUpdatedRow.getString(selColName+"_old")==null){
+								eval_old = false;
+							}else if(!deltaUpdatedRow.getString(selColName+"_old").equals(value)){
+								eval_old &= true;
+							}else{
+								eval_old &= false;
+							}
+						}
+
+						break;	
+
 					case "int":
-						String s1 = Integer.toString(deltaUpdatedRow.getInt(selColName));
+
+						// for _new col
+						String s1 = Integer.toString(deltaUpdatedRow.getInt(selColName+"_new"));
 						Integer valueInt = new Integer(s1);
 						int compareValue = valueInt.compareTo(new Integer(value));
 
-						if((operation.equals(">") && (compareValue<0))){
-							continue;
-						}else if((operation.equals("<") && (compareValue>0))){
-							continue;
-						}else if((operation.equals("=") && (compareValue!=0))){
-							continue;
+						if((operation.equals(">") && (compareValue>0))){
+							eval &= true;
+						}else if((operation.equals("<") && (compareValue<0))){
+							eval &= true;
+						}else if((operation.equals("=") && (compareValue==0))){
+							eval &= true;
 						}else{
-							updateSelection(keyspace,selecTable,selColName,pk,pkValue,table);
+							eval &= false;
+						}
+
+						// for _old col
+
+
+						int v = deltaUpdatedRow.getInt(selColName+"_old");
+						compareValue = valueInt.compareTo(new Integer(v));
+
+						if((operation.equals(">") && (compareValue>0))){
+							eval_old &= true;
+						}else if((operation.equals("<") && (compareValue<0))){
+							eval_old &= true;
+						}else if((operation.equals("=") && (compareValue==0))){
+							eval_old &= true;
+						}else{
+							eval_old &= false;
 						}
 
 						break;
 
 					case "varint":
+
+						// for _new col
+						s1 = deltaUpdatedRow.getVarint(selColName+"_new").toString();
+						valueInt = new Integer(new BigInteger(s1).intValue());
+						compareValue = valueInt.compareTo(new Integer(value));
+
+						if((operation.equals(">") && (compareValue>0))){
+							eval &= true;
+						}else if((operation.equals("<") && (compareValue<0))){
+							eval &= true;
+						}else if((operation.equals("=") && (compareValue==0))){
+							eval &= true;
+						}else{
+							eval &= false;
+						}
+
+						// for _old col
+						BigInteger bigInt = deltaUpdatedRow.getVarint(selColName+"_old");
+						if (bigInt != null) {
+							valueInt = bigInt.intValue();
+						} else {
+							valueInt = 0;
+						}			
+						compareValue = valueInt.compareTo(new Integer(value));
+
+						if((operation.equals(">") && (compareValue>0))){
+							eval_old &= true;
+						}else if((operation.equals("<") && (compareValue<0))){
+							eval_old &= true;
+						}else if((operation.equals("=") && (compareValue==0))){
+							eval_old &= true;
+						}else{
+							eval_old &= false;
+						}
+
 						break;
 
 					case "float":
 						break;
 					}
+				}
+				
+				// if condition matching now & matched before
+				if(eval && eval_old){
+					vm.updateSelection(deltaUpdatedRow,(String)json.get("keyspace"),selecTable,baseTablePrimaryKey);
 
+					// if matching now & not matching before
+				}else if(eval && !eval_old){
+					vm.updateSelection(deltaUpdatedRow,(String)json.get("keyspace"),selecTable,baseTablePrimaryKey);
+
+					//if not matching now &  matching before
+				}else if(!eval && eval_old){
+					vm.deleteRowSelection(vm.getDeltaUpdatedRow(), (String)json.get("keyspace"), selecTable, baseTablePrimaryKey, json);
+
+					//if not matching now & not before, ignore
+				}
 			}
 		}
-*/
-		
+
+
 		//===================================================================================
 		//2. for the delta table updated, get the depending preaggregation/agg tables
 		//preagg tables hold all column values, hence they have to be updated
@@ -198,24 +348,11 @@ public class ViewManagerController {
 			System.out.println("No Preaggregation table for this delta table "+" delta_"+(String) json.get("table")+" available");
 		}
 
-		
+
 		// ===================================================================================================================
-				// 3. for the delta table updated, get update depending reverse join tables
+		// 3. for the delta table updated, get update depending reverse join tables
 
-				vm.updateReverseJoin(json);
-
-
-
-
-
-
-
-
-
-
-
-
-
+		vm.updateReverseJoin(json);
 
 	}
 
@@ -291,7 +428,136 @@ public class ViewManagerController {
 		}
 
 
+		//===================================================================================
+		//3. for the delta table updated, get the depending selection tables tables
+		//check if condition is true based on selection true
+		// if true, delete row from selection table
 
+		int position1 = deltaTableName.indexOf("delta_"+(String) json.get("table"));
+
+		if(position1!=-1){
+
+			String temp4= "mapping.unit(";
+			temp4+=Integer.toString(position1);
+			temp4+=")";
+
+			int nrConditions = VmXmlHandler.getInstance().getDeltaSelectionMapping().
+					getInt(temp4+".nrCond");
+
+			for(int i=0;i<nrConditions;i++){
+
+				String s = temp4+".Cond("+Integer.toString(i)+")";
+				String selecTable = VmXmlHandler.getInstance().getDeltaSelectionMapping().
+						getString(s+".name");
+
+				String nrAnd = VmXmlHandler.getInstance().getDeltaSelectionMapping().
+						getString(s+".nrAnd");
+
+				boolean eval = false;
+
+				for(int j=0;j<Integer.parseInt(nrAnd);j++) {
+
+					String s11 = s+".And(";
+					s11+=Integer.toString(j);
+					s11+=")";
+
+					String operation = VmXmlHandler.getInstance().getDeltaSelectionMapping().
+							getString(s11+".operation");
+					String value = VmXmlHandler.getInstance().getDeltaSelectionMapping().
+							getString(s11+".value");
+					String type = VmXmlHandler.getInstance().getDeltaSelectionMapping().
+							getString(s11+".type");
+
+					String selColName = VmXmlHandler.getInstance().getDeltaSelectionMapping().
+							getString(s11+".selectionCol");
+
+
+					switch (type) {
+
+					case "text":
+
+						if(operation.equals("=")){
+							if(vm.getDeltaDeletedRow().getString(selColName+"_new").equals(value)){
+								eval = true;
+							}else{
+								eval = false;
+							}
+						}else if(operation.equals("!=")){
+							if(!vm.getDeltaDeletedRow().getString(selColName+"_new").equals(value)){
+								eval = true;
+							}else{
+								eval = false;
+							}
+						}
+
+						break;
+
+					case "varchar":
+
+						if(operation.equals("=")){
+							if(vm.getDeltaDeletedRow().getString(selColName+"_new").equals(value)){
+								eval = true;
+							}else{
+								eval = false;
+							}
+						}else if(operation.equals("!=")){
+							if(!vm.getDeltaDeletedRow().getString(selColName+"_new").equals(value)){
+								eval = true;
+							}else{
+								eval = false;
+							}
+						}
+
+						break;	
+
+					case "int":
+						String s1 = Integer.toString(vm.getDeltaDeletedRow().getInt(selColName+"_new"));
+						Integer valueInt = new Integer(s1);
+						int compareValue = valueInt.compareTo(new Integer(value));
+
+						if((operation.equals(">") && (compareValue<0))){
+							eval = false;
+						}else if((operation.equals("<") && (compareValue>0))){
+							eval = false;
+						}else if((operation.equals("=") && (compareValue!=0))){
+							eval = false;
+						}else{
+							eval = true;
+						}
+
+						break;
+
+					case "varint":
+
+						s1 = vm.getDeltaDeletedRow().getVarint(selColName+"_new").toString();
+						valueInt = new Integer(new BigInteger(s1).intValue());
+						compareValue = valueInt.compareTo(new Integer(value));
+
+						if((operation.equals(">") && (compareValue<0))){
+							eval = false;
+						}else if((operation.equals("<") && (compareValue>0))){
+							eval = false;
+						}else if((operation.equals("=") && (compareValue!=0))){
+							eval = false;
+						}else{
+							eval = true;
+						}
+
+						break;
+
+					case "float":
+						break;
+					}
+
+				}
+
+				if(eval)
+					vm.deleteRowSelection(vm.getDeltaDeletedRow(),(String)json.get("keyspace"),selecTable,baseTablePrimaryKey,json);
+			}
+
+		}
+
+		//==========================================================================================================================
 
 	}
 
