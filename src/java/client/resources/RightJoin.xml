@@ -1,0 +1,51 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<setup>
+	<dbSchema>
+		<tableNumber>1</tableNumber>
+
+		<tableDefinition>
+			<baseTable>RJ_courses_student_faculty_faculty</baseTable>
+
+			<columnNumber>7</columnNumber>
+			<keyspace>test</keyspace>
+			<name>RJ_courses_student_faculty_faculty</name>
+
+			<primaryKey>
+				<type>text</type>
+				<name>faculty</name>
+			</primaryKey>
+
+			<column>
+				<type>varint</type>
+				<name>courses.id</name>
+			</column>
+			<column>
+				<type>text</type>
+				<name>courses.name</name>
+			</column>
+			<column>
+				<type>varint</type>
+				<name>courses.ects</name>
+			</column>
+			<column>
+				<type>int</type>
+				<name>student.id</name>
+			</column>
+			<column>
+				<type>int</type>
+				<name>student.age</name>
+			</column>
+			<column>
+				<type>float</type>
+				<name>student.gpa</name>
+			</column>
+			<column>
+				<type>text</type>
+				<name>student.name</name>
+			</column>
+		</tableDefinition>
+
+	</dbSchema>
+
+
+</setup>
