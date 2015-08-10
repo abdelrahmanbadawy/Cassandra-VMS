@@ -260,7 +260,7 @@ public class Client {
 	public static boolean createViewTable() {
 
 		return  createSelectViewTable() && createDeltaViewTable() && createPreAggregationViewTable() 
-				&& createReverseJoinViewTable();
+				&& createReverseJoinViewTable() && createLeftJoinViewTable() && createRightJoinViewTable();
 	}
 
 
@@ -401,6 +401,128 @@ public class Client {
 		return true;
 	}
 
+	
+	public static boolean createLeftJoinViewTable() {
+
+		List<String> keyspace = XmlHandler.getInstance().getLeftJoinViewConfig()
+				.getList("dbSchema.tableDefinition.keyspace");
+		List<String> tableName = XmlHandler.getInstance().getLeftJoinViewConfig()
+				.getList("dbSchema.tableDefinition.name");
+		Integer nrTables = XmlHandler.getInstance().getLeftJoinViewConfig()
+				.getInt("dbSchema.tableNumber");
+		List<String> primarykeyType = XmlHandler.getInstance()
+				.getLeftJoinViewConfig()
+				.getList("dbSchema.tableDefinition.primaryKey.type");
+		List<String> primarykeyName = XmlHandler.getInstance()
+				.getLeftJoinViewConfig()
+				.getList("dbSchema.tableDefinition.primaryKey.name");
+		List<String> nrColumns = XmlHandler.getInstance().getLeftJoinViewConfig()
+				.getList("dbSchema.tableDefinition.columnNumber");
+		List<String> colName = XmlHandler.getInstance().getLeftJoinViewConfig()
+				.getList("dbSchema.tableDefinition.column.name");
+		List<String> colType = XmlHandler.getInstance().getLeftJoinViewConfig()
+				.getList("dbSchema.tableDefinition.column.type");
+
+		int cursor = 0;
+
+		for (int i = 0; i < nrTables; i++) {
+			StringBuilder createQuery = new StringBuilder();
+			createQuery.append("CREATE TABLE IF NOT EXISTS  ")
+			.append(keyspace.get(i)).append(".")
+			.append(tableName.get(i) + "(")
+			.append(primarykeyName.get(i) + " ")
+			.append(primarykeyType.get(i) + ",");
+
+			for (int j = 0; j < Integer.parseInt(nrColumns.get(i)); j++) {
+				createQuery.append(colName.get(cursor + j) + " ").append(
+						colType.get(cursor + j) + ",");
+			}
+
+			createQuery.append(" PRIMARY KEY (").append(
+					primarykeyName.get(i));
+
+			createQuery.append("));");
+
+			cursor += Integer.parseInt(nrColumns.get(i));
+			
+			Session session = null;
+
+			System.out.println(createQuery.toString());
+
+			try {
+				session = currentCluster.connect();
+				session.execute(createQuery.toString());
+			} catch (Exception e) {
+				e.printStackTrace();
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	
+	public static boolean createRightJoinViewTable() {
+
+		List<String> keyspace = XmlHandler.getInstance().getRightJoinViewConfig()
+				.getList("dbSchema.tableDefinition.keyspace");
+		List<String> tableName = XmlHandler.getInstance().getRightJoinViewConfig()
+				.getList("dbSchema.tableDefinition.name");
+		Integer nrTables = XmlHandler.getInstance().getRightJoinViewConfig()
+				.getInt("dbSchema.tableNumber");
+		List<String> primarykeyType = XmlHandler.getInstance()
+				.getRightJoinViewConfig()
+				.getList("dbSchema.tableDefinition.primaryKey.type");
+		List<String> primarykeyName = XmlHandler.getInstance()
+				.getRightJoinViewConfig()
+				.getList("dbSchema.tableDefinition.primaryKey.name");
+		List<String> nrColumns = XmlHandler.getInstance().getRightJoinViewConfig()
+				.getList("dbSchema.tableDefinition.columnNumber");
+		List<String> colName = XmlHandler.getInstance().getRightJoinViewConfig()
+				.getList("dbSchema.tableDefinition.column.name");
+		List<String> colType = XmlHandler.getInstance().getRightJoinViewConfig()
+				.getList("dbSchema.tableDefinition.column.type");
+
+		int cursor = 0;
+
+		for (int i = 0; i < nrTables; i++) {
+			StringBuilder createQuery = new StringBuilder();
+			createQuery.append("CREATE TABLE IF NOT EXISTS  ")
+			.append(keyspace.get(i)).append(".")
+			.append(tableName.get(i) + "(")
+			.append(primarykeyName.get(i) + " ")
+			.append(primarykeyType.get(i) + ",");
+
+			for (int j = 0; j < Integer.parseInt(nrColumns.get(i)); j++) {
+				createQuery.append(colName.get(cursor + j) + " ").append(
+						colType.get(cursor + j) + ",");
+			}
+
+			createQuery.append(" PRIMARY KEY (").append(
+					primarykeyName.get(i));
+
+			createQuery.append("));");
+
+			cursor += Integer.parseInt(nrColumns.get(i));
+			
+			Session session = null;
+
+			System.out.println(createQuery.toString());
+
+			try {
+				session = currentCluster.connect();
+				session.execute(createQuery.toString());
+			} catch (Exception e) {
+				e.printStackTrace();
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	
+	
 
 	/**
 	 * This method creates and fills Delta view 

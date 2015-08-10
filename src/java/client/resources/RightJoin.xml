@@ -8,7 +8,7 @@
 
 			<columnNumber>7</columnNumber>
 			<keyspace>test</keyspace>
-			<name>RJ_courses_student_faculty_faculty</name>
+			<name>Right_Join_courses_student_faculty_faculty</name>
 
 			<primaryKey>
 				<type>text</type>
@@ -17,31 +17,31 @@
 
 			<column>
 				<type>varint</type>
-				<name>courses.id</name>
+				<name>courses_id</name>
 			</column>
 			<column>
 				<type>text</type>
-				<name>courses.name</name>
+				<name>courses_name</name>
 			</column>
 			<column>
 				<type>varint</type>
-				<name>courses.ects</name>
+				<name>courses_ects</name>
 			</column>
 			<column>
 				<type>int</type>
-				<name>student.id</name>
+				<name>student_id</name>
 			</column>
 			<column>
 				<type>int</type>
-				<name>student.age</name>
+				<name>student_age</name>
 			</column>
 			<column>
 				<type>float</type>
-				<name>student.gpa</name>
+				<name>student_gpa</name>
 			</column>
 			<column>
 				<type>text</type>
-				<name>student.name</name>
+				<name>student_name</name>
 			</column>
 		</tableDefinition>
 

@@ -12,6 +12,8 @@ public class XmlHandler {
 	private static XMLConfiguration deltaViewConfig;
 	private static XMLConfiguration preAggViewConfig;
 	private static XMLConfiguration RJViewConfig;
+	private static XMLConfiguration LeftJViewConfig;
+	private static XMLConfiguration RightJViewConfig;
 	
 	private static XmlHandler _instance = null;
 
@@ -34,6 +36,12 @@ public class XmlHandler {
 		RJViewConfig = new XMLConfiguration();
 		RJViewConfig.setDelimiterParsingDisabled(true);
 		
+		LeftJViewConfig = new XMLConfiguration();
+		LeftJViewConfig.setDelimiterParsingDisabled(true);
+		
+		RightJViewConfig = new XMLConfiguration();
+		RightJViewConfig.setDelimiterParsingDisabled(true);
+		
 		
 		try {
 			databaseConfig.load("client/resources/DatabaseConfig.xml");
@@ -42,6 +50,8 @@ public class XmlHandler {
 			deltaViewConfig.load("client/resources/DeltaViewConfig.xml");
 			preAggViewConfig.load("client/resources/Preaggregation.xml"); 
 			RJViewConfig.load("client/resources/ReverseJoinViewConfig.xml"); 
+			LeftJViewConfig.load("client/resources/LeftJoin.xml"); 
+			RightJViewConfig.load("client/resources/RightJoin.xml"); 
 			
 		} catch (ConfigurationException e) {
 			e.printStackTrace();
@@ -78,6 +88,14 @@ public class XmlHandler {
 
 	public XMLConfiguration getRJViewConfig(){
 		return RJViewConfig;
+	}
+	
+	public XMLConfiguration getLeftJoinViewConfig(){
+		return LeftJViewConfig;
+	}
+
+	public XMLConfiguration getRightJoinViewConfig(){
+		return RightJViewConfig;
 	}
 
 
