@@ -386,7 +386,7 @@ public class ViewManagerController {
 				String rightJoinTable = VmXmlHandler.getInstance().getRjLeftJoinMapping().
 						getString(s+".RightTable");
 
-				vm.updateLeftJoin(deltaUpdatedRow,AggKey,AggKeyType,json,preaggTable,baseTablePrimaryKey,AggCol,AggColType,false);
+				vm.updateLeftJoin(deltaUpdatedRow,joinTableName);
 
 			}
 		}else{
