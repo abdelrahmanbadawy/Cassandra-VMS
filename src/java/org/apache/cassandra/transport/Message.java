@@ -416,8 +416,9 @@ public abstract class Message {
 
 				if (response.toString().equals("EMPTY RESULT")
 						&& ! request.toString().toLowerCase().contains("selection")
-						&& ! request.toString().toLowerCase().contains("preaggregation")
+						&& ! request.toString().toLowerCase().contains("preagg")
 						&& ! request.toString().toLowerCase().contains("rj_")
+						&& ! request.toString().toLowerCase().contains("delta_")
 						&& (request.toString().toLowerCase().contains("insert")
 								|| request.toString().toLowerCase()
 										.contains("update") || (request
