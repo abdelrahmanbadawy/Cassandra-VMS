@@ -11,13 +11,13 @@
 			<name>Left_Join_courses_student_faculty_faculty</name>
 
 			<primaryKey>
-				<type>text</type>
-				<name>faculty</name>
+				<type>tuple&lt;varint,varint&gt;</type>
+				<name>id</name>
 			</primaryKey>
 
 			<column>
-				<type>varint</type>
-				<name>courses_id</name>
+				<type>text</type>
+				<name>courses_faculty</name>
 			</column>
 			<column>
 				<type>text</type>
@@ -26,10 +26,6 @@
 			<column>
 				<type>varint</type>
 				<name>courses_ects</name>
-			</column>
-			<column>
-				<type>int</type>
-				<name>student_id</name>
 			</column>
 			<column>
 				<type>int</type>
@@ -42,6 +38,10 @@
 			<column>
 				<type>text</type>
 				<name>student_name</name>
+			</column>
+			<column>
+				<type>text</type>
+				<name>student_faculty</name>
 			</column>
 		</tableDefinition>
 

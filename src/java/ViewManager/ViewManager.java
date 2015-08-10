@@ -2279,4 +2279,9 @@ public class ViewManager {
 
 	}
 
+	public boolean updateLeftJoin(Row deltaUpdatedRow, String joinTableName) {
+		
+		return true;
+	}
+
 }

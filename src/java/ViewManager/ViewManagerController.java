@@ -282,7 +282,7 @@ public class ViewManagerController {
 						break;
 					}
 				}
-				
+
 				// if condition matching now & matched before
 				if(eval && eval_old){
 					vm.updateSelection(deltaUpdatedRow,(String)json.get("keyspace"),selecTable,baseTablePrimaryKey);
@@ -353,6 +353,45 @@ public class ViewManagerController {
 		// 3. for the delta table updated, get update depending reverse join tables
 
 		vm.updateReverseJoin(json);
+
+		// ===================================================================================================================
+		// 4. update Left Join tables
+
+		position = deltaTableName.indexOf("delta_"+(String) json.get("table"));
+
+		if(position!=-1){
+
+			String temp= "mapping.unit(";
+			temp+=Integer.toString(position);
+			temp+=")";
+
+			int nrJoin = VmXmlHandler.getInstance().getRjLeftJoinMapping().
+					getInt(temp+".nrJoin");
+
+			for(int i=0;i<nrJoin;i++){
+
+				String s = temp+".join("+Integer.toString(i)+")";
+				String joinTableName = VmXmlHandler.getInstance().getRjLeftJoinMapping().
+						getString(s+".name");
+				String LJKey = VmXmlHandler.getInstance().getRjLeftJoinMapping().
+						getString(s+".LeftJoinKey");
+				String LJKeyType = VmXmlHandler.getInstance().getRjLeftJoinMapping().
+						getString(s+".LeftJoinKeyType");
+				String RJKey = VmXmlHandler.getInstance().getRjLeftJoinMapping().
+						getString(s+".RightJoinKey");
+				String RJKeyType = VmXmlHandler.getInstance().getRjLeftJoinMapping().
+						getString(s+".RightJoinKeyType");
+				String leftJoinTable = VmXmlHandler.getInstance().getRjLeftJoinMapping().
+						getString(s+".LeftTable");
+				String rightJoinTable = VmXmlHandler.getInstance().getRjLeftJoinMapping().
+						getString(s+".RightTable");
+
+				vm.updateLeftJoin(deltaUpdatedRow,AggKey,AggKeyType,json,preaggTable,baseTablePrimaryKey,AggCol,AggColType,false);
+
+			}
+		}else{
+			System.out.println("No Preaggregation table for this delta table "+" delta_"+(String) json.get("table")+" available");
+		}
 
 	}
 
