@@ -8,13 +8,24 @@
 
 			<columnNumber>7</columnNumber>
 			<keyspace>test</keyspace>
-			<name>Left_Join_courses_student_faculty_faculty</name>
-
+			<name>left_join_courses_student_faculty_faculty</name>
+			
+			<nrLeftCol>3</nrLeftCol>
+			<nrRightCol>4</nrRightCol>
+			
 			<primaryKey>
 				<type>tuple&lt;varint,varint&gt;</type>
 				<name>id</name>
+				<left>id</left>
+				<leftType>varint</leftType>
+				<right>id</right>
+				<righType>varint</righType>
 			</primaryKey>
 
+			<column>
+				<type>varint</type>
+				<name>courses_ects</name>
+			</column>
 			<column>
 				<type>text</type>
 				<name>courses_faculty</name>
@@ -23,13 +34,14 @@
 				<type>text</type>
 				<name>courses_name</name>
 			</column>
-			<column>
-				<type>varint</type>
-				<name>courses_ects</name>
-			</column>
+			
 			<column>
 				<type>int</type>
 				<name>student_age</name>
+			</column>
+			<column>
+				<type>text</type>
+				<name>student_faculty</name>
 			</column>
 			<column>
 				<type>float</type>
@@ -39,10 +51,7 @@
 				<type>text</type>
 				<name>student_name</name>
 			</column>
-			<column>
-				<type>text</type>
-				<name>student_faculty</name>
-			</column>
+			
 		</tableDefinition>
 
 	</dbSchema>

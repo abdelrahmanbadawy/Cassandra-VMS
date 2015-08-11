@@ -5,7 +5,8 @@
 		<nrUnit>1</nrUnit>
 		
 		<unit>
-			<basetable>RJ_courses_student_faculty_faculty</basetable>
+			<deltaTable>delta_courses</deltaTable>
+			<reverseJoin>RJ_courses_student_faculty_faculty</reverseJoin>
 			<nrJoin>1</nrJoin>
 			<join>
 				<name>left_join_courses_student_faculty_faculty</name>

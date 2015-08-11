@@ -365,6 +365,9 @@ public class ViewManagerController {
 			temp+=Integer.toString(position);
 			temp+=")";
 
+			String rjTable = VmXmlHandler.getInstance().getRjLeftJoinMapping().
+					getString(temp+".reverseJoin");
+			
 			int nrJoin = VmXmlHandler.getInstance().getRjLeftJoinMapping().
 					getInt(temp+".nrJoin");
 
@@ -386,11 +389,11 @@ public class ViewManagerController {
 				String rightJoinTable = VmXmlHandler.getInstance().getRjLeftJoinMapping().
 						getString(s+".RightTable");
 
-				vm.updateLeftJoin(deltaUpdatedRow,joinTableName);
+				vm.updateLeftJoin(deltaUpdatedRow,joinTableName,rjTable,LJKey,LJKeyType,RJKey,json,baseTablePrimaryKey);
 
 			}
 		}else{
-			System.out.println("No Preaggregation table for this delta table "+" delta_"+(String) json.get("table")+" available");
+			System.out.println("No Left join table for this reverse t join table "+" delta_"+(String) json.get("table")+" available");
 		}
 
 	}
