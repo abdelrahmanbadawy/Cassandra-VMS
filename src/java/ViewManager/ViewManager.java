@@ -271,9 +271,6 @@ public class ViewManager {
 			return false;
 		}
 
-		// decideSelection(keyspace,"delta_"+table,pkName.get(indexBaseTableName),data.get(pkName.get(indexBaseTableName)).toString(),json,theRow);
-		// updatePreaggregation(firstInsertion,keyspace,table,pkName.get(indexBaseTableName),data.get(pkName.get(indexBaseTableName)).toString(),json);
-
 		firstInsertion = false;
 
 		return true;
@@ -342,86 +339,7 @@ public class ViewManager {
 
 	}
 
-	/*
-	 * private void decideSelection(String keyspace, String table, String pk,
-	 * String pkValue, JSONObject json, Row oldDeltaColumns) {
-	 * 
-	 * List<String> deltaTable =
-	 * VmXmlHandler.getInstance().getDeltaSelectionMapping().
-	 * getList("mapping.unit.deltaTable");
-	 * 
-	 * JSONObject data = (JSONObject) json.get("data");
-	 * 
-	 * int position = deltaTable.indexOf(table);
-	 * 
-	 * if(position!=-1){
-	 * 
-	 * String temp= "mapping.unit("; temp+=Integer.toString(position);
-	 * temp+=")";
-	 * 
-	 * int nrConditions = VmXmlHandler.getInstance().getDeltaSelectionMapping().
-	 * getInt(temp+".nrCond");
-	 * 
-	 * for(int i=0;i<nrConditions;i++){
-	 * 
-	 * String s = temp+".Cond("+Integer.toString(i)+")";
-	 * 
-	 * String selColName =
-	 * VmXmlHandler.getInstance().getDeltaSelectionMapping().
-	 * getString(s+".selectionCol");
-	 * 
-	 * String selecTable =
-	 * VmXmlHandler.getInstance().getDeltaSelectionMapping().
-	 * getString(s+".name");
-	 * 
-	 * String operation = VmXmlHandler.getInstance().getDeltaSelectionMapping().
-	 * getString(s+".operation");
-	 * 
-	 * String value = VmXmlHandler.getInstance().getDeltaSelectionMapping().
-	 * getString(s+".value");
-	 * 
-	 * String type = VmXmlHandler.getInstance().getDeltaSelectionMapping().
-	 * getString(s+".type");
-	 * 
-	 * 
-	 * if(data.containsKey(selColName)){
-	 * 
-	 * switch (type) {
-	 * 
-	 * case "text":
-	 * 
-	 * break;
-	 * 
-	 * case "int":
-	 * 
-	 * String s1 = data.get(selColName).toString(); Integer valueInt = new
-	 * Integer(s1); int compareValue = valueInt.compareTo(new Integer(value));
-	 * 
-	 * if((operation.equals(">") && (compareValue<0))){ return; }else
-	 * if((operation.equals("<") && (compareValue>0))){ return; }else
-	 * if((operation.equals("=") && (compareValue!=0))){ return; }
-	 * 
-	 * break;
-	 * 
-	 * case "varint":
-	 * 
-	 * break;
-	 * 
-	 * case "float":
-	 * 
-	 * break; }
-	 * 
-	 * 
-	 * 
-	 * }else{ return; }
-	 * 
-	 * updateSelection(keyspace,selecTable,selColName,pk,pkValue,table);
-	 * 
-	 * } }
-	 * 
-	 * }
-	 */
-
+	
 	private void setDeltaDeletedRow(Row one) {
 		deltaDeletedRow = one;
 	}
