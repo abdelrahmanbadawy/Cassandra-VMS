@@ -25,6 +25,7 @@ public class ViewManagerController {
 	List<String> baseTableName;
 	List<String> pkName;
 	List<String> deltaTableName;
+	List<String> reverseTableName;
 
 
 	public ViewManagerController(){
@@ -54,6 +55,8 @@ public class ViewManagerController {
 		pkName = baseTableKeysConfig.getList("tableSchema.table.pkName");
 		deltaTableName  = VmXmlHandler.getInstance().getDeltaPreaggMapping().
 				getList("mapping.unit.deltaTable");
+		reverseTableName = VmXmlHandler.getInstance().getRjLeftJoinMapping().
+				getList("mapping.unit.reverseJoin");
 	}
 
 
@@ -357,7 +360,9 @@ public class ViewManagerController {
 		// ===================================================================================================================
 		// 4. update Left Join tables
 
-		position = deltaTableName.indexOf("delta_"+(String) json.get("table"));
+		String updatedReverseJoin = vm.getReverseJoinName();
+		
+		position = reverseTableName.indexOf(updatedReverseJoin);
 
 		if(position!=-1){
 
@@ -365,8 +370,6 @@ public class ViewManagerController {
 			temp+=Integer.toString(position);
 			temp+=")";
 
-			String rjTable = VmXmlHandler.getInstance().getRjLeftJoinMapping().
-					getString(temp+".reverseJoin");
 			
 			int nrJoin = VmXmlHandler.getInstance().getRjLeftJoinMapping().
 					getInt(temp+".nrJoin");
@@ -388,8 +391,19 @@ public class ViewManagerController {
 						getString(s+".LeftTable");
 				String rightJoinTable = VmXmlHandler.getInstance().getRjLeftJoinMapping().
 						getString(s+".RightTable");
+				
+				String tableName = (String)json.get("table");
+				
+				Boolean updateLeft = false;
+				Boolean updateRight = false;
+				
+				if(tableName.equals(leftJoinTable)){
+					updateLeft = true;
+				}else{
+					updateRight = true;
+				}
 
-				vm.updateLeftJoin(deltaUpdatedRow,joinTableName,rjTable,LJKey,LJKeyType,RJKey,json,baseTablePrimaryKey);
+				vm.updateLeftJoin(deltaUpdatedRow,joinTableName,updatedReverseJoin,LJKey,LJKeyType,RJKey,json,updateLeft,updateRight,RJKey,RJKeyType);
 
 			}
 		}else{

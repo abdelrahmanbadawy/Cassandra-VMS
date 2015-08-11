@@ -5,7 +5,6 @@
 		<nrUnit>1</nrUnit>
 		
 		<unit>
-			<deltaTable>delta_courses</deltaTable>
 			<reverseJoin>RJ_courses_student_faculty_faculty</reverseJoin>
 			<nrJoin>1</nrJoin>
 			<join>
@@ -19,6 +18,7 @@
 				<LeftTable>courses</LeftTable>
 				<RightTable>student</RightTable>
 			</join>
+			
 		</unit>
 		
 	</mapping>

@@ -19,7 +19,7 @@
 				<left>id</left>
 				<leftType>varint</leftType>
 				<right>id</right>
-				<righType>varint</righType>
+				<rightType>varint</rightType>
 			</primaryKey>
 
 			<column>

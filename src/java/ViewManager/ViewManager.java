@@ -40,9 +40,10 @@ public class ViewManager {
 	private Row deltaDeletedRow;
 
 	private Row reverseJoinUpdatesRow;
+	private String reverseJoinTableName;
 
-	
-	
+
+
 	List<String> rj_joinTables = VmXmlHandler.getInstance()
 			.getDeltaReverseJoinMapping().getList("mapping.unit.Join.name");
 
@@ -72,6 +73,14 @@ public class ViewManager {
 
 	public Row getrjUpdatedRow() {
 		return reverseJoinUpdatesRow;
+	}
+	
+	private void setReverseJoinName(String s) {
+		reverseJoinTableName = s;
+	}
+
+	public String getReverseJoinName() {
+		return reverseJoinTableName;
 	}
 
 	private void setrjUpdatedRow(Row row) {
@@ -214,6 +223,14 @@ public class ViewManager {
 							.equals(baseTablePrimaryKey)) {
 						insertQueryAgg
 						.append(", '" + theRow.getString(i) + "'");
+					}
+					break;
+					
+				case "float":
+					if (!theRow.getColumnDefinitions().getName(i)
+							.equals(baseTablePrimaryKey)) {
+						insertQueryAgg
+						.append(", "+theRow.getFloat(i));
 					}
 					break;
 
@@ -2042,6 +2059,8 @@ public class ViewManager {
 
 			String joinTable = rj_joinTables.get(j);
 
+			setReverseJoinName(joinTable);
+			
 			// include only indices from 1 to nrOfTables
 			// get basetables from name of rj table
 			List<String> baseTables = Arrays.asList(
@@ -2332,54 +2351,115 @@ public class ViewManager {
 
 	}
 
-	public boolean updateLeftJoin(Row deltaUpdatedRow, String joinTableName, String rjTable, String lJKey, String lJKeyType, String rJKey, JSONObject json, String baseTablePrimaryKey) {
+	public boolean updateLeftJoin(Row deltaUpdatedRow, String joinTableName, String rjTable, String lJKey, String lJKeyType, String rJKey, JSONObject json, Boolean updateLeft, Boolean updateRight, String rJKey2, String rJKeyType) {
 
 		//1. check if it is a first insertion
 		// if yes then insert new rows in table by calling the fct insertRowLeftJoin()
 
-		boolean newInsertion = false;
+		boolean leftNewInsUpdate = false;
+		boolean rightNewInsUpdate = false;
 
-		switch(lJKeyType){
+		if(updateLeft){
 
-		case "int":
-			if(deltaUpdatedRow.getInt(lJKey+"_old")==0){
-				newInsertion = true;
+			switch(lJKeyType){
+
+			case "int":
+				if(deltaUpdatedRow.getInt(lJKey+"_old")==0 || deltaUpdatedRow.getInt(lJKey+"_old")==deltaUpdatedRow.getInt(lJKey+"_new")){
+					leftNewInsUpdate = true;
+				}
+				break;
+
+			case "float":
+				if(deltaUpdatedRow.getFloat(lJKey+"_old")==0 || deltaUpdatedRow.getFloat(lJKey+"_old")==deltaUpdatedRow.getFloat(lJKey+"_new")){
+					leftNewInsUpdate = true;
+				}
+				break;
+
+			case "varint":
+				BigInteger bi = deltaUpdatedRow.getVarint(lJKey+"_old");
+				if(bi==null){
+					leftNewInsUpdate = true;
+				}else if(deltaUpdatedRow.getVarint(lJKey+"_old").equals(deltaUpdatedRow.getVarint(lJKey+"_new"))){
+					leftNewInsUpdate = true;
+				}
+				break;
+
+			case "varchar":
+				if(deltaUpdatedRow.getString(lJKey+"_old")!=null && deltaUpdatedRow.getString(lJKey+"_old").equals(deltaUpdatedRow.getString(lJKey+"_new"))){
+					leftNewInsUpdate = true;
+				}else{
+					leftNewInsUpdate = true;
+				}
+				break;
+
+			case "text":
+				if(deltaUpdatedRow.getString(lJKey+"_old")!=null && deltaUpdatedRow.getString(lJKey+"_old").equals(deltaUpdatedRow.getString(lJKey+"_new"))){
+					leftNewInsUpdate = true;
+				}else{
+					leftNewInsUpdate = true;
+				}
+				break;
 			}
-			break;
 
-		case "float":
-			if(deltaUpdatedRow.getFloat(lJKey+"_old")==0){
-				newInsertion = true;
+			if(leftNewInsUpdate){
+				leftCrossRight(json,lJKey,lJKeyType,joinTableName);
+				return true;
 			}
-			break;
 
-		case "varint":
-			BigInteger bi = deltaUpdatedRow.getVarint(lJKey+"_old");
-			if(bi==null){
-				newInsertion = true;
-			}
-			break;
+		}
+		
+		
+		if(updateRight){
 
-		case "varchar":
-			if(deltaUpdatedRow.getString(lJKey+"_old")!=null){
-			}else{
-				newInsertion = true;
-			}
-			break;
+			switch(rJKeyType){
 
-		case "text":
-			if(deltaUpdatedRow.getString(lJKey+"_old")!=null){
-			}else{
-				newInsertion = true;
+			case "int":
+				if(deltaUpdatedRow.getInt(rJKey+"_old")==0 || deltaUpdatedRow.getInt(rJKey+"_old")==deltaUpdatedRow.getInt(rJKey+"_new")){
+					rightNewInsUpdate = true;
+				}
+				break;
+
+			case "float":
+				if(deltaUpdatedRow.getFloat(rJKey+"_old")==0 || deltaUpdatedRow.getFloat(rJKey+"_old")==deltaUpdatedRow.getFloat(rJKey+"_new")){
+					rightNewInsUpdate = true;
+				}
+				break;
+
+			case "varint":
+				BigInteger bi = deltaUpdatedRow.getVarint(rJKey+"_old");
+				if(bi==null){
+					rightNewInsUpdate = true;
+				}else if(deltaUpdatedRow.getVarint(rJKey+"_old").equals(deltaUpdatedRow.getVarint(rJKey+"_new"))){
+					rightNewInsUpdate = true;
+				}
+				break;
+
+			case "varchar":
+				if(deltaUpdatedRow.getString(rJKey+"_old")!=null && deltaUpdatedRow.getString(rJKey+"_old").equals(deltaUpdatedRow.getString(rJKey+"_new"))){
+					rightNewInsUpdate = true;
+				}else{
+					rightNewInsUpdate = true;
+				}
+				break;
+
+			case "text":
+				if(deltaUpdatedRow.getString(rJKey+"_old")!=null && deltaUpdatedRow.getString(rJKey+"_old").equals(deltaUpdatedRow.getString(rJKey+"_new"))){
+					rightNewInsUpdate = true;
+				}else{
+					rightNewInsUpdate = true;
+				}
+				break;
 			}
-			break;
+
+			
+			if(rightNewInsUpdate){
+				rightCrossLeft(json,lJKey,lJKeyType,joinTableName);
+				return true;
+			}
+
 		}
 
-		if(newInsertion){
-			insertRowLeftJoin(json,lJKey,lJKeyType,baseTablePrimaryKey,joinTableName);
-			return true;
-		}
-
+		
 		// if it's not an insertion, then it's an update
 		// 2. check if the join keys have changed
 		// 2.a if yes then find out if left or right key has changed
@@ -2447,7 +2527,153 @@ public class ViewManager {
 		return true;
 	}
 
-	private boolean insertRowLeftJoin(JSONObject json, String lJKey, String lJKeyType, String baseTablePrimaryKey, String joinTableName) {
+	private boolean rightCrossLeft(JSONObject json, String lJKey,
+			String lJKeyType, String joinTableName) {
+		
+		//1. get row updated by reverse join
+		Row theRow = getrjUpdatedRow();
+
+		//1.a get columns item_1, item_2
+		Map<String, String> tempMapImmutable1 = theRow.getMap(
+				"list_item1", String.class, String.class);
+		Map<String, String> tempMapImmutable2 = theRow.getMap(
+				"list_item2", String.class, String.class);
+
+		//2. retrieve list_item1, list_item2
+		HashMap<String, String> myMap1 = new HashMap<String, String>();
+		myMap1.putAll(tempMapImmutable1);
+
+		HashMap<String, String> myMap2 = new HashMap<String, String>();
+		myMap2.putAll(tempMapImmutable2);
+
+		if(myMap1.size()==0) {
+			return true;
+		}
+			
+		//3. Read Left Join xml, get leftPkName, leftPkType, get pk of join table & type
+		// rightPkName, rightPkType
+
+		int position =  XmlHandler.getInstance()
+				.getLeftJoinViewConfig()
+				.getList("dbSchema.tableDefinition.name").indexOf(joinTableName);
+
+		String colNames = "";
+		String joinTablePk = "";
+
+		if(position!=-1){
+
+
+			String temp= "dbSchema.tableDefinition(";
+			temp+=Integer.toString(position);
+			temp+=")";
+
+			joinTablePk = XmlHandler.getInstance().getLeftJoinViewConfig()
+					.getString(temp+".primaryKey.name");	
+
+			List<String> colName = XmlHandler.getInstance().getLeftJoinViewConfig()
+					.getList(temp+".column.name");		
+			colNames = StringUtils.join(colName, ", ");
+
+			String rightPkName =temp+".primaryKey.right";
+			rightPkName = XmlHandler.getInstance()
+					.getLeftJoinViewConfig().getString(rightPkName);
+
+			String rightPkType= temp+".primaryKey.rightType";
+			rightPkType = XmlHandler.getInstance()
+					.getLeftJoinViewConfig().getString(rightPkType);
+
+			String rightPkValue = "";
+
+			String leftPkType= temp+".primaryKey.leftType";
+			leftPkType = XmlHandler.getInstance()
+					.getLeftJoinViewConfig().getString(leftPkType);
+
+
+			// 3.a. get from delta row, the left pk value
+			switch(rightPkType){
+
+			case "int":
+				rightPkValue = Integer.toString(deltaUpdatedRow.getInt(rightPkName));
+				break;
+
+			case "float":
+				rightPkValue = Float.toString(deltaUpdatedRow.getFloat(rightPkName));
+				break;
+
+			case "varint":
+				rightPkValue = deltaUpdatedRow.getVarint(rightPkName).toString();
+				break;
+
+			case "varchar":
+				rightPkValue = deltaUpdatedRow.getString(rightPkName);
+				break;
+
+			case "text":
+				rightPkValue = deltaUpdatedRow.getString(rightPkName);
+				break;
+			}
+
+
+			//3.b. retrieve the left list values for inserton statement
+			String rightList = myMap2.get(rightPkValue);
+			rightList = rightList.replaceAll("\\[","").replaceAll("\\]", "");
+
+
+			String leftPkValue = "";
+
+			//4. for each entry in item_list2, create insert statement for each entry to add a new row
+			for (Map.Entry<String, String> entry : myMap1.entrySet())
+			{
+
+				switch(leftPkType){
+
+				case "text":
+					leftPkValue = "'"+entry.getKey()+"'";
+					break;
+
+				case "varchar":
+					leftPkValue = "'"+entry.getKey()+"'";
+					break;
+
+				default:
+					leftPkValue = entry.getKey();
+					break;
+
+				}
+
+				String tuple = "("+leftPkValue+","+rightPkValue+")";
+
+				StringBuilder insertQuery = new StringBuilder( "INSERT INTO ");
+				insertQuery.append((String)json.get("keyspace")).append(".") .append(joinTableName).append(" (");
+				insertQuery.append(joinTablePk).append(", ");
+				insertQuery.append(colNames).append(") VALUES (");
+				insertQuery.append(tuple).append(", ");
+				
+				String list_item_1 =  myMap1.get(entry.getKey()).replaceAll("\\[","").replaceAll("\\]", "");
+				insertQuery.append(list_item_1).append(", ");
+
+				insertQuery.append(rightList).append(");");
+				
+				System.out.println(insertQuery);
+
+				try{
+
+					Session session = currentCluster.connect();
+					session.execute(insertQuery.toString()); 
+				}catch(Exception e){
+					e.printStackTrace();
+					return false; 
+				}
+			}
+		}
+
+		return true;
+
+		
+		
+	}
+
+	private boolean leftCrossRight(JSONObject json, String lJKey, String lJKeyType, String joinTableName) {
 
 		//1. get row updated by reverse join
 		Row theRow = getrjUpdatedRow();
@@ -2536,15 +2762,15 @@ public class ViewManager {
 			String leftList = myMap1.get(leftPkValue);
 			leftList = leftList.replaceAll("\\[","").replaceAll("\\]", "");
 
-			
-			
+
+
 			//insert null values if myMap2 has no entries yet
 			if(myMap2.size()==0){
-				
+
 				String tuple = "("+leftPkValue+","+0+")";
 				int nrRightCol = XmlHandler.getInstance().getLeftJoinViewConfig()
 						.getInt(temp+".nrRightCol");	
-				
+
 				StringBuilder insertQuery = new StringBuilder( "INSERT INTO ");
 				insertQuery.append((String)json.get("keyspace")).append(".") .append(joinTableName).append(" (");
 				insertQuery.append(joinTablePk).append(", ");
@@ -2555,7 +2781,7 @@ public class ViewManager {
 				for(int i=0;i<nrRightCol;i++){
 					insertQuery.append("null").append(", ");	
 				}
-				
+
 				insertQuery.deleteCharAt(insertQuery.length()-2);
 				insertQuery.append(");");
 
@@ -2571,7 +2797,7 @@ public class ViewManager {
 				}
 			}
 
-				
+
 			String rightPkValue = "";
 
 			//4. for each entry in item_list2, create insert statement for each entry to add a new row
@@ -2621,11 +2847,11 @@ public class ViewManager {
 
 		return true;
 	}
-	
+
 	public void deleteReverseJoin(JSONObject json) {
 
 		// check for rj mappings after updating delta
-		
+
 		int cursor = 0;
 
 		// for each join
@@ -2642,7 +2868,7 @@ public class ViewManager {
 					rj_joinTables.get(j).split("_")).subList(1, nrOfTables + 1);
 
 			String tableName = (String) json.get("table");
-			
+
 			String keyspace = (String) json.get("keyspace");
 
 			int column = baseTables.indexOf(tableName) + 1;
@@ -2654,37 +2880,37 @@ public class ViewManager {
 			String aggKeyType = rj_joinKeyTypes.get(j);
 
 			String joinKeyValue = null;
-			
+
 			switch(aggKeyType){
 			case "text":
-				
-					joinKeyValue = ("'"+deltaDeletedRow.getString(joinKeyName+"_new")+"'");
-				
+
+				joinKeyValue = ("'"+deltaDeletedRow.getString(joinKeyName+"_new")+"'");
+
 
 				break;
 
 			case "int":
-				
+
 				joinKeyValue =( ""+deltaDeletedRow.getInt(joinKeyName+"_new"));
-				
+
 				break;
 
 			case "varint":
-				
-					joinKeyValue =("" + deltaDeletedRow.getVarint(joinKeyName+"_new"));
-				
+
+				joinKeyValue =("" + deltaDeletedRow.getVarint(joinKeyName+"_new"));
+
 				break;
 
 			case "varchar":
-				
-					joinKeyValue =("" + deltaDeletedRow.getString(joinKeyName+"_new"));
-				
+
+				joinKeyValue =("" + deltaDeletedRow.getString(joinKeyName+"_new"));
+
 				break;
 
 			case "float":
-				
-					joinKeyValue =("" + deltaDeletedRow.getFloat(joinKeyName+"_new"));
-				
+
+				joinKeyValue =("" + deltaDeletedRow.getFloat(joinKeyName+"_new"));
+
 				break;
 			}
 
@@ -2715,33 +2941,33 @@ public class ViewManager {
 			.append("list_item" + column).append(") VALUES (")
 			.append(joinKeyValue).append(", ?);");
 
-			
+
 			HashMap<String, String> myMap = null;
 			String pk = "";
 			switch (deltaDeletedRow.getColumnDefinitions().asList().get(0)
 					.getType().toString()) {
 
-			case "text":
-				pk = deltaDeletedRow.getString(0);
-				break;
+					case "text":
+						pk = deltaDeletedRow.getString(0);
+						break;
 
-			case "int":
-				pk = Integer.toString(deltaDeletedRow.getInt(0));
-				break;
+					case "int":
+						pk = Integer.toString(deltaDeletedRow.getInt(0));
+						break;
 
-			case "varint":
-				pk = deltaDeletedRow.getVarint(0).toString();
-				break;
+					case "varint":
+						pk = deltaDeletedRow.getVarint(0).toString();
+						break;
 
-			case "varchar":
-				pk = deltaDeletedRow.getString(0);
-				break;
+					case "varchar":
+						pk = deltaDeletedRow.getString(0);
+						break;
 
-			case "float":
-				pk = Float.toString(deltaDeletedRow.getFloat(0));
-				break;
+					case "float":
+						pk = Float.toString(deltaDeletedRow.getFloat(0));
+						break;
 			}
-			
+
 
 			// already exists
 			if (theRow != null) {
@@ -2756,7 +2982,7 @@ public class ViewManager {
 					myMap.putAll(tempMapImmutable);
 					myMap.remove(pk);
 				}
-				
+
 				try {
 
 					session = currentCluster.connect();
@@ -2772,40 +2998,40 @@ public class ViewManager {
 					e.printStackTrace();
 
 				}
-				
+
 				//checking if all list items are null --> delete the whole row
 				boolean allNull = true;
 				if(myMap == null){
-					
-				for(int k = 0; k< baseTables.size() && allNull;k++ ){
-					if(column != k+1 && theRow.getMap(
-							"list_item" + (k+1), String.class, String.class).size()!=0){
-						allNull = false;
-					
-						
-						
+
+					for(int k = 0; k< baseTables.size() && allNull;k++ ){
+						if(column != k+1 && theRow.getMap(
+								"list_item" + (k+1), String.class, String.class).size()!=0){
+							allNull = false;
+
+
+
+						}
 					}
 				}
-			}
-				
-				
-				
+
+
+
 				//all entries are nulls
 				if(allNull){
 					StringBuilder deleteQuery = new StringBuilder("delete from ");
 					deleteQuery.append(keyspace).append(".").append(joinTable)
-							.append(" WHERE ").append(joinKeyName + " = ").append(joinKeyValue)
-							.append(";");	
-					
+					.append(" WHERE ").append(joinKeyName + " = ").append(joinKeyValue)
+					.append(";");	
+
 					System.out.println(deleteQuery);
-					
+
 					session = currentCluster.connect();
 					session.execute(deleteQuery.toString());
 				}
 
 			}
 
-			
+
 
 			cursor += nrOfTables;
 
