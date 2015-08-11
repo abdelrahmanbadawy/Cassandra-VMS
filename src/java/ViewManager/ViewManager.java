@@ -38,7 +38,25 @@ public class ViewManager {
 	Cluster currentCluster = null;
 	private Row deltaUpdatedRow;
 	private Row deltaDeletedRow;
+
 	private Row reverseJoinUpdatesRow;
+
+	
+	
+	List<String> rj_joinTables = VmXmlHandler.getInstance()
+			.getDeltaReverseJoinMapping().getList("mapping.unit.Join.name");
+
+	List<String> rj_joinKeys = VmXmlHandler.getInstance()
+			.getDeltaReverseJoinMapping().getList("mapping.unit.Join.JoinKey");
+
+	List<String> rj_joinKeyTypes = VmXmlHandler.getInstance()
+			.getDeltaReverseJoinMapping().getList("mapping.unit.Join.type");
+
+	List<String> rj_nrDelta = VmXmlHandler.getInstance()
+			.getDeltaReverseJoinMapping().getList("mapping.unit.nrDelta");
+
+	int rjoins = VmXmlHandler.getInstance().getDeltaReverseJoinMapping()
+			.getInt("mapping.nrUnit");
 
 	public ViewManager(Cluster currenCluster) {
 		this.currentCluster = currenCluster;
@@ -2603,5 +2621,197 @@ public class ViewManager {
 
 		return true;
 	}
+	
+	public void deleteReverseJoin(JSONObject json) {
+
+		// check for rj mappings after updating delta
+		
+		int cursor = 0;
+
+		// for each join
+		for (int j = 0; j < rjoins; j++) {
+
+			// basetables
+			int nrOfTables = Integer.parseInt(rj_nrDelta.get(j));
+
+			String joinTable = rj_joinTables.get(j);
+
+			// include only indices from 1 to nrOfTables
+			// get basetables from name of rj table
+			List<String> baseTables = Arrays.asList(
+					rj_joinTables.get(j).split("_")).subList(1, nrOfTables + 1);
+
+			String tableName = (String) json.get("table");
+			
+			String keyspace = (String) json.get("keyspace");
+
+			int column = baseTables.indexOf(tableName) + 1;
+
+			StringBuilder selectQuery = new StringBuilder();
+
+			String joinKeyName = rj_joinKeys.get(cursor + column - 1);
+
+			String aggKeyType = rj_joinKeyTypes.get(j);
+
+			String joinKeyValue = null;
+			
+			switch(aggKeyType){
+			case "text":
+				
+					joinKeyValue = ("'"+deltaDeletedRow.getString(joinKeyName+"_new")+"'");
+				
+
+				break;
+
+			case "int":
+				
+				joinKeyValue =( ""+deltaDeletedRow.getInt(joinKeyName+"_new"));
+				
+				break;
+
+			case "varint":
+				
+					joinKeyValue =("" + deltaDeletedRow.getVarint(joinKeyName+"_new"));
+				
+				break;
+
+			case "varchar":
+				
+					joinKeyValue =("" + deltaDeletedRow.getString(joinKeyName+"_new"));
+				
+				break;
+
+			case "float":
+				
+					joinKeyValue =("" + deltaDeletedRow.getFloat(joinKeyName+"_new"));
+				
+				break;
+			}
+
+			selectQuery.append("SELECT * FROM ").append(keyspace).append(".")
+			.append(joinTable).append(" WHERE ").append(joinKeyName)
+			.append(" = ").append(joinKeyValue).append(";");
+
+			System.out.println(selectQuery);
+
+			Session session = null;
+			ResultSet queryResults = null;
+
+			try {
+
+				session = currentCluster.connect();
+				queryResults = session.execute(selectQuery.toString());
+
+			} catch (Exception e) {
+				e.printStackTrace();
+
+			}
+
+			Row theRow = queryResults.one();
+
+			StringBuilder insertQuery = new StringBuilder("INSERT INTO ")
+			.append(keyspace).append(".").append(joinTable)
+			.append(" (").append(rj_joinKeys.get(cursor)).append(", ")
+			.append("list_item" + column).append(") VALUES (")
+			.append(joinKeyValue).append(", ?);");
+
+			
+			HashMap<String, String> myMap = null;
+			String pk = "";
+			switch (deltaDeletedRow.getColumnDefinitions().asList().get(0)
+					.getType().toString()) {
+
+			case "text":
+				pk = deltaDeletedRow.getString(0);
+				break;
+
+			case "int":
+				pk = Integer.toString(deltaDeletedRow.getInt(0));
+				break;
+
+			case "varint":
+				pk = deltaDeletedRow.getVarint(0).toString();
+				break;
+
+			case "varchar":
+				pk = deltaDeletedRow.getString(0);
+				break;
+
+			case "float":
+				pk = Float.toString(deltaDeletedRow.getFloat(0));
+				break;
+			}
+			
+
+			// already exists
+			if (theRow != null) {
+
+				Map<String, String> tempMapImmutable = theRow.getMap(
+						"list_item" + column, String.class, String.class);
+
+				System.out.println(tempMapImmutable);
+
+				if(tempMapImmutable.size()>1){
+					myMap = new HashMap<String, String>();
+					myMap.putAll(tempMapImmutable);
+					myMap.remove(pk);
+				}
+				
+				try {
+
+					session = currentCluster.connect();
+
+					System.out.println(insertQuery);
+
+					PreparedStatement statement = session.prepare(insertQuery
+							.toString());
+					BoundStatement boundStatement = new BoundStatement(statement);
+					session.execute(boundStatement.bind(myMap));
+
+				} catch (Exception e) {
+					e.printStackTrace();
+
+				}
+				
+				//checking if all list items are null --> delete the whole row
+				boolean allNull = true;
+				if(myMap == null){
+					
+				for(int k = 0; k< baseTables.size() && allNull;k++ ){
+					if(column != k+1 && theRow.getMap(
+							"list_item" + (k+1), String.class, String.class).size()!=0){
+						allNull = false;
+					
+						
+						
+					}
+				}
+			}
+				
+				
+				
+				//all entries are nulls
+				if(allNull){
+					StringBuilder deleteQuery = new StringBuilder("delete from ");
+					deleteQuery.append(keyspace).append(".").append(joinTable)
+							.append(" WHERE ").append(joinKeyName + " = ").append(joinKeyValue)
+							.append(";");	
+					
+					System.out.println(deleteQuery);
+					
+					session = currentCluster.connect();
+					session.execute(deleteQuery.toString());
+				}
+
+			}
+
+			
+
+			cursor += nrOfTables;
+
+		}
+
+	}
+
 
 }
