@@ -1098,13 +1098,15 @@ public class ViewManager {
 		myMap2.putAll(tempMapImmutable2);
 
 		// Case 1 : update left join table
-		if(updateLeft && myMap2.size()==0){
+		// !leftJName.equals(false) meaning : no left join wanted, only right
+		if(updateLeft && myMap2.size()==0 && !leftJName.equals("false")){
 			updateLeftJoinTable(leftJName,theRow,json);
 			return true;
 		}
 
 		//Case 2: update right join table
-		if(updateRight && myMap1.size()==0){
+		// !rightName.equals(false) meaning : no right join wanted, only left
+		if(updateRight && myMap1.size()==0 && !rightJName.equals("false")){
 			updateRightJoinTable(rightJName,theRow,json);
 			return true;
 		}
@@ -1117,11 +1119,11 @@ public class ViewManager {
 			rightCrossLeft(json,innerJName);
 
 		//Case 4 : delete row from left join if no longer valid
-		if(updateLeft && myMap1.size()==1)
+		if(updateLeft && myMap1.size()==1 )
 			deleteFromRightJoinTable(myMap2,rightJName,json);
 
 		//Case 5: delete row from left join if no longer valid
-		if(updateRight && myMap2.size()==1)
+		if(updateRight && myMap2.size()==1 )
 			deleteFromLeftJoinTable(myMap1,leftJName,json);
 
 		return true;
