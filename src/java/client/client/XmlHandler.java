@@ -14,6 +14,7 @@ public class XmlHandler {
 	private static XMLConfiguration RJViewConfig;
 	private static XMLConfiguration LeftJViewConfig;
 	private static XMLConfiguration RightJViewConfig;
+	private static XMLConfiguration InnerJViewConfig;
 	
 	private static XmlHandler _instance = null;
 
@@ -42,6 +43,9 @@ public class XmlHandler {
 		RightJViewConfig = new XMLConfiguration();
 		RightJViewConfig.setDelimiterParsingDisabled(true);
 		
+		InnerJViewConfig = new XMLConfiguration();
+		InnerJViewConfig.setDelimiterParsingDisabled(true);
+		
 		
 		try {
 			databaseConfig.load("client/resources/DatabaseConfig.xml");
@@ -51,7 +55,8 @@ public class XmlHandler {
 			preAggViewConfig.load("client/resources/Preaggregation.xml"); 
 			RJViewConfig.load("client/resources/ReverseJoinViewConfig.xml"); 
 			LeftJViewConfig.load("client/resources/LeftJoin.xml"); 
-			RightJViewConfig.load("client/resources/RightJoin.xml"); 
+			RightJViewConfig.load("client/resources/RightJoin.xml");
+			InnerJViewConfig.load("client/resources/InnerJoin.xml");
 			
 		} catch (ConfigurationException e) {
 			e.printStackTrace();
@@ -96,6 +101,10 @@ public class XmlHandler {
 
 	public XMLConfiguration getRightJoinViewConfig(){
 		return RightJViewConfig;
+	}
+	
+	public XMLConfiguration getInnerJoinViewConfig(){
+		return InnerJViewConfig;
 	}
 
 
