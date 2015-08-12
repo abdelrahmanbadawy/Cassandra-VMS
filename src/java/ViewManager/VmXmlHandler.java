@@ -8,7 +8,9 @@ public class VmXmlHandler {
 	private static XMLConfiguration deltaPreaggMapping;
 	private static XMLConfiguration deltaSelectionMapping;
 	private static XMLConfiguration deltaReverseJoinMapping;
-	private static XMLConfiguration rjLeftJoinMapping;
+	private static XMLConfiguration rjJoinMapping;
+	private static XMLConfiguration leftJoinSchema;
+	private static XMLConfiguration rightJoinSchema;
 	
 	
 	private static VmXmlHandler _instance = null;
@@ -23,15 +25,23 @@ public class VmXmlHandler {
 		deltaReverseJoinMapping = new XMLConfiguration();
 		deltaReverseJoinMapping.setDelimiterParsingDisabled(true);
 		
-		rjLeftJoinMapping = new XMLConfiguration();
-		rjLeftJoinMapping.setDelimiterParsingDisabled(true);
+		rjJoinMapping = new XMLConfiguration();
+		rjJoinMapping.setDelimiterParsingDisabled(true);
+		
+		leftJoinSchema = new XMLConfiguration();
+		leftJoinSchema.setDelimiterParsingDisabled(true);
+		
+		rightJoinSchema = new XMLConfiguration();
+		rightJoinSchema.setDelimiterParsingDisabled(true);
 		
 		
 		try {
 			deltaPreaggMapping.load("ViewManager/properties/Delta_PreAgg_mapping.xml");
 			deltaSelectionMapping.load("ViewManager/properties/Delta_Selection_mapping.xml");
 			deltaReverseJoinMapping.load("ViewManager/properties/Delta_RJ_mapping.xml");
-			rjLeftJoinMapping.load("ViewManager/properties/RJ_LeftJoin.xml");	
+			rjJoinMapping.load("ViewManager/properties/RJ_Join.xml");
+			leftJoinSchema.load("ViewManager/properties/leftJoinSchema.xml");
+			rightJoinSchema.load("ViewManager/properties/rightJoinSchema.xml");
 		} catch (ConfigurationException e) {
 			e.printStackTrace();
 		}
@@ -57,8 +67,16 @@ public class VmXmlHandler {
 		return deltaReverseJoinMapping;
 	}
 	
-	public XMLConfiguration getRjLeftJoinMapping(){
-		return rjLeftJoinMapping;
+	public XMLConfiguration getRjJoinMapping(){
+		return rjJoinMapping;
+	}
+	
+	public XMLConfiguration getlJSchema(){
+		return leftJoinSchema;
+	}
+	
+	public XMLConfiguration getrJSchema(){
+		return rightJoinSchema;
 	}
 
 }

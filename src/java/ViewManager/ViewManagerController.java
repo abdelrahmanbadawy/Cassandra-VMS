@@ -55,7 +55,7 @@ public class ViewManagerController {
 		pkName = baseTableKeysConfig.getList("tableSchema.table.pkName");
 		deltaTableName  = VmXmlHandler.getInstance().getDeltaPreaggMapping().
 				getList("mapping.unit.deltaTable");
-		reverseTableName = VmXmlHandler.getInstance().getRjLeftJoinMapping().
+		reverseTableName = VmXmlHandler.getInstance().getRjJoinMapping().
 				getList("mapping.unit.reverseJoin");
 	}
 
@@ -371,25 +371,35 @@ public class ViewManagerController {
 			temp+=")";
 
 			
-			int nrJoin = VmXmlHandler.getInstance().getRjLeftJoinMapping().
+			int nrJoin = VmXmlHandler.getInstance().getRjJoinMapping().
 					getInt(temp+".nrJoin");
 
 			for(int i=0;i<nrJoin;i++){
 
 				String s = temp+".join("+Integer.toString(i)+")";
-				String joinTableName = VmXmlHandler.getInstance().getRjLeftJoinMapping().
-						getString(s+".name");
-				String LJKey = VmXmlHandler.getInstance().getRjLeftJoinMapping().
+				String innerJoinTableName = VmXmlHandler.getInstance().getRjJoinMapping().
+						getString(s+".innerJoin");
+				String leftJoinTableName = VmXmlHandler.getInstance().getRjJoinMapping().
+						getString(s+".leftJoin");
+				String rightJoinTableName = VmXmlHandler.getInstance().getRjJoinMapping().
+						getString(s+".rightJoin");
+				
+				/*String lJKey = VmXmlHandler.getInstance().getRjJoinMapping().
 						getString(s+".LeftJoinKey");
-				String LJKeyType = VmXmlHandler.getInstance().getRjLeftJoinMapping().
+				String lJKeyType = VmXmlHandler.getInstance().getRjJoinMapping().
 						getString(s+".LeftJoinKeyType");
-				String RJKey = VmXmlHandler.getInstance().getRjLeftJoinMapping().
+				String rJKey = VmXmlHandler.getInstance().getRjJoinMapping().
 						getString(s+".RightJoinKey");
-				String RJKeyType = VmXmlHandler.getInstance().getRjLeftJoinMapping().
+				String rJKeyType = VmXmlHandler.getInstance().getRjJoinMapping().
 						getString(s+".RightJoinKeyType");
-				String leftJoinTable = VmXmlHandler.getInstance().getRjLeftJoinMapping().
+				String iJKey = VmXmlHandler.getInstance().getRjJoinMapping().
+						getString(s+".InnerJoinKey");
+				String iJKeyType = VmXmlHandler.getInstance().getRjJoinMapping().
+						getString(s+".InnerJoinKeyType");*/
+				
+				String leftJoinTable = VmXmlHandler.getInstance().getRjJoinMapping().
 						getString(s+".LeftTable");
-				String rightJoinTable = VmXmlHandler.getInstance().getRjLeftJoinMapping().
+				String rightJoinTable = VmXmlHandler.getInstance().getRjJoinMapping().
 						getString(s+".RightTable");
 				
 				String tableName = (String)json.get("table");
@@ -403,7 +413,7 @@ public class ViewManagerController {
 					updateRight = true;
 				}
 
-				vm.updateLeftJoin(deltaUpdatedRow,joinTableName,updatedReverseJoin,LJKey,LJKeyType,RJKey,json,updateLeft,updateRight,RJKey,RJKeyType);
+				vm.updateJoinController(deltaUpdatedRow,innerJoinTableName,leftJoinTableName,rightJoinTableName,json,updateLeft,updateRight);
 
 			}
 		}else{

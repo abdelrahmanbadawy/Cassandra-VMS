@@ -8,8 +8,12 @@
 			<reverseJoin>RJ_courses_student_faculty_faculty</reverseJoin>
 			<nrJoin>1</nrJoin>
 			<join>
-				<name>left_join_courses_student_faculty_faculty</name>
+				<innerJoin>inner_join_courses_student_faculty_faculty</innerJoin>
+				<leftJoin>left_join_courses_student_faculty_faculty</leftJoin>
+				<rightJoin>right_join_courses_student_faculty_faculty</rightJoin>
 				
+				<InnerJoinKey>faculty</InnerJoinKey>
+				<InnerJoinKeyType>text</InnerJoinKeyType>
 				<LeftJoinKey>faculty</LeftJoinKey>
 				<LeftJoinKeyType>text</LeftJoinKeyType>
 				<RightJoinKey>faculty</RightJoinKey>
