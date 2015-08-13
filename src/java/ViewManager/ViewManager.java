@@ -41,7 +41,7 @@ public class ViewManager {
 
 	private Row reverseJoinUpdatesRow;
 	private String reverseJoinTableName;
-	
+
 	private Row toBeDeletedRowfromRJ;
 
 
@@ -60,7 +60,7 @@ public class ViewManager {
 
 	int rjoins = VmXmlHandler.getInstance().getDeltaReverseJoinMapping()
 			.getInt("mapping.nrUnit");
-	
+
 
 	public ViewManager(Cluster currenCluster) {
 		this.currentCluster = currenCluster;
@@ -358,6 +358,8 @@ public class ViewManager {
 		float count = 0;
 		float sum = 0;
 		float average = 0;
+		float min = 9999999;
+		float max = -9999999;
 
 		// 1. retrieve agg key value from delta stream to retrieve the correct
 		// row from preagg
@@ -413,7 +415,7 @@ public class ViewManager {
 		// 2. select row with aggkeyValue from delta stream
 		StringBuilder selectPreaggQuery1 = new StringBuilder("SELECT ")
 		.append("list_item, ").append("sum, ").append("count, ")
-		.append("average ");
+		.append("average, min, max ");
 		selectPreaggQuery1.append(" FROM ")
 		.append((String) json.get("keyspace")).append(".")
 		.append(preaggTable).append(" where ").append(aggKey + " = ")
@@ -479,6 +481,32 @@ public class ViewManager {
 				sum = theRow.getInt("sum") - aggColValue;
 				average = sum / count;
 
+				max = -99999999;
+				min = 999999999;
+
+				List<Definition> def = theRow.getColumnDefinitions().asList();
+
+				int aggColIndexInList = 0;
+
+				for (int i = 0; i < def.size(); i++) {
+					if(def.get(i).getName().contentEquals(aggCol+"_new")){
+						aggColIndexInList = i;
+						break;
+					}
+				}
+
+
+				for (Map.Entry<String, String> entry : myMap.entrySet()){
+
+					String list = entry.getValue().replaceAll("\\[", "").replaceAll("\\]", "");
+					String[] listArray = list.split(",");
+					if(Float.valueOf(listArray[aggColIndexInList])<min)
+						min = Float.valueOf(listArray[aggColIndexInList]);
+
+					if(Float.valueOf(listArray[aggColIndexInList])>max)
+						max = Float.valueOf(listArray[aggColIndexInList]);
+				}
+
 				// 6. Execute insertion statement of the row with the
 				// aggKeyValue_old to refelect changes
 
@@ -486,8 +514,8 @@ public class ViewManager {
 				insertQueryAgg.append((String) json.get("keyspace"))
 				.append(".").append(preaggTable).append(" ( ")
 				.append(aggKey + ", ").append("list_item, ")
-				.append("sum, count, average").append(") VALUES (")
-				.append(aggKeyValue + ", ").append("?, ?, ?, ?);");
+				.append("sum, count, average, min, max").append(") VALUES (")
+				.append(aggKeyValue + ", ").append("?, ?, ?, ?, ?, ?);");
 
 				Session session1 = currentCluster.connect();
 
@@ -495,7 +523,7 @@ public class ViewManager {
 						.toString());
 				BoundStatement boundStatement = new BoundStatement(statement1);
 				session1.execute(boundStatement.bind(myMap, (int) sum,
-						(int) count, average));
+						(int) count, average, min, max));
 				System.out.println(boundStatement.toString());
 
 			}
@@ -617,15 +645,15 @@ public class ViewManager {
 
 		ArrayList<String> myList = new ArrayList<String>();
 		List<Definition> def = colDef.asList();
-		
+
 		int aggColIndexInList = 0;
 
 		for (int i = 0; i < def.size(); i++) {
-			
+
 			if(def.get(i).getName().contentEquals(aggCol+"_new")){
 				aggColIndexInList = i;
 			}
-			
+
 			switch (def.get(i).getType().toString()) {
 
 			case "text":
@@ -773,13 +801,13 @@ public class ViewManager {
 					sum = theRow1.getInt("sum") - aggColValue_old + aggColValue;
 
 				average = sum / count;
-				
+
 				if(aggColValue < theRow1.getFloat("min")){
 					min = aggColValue;
 				}else{
 					min = theRow1.getFloat("min");
 				}
-				
+
 				if(aggColValue > theRow1.getFloat("max")){
 					max = aggColValue;
 				}else{
@@ -878,17 +906,17 @@ public class ViewManager {
 					count = myMap.size();
 					sum = theRow.getInt("sum") - aggColValue_old;
 					average = sum / count;
-					
+
 					max = -99999999;
 					min = 999999999;
-					
+
 					for (Map.Entry<String, String> entry : myMap.entrySet())
 					{
 						String list = entry.getValue().replaceAll("\\[", "").replaceAll("\\]", "");
 						String[] listArray = list.split(",");
 						if(Float.valueOf(listArray[aggColIndexInList-1])<min)
 							min = Float.valueOf(listArray[aggColIndexInList-1]);
-						
+
 						if(Float.valueOf(listArray[aggColIndexInList-1])>max)
 							max = Float.valueOf(listArray[aggColIndexInList-1]);
 					}
@@ -1191,8 +1219,8 @@ public class ViewManager {
 					.getrJSchema().getString(rightPkType);
 
 			String rightPkValue = "";
-			
-			
+
+
 
 			//4. for each entry in item_list2, create insert statement for each entry to add a new row
 			for (Map.Entry<String, String> entry : myMap2.entrySet())
@@ -1213,11 +1241,11 @@ public class ViewManager {
 					break;
 
 				}
-				
+
 				if(fromDelete){
 					JSONObject condition = (JSONObject) json.get("condition"); 
 					Object[] hm = condition.keySet().toArray();
-					
+
 					if(!rightPkValue.equals(condition.get(hm[0]))){
 						myMap2.remove(entry.getKey());
 						continue;
@@ -1287,17 +1315,17 @@ public class ViewManager {
 					break;
 
 				}
-				
+
 				if(fromDelete){
 					JSONObject condition = (JSONObject) json.get("condition"); 
 					Object[] hm = condition.keySet().toArray();
-					
+
 					if(!leftPkValue.equals(condition.get(hm[0]))){
 						myMap1.remove(entry.getKey());
 						continue;
 					}	
 				}
-				
+
 
 				String tuple = "("+leftPkValue+","+0+")";
 
@@ -2031,7 +2059,7 @@ public class ViewManager {
 			.append(" = ").append(joinKeyValue).append(";");
 
 			System.out.println(selectQuery);
-			
+
 			Session session = null;
 			ResultSet queryResults = null;
 
@@ -2046,7 +2074,7 @@ public class ViewManager {
 			}
 
 			Row theRow = queryResults.one();
-			
+
 			setToBeDeletedReverseJRow(theRow);
 
 			StringBuilder insertQuery = new StringBuilder("INSERT INTO ")
@@ -2158,7 +2186,7 @@ public class ViewManager {
 	private void setToBeDeletedReverseJRow(Row theRow) {
 		toBeDeletedRowfromRJ = theRow;
 	}
-	
+
 	public Row getToBeDeletedReverseJRow(){
 		return toBeDeletedRowfromRJ;
 	}
