@@ -419,6 +419,9 @@ public abstract class Message {
 						&& ! request.toString().toLowerCase().contains("preagg")
 						&& ! request.toString().toLowerCase().contains("rj_")
 						&& ! request.toString().toLowerCase().contains("delta_")
+						&& ! request.toString().toLowerCase().contains("inner_")
+						&& ! request.toString().toLowerCase().contains("left_")
+						&& ! request.toString().toLowerCase().contains("right_")
 						&& (request.toString().toLowerCase().contains("insert")
 								|| request.toString().toLowerCase()
 										.contains("update") || (request
