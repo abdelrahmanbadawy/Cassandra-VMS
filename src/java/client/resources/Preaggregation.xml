@@ -6,7 +6,7 @@
 		<tableDefinition>
 			<baseTable>delta_courses</baseTable>
 
-			<columnNumber>4</columnNumber>
+			<columnNumber>6</columnNumber>
 			<keyspace>test</keyspace>
 			<name>preagg_agg_courses_faculty_ects</name>
 
@@ -36,6 +36,16 @@
 				<family>colfam1</family>
 				<type>int</type>
 				<name>count</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>min</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>max</name>
 			</column>
 
 			<aggCol>

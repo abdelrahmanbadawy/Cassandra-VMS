@@ -547,6 +547,8 @@ public class ViewManager {
 		float sum = 0;
 		float count = 0;
 		float aggColValue = 0;
+		float min = 99999999 ;
+		float max = 0;
 
 		if (deltaUpdatedRow != null) {
 			colDef = deltaUpdatedRow.getColumnDefinitions();
@@ -700,7 +702,7 @@ public class ViewManager {
 
 			StringBuilder selectPreaggQuery1 = new StringBuilder("SELECT ")
 			.append("list_item, ").append("sum, ").append("count, ")
-			.append("average ");
+			.append("average, min, max ");
 			selectPreaggQuery1.append(" FROM ")
 			.append((String) json.get("keyspace")).append(".")
 			.append(preaggTable).append(" where ")
@@ -736,6 +738,8 @@ public class ViewManager {
 				sum += aggColValue;
 				count = 1;
 				average = sum / count;
+				min = aggColValue;
+				max = aggColValue;
 
 			} else {
 
@@ -763,6 +767,18 @@ public class ViewManager {
 					sum = theRow1.getInt("sum") - aggColValue_old + aggColValue;
 
 				average = sum / count;
+				
+				if(aggColValue < theRow1.getFloat("min")){
+					min = aggColValue;
+				}else{
+					min = theRow1.getFloat("min");
+				}
+				
+				if(aggColValue > theRow1.getFloat("max")){
+					max = aggColValue;
+				}else{
+					max = theRow1.getFloat("max");
+				}
 
 			}
 			try {
@@ -772,8 +788,8 @@ public class ViewManager {
 				insertQueryAgg.append((String) json.get("keyspace"))
 				.append(".").append(preaggTable).append(" ( ")
 				.append(aggKey + ", ").append("list_item, ")
-				.append("sum, count, average").append(") VALUES (")
-				.append(aggKeyValue + ", ").append("?, ?, ?, ?);");
+				.append("sum, count, average, min, max").append(") VALUES (")
+				.append(aggKeyValue + ", ").append("?, ?, ?, ?, ?, ?);");
 
 				Session session1 = currentCluster.connect();
 
@@ -781,7 +797,7 @@ public class ViewManager {
 						.toString());
 				BoundStatement boundStatement = new BoundStatement(statement1);
 				session1.execute(boundStatement.bind(myMap, (int) sum,
-						(int) count, average));
+						(int) count, average, min, max));
 				System.out.println(boundStatement.toString());
 
 			} catch (Exception e) {
