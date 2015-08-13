@@ -617,9 +617,15 @@ public class ViewManager {
 
 		ArrayList<String> myList = new ArrayList<String>();
 		List<Definition> def = colDef.asList();
+		
+		int aggColIndexInList = 0;
 
 		for (int i = 0; i < def.size(); i++) {
-
+			
+			if(def.get(i).getName().contentEquals(aggCol+"_new")){
+				aggColIndexInList = i;
+			}
+			
 			switch (def.get(i).getType().toString()) {
 
 			case "text":
@@ -813,7 +819,7 @@ public class ViewManager {
 			// 2. select row with old aggkeyValue from delta stream
 			StringBuilder selectPreaggQuery1 = new StringBuilder("SELECT ")
 			.append("list_item, ").append("sum, ").append("count, ")
-			.append("average ");
+			.append("average, min, max");
 			selectPreaggQuery1.append(" FROM ")
 			.append((String) json.get("keyspace")).append(".")
 			.append(preaggTable).append(" where ")
@@ -872,6 +878,20 @@ public class ViewManager {
 					count = myMap.size();
 					sum = theRow.getInt("sum") - aggColValue_old;
 					average = sum / count;
+					
+					max = -99999999;
+					min = 999999999;
+					
+					for (Map.Entry<String, String> entry : myMap.entrySet())
+					{
+						String list = entry.getValue().replaceAll("\\[", "").replaceAll("\\]", "");
+						String[] listArray = list.split(",");
+						if(Float.valueOf(listArray[aggColIndexInList-1])<min)
+							min = Float.valueOf(listArray[aggColIndexInList-1]);
+						
+						if(Float.valueOf(listArray[aggColIndexInList-1])>max)
+							max = Float.valueOf(listArray[aggColIndexInList-1]);
+					}
 
 					// 6. Execute insertion statement of the row with the
 					// aggKeyValue_old to refelect changes
@@ -881,9 +901,9 @@ public class ViewManager {
 					insertQueryAgg.append((String) json.get("keyspace"))
 					.append(".").append(preaggTable).append(" ( ")
 					.append(aggKey + ", ").append("list_item, ")
-					.append("sum, count, average").append(") VALUES (")
+					.append("sum, count, average, min, max").append(") VALUES (")
 					.append(aggKeyValue_old + ", ")
-					.append("?, ?, ?, ?);");
+					.append("?, ?, ?, ?, ?, ?);");
 
 					Session session1 = currentCluster.connect();
 
@@ -892,7 +912,7 @@ public class ViewManager {
 					BoundStatement boundStatement = new BoundStatement(
 							statement1);
 					session1.execute(boundStatement.bind(myMap, (int) sum,
-							(int) count, average));
+							(int) count, average, min, max));
 					System.out.println(boundStatement.toString());
 
 					// perform a new insertion for the new aggkey given in json
