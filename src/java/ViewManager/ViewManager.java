@@ -41,6 +41,8 @@ public class ViewManager {
 
 	private Row reverseJoinUpdatesRow;
 	private String reverseJoinTableName;
+	
+	private Row toBeDeletedRowfromRJ;
 
 
 
@@ -58,6 +60,7 @@ public class ViewManager {
 
 	int rjoins = VmXmlHandler.getInstance().getDeltaReverseJoinMapping()
 			.getInt("mapping.nrUnit");
+	
 
 	public ViewManager(Cluster currenCluster) {
 		this.currentCluster = currenCluster;
@@ -1120,18 +1123,18 @@ public class ViewManager {
 
 		//Case 4 : delete row from left join if no longer valid
 		if(updateLeft && myMap1.size()==1 )
-			deleteFromRightJoinTable(myMap2,rightJName,json);
+			deleteFromRightJoinTable(myMap2,rightJName,json,false);
 
 		//Case 5: delete row from left join if no longer valid
 		if(updateRight && myMap2.size()==1 )
-			deleteFromLeftJoinTable(myMap1,leftJName,json);
+			deleteFromLeftJoinTable(myMap1,leftJName,json,false);
 
 		return true;
 	}
 
 
 
-	private boolean deleteFromRightJoinTable(HashMap<String, String> myMap2, String rightJName, JSONObject json) {
+	private boolean deleteFromRightJoinTable(HashMap<String, String> myMap2, String rightJName, JSONObject json, boolean fromDelete) {
 
 		int position =  VmXmlHandler.getInstance()
 				.getrJSchema()
@@ -1152,12 +1155,14 @@ public class ViewManager {
 					.getrJSchema().getString(rightPkType);
 
 			String rightPkValue = "";
+			
+			
 
 			//4. for each entry in item_list2, create insert statement for each entry to add a new row
 			for (Map.Entry<String, String> entry : myMap2.entrySet())
 			{
 
-				switch(rightPkValue){
+				switch(rightPkType){
 
 				case "text":
 					rightPkValue = "'"+entry.getKey()+"'";
@@ -1171,6 +1176,16 @@ public class ViewManager {
 					rightPkValue = entry.getKey();
 					break;
 
+				}
+				
+				if(fromDelete){
+					JSONObject condition = (JSONObject) json.get("condition"); 
+					Object[] hm = condition.keySet().toArray();
+					
+					if(!rightPkValue.equals(condition.get(hm[0]))){
+						myMap2.remove(entry.getKey());
+						continue;
+					}	
 				}
 
 				String tuple = "("+0+","+rightPkValue+")";
@@ -1197,7 +1212,7 @@ public class ViewManager {
 
 	}
 
-	private boolean deleteFromLeftJoinTable(HashMap<String, String> myMap1, String leftJName, JSONObject json) {
+	private boolean deleteFromLeftJoinTable(HashMap<String, String> myMap1, String leftJName, JSONObject json, boolean fromDelete) {
 
 		int position =  VmXmlHandler.getInstance()
 				.getlJSchema()
@@ -1219,11 +1234,9 @@ public class ViewManager {
 
 			String leftPkValue = "";
 
-			//4. for each entry in item_list2, create insert statement for each entry to add a new row
 			for (Map.Entry<String, String> entry : myMap1.entrySet())
 			{
-
-				switch(leftPkValue){
+				switch(leftPkType){
 
 				case "text":
 					leftPkValue = "'"+entry.getKey()+"'";
@@ -1238,6 +1251,17 @@ public class ViewManager {
 					break;
 
 				}
+				
+				if(fromDelete){
+					JSONObject condition = (JSONObject) json.get("condition"); 
+					Object[] hm = condition.keySet().toArray();
+					
+					if(!leftPkValue.equals(condition.get(hm[0]))){
+						myMap1.remove(entry.getKey());
+						continue;
+					}	
+				}
+				
 
 				String tuple = "("+leftPkValue+","+0+")";
 
@@ -1912,6 +1936,8 @@ public class ViewManager {
 
 			String joinTable = rj_joinTables.get(j);
 
+			setReverseJoinName(joinTable);
+
 			// include only indices from 1 to nrOfTables
 			// get basetables from name of rj table
 			List<String> baseTables = Arrays.asList(
@@ -1969,7 +1995,7 @@ public class ViewManager {
 			.append(" = ").append(joinKeyValue).append(";");
 
 			System.out.println(selectQuery);
-
+			
 			Session session = null;
 			ResultSet queryResults = null;
 
@@ -1984,6 +2010,8 @@ public class ViewManager {
 			}
 
 			Row theRow = queryResults.one();
+			
+			setToBeDeletedReverseJRow(theRow);
 
 			StringBuilder insertQuery = new StringBuilder("INSERT INTO ")
 			.append(keyspace).append(".").append(joinTable)
@@ -2081,11 +2109,64 @@ public class ViewManager {
 
 			}
 
-
-
 			cursor += nrOfTables;
 
+			//get deleted row from rj
+
+
+
 		}
+
+	}
+
+	private void setToBeDeletedReverseJRow(Row theRow) {
+		toBeDeletedRowfromRJ = theRow;
+	}
+	
+	public Row getToBeDeletedReverseJRow(){
+		return toBeDeletedRowfromRJ;
+	}
+
+	public boolean deleteJoinController(Row deltaDeletedRow,
+			String innerJName, String leftJName,
+			String rightJName, JSONObject json, Boolean updateLeft,
+			Boolean updateRight) {
+
+
+
+		//1. get row updated by reverse join
+		Row theRow = getToBeDeletedReverseJRow();
+
+		//1.a get columns item_1, item_2
+		Map<String, String> tempMapImmutable1 = theRow.getMap(
+				"list_item1", String.class, String.class);
+		Map<String, String> tempMapImmutable2 = theRow.getMap(
+				"list_item2", String.class, String.class);
+
+		//2. retrieve list_item1, list_item2
+		HashMap<String, String> myMap1 = new HashMap<String, String>();
+		myMap1.putAll(tempMapImmutable1);
+
+		HashMap<String, String> myMap2 = new HashMap<String, String>();
+		myMap2.putAll(tempMapImmutable2);
+
+		// Case 1 : delete from left join table if item_list2 is empty
+		// !leftJName.equals(false) meaning : no left join wanted, only right
+		if(updateLeft && myMap2.size()==0 && !leftJName.equals("false")){
+			deleteFromLeftJoinTable(myMap1,leftJName,json,true);
+			return true;
+		}
+
+		//Case 2: delete from right join table if item_list1 is empty
+		// !rightName.equals(false) meaning : no right join wanted, only left
+		if(updateRight && myMap1.size()==0 && !rightJName.equals("false")){
+			deleteFromRightJoinTable(myMap2,rightJName,json,true);
+			return true;
+		}
+
+
+
+		return true;
 
 	}
 

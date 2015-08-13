@@ -358,10 +358,10 @@ public class ViewManagerController {
 		vm.updateReverseJoin(json);
 
 		// ===================================================================================================================
-		// 4. update Left Join tables
+		// 4. update Join tables
 
 		String updatedReverseJoin = vm.getReverseJoinName();
-		
+
 		position = reverseTableName.indexOf(updatedReverseJoin);
 
 		if(position!=-1){
@@ -370,7 +370,7 @@ public class ViewManagerController {
 			temp+=Integer.toString(position);
 			temp+=")";
 
-			
+
 			int nrJoin = VmXmlHandler.getInstance().getRjJoinMapping().
 					getInt(temp+".nrJoin");
 
@@ -383,30 +383,17 @@ public class ViewManagerController {
 						getString(s+".leftJoin");
 				String rightJoinTableName = VmXmlHandler.getInstance().getRjJoinMapping().
 						getString(s+".rightJoin");
-				
-				/*String lJKey = VmXmlHandler.getInstance().getRjJoinMapping().
-						getString(s+".LeftJoinKey");
-				String lJKeyType = VmXmlHandler.getInstance().getRjJoinMapping().
-						getString(s+".LeftJoinKeyType");
-				String rJKey = VmXmlHandler.getInstance().getRjJoinMapping().
-						getString(s+".RightJoinKey");
-				String rJKeyType = VmXmlHandler.getInstance().getRjJoinMapping().
-						getString(s+".RightJoinKeyType");
-				String iJKey = VmXmlHandler.getInstance().getRjJoinMapping().
-						getString(s+".InnerJoinKey");
-				String iJKeyType = VmXmlHandler.getInstance().getRjJoinMapping().
-						getString(s+".InnerJoinKeyType");*/
-				
+
 				String leftJoinTable = VmXmlHandler.getInstance().getRjJoinMapping().
 						getString(s+".LeftTable");
 				String rightJoinTable = VmXmlHandler.getInstance().getRjJoinMapping().
 						getString(s+".RightTable");
-				
+
 				String tableName = (String)json.get("table");
-				
+
 				Boolean updateLeft = false;
 				Boolean updateRight = false;
-				
+
 				if(tableName.equals(leftJoinTable)){
 					updateLeft = true;
 				}else{
@@ -417,7 +404,7 @@ public class ViewManagerController {
 
 			}
 		}else{
-			System.out.println("No Left join table for this reverse t join table "+" delta_"+(String) json.get("table")+" available");
+			System.out.println("No join table for this reverse join table "+updatedReverseJoin+" available");
 		}
 
 	}
@@ -436,6 +423,8 @@ public class ViewManagerController {
 
 		return false;
 	}
+
+
 
 	public void cascadeDelete(JSONObject json){
 
@@ -624,11 +613,60 @@ public class ViewManagerController {
 		}
 
 		//==========================================================================================================================
+		//4. reverse joins
+		vm.deleteReverseJoin(json);
+
 		//==========================================================================================================================
-				//4. reverse joins
-				vm.deleteReverseJoin(json);
-				
-				
+
+		//5. delete from join tables
+
+		String updatedReverseJoin = vm.getReverseJoinName();
+
+		position = reverseTableName.indexOf(updatedReverseJoin);
+
+		if(position!=-1){
+
+			String temp= "mapping.unit(";
+			temp+=Integer.toString(position);
+			temp+=")";
+
+
+			int nrJoin = VmXmlHandler.getInstance().getRjJoinMapping().
+					getInt(temp+".nrJoin");
+
+			for(int i=0;i<nrJoin;i++){
+
+				String s = temp+".join("+Integer.toString(i)+")";
+				String innerJoinTableName = VmXmlHandler.getInstance().getRjJoinMapping().
+						getString(s+".innerJoin");
+				String leftJoinTableName = VmXmlHandler.getInstance().getRjJoinMapping().
+						getString(s+".leftJoin");
+				String rightJoinTableName = VmXmlHandler.getInstance().getRjJoinMapping().
+						getString(s+".rightJoin");
+
+				String leftJoinTable = VmXmlHandler.getInstance().getRjJoinMapping().
+						getString(s+".LeftTable");
+				String rightJoinTable = VmXmlHandler.getInstance().getRjJoinMapping().
+						getString(s+".RightTable");
+
+				String tableName = (String)json.get("table");
+
+				Boolean updateLeft = false;
+				Boolean updateRight = false;
+
+				if(tableName.equals(leftJoinTable)){
+					updateLeft = true;
+				}else{
+					updateRight = true;
+				}
+
+				vm.deleteJoinController(deltaDeletedRow ,innerJoinTableName,leftJoinTableName,rightJoinTableName,json,updateLeft,updateRight);
+
+			}
+		}else{
+			System.out.println("No join table for this reverse join table "+updatedReverseJoin+" available");
+		}
+
 	}
 
 }
