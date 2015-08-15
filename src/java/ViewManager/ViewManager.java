@@ -1087,7 +1087,7 @@ public class ViewManager {
 			HashMap<String, String> myMap = new HashMap<String, String>();
 			String pk = myList.get(0);
 			myList.remove(0);
-			myList.remove(joinKeyValue);
+			//myList.remove(joinKeyValue);
 			myMap.put(pk, myList.toString());
 
 			// already exists
