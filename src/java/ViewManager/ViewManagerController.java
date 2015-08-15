@@ -1,6 +1,7 @@
 package ViewManager;
 
 import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.configuration.ConfigurationException;
@@ -27,6 +28,21 @@ public class ViewManagerController {
 	List<String> deltaTableName;
 	List<String> reverseTableName;
 
+	
+	List<String> rj_joinTables = VmXmlHandler.getInstance()
+			.getDeltaReverseJoinMapping().getList("mapping.unit.Join.name");
+
+	List<String> rj_joinKeys = VmXmlHandler.getInstance()
+			.getDeltaReverseJoinMapping().getList("mapping.unit.Join.JoinKey");
+
+	List<String> rj_joinKeyTypes = VmXmlHandler.getInstance()
+			.getDeltaReverseJoinMapping().getList("mapping.unit.Join.type");
+
+	List<String> rj_nrDelta = VmXmlHandler.getInstance()
+			.getDeltaReverseJoinMapping().getList("mapping.unit.nrDelta");
+
+	int rjoins = VmXmlHandler.getInstance().getDeltaReverseJoinMapping()
+			.getInt("mapping.nrUnit");
 
 	public ViewManagerController(){
 
@@ -355,7 +371,45 @@ public class ViewManagerController {
 		// ===================================================================================================================
 		// 3. for the delta table updated, get update depending reverse join tables
 
-		vm.updateReverseJoin(json);
+		
+		
+		
+		int cursor = 0;
+		for (int j = 0; j < rjoins; j++) {
+			
+			// basetables
+						int nrOfTables = Integer.parseInt(rj_nrDelta.get(j));
+
+						String joinTable = rj_joinTables.get(j);
+						
+						// include only indices from 1 to nrOfTables
+						// get basetables from name of rj table
+						List<String> baseTables = Arrays.asList(
+								rj_joinTables.get(j).split("_")).subList(1, nrOfTables + 1);
+						
+						String tableName = (String) json.get("table");
+						String keyspace = (String) json.get("keyspace");
+
+						int column = baseTables.indexOf(tableName) + 1;
+						
+						String joinKeyName = rj_joinKeys.get(cursor + column - 1);
+						
+						String aggKeyType = rj_joinKeyTypes.get(j);
+			
+			vm.updateReverseJoin( json,  cursor,  nrOfTables,  joinTable,  baseTables,  joinKeyName,
+					 tableName,  keyspace,  aggKeyType,  column);
+			
+			
+			
+			
+			
+			//HERE UPDATE JOIN TABLES
+			
+			
+			
+			
+			cursor += nrOfTables;
+		}
 
 		// ===================================================================================================================
 		// 4. update Join tables
@@ -614,8 +668,47 @@ public class ViewManagerController {
 
 		//==========================================================================================================================
 		//4. reverse joins
-		vm.deleteReverseJoin(json);
+		
 
+		// check for rj mappings after updating delta
+		int cursor = 0;
+
+		// for each join
+		for (int j = 0; j < rjoins; j++) {
+			// basetables
+						int nrOfTables = Integer.parseInt(rj_nrDelta.get(j));
+
+						String joinTable = rj_joinTables.get(j);
+			
+						// include only indices from 1 to nrOfTables
+						// get basetables from name of rj table
+						List<String> baseTables = Arrays.asList(
+								rj_joinTables.get(j).split("_")).subList(1, nrOfTables + 1);
+						
+						String tableName = (String) json.get("table");
+
+						String keyspace = (String) json.get("keyspace");
+
+						int column = baseTables.indexOf(tableName) + 1;
+						
+						String joinKeyName = rj_joinKeys.get(cursor + column - 1);
+
+						String aggKeyType = rj_joinKeyTypes.get(j);
+						
+						
+						vm.deleteReverseJoin(json,  cursor,  nrOfTables,  joinTable,  baseTables,  joinKeyName,
+								 tableName,  keyspace,  aggKeyType,  column);
+			
+						
+						
+						
+						//HERE DELETE FROM JOIN TABLES
+						
+						
+						
+						
+			cursor += nrOfTables;
+		}
 		//==========================================================================================================================
 
 		//5. delete from join tables

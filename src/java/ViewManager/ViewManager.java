@@ -50,20 +50,7 @@ public class ViewManager {
 
 
 
-	List<String> rj_joinTables = VmXmlHandler.getInstance()
-			.getDeltaReverseJoinMapping().getList("mapping.unit.Join.name");
-
-	List<String> rj_joinKeys = VmXmlHandler.getInstance()
-			.getDeltaReverseJoinMapping().getList("mapping.unit.Join.JoinKey");
-
-	List<String> rj_joinKeyTypes = VmXmlHandler.getInstance()
-			.getDeltaReverseJoinMapping().getList("mapping.unit.Join.type");
-
-	List<String> rj_nrDelta = VmXmlHandler.getInstance()
-			.getDeltaReverseJoinMapping().getList("mapping.unit.nrDelta");
-
-	int rjoins = VmXmlHandler.getInstance().getDeltaReverseJoinMapping()
-			.getInt("mapping.nrUnit");
+	
 
 
 	public ViewManager(Cluster currenCluster) {
@@ -960,51 +947,15 @@ public class ViewManager {
 		return true;
 	}
 
-	public void updateReverseJoin(JSONObject json) {
+	public void updateReverseJoin(JSONObject json, int cursor, int nrOfTables, String joinTable, List<String> baseTables, String joinKeyName,
+			String tableName, String keyspace, String aggKeyType, int column) {
 
-		// check for rj mappings after updating delta
-		List<String> rj_joinTables = VmXmlHandler.getInstance()
-				.getDeltaReverseJoinMapping().getList("mapping.unit.Join.name");
-
-		List<String> rj_joinKeys = VmXmlHandler.getInstance()
-				.getDeltaReverseJoinMapping()
-				.getList("mapping.unit.Join.JoinKey");
-
-		List<String> rj_joinKeyTypes = VmXmlHandler.getInstance()
-				.getDeltaReverseJoinMapping().getList("mapping.unit.Join.type");
-
-		List<String> rj_nrDelta = VmXmlHandler.getInstance()
-				.getDeltaReverseJoinMapping().getList("mapping.unit.nrDelta");
-
-		int rjoins = VmXmlHandler.getInstance().getDeltaReverseJoinMapping()
-				.getInt("mapping.nrUnit");
-
-		int cursor = 0;
-
-		// for each join
-		for (int j = 0; j < rjoins; j++) {
-
-			// basetables
-			int nrOfTables = Integer.parseInt(rj_nrDelta.get(j));
-
-			String joinTable = rj_joinTables.get(j);
-
+		
 			setReverseJoinName(joinTable);
-
-			// include only indices from 1 to nrOfTables
-			// get basetables from name of rj table
-			List<String> baseTables = Arrays.asList(
-					rj_joinTables.get(j).split("_")).subList(1, nrOfTables + 1);
-
-			String tableName = (String) json.get("table");
-			String keyspace = (String) json.get("keyspace");
-
-			int column = baseTables.indexOf(tableName) + 1;
 
 			StringBuilder selectQuery = new StringBuilder();
 
-			String joinKeyName = rj_joinKeys.get(cursor + column - 1);
-
+			
 			JSONObject data;
 
 
@@ -1019,7 +970,7 @@ public class ViewManager {
 			String joinKeyValue = null;
 			String oldJoinKeyValue = null;
 			
-			String aggKeyType = rj_joinKeyTypes.get(j);
+			
 			
 			switch(aggKeyType){
 			case "text":
@@ -1060,8 +1011,8 @@ public class ViewManager {
 			}
 
 			
-			System.out.println("oldjoinkeyvalue :"+oldJoinKeyValue);
-			System.out.println("oldjoinkeyvalue :"+joinKeyValue);
+//			System.out.println("oldjoinkeyvalue :"+oldJoinKeyValue);
+//			System.out.println("oldjoinkeyvalue :"+joinKeyValue);
 			
 			selectQuery.append("SELECT * FROM ").append(keyspace).append(".")
 			.append(joinTable).append(" WHERE ").append(joinKeyName)
@@ -1086,7 +1037,7 @@ public class ViewManager {
 
 			StringBuilder insertQuery = new StringBuilder("INSERT INTO ")
 			.append(keyspace).append(".").append(joinTable)
-			.append(" (").append(rj_joinKeys.get(cursor)).append(", ")
+			.append(" (").append(joinKeyName).append(", ")
 			.append("list_item" + column).append(") VALUES (")
 			.append(joinKeyValue).append(", ?);");
 
@@ -1173,7 +1124,7 @@ public class ViewManager {
 				
 				StringBuilder insertQuery2 = new StringBuilder("INSERT INTO ")
 				.append(keyspace).append(".").append(joinTable)
-				.append(" (").append(rj_joinKeys.get(cursor)).append(", ")
+				.append(" (").append(joinKeyName).append(", ")
 				.append("list_item" + column).append(") VALUES (")
 				.append(oldJoinKeyValue).append(", ?);");
 				
@@ -1287,12 +1238,6 @@ public class ViewManager {
 //				System.out.println("null");
 //			
 			
-			
-			
-			
-			cursor += nrOfTables;
-
-		}
 
 	}
 
@@ -2136,39 +2081,16 @@ public class ViewManager {
 		return true;
 	}
 
+	//JSONObject json, int cursor, int nrOfTables, String joinTable, List<String> baseTables, String joinKeyName,
+	//String tableName, String keyspace, String aggKeyType, int column
+	public void deleteReverseJoin(JSONObject json, int cursor, int nrOfTables, String joinTable, List<String> baseTables, String joinKeyName,
+			String tableName, String keyspace, String aggKeyType, int column) {
 
-	public void deleteReverseJoin(JSONObject json) {
-
-		// check for rj mappings after updating delta
-
-		int cursor = 0;
-
-		// for each join
-		for (int j = 0; j < rjoins; j++) {
-
-			// basetables
-			int nrOfTables = Integer.parseInt(rj_nrDelta.get(j));
-
-			String joinTable = rj_joinTables.get(j);
+		
 
 			setReverseJoinName(joinTable);
 
-			// include only indices from 1 to nrOfTables
-			// get basetables from name of rj table
-			List<String> baseTables = Arrays.asList(
-					rj_joinTables.get(j).split("_")).subList(1, nrOfTables + 1);
-
-			String tableName = (String) json.get("table");
-
-			String keyspace = (String) json.get("keyspace");
-
-			int column = baseTables.indexOf(tableName) + 1;
-
 			StringBuilder selectQuery = new StringBuilder();
-
-			String joinKeyName = rj_joinKeys.get(cursor + column - 1);
-
-			String aggKeyType = rj_joinKeyTypes.get(j);
 
 			String joinKeyValue = null;
 
@@ -2230,7 +2152,7 @@ public class ViewManager {
 
 			StringBuilder insertQuery = new StringBuilder("INSERT INTO ")
 			.append(keyspace).append(".").append(joinTable)
-			.append(" (").append(rj_joinKeys.get(cursor)).append(", ")
+			.append(" (").append(joinKeyName).append(", ")
 			.append("list_item" + column).append(") VALUES (")
 			.append(joinKeyValue).append(", ?);");
 
@@ -2324,7 +2246,7 @@ public class ViewManager {
 
 			}
 
-			cursor += nrOfTables;
+			
 
 			//get new deleted row from rj
 			StringBuilder selectQuery1 = new StringBuilder();
@@ -2371,8 +2293,6 @@ public class ViewManager {
 //			
 			
 			
-			
-		}
 
 	}
 
