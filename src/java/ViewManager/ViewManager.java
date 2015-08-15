@@ -38,11 +38,15 @@ public class ViewManager {
 	Cluster currentCluster = null;
 	private Row deltaUpdatedRow;
 	private Row deltaDeletedRow;
-
-	private Row reverseJoinUpdatesRow;
+	
 	private String reverseJoinTableName;
 
-	private Row toBeDeletedRowfromRJ;
+	private Row reverseJoinUpdateNewRow;
+	private Row reverseJoinUpadteOldRow;
+	
+	
+	private Row reverseJoinDeleteNewRow;
+	private Row revereJoinDeleteOldRow;
 
 
 
@@ -75,7 +79,7 @@ public class ViewManager {
 	}
 
 	public Row getrjUpdatedRow() {
-		return reverseJoinUpdatesRow;
+		return reverseJoinUpdateNewRow;
 	}
 
 	private void setReverseJoinName(String s) {
@@ -86,8 +90,8 @@ public class ViewManager {
 		return reverseJoinTableName;
 	}
 
-	private void setrjUpdatedRow(Row row) {
-		reverseJoinUpdatesRow = row;
+	private void setReverseJoinUpdatedNewRow(Row row) {
+		reverseJoinUpdateNewRow = row;
 	}
 
 	public boolean updateDelta(JSONObject json, int indexBaseTableName,
@@ -1012,11 +1016,56 @@ public class ViewManager {
 				data = (JSONObject) json.get("set_data");
 			}
 
-			String joinKeyValue = (String) data.get(joinKeyName);
+			String joinKeyValue = null;
+			String oldJoinKeyValue = null;
+			
+			String aggKeyType = rj_joinKeyTypes.get(j);
+			
+			switch(aggKeyType){
+			case "text":
 
+				joinKeyValue = ("'"+deltaUpdatedRow.getString(joinKeyName+"_new")+"'");
+				oldJoinKeyValue = ("'"+deltaUpdatedRow.getString(joinKeyName+"_old")+"'");
+
+
+				break;
+
+			case "int":
+
+				joinKeyValue =( ""+deltaUpdatedRow.getInt(joinKeyName+"_new"));
+				oldJoinKeyValue =( ""+deltaUpdatedRow.getInt(joinKeyName+"_old"));
+
+				break;
+
+			case "varint":
+
+				joinKeyValue =("" + deltaUpdatedRow.getVarint(joinKeyName+"_new"));
+				oldJoinKeyValue =("" + deltaUpdatedRow.getVarint(joinKeyName+"_old"));
+
+				break;
+
+			case "varchar":
+
+				joinKeyValue =("" + deltaUpdatedRow.getString(joinKeyName+"_new"));
+				oldJoinKeyValue =("" + deltaUpdatedRow.getString(joinKeyName+"_old"));
+
+				break;
+
+			case "float":
+
+				joinKeyValue =("" + deltaUpdatedRow.getFloat(joinKeyName+"_new"));
+				oldJoinKeyValue =("" + deltaUpdatedRow.getFloat(joinKeyName+"_old"));
+
+				break;
+			}
+
+			
+			System.out.println("oldjoinkeyvalue :"+oldJoinKeyValue);
+			System.out.println("oldjoinkeyvalue :"+joinKeyValue);
+			
 			selectQuery.append("SELECT * FROM ").append(keyspace).append(".")
 			.append(joinTable).append(" WHERE ").append(joinKeyName)
-			.append(" = ").append(data.get(joinKeyName)).append(";");
+			.append(" = ").append(joinKeyValue).append(";");
 
 			System.out.println(selectQuery);
 
@@ -1087,28 +1136,102 @@ public class ViewManager {
 			HashMap<String, String> myMap = new HashMap<String, String>();
 			String pk = myList.get(0);
 			myList.remove(0);
+			myList.remove(joinKeyValue);
 			myMap.put(pk, myList.toString());
 
 			// already exists
 			if (theRow != null) {
 
+				
+				
 				Map<String, String> tempMapImmutable = theRow.getMap(
 						"list_item" + column, String.class, String.class);
 
 				System.out.println(tempMapImmutable);
 
 				myMap.putAll(tempMapImmutable);
-
 				myMap.put(pk, myList.toString());
-
+				
+				
 			}
+			
+			//change in join key value
+			if(!oldJoinKeyValue.equals("null") &&!oldJoinKeyValue.equals("'null'") && !joinKeyValue.equals(oldJoinKeyValue)){
+				
+				
+				
+				StringBuilder selectQuery1 = new StringBuilder();
+				selectQuery1.append("SELECT * FROM ").append(keyspace).append(".")
+				.append(joinTable).append(" WHERE ").append(joinKeyName)
+				.append(" = ").append(oldJoinKeyValue).append(";");
+				
+				session = currentCluster.connect();
+				queryResults = session.execute(selectQuery1.toString());
+				
+				//The row that contains the old join key value
+				Row row_old_join_value =  queryResults.one();
+				
+				StringBuilder insertQuery2 = new StringBuilder("INSERT INTO ")
+				.append(keyspace).append(".").append(joinTable)
+				.append(" (").append(rj_joinKeys.get(cursor)).append(", ")
+				.append("list_item" + column).append(") VALUES (")
+				.append(oldJoinKeyValue).append(", ?);");
+				
+				Map<String, String> tempMapImmutable2 = row_old_join_value.getMap(
+						"list_item" + column, String.class, String.class);
+				
+				HashMap<String, String> myMap2 = new HashMap<String, String>();
+				
+				myMap2.putAll(tempMapImmutable2);
+
+				//delete this from the other row
+				myMap2.remove(pk);
+				
+				
+				PreparedStatement statement = session.prepare(insertQuery2
+						.toString());
+				BoundStatement boundStatement = new BoundStatement(statement);
+				session.execute(boundStatement.bind(myMap2));
+				
+				//check if all maps are empty --> remove the row
+				boolean allNull = true;
+				
+				if(myMap2.size()==0){
+
+					for(int k = 0; k< baseTables.size() && allNull;k++ ){
+						if(column != k+1 && row_old_join_value.getMap(
+								"list_item" + (k+1), String.class, String.class).size()!=0){
+							allNull = false;
+
+						}
+					}
+				}
+
+
+
+				//all entries are nulls
+				if(allNull){
+					StringBuilder deleteQuery = new StringBuilder("delete from ");
+					deleteQuery.append(keyspace).append(".").append(joinTable)
+					.append(" WHERE ").append(joinKeyName + " = ").append(oldJoinKeyValue)
+					.append(";");	
+
+					System.out.println(deleteQuery);
+
+					session = currentCluster.connect();
+					session.execute(deleteQuery.toString());
+				}
+				
+				
+			}
+			
+			setReverseJoinOldUpdateRow(theRow);
 
 			try {
 
 				session = currentCluster.connect();
 
 				System.out.println(insertQuery);
-
 				PreparedStatement statement = session.prepare(insertQuery
 						.toString());
 				BoundStatement boundStatement = new BoundStatement(statement);
@@ -1124,7 +1247,7 @@ public class ViewManager {
 			StringBuilder selectQuery1 = new StringBuilder();
 			selectQuery1.append("SELECT * FROM ").append(keyspace).append(".")
 			.append(joinTable).append(" WHERE ").append(joinKeyName)
-			.append(" = ").append(data.get(joinKeyName)).append(";");
+			.append(" = ").append(joinKeyValue).append(";");
 
 			System.out.println(selectQuery1);
 
@@ -1132,13 +1255,41 @@ public class ViewManager {
 
 			try {
 				session = currentCluster.connect();
-				setrjUpdatedRow(session.execute(selectQuery1.toString()).one());
+				setReverseJoinUpdatedNewRow(session.execute(selectQuery1.toString()).one());
 
 			} catch (Exception e) {
 				e.printStackTrace();
 
 			}
 
+			
+//			System.out.println("Old RJ Update Row: ");
+//			if(getReverseJoinUpdateOldRow()!=null){
+//			System.out.println("join key: "+getReverseJoinUpdateOldRow().getString(joinKeyName));
+//			System.out.println("listitem1: "+getReverseJoinUpdateOldRow().getMap(
+//					"list_item1", String.class, String.class).toString());
+//			System.out.println("listitem2: "+getReverseJoinUpdateOldRow().getMap(
+//					"list_item2", String.class, String.class).toString());
+//			}
+//			else
+//				System.out.println("null");
+//			
+//			
+//			System.out.println("New RJ Update Row: ");
+//			if(getrjUpdatedRow()!=null){
+//			System.out.println("join key: "+getrjUpdatedRow().getString(joinKeyName));
+//			System.out.println("listitem1: "+getrjUpdatedRow().getMap(
+//					"list_item1", String.class, String.class).toString());
+//			System.out.println("listitem2: "+getrjUpdatedRow().getMap(
+//					"list_item2", String.class, String.class).toString());
+//			}
+//			else
+//				System.out.println("null");
+//			
+			
+			
+			
+			
 			cursor += nrOfTables;
 
 		}
@@ -2075,7 +2226,7 @@ public class ViewManager {
 
 			Row theRow = queryResults.one();
 
-			setToBeDeletedReverseJRow(theRow);
+			setRevereJoinDeleteOldRow(theRow);
 
 			StringBuilder insertQuery = new StringBuilder("INSERT INTO ")
 			.append(keyspace).append(".").append(joinTable)
@@ -2175,20 +2326,62 @@ public class ViewManager {
 
 			cursor += nrOfTables;
 
-			//get deleted row from rj
+			//get new deleted row from rj
+			StringBuilder selectQuery1 = new StringBuilder();
+			selectQuery1.append("SELECT * FROM ").append(keyspace).append(".")
+			.append(joinTable).append(" WHERE ").append(joinKeyName)
+			.append(" = ").append(joinKeyValue).append(";");
+
+			System.out.println(selectQuery1);
+
+			session = null;
+
+			try {
+				session = currentCluster.connect();
+				setReverseJoinDeleteNewRow(session.execute(selectQuery1.toString()).one());
+
+			} catch (Exception e) {
+				e.printStackTrace();
+
+			}
 
 
-
+//			System.out.println("Old RJ delete Row: ");
+//			if(getRevereJoinDeleteOldRow()!=null){
+//			System.out.println("join key: "+getRevereJoinDeleteOldRow().getString(joinKeyName));
+//			System.out.println("listitem1: "+getRevereJoinDeleteOldRow().getMap(
+//					"list_item1", String.class, String.class).toString());
+//			System.out.println("listitem2: "+getRevereJoinDeleteOldRow().getMap(
+//					"list_item2", String.class, String.class).toString());
+//			}
+//			else
+//				System.out.println("null");
+//			
+//			
+//			System.out.println("New RJ delete Row: ");
+//			if(getReverseJoinDeleteNewRow()!=null){
+//			System.out.println("join key: "+getReverseJoinDeleteNewRow().getString(joinKeyName));
+//			System.out.println("listitem1: "+getReverseJoinDeleteNewRow().getMap(
+//					"list_item1", String.class, String.class).toString());
+//			System.out.println("listitem2: "+getReverseJoinDeleteNewRow().getMap(
+//					"list_item2", String.class, String.class).toString());
+//			}
+//			else
+//				System.out.println("null");
+//			
+			
+			
+			
 		}
 
 	}
 
-	private void setToBeDeletedReverseJRow(Row theRow) {
-		toBeDeletedRowfromRJ = theRow;
+	private void setReverseJoinOldUpdateRow(Row theRow) {
+		reverseJoinUpadteOldRow = theRow;
 	}
 
-	public Row getToBeDeletedReverseJRow(){
-		return toBeDeletedRowfromRJ;
+	public Row getReverseJoinUpdateOldRow(){
+		return reverseJoinUpadteOldRow;
 	}
 
 	public boolean deleteJoinController(Row deltaDeletedRow,
@@ -2199,7 +2392,7 @@ public class ViewManager {
 
 
 		//1. get row updated by reverse join
-		Row theRow = getToBeDeletedReverseJRow();
+		Row theRow = getReverseJoinUpdateOldRow();
 
 		//1.a get columns item_1, item_2
 		Map<String, String> tempMapImmutable1 = theRow.getMap(
@@ -2232,6 +2425,22 @@ public class ViewManager {
 
 		return true;
 
+	}
+
+	public Row getReverseJoinDeleteNewRow() {
+		return reverseJoinDeleteNewRow;
+	}
+
+	public void setReverseJoinDeleteNewRow(Row reverseJoinDeletedNewRow) {
+		this.reverseJoinDeleteNewRow = reverseJoinDeletedNewRow;
+	}
+
+	public Row getRevereJoinDeleteOldRow() {
+		return revereJoinDeleteOldRow;
+	}
+
+	public void setRevereJoinDeleteOldRow(Row revereJoinDeletedOldRow) {
+		this.revereJoinDeleteOldRow = revereJoinDeletedOldRow;
 	}
 
 
