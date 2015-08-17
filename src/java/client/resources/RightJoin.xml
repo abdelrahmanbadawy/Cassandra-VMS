@@ -8,7 +8,7 @@
 
 			<columnNumber>7</columnNumber>
 			<keyspace>test</keyspace>
-			<name>Right_Join_courses_student_faculty_faculty</name>
+			<name>right_join_courses_student_faculty_faculty</name>
 
 			<primaryKey>
 				<type>tuple&lt;varint,varint&gt;</type>
