@@ -532,7 +532,7 @@ public class ViewManagerController {
 					Row oldReverseRow = vm.getReverseJoinUpdateOldRow();
 					Row newReverseRow = vm.getReverseJoinUpdatedNewRow();
 					
-					vm.updateJoinAgg(deltaUpdatedRow,json,joinAggTableName,aggKey,aggKeyType,aggCol,aggColType,oldReverseRow,newReverseRow,leftTable);
+					vm.updateJoinAgg(deltaUpdatedRow,json,joinAggTableName,aggKey,aggKeyType,aggCol,aggColType,oldReverseRow,newReverseRow,leftTable,false);
 				
 				}
 			} else {

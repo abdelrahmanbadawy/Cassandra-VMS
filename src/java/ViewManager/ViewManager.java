@@ -2916,7 +2916,7 @@ public class ViewManager {
 		this.revereJoinDeleteOldRow = revereJoinDeletedOldRow;
 	}
 
-	public boolean updateJoinAgg(Row deltaUpdatedRow, JSONObject json, String joinAggTableName, String aggKey, String aggKeyType, String aggCol, String aggColType, Row oldReverseRow, Row newReverseRow, boolean left) {
+	public boolean updateJoinAgg(Row deltaUpdatedRow, JSONObject json, String joinAggTableName, String aggKey, String aggKeyType, String aggCol, String aggColType, Row oldReverseRow, Row newReverseRow, boolean left,boolean override) {
 
 
 		// 1. check if the aggKey has been updated or not from delta Stream
@@ -3058,7 +3058,7 @@ public class ViewManager {
 			return true;
 
 		// 2. if AggKey hasnt been updated ,first insertion of aggCol or update of AggCol
-		if (sameKeyValue && !sameAggColValue) {
+		if ((sameKeyValue && !sameAggColValue) || override) {
 
 			// 2.a select from joinAgg table row with AggKey as PK
 
@@ -3167,20 +3167,20 @@ public class ViewManager {
 				e.printStackTrace();
 				return false;
 			}
-		} else if ((!sameKeyValue)) {
-			/*
+		} else if ((!sameKeyValue) && !override) {
+
 			// 1. retrieve old agg key value from delta stream to retrieve the
-			// correct row from preagg
+			// correct row from joinpreagg
 			// was retrieved above in aggKeyValue_old variable
 
 			// 2. select row with old aggkeyValue from delta stream
 			StringBuilder selectPreaggQuery1 = new StringBuilder("SELECT ")
-					.append("list_item, ").append("sum, ").append("count, ")
-					.append("average, min, max");
+			.append("sum, ").append("count, ")
+			.append("average, min, max");
 			selectPreaggQuery1.append(" FROM ")
-					.append((String) json.get("keyspace")).append(".")
-					.append(preaggTable).append(" where ")
-					.append(aggKey + " = ").append(aggKeyValue_old).append(";");
+			.append((String) json.get("keyspace")).append(".")
+			.append(joinAggTableName).append(" where ")
+			.append(aggKey + " = ").append(aggKeyValue_old).append(";");
 
 			System.out.println(selectPreaggQuery1);
 
@@ -3204,52 +3204,63 @@ public class ViewManager {
 				// if map.size is larger than 1 then iterate over map & delete
 				// desired entry with the correct pk as key
 
-				Map<String, String> tempMapImmutable = theRow.getMap(
-						"list_item", String.class, String.class);
+				Map<String, String> myMap1 = new HashMap<String, String>();
+				Map<String, String> myMap2 = new HashMap<String, String>();
+				if(left){
+					myMap1.putAll(oldReverseRow.getMap(
+							"list_item1", String.class, String.class));
+					myMap2.putAll(newReverseRow.getMap(
+							"list_item1", String.class, String.class));
+				}else{
+					myMap1.putAll(oldReverseRow.getMap(
+							"list_item2", String.class, String.class));
+					myMap2.putAll(newReverseRow.getMap(
+							"list_item2", String.class, String.class));
+				}
 
-				System.out.println(tempMapImmutable);
-				Map<String, String> myMap = new HashMap<String, String>();
-				myMap.putAll(tempMapImmutable);
-
-				if (myMap.size() == 1) {
+				if (myMap1.size() == 1) {
 					// 4. delete the whole row
 					deleteEntireRowWithPK((String) json.get("keyspace"),
-							preaggTable, aggKey, aggKeyValue_old);
+							joinAggTableName, aggKey, aggKeyValue_old);
 
 					// 4.a perform a new insertion with new values
-					updatePreaggregation(deltaUpdatedRow, aggKey, aggKeyType,
-							json, preaggTable, baseTablePrimaryKey, aggCol,
-							aggColType, true);
+					updateJoinAgg(deltaUpdatedRow,json, joinAggTableName,aggKey, aggKeyType,aggCol
+							,aggColType,oldReverseRow,newReverseRow,left,true);
 
 				} else {
 
-					// 5. retrieve the pk value that has to be removed from the
-					// map
-					String pk = myList.get(0);
-					myList.remove(0);
-
-					// 5.a remove entry from map with that pk
-					myMap.remove(pk);
 
 					// 5.c adjust sum,count,average values
-					count = myMap.size();
+					count = myMap2.size();
 					sum = theRow.getInt("sum") - aggColValue_old;
 					average = sum / count;
 
 					max = -99999999;
 					min = 999999999;
 
-					for (Map.Entry<String, String> entry : myMap.entrySet()) {
+
+					List<Definition> def = colDef.asList();
+					int aggColIndexInList = 0;
+					for (int i = 0; i < def.size(); i++) {
+
+						if (def.get(i).getName().contentEquals(aggCol + "_new")) {
+							aggColIndexInList = i;
+						}
+					}
+
+
+					for (Map.Entry<String, String> entry : myMap2.entrySet()) {
 						String list = entry.getValue().replaceAll("\\[", "")
 								.replaceAll("\\]", "");
 						String[] listArray = list.split(",");
+
 						if (Float.valueOf(listArray[aggColIndexInList - 1]) < min)
 							min = Float
-									.valueOf(listArray[aggColIndexInList - 1]);
+							.valueOf(listArray[aggColIndexInList - 1]);
 
 						if (Float.valueOf(listArray[aggColIndexInList - 1]) > max)
 							max = Float
-									.valueOf(listArray[aggColIndexInList - 1]);
+							.valueOf(listArray[aggColIndexInList - 1]);
 					}
 
 					// 6. Execute insertion statement of the row with the
@@ -3258,12 +3269,12 @@ public class ViewManager {
 					StringBuilder insertQueryAgg = new StringBuilder(
 							"INSERT INTO ");
 					insertQueryAgg.append((String) json.get("keyspace"))
-							.append(".").append(preaggTable).append(" ( ")
-							.append(aggKey + ", ").append("list_item, ")
-							.append("sum, count, average, min, max")
-							.append(") VALUES (")
-							.append(aggKeyValue_old + ", ")
-							.append("?, ?, ?, ?, ?, ?);");
+					.append(".").append(joinAggTableName).append(" ( ")
+					.append(aggKey + ", ")
+					.append("sum, count, average, min, max")
+					.append(") VALUES (")
+					.append(aggKeyValue_old + ", ")
+					.append("?, ?, ?, ?, ?);");
 
 					Session session1 = currentCluster.connect();
 
@@ -3271,19 +3282,16 @@ public class ViewManager {
 							.prepare(insertQueryAgg.toString());
 					BoundStatement boundStatement = new BoundStatement(
 							statement1);
-					session1.execute(boundStatement.bind(myMap, (int) sum,
+					session1.execute(boundStatement.bind((int) sum,
 							(int) count, average, min, max));
 					System.out.println(boundStatement.toString());
 
 					// perform a new insertion for the new aggkey given in json
-					updatePreaggregation(deltaUpdatedRow, aggKey, aggKeyType,
-							json, preaggTable, baseTablePrimaryKey, aggCol,
-							aggColType, true);
+					updateJoinAgg(deltaUpdatedRow,json, joinAggTableName,aggKey, aggKeyType,aggCol
+							,aggColType,oldReverseRow,newReverseRow,left,true);
 				}
 
 			}
-
-		}*/
 
 		}
 		return true;
