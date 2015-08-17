@@ -261,7 +261,8 @@ public class Client {
 
 		return  createSelectViewTable() && createDeltaViewTable() && createPreAggregationViewTable() 
 				&& createReverseJoinViewTable() && createLeftJoinViewTable() && createRightJoinViewTable()
-				&& createInnerJoinViewTable() && createJoinPreAggregationViewTable();
+				&& createInnerJoinViewTable() && createJoinPreAggregationViewTable()
+				&& createHavingAggView();
 	}
 
 
@@ -755,6 +756,71 @@ public class Client {
 		List<String> colName = XmlHandler.getInstance().getJoinPreagg()
 				.getList("dbSchema.tableDefinition.column.name");
 		List<String> colType = XmlHandler.getInstance().getJoinPreagg()
+				.getList("dbSchema.tableDefinition.column.type");
+
+
+		int cursor = 0;
+
+		// preAgg view
+		for (int i = 0; i < nrTables; i++) {
+
+			StringBuilder createQuery = new StringBuilder();
+			createQuery.append("CREATE TABLE IF NOT EXISTS  ")
+			.append(keyspace.get(i)).append(".")
+			.append(tableName.get(i) + "(")
+			.append(primarykeyName.get(i) + " ")
+			.append(primarykeyType.get(i)).append(",");
+
+			for (int j = 0; j < Integer.parseInt(nrColumns.get(i)); j++) {
+				createQuery.append(colName.get(cursor + j) + " ").append(
+						colType.get(cursor + j) + ",");
+			}
+
+			createQuery.append(" PRIMARY KEY (").append(
+					primarykeyName.get(i) + "));");
+
+
+			cursor += Integer.parseInt(nrColumns.get(i));
+
+
+			Session session = null;
+
+			System.out.println(createQuery.toString());
+
+			try {
+				session = currentCluster.connect();
+				session.execute(createQuery.toString());
+			} catch (Exception e) {
+				e.printStackTrace();
+				return false;
+			}
+
+		}
+
+		return true;
+	}
+	
+	public static boolean createHavingAggView() {
+
+		List<String> keyspace = XmlHandler.getInstance()
+				.getHavingAgg()
+				.getList("dbSchema.tableDefinition.keyspace");
+		List<String> tableName = XmlHandler.getInstance()
+				.getHavingAgg()
+				.getList("dbSchema.tableDefinition.name");
+		Integer nrTables = XmlHandler.getInstance().getHavingAgg()
+				.getInt("dbSchema.tableNumber");
+		List<String> primarykeyType = XmlHandler.getInstance()
+				.getHavingAgg()
+				.getList("dbSchema.tableDefinition.primaryKey.type");
+		List<String> primarykeyName = XmlHandler.getInstance()
+				.getHavingAgg()
+				.getList("dbSchema.tableDefinition.primaryKey.name");
+		List<String> nrColumns = XmlHandler.getInstance().getHavingAgg()
+				.getList("dbSchema.tableDefinition.columnNumber");
+		List<String> colName = XmlHandler.getInstance().getHavingAgg()
+				.getList("dbSchema.tableDefinition.column.name");
+		List<String> colType = XmlHandler.getInstance().getHavingAgg()
 				.getList("dbSchema.tableDefinition.column.type");
 
 

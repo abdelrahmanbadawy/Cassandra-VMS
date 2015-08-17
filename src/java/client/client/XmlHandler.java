@@ -16,6 +16,7 @@ public class XmlHandler {
 	private static XMLConfiguration RightJViewConfig;
 	private static XMLConfiguration InnerJViewConfig;
 	private static XMLConfiguration joinPreAggViewConfig;
+	private static XMLConfiguration havingAggConfig;
 	
 	private static XmlHandler _instance = null;
 
@@ -50,6 +51,9 @@ public class XmlHandler {
 		joinPreAggViewConfig = new XMLConfiguration();
 		joinPreAggViewConfig.setDelimiterParsingDisabled(true);
 		
+		havingAggConfig = new XMLConfiguration();
+		havingAggConfig.setDelimiterParsingDisabled(true);
+		
 		try {
 			databaseConfig.load("client/resources/DatabaseConfig.xml");
 			selectViewConfig.load("client/resources/SelectViewConfig.xml");
@@ -61,6 +65,7 @@ public class XmlHandler {
 			RightJViewConfig.load("client/resources/RightJoin.xml");
 			InnerJViewConfig.load("client/resources/InnerJoin.xml");
 			joinPreAggViewConfig.load("client/resources/JoinPreaggregation.xml");
+			havingAggConfig.load("client/resources/HavingAgg.xml");
 			
 		} catch (ConfigurationException e) {
 			e.printStackTrace();
@@ -113,6 +118,10 @@ public class XmlHandler {
 	
 	public XMLConfiguration getJoinPreagg(){
 		return joinPreAggViewConfig;
+	}
+	
+	public XMLConfiguration getHavingAgg(){
+		return havingAggConfig;
 	}
 
 
