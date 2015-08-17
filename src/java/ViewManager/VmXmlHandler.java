@@ -12,6 +12,7 @@ public class VmXmlHandler {
 	private static XMLConfiguration leftJoinSchema;
 	private static XMLConfiguration rightJoinSchema;
 	private static XMLConfiguration innerJoinSchema;
+	private static XMLConfiguration joinAggMapping;
 	
 	
 	private static VmXmlHandler _instance = null;
@@ -38,6 +39,9 @@ public class VmXmlHandler {
 		innerJoinSchema = new XMLConfiguration();
 		innerJoinSchema.setDelimiterParsingDisabled(true);
 		
+		joinAggMapping = new XMLConfiguration();
+		joinAggMapping.setDelimiterParsingDisabled(true);
+		
 		
 		try {
 			deltaPreaggMapping.load("ViewManager/properties/Delta_PreAgg_mapping.xml");
@@ -47,6 +51,7 @@ public class VmXmlHandler {
 			leftJoinSchema.load("ViewManager/properties/leftJoinSchema.xml");
 			rightJoinSchema.load("ViewManager/properties/rightJoinSchema.xml");
 			innerJoinSchema.load("ViewManager/properties/innerJoinSchema.xml");
+			joinAggMapping.load("ViewManager/properties/Join_Agg_Mapping.xml");
 		} catch (ConfigurationException e) {
 			e.printStackTrace();
 		}
@@ -86,6 +91,10 @@ public class VmXmlHandler {
 	
 	public XMLConfiguration getiJSchema(){
 		return innerJoinSchema;
+	}
+	
+	public XMLConfiguration getJoinAggMapping(){
+		return joinAggMapping;
 	}
 
 }

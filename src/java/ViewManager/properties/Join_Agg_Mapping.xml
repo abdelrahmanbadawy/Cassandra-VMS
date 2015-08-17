@@ -1,0 +1,24 @@
+<?xml version="1.1" encoding="UTF-8"?>
+
+<setup>
+	<mapping>
+		<nrUnit>1</nrUnit>
+		
+		<unit>
+			<reverseJoin>RJ_courses_student_faculty_faculty</reverseJoin>
+			<nrJoinAgg>1</nrJoinAgg>
+			<joinAgg>
+				<basetable>courses</basetable>
+				<name>join_preagg_agg_courses_faculty_ects</name>
+				<leftTable>true</leftTable>
+				<rightTable>false</rightTable>
+				<AggKey>faculty</AggKey>
+				<AggKeyType>text</AggKeyType>
+				<AggCol>ects</AggCol>
+				<AggColType>varint</AggColType>
+			</joinAgg>
+			
+		</unit>
+		
+	</mapping>
+</setup>

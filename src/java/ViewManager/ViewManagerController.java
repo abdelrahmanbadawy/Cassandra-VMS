@@ -26,22 +26,13 @@ public class ViewManagerController {
 	List<String> pkName;
 	List<String> deltaTableName;
 	List<String> reverseTableName;
+	List<String> rj_joinTables ;
+	List<String> rj_joinKeys ;
+	List<String> rj_joinKeyTypes;
+	List<String> rj_nrDelta ;
+	int rjoins;
 
-	List<String> rj_joinTables = VmXmlHandler.getInstance()
-			.getDeltaReverseJoinMapping().getList("mapping.unit.Join.name");
-
-	List<String> rj_joinKeys = VmXmlHandler.getInstance()
-			.getDeltaReverseJoinMapping().getList("mapping.unit.Join.JoinKey");
-
-	List<String> rj_joinKeyTypes = VmXmlHandler.getInstance()
-			.getDeltaReverseJoinMapping().getList("mapping.unit.Join.type");
-
-	List<String> rj_nrDelta = VmXmlHandler.getInstance()
-			.getDeltaReverseJoinMapping().getList("mapping.unit.nrDelta");
-
-	int rjoins = VmXmlHandler.getInstance().getDeltaReverseJoinMapping()
-			.getInt("mapping.nrUnit");
-
+	
 	public ViewManagerController() {
 
 		connectToCluster();
@@ -72,7 +63,23 @@ public class ViewManagerController {
 				.getList("mapping.unit.deltaTable");
 		reverseTableName = VmXmlHandler.getInstance().getRjJoinMapping()
 				.getList("mapping.unit.reverseJoin");
+		
+		rj_joinTables = VmXmlHandler.getInstance()
+				.getDeltaReverseJoinMapping().getList("mapping.unit.Join.name");
+
+		rj_joinKeys = VmXmlHandler.getInstance()
+				.getDeltaReverseJoinMapping().getList("mapping.unit.Join.JoinKey");
+
+		rj_joinKeyTypes = VmXmlHandler.getInstance()
+				.getDeltaReverseJoinMapping().getList("mapping.unit.Join.type");
+
+		rj_nrDelta = VmXmlHandler.getInstance()
+				.getDeltaReverseJoinMapping().getList("mapping.unit.nrDelta");
+
+		rjoins = VmXmlHandler.getInstance().getDeltaReverseJoinMapping()
+				.getInt("mapping.nrUnit");
 	}
+	
 
 	private void connectToCluster() {
 
@@ -479,6 +486,61 @@ public class ViewManagerController {
 			}
 
 			// END OF UPATE JOIN TABLES
+			
+			//=====================================================================
+			//Update JoinPreagg
+			
+			if (position != -1) {
+
+				String temp = "mapping.unit(";
+				temp += Integer.toString(position);
+				temp += ")";
+
+				int nrJoinAgg = VmXmlHandler.getInstance().getJoinAggMapping()
+						.getInt(temp + ".nrJoinAgg");
+
+				for (int i = 0; i < nrJoinAgg; i++) {
+
+					String s = temp + ".joinAgg(" + Integer.toString(i) + ")";
+					
+					String basetable = VmXmlHandler.getInstance()
+							.getJoinAggMapping().getString(s + ".basetable");
+				
+					
+					tableName = (String) json.get("table");
+					if(!basetable.equals(tableName))
+						continue;
+					
+					String joinAggTableName = VmXmlHandler.getInstance()
+							.getJoinAggMapping().getString(s + ".name");
+					Boolean leftTable = VmXmlHandler.getInstance()
+							.getJoinAggMapping().getBoolean(s + ".leftTable");
+					Boolean rightTable = VmXmlHandler.getInstance()
+							.getJoinAggMapping().getBoolean(s + ".rightTable");
+					String aggKey = VmXmlHandler.getInstance()
+							.getJoinAggMapping().getString(s + ".AggKey");
+					String aggKeyType = VmXmlHandler.getInstance()
+							.getJoinAggMapping().getString(s + ".AggKeyType");
+
+					String aggCol = VmXmlHandler.getInstance()
+							.getJoinAggMapping().getString(s + ".AggCol");
+					String aggColType = VmXmlHandler.getInstance()
+							.getJoinAggMapping().getString(s + ".AggColType");
+
+
+
+					Row oldReverseRow = vm.getReverseJoinUpdateOldRow();
+					Row newReverseRow = vm.getReverseJoinUpdatedNewRow();
+					
+					vm.updateJoinAgg(deltaUpdatedRow,json,joinAggTableName,aggKey,aggKeyType,aggCol,aggColType,oldReverseRow,newReverseRow,leftTable);
+				
+				}
+			} else {
+				System.out.println("No agg table for this reverse join table "
+						+ updatedReverseJoin + " available");
+			}
+			
+			// END OF UPDATE JoinPreag
 
 			cursor += nrOfTables;
 		}
