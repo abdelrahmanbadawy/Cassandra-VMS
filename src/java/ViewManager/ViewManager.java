@@ -45,7 +45,6 @@ public class ViewManager {
 	private Row toBeDeletedRowfromRJ;
 
 
-
 	List<String> rj_joinTables = VmXmlHandler.getInstance()
 			.getDeltaReverseJoinMapping().getList("mapping.unit.Join.name");
 
