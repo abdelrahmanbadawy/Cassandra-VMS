@@ -23,9 +23,9 @@
 				<nrAnd>1</nrAnd>
 				<And>
 					<selectionCol>ects</selectionCol>
-					<aggFct>sum</aggFct>
+					<aggFct>max</aggFct>
 					<type>varint</type>
-					<operation>=</operation>
+					<operation>></operation>
 					<value>10</value>
 				</And>
 			</Cond>

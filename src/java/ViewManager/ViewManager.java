@@ -42,6 +42,8 @@ public class ViewManager {
 	private String reverseJoinTableName;
 
 	private Row updatedPreaggRow;
+	private Row updatedPreaggRowDeleted;
+	private Row updatedPreaggRowChangeAK;
 
 	private Row reverseJoinUpdateNewRow;
 	private Row reverseJoinUpadteOldRow;
@@ -90,6 +92,14 @@ public class ViewManager {
 
 	private void setUpdatedPreaggRow(Row row) {
 		updatedPreaggRow = row;
+	}
+
+	public Row getUpdatedPreaggRowChangeAK() {
+		return updatedPreaggRowChangeAK;
+	}
+
+	private void setUpdatedPreaggRowChangeAK(Row row) {
+		updatedPreaggRowChangeAK = row;
 	}
 
 	public boolean updateDelta(JSONObject json, int indexBaseTableName,
@@ -560,7 +570,7 @@ public class ViewManager {
 	public boolean updatePreaggregation(Row deltaUpdatedRow, String aggKey,
 			String aggKeyType, JSONObject json, String preaggTable,
 			String baseTablePrimaryKey, String aggCol, String aggColType,
-			boolean override) {
+			boolean override,boolean mapSize1) {
 
 		// 1. check if the aggKey has been updated or not from delta Stream
 		// given as input
@@ -836,6 +846,36 @@ public class ViewManager {
 						(int) count, average, min, max));
 				System.out.println(boundStatement.toString());
 
+				//=======================================
+				//4.Retrieve row from preagg
+
+				StringBuilder selectPreaggQuery2 = new StringBuilder("SELECT ")
+				.append(aggKey+", ")
+				.append("list_item, sum, ").append("count, ")
+				.append("average, min, max ");
+				selectPreaggQuery2.append(" from ")
+				.append((String) json.get("keyspace")).append(".")
+				.append(preaggTable).append(" where ")
+				.append(aggKey + " = ").append(aggKeyValue).append(";");
+
+				System.out.println(selectPreaggQuery2);
+
+				try {
+					Session session = currentCluster.connect();
+					setUpdatedPreaggRow(session.execute(selectPreaggQuery2.toString()).one());
+					if(!override){
+						setUpdatedPreaggRowChangeAK(null);
+						setUpdatedPreaggRowDeleted(null);
+					}
+					if(!mapSize1){
+						setUpdatedPreaggRowDeleted(null);
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+					return false;
+				}
+
+
 			} catch (Exception e) {
 				e.printStackTrace();
 				return false;
@@ -885,14 +925,40 @@ public class ViewManager {
 				myMap.putAll(tempMapImmutable);
 
 				if (myMap.size() == 1) {
+					
+					
+					//Selection to set PreaggRowDeleted
+					
+					StringBuilder selectPreaggQuery2 = new StringBuilder("SELECT ")
+					.append(aggKey +",")
+					.append("list_item, sum, ").append("count, ")
+					.append("average, min, max ");
+					selectPreaggQuery2.append(" FROM ")
+					.append((String) json.get("keyspace")).append(".")
+					.append(preaggTable).append(" where ")
+					.append(aggKey + " = ").append(aggKeyValue_old).append(";");
+
+					System.out.println(selectPreaggQuery2);
+
+					try {
+
+						Session session = currentCluster.connect();
+						setUpdatedPreaggRowDeleted((session.execute(selectPreaggQuery2.toString()).one()));
+
+					} catch (Exception e) {
+						e.printStackTrace();
+						return false;
+					}
+					
 					// 4. delete the whole row
 					deleteEntireRowWithPK((String) json.get("keyspace"),
 							preaggTable, aggKey, aggKeyValue_old);
 
+					
 					// 4.a perform a new insertion with new values
 					updatePreaggregation(deltaUpdatedRow, aggKey, aggKeyType,
 							json, preaggTable, baseTablePrimaryKey, aggCol,
-							aggColType, true);
+							aggColType, true,true);
 
 				} else {
 
@@ -951,7 +1017,30 @@ public class ViewManager {
 					// perform a new insertion for the new aggkey given in json
 					updatePreaggregation(deltaUpdatedRow, aggKey, aggKeyType,
 							json, preaggTable, baseTablePrimaryKey, aggCol,
-							aggColType, true);
+							aggColType, true,false);
+
+					//Selection to set updatedRow
+
+					StringBuilder selectPreaggQuery2 = new StringBuilder("SELECT ")
+					.append(aggKey +",")
+					.append("list_item, sum, ").append("count, ")
+					.append("average, min, max ");
+					selectPreaggQuery2.append(" FROM ")
+					.append((String) json.get("keyspace")).append(".")
+					.append(preaggTable).append(" where ")
+					.append(aggKey + " = ").append(aggKeyValue_old).append(";");
+
+					System.out.println(selectPreaggQuery2);
+
+					try {
+
+						Session session = currentCluster.connect();
+						setUpdatedPreaggRowChangeAK((session.execute(selectPreaggQuery2.toString()).one()));
+						
+					} catch (Exception e) {
+						e.printStackTrace();
+						return false;
+					}
 				}
 
 			}
@@ -3525,17 +3614,79 @@ public class ViewManager {
 		return true;
 	}
 
-	public void updateHaving(Row deltaUpdatedRow2, String string,
-			String havingTable, String baseTablePrimaryKey) {
-		// TODO Auto-generated method stub
+	public boolean updateHaving(Row deltaUpdatedRow, String keyspace,
+			String havingTable, Row preagRow) {
 
+		Map<String, String> myMap = new HashMap<String, String>();
+
+		myMap.putAll(preagRow.getMap(
+				"list_item", String.class, String.class));
+
+		float min = preagRow.getFloat("min");
+		float max = preagRow.getFloat("max");
+		float average = preagRow.getFloat("average");
+		int count = preagRow.getInt("count");
+		int sum = preagRow.getInt("sum");
+
+		List<Definition> def= preagRow.getColumnDefinitions().asList();
+		String pkName = def.get(0).getName();
+		String pkType = def.get(0).getType().toString();
+		String pkVAlue = "";
+
+		switch(pkType){
+
+		case "int":
+			pkVAlue = Integer.toString(preagRow.getInt(pkName));
+			break;
+
+		case "float":
+			pkVAlue = Float.toString(preagRow.getFloat(pkName));
+			break;
+
+		case "varint":
+			pkVAlue = preagRow.getVarint(pkName).toString();
+			break;
+
+		case "varchar":
+			pkVAlue =  preagRow.getString(pkName);
+			break;
+
+		case "text":
+			pkVAlue =  preagRow.getString(pkName);
+			break;
+		}
+
+
+		try {
+			// 1. execute the insertion
+			StringBuilder insertQuery = new StringBuilder("INSERT INTO ");
+			insertQuery.append(keyspace).append(".").append(havingTable)
+			.append(" (")
+			.append(pkName + ", ")
+			.append("list_item, ").append("sum, ")
+			.append("count, average, min, max ").append(") VALUES (")
+			.append("?, ?, ?, ?, ?, ?, ?);");
+
+			System.out.println(insertQuery);
+
+			Session session1 = currentCluster.connect();
+
+			PreparedStatement statement1 = session1
+					.prepare(insertQuery.toString());
+			BoundStatement boundStatement = new BoundStatement(
+					statement1);
+			session1.execute(boundStatement.bind(pkVAlue,myMap,(int) sum,
+					(int) count, average, min, max));
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+
+		return true;
 	}
 
-	public void deleteRowHaving(Row deltaUpdatedRow2, String string,
-			String havingTable, String baseTablePrimaryKey, JSONObject json) {
-		// TODO Auto-generated method stub
-	}
-
+	
 	public boolean deleteFromJoinAgg(Row deltaDeletedRow,JSONObject json,String joinAggTableName,String aggKey,String aggKeyType,String aggCol,String aggColType,Row oldReverseRow,Row newReverseRow,Boolean leftTable){
 
 		float count = 0;
@@ -3704,6 +3855,66 @@ public class ViewManager {
 	public void setReverseJoinUpdatedOldRow_changeJoinKey(
 			Row reverseJoinUpdatedOldRow_changeJoinKey) {
 		this.reverseJoinUpdatedOldRow_changeJoinKey = reverseJoinUpdatedOldRow_changeJoinKey;
+	}
+
+	public boolean deleteRowHaving(Row deltaUpdatedRow, String keyspace,
+			String havingTable, Row preagRow) {
+
+		List<Definition> def= preagRow.getColumnDefinitions().asList();
+		String pkName = def.get(0).getName();
+		String pkType = def.get(0).getType().toString();
+		String pkVAlue = "";
+
+		switch(pkType){
+
+		case "int":
+			pkVAlue = Integer.toString(preagRow.getInt(pkName));
+			break;
+
+		case "float":
+			pkVAlue = Float.toString(preagRow.getFloat(pkName));
+			break;
+
+		case "varint":
+			pkVAlue = preagRow.getVarint(pkName).toString();
+			break;
+
+		case "varchar":
+			pkVAlue = preagRow.getString(pkName);
+			break;
+
+		case "text":
+			pkVAlue = preagRow.getString(pkName);
+			break;
+		}
+
+
+		StringBuilder deleteQuery = new StringBuilder("delete from ");
+		deleteQuery.append(keyspace).append(".").append(havingTable)
+		.append(" WHERE ").append(pkName + " = ").append("'"+pkVAlue+"'")
+		.append(";");
+
+		System.out.println(deleteQuery);
+
+		try {
+
+			Session session = currentCluster.connect();
+			session.execute(deleteQuery.toString());
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+		
+		return true;
+	}
+
+	public Row getUpdatedPreaggRowDeleted() {
+		return updatedPreaggRowDeleted;
+	}
+
+	public void setUpdatedPreaggRowDeleted(Row updatedPreaggRowDeleted) {
+		this.updatedPreaggRowDeleted = updatedPreaggRowDeleted;
 	}
 
 }
