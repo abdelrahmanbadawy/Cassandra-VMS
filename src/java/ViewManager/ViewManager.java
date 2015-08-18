@@ -1166,6 +1166,8 @@ public class ViewManager {
 					}
 				}
 			}
+			else
+				allNull = false;
 
 			// all entries are nulls
 			if (allNull) {
