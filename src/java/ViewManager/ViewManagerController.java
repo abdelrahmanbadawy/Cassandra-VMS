@@ -1024,6 +1024,63 @@ public class ViewManagerController {
 					}
 
 					// END OF DELETE FROM JOIN TABLES
+					
+					// delete operations on agg of joins based on each deletion update of reverse join
+					
+					//Update JoinPreagg
+
+					if (position != -1) {
+
+						String temp = "mapping.unit(";
+						temp += Integer.toString(position);
+						temp += ")";
+
+						int nrJoinAgg = VmXmlHandler.getInstance().getJoinAggMapping()
+								.getInt(temp + ".nrJoinAgg");
+
+						for (int i = 0; i < nrJoinAgg; i++) {
+
+							String s = temp + ".joinAgg(" + Integer.toString(i) + ")";
+
+							String basetable = VmXmlHandler.getInstance()
+									.getJoinAggMapping().getString(s + ".basetable");
+
+
+							tableName = (String) json.get("table");
+							if(!basetable.equals(tableName))
+								continue;
+
+							String joinAggTableName = VmXmlHandler.getInstance()
+									.getJoinAggMapping().getString(s + ".name");
+							Boolean leftTable = VmXmlHandler.getInstance()
+									.getJoinAggMapping().getBoolean(s + ".leftTable");
+							Boolean rightTable = VmXmlHandler.getInstance()
+									.getJoinAggMapping().getBoolean(s + ".rightTable");
+							String aggKey = VmXmlHandler.getInstance()
+									.getJoinAggMapping().getString(s + ".AggKey");
+							String aggKeyType1 = VmXmlHandler.getInstance()
+									.getJoinAggMapping().getString(s + ".AggKeyType");
+
+							String aggCol = VmXmlHandler.getInstance()
+									.getJoinAggMapping().getString(s + ".AggCol");
+							String aggColType = VmXmlHandler.getInstance()
+									.getJoinAggMapping().getString(s + ".AggColType");
+
+
+
+							Row oldReverseRow = vm.getReverseJoinUpdateOldRow();
+							Row newReverseRow = vm.getReverseJoinUpdatedNewRow();
+
+							vm.deleteFromJoinAgg(deltaDeletedRow,json,joinAggTableName,aggKey,aggKeyType1,aggCol,aggColType,oldReverseRow,newReverseRow,leftTable);
+
+						}
+					} else {
+						System.out.println("No agg table for this reverse join table "
+								+ updatedReverseJoin + " available");
+					}
+
+					// END OF UPDATE JoinPreag
+
 
 					cursor += nrOfTables;
 				}

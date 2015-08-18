@@ -3317,6 +3317,167 @@ public class ViewManager {
 	public void deleteRowHaving(Row deltaUpdatedRow2, String string,
 			String havingTable, String baseTablePrimaryKey, JSONObject json) {
 		// TODO Auto-generated method stub
+	}
+	
+	public boolean deleteFromJoinAgg(Row deltaDeletedRow,JSONObject json,String joinAggTableName,String aggKey,String aggKeyType,String aggCol,String aggColType,Row oldReverseRow,Row newReverseRow,Boolean leftTable){
 		
-	}		
+		float count = 0;
+		float sum = 0;
+		float average = 0;
+		float min = 9999999;
+		float max = -9999999;
+
+		// 1. retrieve agg key value from delta stream to retrieve the correct
+		// row from preagg
+		String aggKeyValue = "";
+		float aggColValue = 0;
+
+		switch (aggKeyType) {
+
+		case "text":
+			aggKeyValue = "'" + deltaDeletedRow.getString(aggKey + "_new")
+			+ "'";
+			break;
+
+		case "int":
+			aggKeyValue = "" + deltaDeletedRow.getInt(aggKey + "_new") + "";
+			break;
+
+		case "varint":
+			aggKeyValue = "" + deltaDeletedRow.getVarint(aggKey + "_new") + "";
+			break;
+
+		case "float":
+			aggKeyValue = "" + deltaDeletedRow.getFloat(aggKey + "_new") + "";
+			break;
+		}
+
+	
+		// 2. select row with aggkeyValue from delta stream
+		StringBuilder selectPreaggQuery1 = new StringBuilder("SELECT ")
+		.append("sum, ").append("count, ")
+		.append("average, min, max ");
+		selectPreaggQuery1.append(" FROM ")
+		.append((String) json.get("keyspace")).append(".")
+		.append(joinAggTableName).append(" where ").append(aggKey + " = ")
+		.append(aggKeyValue).append(";");
+
+		System.out.println(selectPreaggQuery1);
+
+		// 2.b execute select statement
+		ResultSet PreAggMap;
+		try {
+
+			Session session = currentCluster.connect();
+			PreAggMap = session.execute(selectPreaggQuery1.toString());
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+
+		Row theRow = PreAggMap.one();
+		if (theRow != null) {
+
+			// 3.check size of map for given agg key
+			// if map.size is 1 then whole row can be deleted
+			// if map.size is larger than 1 then iterate over map & delete
+			// desired entry with the correct pk as key
+
+			count = theRow.getInt("count");
+			
+			if (count == 1) {
+				// 4. delete the whole row
+				deleteEntireRowWithPK((String) json.get("keyspace"),
+						joinAggTableName, aggKey, aggKeyValue);
+			} else {
+
+				// 5.b retrieve aggCol value
+				switch (aggColType) {
+
+				case "int":
+					aggColValue = deltaDeletedRow.getInt(aggCol + "_new");
+					break;
+
+				case "varint":
+					aggColValue = deltaDeletedRow.getVarint(aggCol + "_new")
+					.floatValue();
+					break;
+
+				case "float":
+					aggColValue = deltaDeletedRow.getFloat(aggCol + "_new");
+					break;
+				}
+
+				// 5.c adjust sum,count,average values
+				count = count-1;
+				sum = theRow.getInt("sum") - aggColValue;
+				average = sum / count;
+
+				max = -99999999;
+				min = 999999999;
+
+				List<Definition> def = theRow.getColumnDefinitions().asList();
+
+				int aggColIndexInList = 0;
+
+				for (int i = 0; i < def.size(); i++) {
+					if (def.get(i).getName().contentEquals(aggCol + "_new")) {
+						aggColIndexInList = i;
+						break;
+					}
+				}
+				
+				Map<String, String> myMap = new HashMap<String, String>();
+			
+				if(leftTable){
+					myMap.putAll(oldReverseRow.getMap(
+							"list_item1", String.class, String.class));
+					
+				}else{
+					myMap.putAll(oldReverseRow.getMap(
+							"list_item2", String.class, String.class));
+				}
+				
+				for (Map.Entry<String, String> entry : myMap.entrySet()) {
+					String list = entry.getValue().replaceAll("\\[", "")
+							.replaceAll("\\]", "");
+					String[] listArray = list.split(",");
+
+					if (Float.valueOf(listArray[aggColIndexInList - 1]) < min)
+						min = Float.valueOf(listArray[aggColIndexInList - 1]);
+
+					if (Float.valueOf(listArray[aggColIndexInList - 1]) > max)
+						max = Float.valueOf(listArray[aggColIndexInList - 1]);
+				}
+
+				// 6. Execute insertion statement of the row with the
+				// aggKeyValue_old to refelect changes
+
+				StringBuilder insertQueryAgg = new StringBuilder("INSERT INTO ");
+				insertQueryAgg.append((String) json.get("keyspace"))
+				.append(".").append(joinAggTableName).append(" ( ")
+				.append(aggKey + ", ")
+				.append("sum, count, average, min, max")
+				.append(") VALUES (").append(aggKeyValue + ", ")
+				.append("?, ?, ?, ?, ?);");
+
+				Session session1 = currentCluster.connect();
+
+				PreparedStatement statement1 = session1.prepare(insertQueryAgg
+						.toString());
+				BoundStatement boundStatement = new BoundStatement(statement1);
+				session1.execute(boundStatement.bind((int) sum,
+						(int) count, average, min, max));
+				System.out.println(boundStatement.toString());
+
+			}
+
+		}
+
+		System.out.println("Done deleting from aggregation Table of join");
+		
+		return true;
+	}
+
 }
