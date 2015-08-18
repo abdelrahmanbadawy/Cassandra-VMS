@@ -41,6 +41,9 @@ public class ViewManager {
 
 	private String reverseJoinTableName;
 
+	private Row deletePreaggRowDeleted;
+	private Row deletePreaggRow;
+	
 	private Row updatedPreaggRow;
 	private Row updatedPreaggRowDeleted;
 	private Row updatedPreaggRowChangeAK;
@@ -424,7 +427,7 @@ public class ViewManager {
 
 		// 2. select row with aggkeyValue from delta stream
 		StringBuilder selectPreaggQuery1 = new StringBuilder("SELECT ")
-		.append("list_item, ").append("sum, ").append("count, ")
+		.append(aggKey+", list_item, ").append("sum, ").append("count, ")
 		.append("average, min, max ");
 		selectPreaggQuery1.append(" FROM ")
 		.append((String) json.get("keyspace")).append(".")
@@ -462,6 +465,9 @@ public class ViewManager {
 
 			if (myMap.size() == 1) {
 				// 4. delete the whole row
+				
+				setDeletePreaggRowDeleted(theRow);
+				
 				deleteEntireRowWithPK((String) json.get("keyspace"),
 						preaggTable, aggKey, aggKeyValue);
 			} else {
@@ -537,8 +543,34 @@ public class ViewManager {
 						(int) count, average, min, max));
 				System.out.println(boundStatement.toString());
 
-			}
+				
+				//Selection to set DeleteRowDelete variable
+				
+				StringBuilder selectPreaggQuery2 = new StringBuilder("SELECT ")
+				.append(aggKey +",")
+				.append("list_item, sum, ").append("count, ")
+				.append("average, min, max ");
+				selectPreaggQuery2.append(" FROM ")
+				.append((String) json.get("keyspace")).append(".")
+				.append(preaggTable).append(" where ")
+				.append(aggKey + " = ").append(aggKeyValue).append(";");
 
+				System.out.println(selectPreaggQuery2);
+
+				try {
+
+					Session session = currentCluster.connect();
+					setDeletePreaggRow((session.execute(selectPreaggQuery2.toString()).one()));
+					setDeletePreaggRowDeleted(null);
+					
+				} catch (Exception e) {
+					e.printStackTrace();
+					return false;
+				}
+				
+				
+				
+			}
 		}
 
 		System.out.println("Done deleting from preagg and agg table");
@@ -3915,6 +3947,22 @@ public class ViewManager {
 
 	public void setUpdatedPreaggRowDeleted(Row updatedPreaggRowDeleted) {
 		this.updatedPreaggRowDeleted = updatedPreaggRowDeleted;
+	}
+
+	public Row getDeletePreaggRowDeleted() {
+		return deletePreaggRowDeleted;
+	}
+
+	public void setDeletePreaggRowDeleted(Row deletePreaggRowDeleted) {
+		this.deletePreaggRowDeleted = deletePreaggRowDeleted;
+	}
+
+	public Row getDeletePreaggRow() {
+		return deletePreaggRow;
+	}
+
+	public void setDeletePreaggRow(Row deletePreaggRow) {
+		this.deletePreaggRow = deletePreaggRow;
 	}
 
 }
