@@ -2820,6 +2820,8 @@ public class ViewManager {
 
 					}
 				}
+			}else{
+				allNull = false;
 			}
 
 			// all entries are nulls
@@ -3646,11 +3648,11 @@ public class ViewManager {
 				Map<String, String> myMap = new HashMap<String, String>();
 
 				if(leftTable){
-					myMap.putAll(oldReverseRow.getMap(
+					myMap.putAll(newReverseRow.getMap(
 							"list_item1", String.class, String.class));
 
 				}else{
-					myMap.putAll(oldReverseRow.getMap(
+					myMap.putAll(newReverseRow.getMap(
 							"list_item2", String.class, String.class));
 				}
 
@@ -3659,11 +3661,11 @@ public class ViewManager {
 							.replaceAll("\\]", "");
 					String[] listArray = list.split(",");
 
-					if (Float.valueOf(listArray[aggColIndexInList - 1]) < min)
-						min = Float.valueOf(listArray[aggColIndexInList - 1]);
+					if (Float.valueOf(listArray[aggColIndexInList]) < min)
+						min = Float.valueOf(listArray[aggColIndexInList]);
 
-					if (Float.valueOf(listArray[aggColIndexInList - 1]) > max)
-						max = Float.valueOf(listArray[aggColIndexInList - 1]);
+					if (Float.valueOf(listArray[aggColIndexInList]) > max)
+						max = Float.valueOf(listArray[aggColIndexInList]);
 				}
 
 				// 6. Execute insertion statement of the row with the

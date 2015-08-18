@@ -1068,8 +1068,8 @@ public class ViewManagerController {
 
 
 
-							Row oldReverseRow = vm.getReverseJoinUpdateOldRow();
-							Row newReverseRow = vm.getReverseJoinUpdatedNewRow();
+							Row oldReverseRow = vm.getRevereJoinDeleteOldRow();
+							Row newReverseRow = vm.getReverseJoinDeleteNewRow();
 
 							vm.deleteFromJoinAgg(deltaDeletedRow,json,joinAggTableName,aggKey,aggKeyType1,aggCol,aggColType,oldReverseRow,newReverseRow,leftTable);
 
