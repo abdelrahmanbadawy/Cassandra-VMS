@@ -45,6 +45,8 @@ public class ViewManager {
 
 	private Row reverseJoinUpdateNewRow;
 	private Row reverseJoinUpadteOldRow;
+	
+	private Row reverseJoinUpdatedOldRow_changeJoinKey;
 
 	private Row reverseJoinDeleteNewRow;
 	private Row revereJoinDeleteOldRow;
@@ -1152,6 +1154,21 @@ public class ViewManager {
 			BoundStatement boundStatement = new BoundStatement(statement);
 			session.execute(boundStatement.bind(myMap2));
 
+			// retrieve and set update old row
+			StringBuilder selectQuery2 = new StringBuilder();
+			selectQuery2.append("SELECT * FROM ").append(keyspace).append(".")
+			.append(joinTable).append(" WHERE ").append(joinKeyName)
+			.append(" = ").append(oldJoinKeyValue).append(";");
+			
+			session = currentCluster.connect();
+			queryResults = session.execute(selectQuery2.toString());
+
+			// The old row that contains the old join key value after being updated
+			Row row_after_change_join_value = queryResults.one();
+			
+			setReverseJoinUpdatedOldRow_changeJoinKey(row_after_change_join_value);
+			
+			
 			// check if all maps are empty --> remove the row
 			boolean allNull = true;
 
@@ -3660,6 +3677,15 @@ public class ViewManager {
 		System.out.println("Done deleting from aggregation Table of join");
 		
 		return true;
+	}
+
+	public Row getReverseJoinUpdatedOldRow_changeJoinKey() {
+		return reverseJoinUpdatedOldRow_changeJoinKey;
+	}
+
+	public void setReverseJoinUpdatedOldRow_changeJoinKey(
+			Row reverseJoinUpdatedOldRow_changeJoinKey) {
+		this.reverseJoinUpdatedOldRow_changeJoinKey = reverseJoinUpdatedOldRow_changeJoinKey;
 	}
 
 }
