@@ -41,6 +41,7 @@ public class ViewManager {
 
 	private String reverseJoinTableName;
 
+	private Row updatedPreaggRow;
 
 	private Row reverseJoinUpdateNewRow;
 	private Row reverseJoinUpadteOldRow;
@@ -78,6 +79,14 @@ public class ViewManager {
 
 	public Row getReverseJoinUpdatedNewRow() {
 		return reverseJoinUpdateNewRow;
+	}
+	
+	public Row getUpdatedPreaggRow() {
+		return updatedPreaggRow;
+	}
+	
+	private void setUpdatedPreaggRow(Row row) {
+		updatedPreaggRow = row;
 	}
 
 	public boolean updateDelta(JSONObject json, int indexBaseTableName,
@@ -3295,5 +3304,17 @@ public class ViewManager {
 
 		}
 		return true;
+	}
+
+	public void updateHaving(Row deltaUpdatedRow2, String string,
+			String havingTable, String baseTablePrimaryKey) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void deleteRowHaving(Row deltaUpdatedRow2, String string,
+			String havingTable, String baseTablePrimaryKey, JSONObject json) {
+		// TODO Auto-generated method stub
+		
 	}		
 }
