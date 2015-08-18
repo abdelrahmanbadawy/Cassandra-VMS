@@ -2906,9 +2906,191 @@ public class ViewManager {
 			deleteFromRightJoinTable(myMap2, rightJName, json, true);
 			return true;
 		}
+		
+		Row newDeletedRow = getReverseJoinDeleteNewRow();
+		
+		//Case 3: delete happened from left and list_item1 is not empty
+		//remove cross product from innerjoin
+		if(updateLeft && myMap2.size()>0){
+			
+			removeDeleteLeftCrossRight(json, innerJName, myMap2);
+		
+			
+			//delete happened in left and new list_item 1 is empty
+			//add all list_item2 to right join
+			if(newDeletedRow.getMap("list_item1",
+					String.class, String.class).size()==0){
+				addAllToRightJoinTable(rightJName, newDeletedRow.getMap("list_item2",
+					String.class, String.class), json);
+			}
+			
+		}
+		
+		
+		//Case 4: delete happened from rigth and list_item2 is not empty
+		//remove cross product from inner join
+		if(updateRight && myMap1.size()>0){
+			
+			//removeRightCrossLeft(json, innerJName);
+			removeDeleteRightCrossLeft(json, innerJName, myMap1);
+			
+			//delete happened in right and new list_item 2 is empty
+			//add all list_item1 to left join
+			if(newDeletedRow.getMap("list_item2",
+					String.class, String.class).size()==0){
+				addAllToLeftJoinTable(leftJName, newDeletedRow.getMap("list_item1",
+					String.class, String.class), json);
+			}
+			
+		}
 
+		
 		return true;
 
+	}
+	
+	
+	public boolean removeDeleteLeftCrossRight(JSONObject json, String innerJName, Map<String, String> myMap2){
+		String leftPkValue = "";
+		switch (deltaDeletedRow.getColumnDefinitions().asList().get(0)
+				.getType().toString()) {
+
+				case "text":
+					leftPkValue = deltaDeletedRow.getString(0);
+					break;
+
+				case "int":
+					leftPkValue = Integer.toString(deltaDeletedRow.getInt(0));
+					break;
+
+				case "varint":
+					leftPkValue = deltaDeletedRow.getVarint(0).toString();
+					break;
+
+				case "varchar":
+					leftPkValue = deltaDeletedRow.getString(0);
+					break;
+
+				case "float":
+					leftPkValue = Float.toString(deltaDeletedRow.getFloat(0));
+					break;
+		}
+		
+		for (Map.Entry<String, String> entry : myMap2.entrySet()) {
+			String tuple = "(" + leftPkValue + "," + entry.getKey() + ")";
+			
+			int position = VmXmlHandler.getInstance().getiJSchema()
+					.getList("dbSchema.tableDefinition.name")
+					.indexOf(innerJName);
+
+			
+			String joinTablePk = "";
+			
+			if(position!=-1){
+				
+				String temp = "dbSchema.tableDefinition(";
+				temp += Integer.toString(position);
+				temp += ")";
+				
+				joinTablePk = VmXmlHandler.getInstance().getrJSchema()
+						.getString(temp + ".primaryKey.name");
+				
+			}
+			
+			
+			StringBuilder deleteQuery = new StringBuilder("delete from ");
+			deleteQuery.append(json.get("keyspace")).append(".").append(innerJName)
+			.append(" WHERE ").append(joinTablePk + " = ").append(tuple)
+			.append(";");
+			
+			System.out.println(deleteQuery);
+
+			try {
+
+				Session session = currentCluster.connect();
+				session.execute(deleteQuery.toString());
+
+			} catch (Exception e) {
+				e.printStackTrace();
+				return false;
+			}
+			
+		}
+		
+		return true;
+		
+	}
+	
+	
+	public boolean removeDeleteRightCrossLeft(JSONObject json, String innerJName, Map<String, String> myMap1){
+		String rigthPkValue = "";
+		switch (deltaDeletedRow.getColumnDefinitions().asList().get(0)
+				.getType().toString()) {
+
+				case "text":
+					rigthPkValue = deltaDeletedRow.getString(0);
+					break;
+
+				case "int":
+					rigthPkValue = Integer.toString(deltaDeletedRow.getInt(0));
+					break;
+
+				case "varint":
+					rigthPkValue = deltaDeletedRow.getVarint(0).toString();
+					break;
+
+				case "varchar":
+					rigthPkValue = deltaDeletedRow.getString(0);
+					break;
+
+				case "float":
+					rigthPkValue = Float.toString(deltaDeletedRow.getFloat(0));
+					break;
+		}
+		
+		for (Map.Entry<String, String> entry : myMap1.entrySet()) {
+			String tuple = "(" + entry.getKey() + "," + rigthPkValue + ")";
+			
+			int position = VmXmlHandler.getInstance().getiJSchema()
+					.getList("dbSchema.tableDefinition.name")
+					.indexOf(innerJName);
+
+			
+			String joinTablePk = "";
+			
+			if(position!=-1){
+				
+				String temp = "dbSchema.tableDefinition(";
+				temp += Integer.toString(position);
+				temp += ")";
+				
+				joinTablePk = VmXmlHandler.getInstance().getrJSchema()
+						.getString(temp + ".primaryKey.name");
+				
+			}
+			
+			
+			StringBuilder deleteQuery = new StringBuilder("delete from ");
+			deleteQuery.append(json.get("keyspace")).append(".").append(innerJName)
+			.append(" WHERE ").append(joinTablePk + " = ").append(tuple)
+			.append(";");
+			
+			System.out.println(deleteQuery);
+
+			try {
+
+				Session session = currentCluster.connect();
+				session.execute(deleteQuery.toString());
+
+			} catch (Exception e) {
+				e.printStackTrace();
+				return false;
+			}
+			
+		}
+		
+		return true;
+		
 	}
 
 	public Row getReverseJoinDeleteNewRow() {
