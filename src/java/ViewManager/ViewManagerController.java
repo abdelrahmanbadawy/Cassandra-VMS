@@ -786,12 +786,8 @@ public class ViewManagerController {
 
 					String basetable = VmXmlHandler.getInstance()
 							.getJoinAggMapping().getString(s + ".basetable");
-
-
-					tableName = (String) json.get("table");
-					if(!basetable.equals(tableName))
-						continue;
-
+					String otherTable = VmXmlHandler.getInstance()
+							.getJoinAggMapping().getString(s + ".othertable");
 					String joinAggTableName = VmXmlHandler.getInstance()
 							.getJoinAggMapping().getString(s + ".name");
 					String joinType = VmXmlHandler.getInstance()
@@ -813,24 +809,59 @@ public class ViewManagerController {
 					Row oldReverseRow = vm.getReverseJoinUpdateOldRow();
 					Row newReverseRow = vm.getReverseJoinUpdatedNewRow();
 
+					tableName = (String) json.get("table");
+
+
+					String aggKeyValue = "";
+
+					switch(aggKeyType){
+
+					case "int":
+						aggKeyValue = "'"+Integer.toString(newReverseRow.getInt(aggKey))+"'";
+						break;
+					case "float":
+						aggKeyValue = "'"+Float.toString(newReverseRow.getFloat(aggKey))+"'";
+						break;
+					case "varint":
+						aggKeyValue = "'"+newReverseRow.getVarint(aggKey).toString()+"'";
+						break;
+
+					case "text":
+						aggKeyValue = "'"+newReverseRow.getString(aggKey).toString()+"'";
+						break;
+
+					case "varchar":
+						aggKeyValue = "'"+newReverseRow.getString(aggKey).toString()+"'";
+						break;
+
+					}
+
+
+					boolean update = true;
 					switch(joinType){
 
 					case "left":
-						if(!newReverseRow.getMap("list_item2", String.class, String.class).isEmpty()){
-							continue;
+
+						if(otherTable.equals(tableName) && !newReverseRow.getMap("list_item2", String.class, String.class).isEmpty()){
+							vm.deleteEntireRowWithPK((String)json.get("keyspace"), joinAggTableName, aggKey, aggKeyValue);
+							update = false;
 						}
 						break;
+
 					case "right":
-						if(!newReverseRow.getMap("list_item1", String.class, String.class).isEmpty()){
-							continue;
+						if(otherTable.equals(tableName) && !newReverseRow.getMap("list_item1", String.class, String.class).isEmpty()){
+							vm.deleteEntireRowWithPK((String)json.get("keyspace"), joinAggTableName, aggKey, aggKeyValue);
+							update = false;
 						}
 						break;
+
 					case "inner":
 						break;
 					}
 
-					vm.updateJoinAgg(deltaUpdatedRow,json,joinAggTableName,aggKey,aggKeyType,aggCol,aggColType,oldReverseRow,newReverseRow,leftTable,false);
-
+					if(update){
+						vm.updateJoinAgg(deltaUpdatedRow,json,joinAggTableName,aggKey,aggKeyType,aggCol,aggColType,oldReverseRow,newReverseRow,leftTable,false);
+					}
 				}
 			} else {
 				System.out.println("No agg table for this reverse join table "
