@@ -859,7 +859,7 @@ public class ViewManagerController {
 						break;
 					}
 
-					if(update){
+					if(update && !otherTable.equals(tableName) ){
 						vm.updateJoinAgg(deltaUpdatedRow,json,joinAggTableName,aggKey,aggKeyType,aggCol,aggColType,oldReverseRow,newReverseRow,leftTable,false);
 					}
 				}
