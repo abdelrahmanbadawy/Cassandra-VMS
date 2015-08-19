@@ -1,14 +1,14 @@
 <?xml version="1.1" encoding="UTF-8"?>
 <setup>
 	<dbSchema>
-		<tableNumber>1</tableNumber>
+		<tableNumber>2</tableNumber>
 
 		<tableDefinition>
 			<baseTable>RJ_courses_student_faculty_faculty</baseTable>
 
-			<columnNumber>6</columnNumber>
+			<columnNumber>5</columnNumber>
 			<keyspace>test</keyspace>
-			<name>join_preagg_agg_courses_faculty_ects</name>
+			<name>leftjoin_agg_courses_faculty_ects</name>
 
 			<primaryKey>
 				<type>text</type>
@@ -17,9 +17,51 @@
 
 			<column>
 				<family>colfam1</family>
-				<type>map&lt;text,text&gt;</type>
-				<name>list_item</name>
+				<type>int</type>
+				<name>sum</name>
 			</column>
+
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>average</name>
+			</column>
+
+			<column>
+				<family>colfam1</family>
+				<type>int</type>
+				<name>count</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>min</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>max</name>
+			</column>
+
+			<aggCol>
+				<type>varint</type>
+				<name>ects</name>
+			</aggCol>
+
+		</tableDefinition>
+		
+		<tableDefinition>
+			<baseTable>RJ_courses_student_faculty_faculty</baseTable>
+
+			<columnNumber>5</columnNumber>
+			<keyspace>test</keyspace>
+			<name>innerjoin_agg_courses_faculty_ects</name>
+
+			<primaryKey>
+				<type>text</type>
+				<name>faculty</name>
+			</primaryKey>
+
 			<column>
 				<family>colfam1</family>
 				<type>int</type>

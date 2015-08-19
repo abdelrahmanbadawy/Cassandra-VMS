@@ -6,6 +6,7 @@
 		<unit>
 			<deltaTable>delta_courses</deltaTable>
 			<nrPreagg>1</nrPreagg>
+			
 			<Preagg>
 				<name>preagg_agg_courses_faculty_ects</name>
 				<AggKey>faculty</AggKey>
@@ -13,6 +14,15 @@
 				<AggCol>ects</AggCol>
 				<AggColType>varint</AggColType>
 			</Preagg>
+			
+			<Preagg>
+				<name></name>
+				<AggKey>faculty</AggKey>
+				<AggKeyType>text</AggKeyType>
+				<AggCol>ects</AggCol>
+				<AggColType>varint</AggColType>
+			</Preagg>
+			
 		</unit>
 		<unit>
 			<deltaTable>delta_emp</deltaTable>

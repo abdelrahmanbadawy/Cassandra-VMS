@@ -661,167 +661,192 @@ public class ViewManagerController {
 							}
 						}
 					}
+				}else{
+					System.out.println("No Having table for this preaggregation Table "
+							+preaggTable+ " available");
 				}
-
-
-				// End of updating preagg with having clause		
-				//============================================================================
-
-				else {
-					System.out.println("No Preaggregation table for this delta table "
-							+ " delta_" + (String) json.get("table") + " available");
-				}
-
 			}
-
-			// ===================================================================================================================
-			// 3. for the delta table updated, get update depending reverse join
-			// tables
-
-			int cursor = 0;
-			for ( int j = 0; j < rjoins; j++) {
-
-				// basetables
-				int nrOfTables = Integer.parseInt(rj_nrDelta.get(j));
-
-				String joinTable = rj_joinTables.get(j);
-
-				// include only indices from 1 to nrOfTables
-				// get basetables from name of rj table
-				List<String> baseTables = Arrays.asList(
-						rj_joinTables.get(j).split("_")).subList(1, nrOfTables + 1);
-
-				String tableName = (String) json.get("table");
-				String keyspace = (String) json.get("keyspace");
-
-				int column = baseTables.indexOf(tableName) + 1;
-
-				String joinKeyName = rj_joinKeys.get(cursor + column - 1);
-
-				String joinKeyType = rj_joinKeyTypes.get(j);
-
-				vm.updateReverseJoin(json, cursor, nrOfTables, joinTable,
-						baseTables, joinKeyName, tableName, keyspace, joinKeyType,
-						column);
-
-				// HERE UPDATE JOIN TABLES
-
-				// ===================================================================================================================
-				// 4. update Join tables
-
-				String updatedReverseJoin = vm.getReverseJoinName();
-
-				position = reverseTableName.indexOf(updatedReverseJoin);
-
-				if (position != -1) {
-
-					temp = "mapping.unit(";
-					temp += Integer.toString(position);
-					temp += ")";
-
-					int nrJoin = VmXmlHandler.getInstance().getRjJoinMapping()
-							.getInt(temp + ".nrJoin");
-
-					for ( int i = 0; i < nrJoin; i++) {
-
-						String s = temp + ".join(" + Integer.toString(i) + ")";
-						String innerJoinTableName = VmXmlHandler.getInstance()
-								.getRjJoinMapping().getString(s + ".innerJoin");
-						String leftJoinTableName = VmXmlHandler.getInstance()
-								.getRjJoinMapping().getString(s + ".leftJoin");
-						String rightJoinTableName = VmXmlHandler.getInstance()
-								.getRjJoinMapping().getString(s + ".rightJoin");
-
-						String leftJoinTable = VmXmlHandler.getInstance()
-								.getRjJoinMapping().getString(s + ".LeftTable");
-						String rightJoinTable = VmXmlHandler.getInstance()
-								.getRjJoinMapping().getString(s + ".RightTable");
-
-						tableName = (String) json.get("table");
-
-						Boolean updateLeft = false;
-						Boolean updateRight = false;
-
-						if (tableName.equals(leftJoinTable)) {
-							updateLeft = true;
-						} else {
-							updateRight = true;
-						}
-
-						vm.updateJoinController(deltaUpdatedRow,
-								innerJoinTableName, leftJoinTableName,
-								rightJoinTableName, json, updateLeft, updateRight, joinKeyType, joinKeyName);
-
-					}
-				} else {
-					System.out.println("No join table for this reverse join table "
-							+ updatedReverseJoin + " available");
-				}
-
-				// END OF UPATE JOIN TABLES
-
-				//=====================================================================
-				//Update JoinPreagg
-
-				if (position != -1) {
-
-					temp = "mapping.unit(";
-					temp += Integer.toString(position);
-					temp += ")";
-
-					int nrJoinAgg = VmXmlHandler.getInstance().getJoinAggMapping()
-							.getInt(temp + ".nrJoinAgg");
-
-					for ( int i = 0; i < nrJoinAgg; i++) {
-
-						String s = temp + ".joinAgg(" + Integer.toString(i) + ")";
-
-						String basetable = VmXmlHandler.getInstance()
-								.getJoinAggMapping().getString(s + ".basetable");
-
-
-						tableName = (String) json.get("table");
-						if(!basetable.equals(tableName))
-							continue;
-
-						String joinAggTableName = VmXmlHandler.getInstance()
-								.getJoinAggMapping().getString(s + ".name");
-						Boolean leftTable = VmXmlHandler.getInstance()
-								.getJoinAggMapping().getBoolean(s + ".leftTable");
-						Boolean rightTable = VmXmlHandler.getInstance()
-								.getJoinAggMapping().getBoolean(s + ".rightTable");
-						String aggKey = VmXmlHandler.getInstance()
-								.getJoinAggMapping().getString(s + ".AggKey");
-						String aggKeyType = VmXmlHandler.getInstance()
-								.getJoinAggMapping().getString(s + ".AggKeyType");
-
-						String aggCol = VmXmlHandler.getInstance()
-								.getJoinAggMapping().getString(s + ".AggCol");
-						String aggColType = VmXmlHandler.getInstance()
-								.getJoinAggMapping().getString(s + ".AggColType");
-
-
-
-						Row oldReverseRow = vm.getReverseJoinUpdateOldRow();
-						Row newReverseRow = vm.getReverseJoinUpdatedNewRow();
-
-						vm.updateJoinAgg(deltaUpdatedRow,json,joinAggTableName,aggKey,aggKeyType,aggCol,aggColType,oldReverseRow,newReverseRow,leftTable,false);
-
-					}
-				} else {
-					System.out.println("No agg table for this reverse join table "
-							+ updatedReverseJoin + " available");
-				}
-
-				// END OF UPDATE JoinPreag
-
-				cursor += nrOfTables;
-			}
-
 
 		}
+		// End of updating preagg with having clause		
+		//============================================================================
+
+		else {
+			System.out.println("No Preaggregation table for this delta table "
+					+ " delta_" + (String) json.get("table") + " available");
+		}
+
+
+		// ===================================================================================================================
+		// 3. for the delta table updated, get update depending reverse join
+		// tables
+
+		int cursor = 0;
+		for ( int j = 0; j < rjoins; j++) {
+
+			// basetables
+			int nrOfTables = Integer.parseInt(rj_nrDelta.get(j));
+
+			String joinTable = rj_joinTables.get(j);
+
+			// include only indices from 1 to nrOfTables
+			// get basetables from name of rj table
+			List<String> baseTables = Arrays.asList(
+					rj_joinTables.get(j).split("_")).subList(1, nrOfTables + 1);
+
+			String tableName = (String) json.get("table");
+			String keyspace = (String) json.get("keyspace");
+
+			int column = baseTables.indexOf(tableName) + 1;
+
+			String joinKeyName = rj_joinKeys.get(cursor + column - 1);
+
+			String joinKeyType = rj_joinKeyTypes.get(j);
+
+			if(column==0){
+				System.out.println("No ReverseJoin for this delta update");
+				continue;	
+			}	
+
+			vm.updateReverseJoin(json, cursor, nrOfTables, joinTable,
+					baseTables, joinKeyName, tableName, keyspace, joinKeyType,
+					column);
+
+			// HERE UPDATE JOIN TABLES
+
+			// ===================================================================================================================
+			// 4. update Join tables
+
+			String updatedReverseJoin = vm.getReverseJoinName();
+
+			position = reverseTableName.indexOf(updatedReverseJoin);
+
+			if (position != -1) {
+
+				String temp = "mapping.unit(";
+				temp += Integer.toString(position);
+				temp += ")";
+
+				int nrJoin = VmXmlHandler.getInstance().getRjJoinMapping()
+						.getInt(temp + ".nrJoin");
+
+				for ( int i = 0; i < nrJoin; i++) {
+
+					String s = temp + ".join(" + Integer.toString(i) + ")";
+					String innerJoinTableName = VmXmlHandler.getInstance()
+							.getRjJoinMapping().getString(s + ".innerJoin");
+					String leftJoinTableName = VmXmlHandler.getInstance()
+							.getRjJoinMapping().getString(s + ".leftJoin");
+					String rightJoinTableName = VmXmlHandler.getInstance()
+							.getRjJoinMapping().getString(s + ".rightJoin");
+
+					String leftJoinTable = VmXmlHandler.getInstance()
+							.getRjJoinMapping().getString(s + ".LeftTable");
+					String rightJoinTable = VmXmlHandler.getInstance()
+							.getRjJoinMapping().getString(s + ".RightTable");
+
+					tableName = (String) json.get("table");
+
+					Boolean updateLeft = false;
+					Boolean updateRight = false;
+
+					if (tableName.equals(leftJoinTable)) {
+						updateLeft = true;
+					} else {
+						updateRight = true;
+					}
+
+					vm.updateJoinController(deltaUpdatedRow,
+							innerJoinTableName, leftJoinTableName,
+							rightJoinTableName, json, updateLeft, updateRight, joinKeyType, joinKeyName);
+
+				}
+			} else {
+				System.out.println("No join table for this reverse join table "
+						+ updatedReverseJoin + " available");
+			}
+
+			// END OF UPATE JOIN TABLES
+
+			//=====================================================================
+			//Update JoinPreagg
+
+			if (position != -1) {
+
+				String temp = "mapping.unit(";
+				temp += Integer.toString(position);
+				temp += ")";
+
+				int nrJoinAgg = VmXmlHandler.getInstance().getJoinAggMapping()
+						.getInt(temp + ".nrJoinAgg");
+
+				for ( int i = 0; i < nrJoinAgg; i++) {
+
+					String s = temp + ".joinAgg(" + Integer.toString(i) + ")";
+
+					String basetable = VmXmlHandler.getInstance()
+							.getJoinAggMapping().getString(s + ".basetable");
+
+
+					tableName = (String) json.get("table");
+					if(!basetable.equals(tableName))
+						continue;
+
+					String joinAggTableName = VmXmlHandler.getInstance()
+							.getJoinAggMapping().getString(s + ".name");
+					String joinType = VmXmlHandler.getInstance()
+							.getJoinAggMapping().getString(s + ".joinType");
+					Boolean leftTable = VmXmlHandler.getInstance()
+							.getJoinAggMapping().getBoolean(s + ".leftTable");
+					Boolean rightTable = VmXmlHandler.getInstance()
+							.getJoinAggMapping().getBoolean(s + ".rightTable");
+					String aggKey = VmXmlHandler.getInstance()
+							.getJoinAggMapping().getString(s + ".AggKey");
+					String aggKeyType = VmXmlHandler.getInstance()
+							.getJoinAggMapping().getString(s + ".AggKeyType");
+
+					String aggCol = VmXmlHandler.getInstance()
+							.getJoinAggMapping().getString(s + ".AggCol");
+					String aggColType = VmXmlHandler.getInstance()
+							.getJoinAggMapping().getString(s + ".AggColType");
+
+					Row oldReverseRow = vm.getReverseJoinUpdateOldRow();
+					Row newReverseRow = vm.getReverseJoinUpdatedNewRow();
+
+					switch(joinType){
+
+					case "left":
+						if(!newReverseRow.getMap("list_item2", String.class, String.class).isEmpty()){
+							continue;
+						}
+						break;
+					case "right":
+						if(!newReverseRow.getMap("list_item1", String.class, String.class).isEmpty()){
+							continue;
+						}
+						break;
+					case "inner":
+						break;
+					}
+
+					vm.updateJoinAgg(deltaUpdatedRow,json,joinAggTableName,aggKey,aggKeyType,aggCol,aggColType,oldReverseRow,newReverseRow,leftTable,false);
+
+				}
+			} else {
+				System.out.println("No agg table for this reverse join table "
+						+ updatedReverseJoin + " available");
+			}
+
+
+			// END OF UPDATE JoinPreag
+
+			cursor += nrOfTables;
+		}
+
 
 	}
+
+
 
 	private boolean checkIfAggIsNull(String aggKey, Row deltaUpdatedRow) {
 

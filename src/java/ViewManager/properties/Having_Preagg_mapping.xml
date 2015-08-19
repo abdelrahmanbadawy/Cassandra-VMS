@@ -2,9 +2,10 @@
 
 <setup>
 	<mapping>
-
+		
 		<unit>
-			<preaggTable>preagg_agg_courses_faculty_ects</preaggTable>
+			<preaggTable>innerjoin_agg_courses_faculty_ects</preaggTable>
+			
 			<nrCond>2</nrCond>
 			<Cond>
 				<name>having_preagg_agg_courses_faculty_ects_cond1</name>
@@ -17,7 +18,6 @@
 					<value>4</value>
 				</And>
 			</Cond>
-			
 			<Cond>
 				<name>having_preagg_agg_courses_faculty_ects_cond2</name>
 				<nrAnd>1</nrAnd>
@@ -29,7 +29,6 @@
 					<value>10</value>
 				</And>
 			</Cond>
-			
 		</unit>
 
 
