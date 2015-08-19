@@ -578,7 +578,7 @@ public class ViewManager {
 		return true;
 	}
 
-	private boolean deleteEntireRowWithPK(String keyspace, String tableName,
+	public boolean deleteEntireRowWithPK(String keyspace, String tableName,
 			String pk, String pkValue) {
 
 		StringBuilder deleteQuery = new StringBuilder("delete from ");
