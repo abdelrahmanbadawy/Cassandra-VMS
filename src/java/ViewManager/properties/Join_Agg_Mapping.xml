@@ -6,9 +6,10 @@
 		
 		<unit>
 			<reverseJoin>RJ_courses_student_faculty_faculty</reverseJoin>
-			<nrJoinAgg>2</nrJoinAgg>
+			<nrJoinAgg>1</nrJoinAgg>
 			<joinAgg>
 				<basetable>courses</basetable>
+				<othertable>student</othertable>
 				<name>leftjoin_agg_courses_faculty_ects</name>
 				<joinType>left</joinType>
 				<leftTable>true</leftTable>
@@ -19,17 +20,7 @@
 				<AggColType>varint</AggColType>
 			</joinAgg>
 			
-			<joinAgg>
-				<basetable>courses</basetable>
-				<name>innerjoin_agg_courses_faculty_ects</name>
-				<joinType>inner</joinType>
-				<leftTable>true</leftTable>
-				<rightTable>false</rightTable>
-				<AggKey>faculty</AggKey>
-				<AggKeyType>text</AggKeyType>
-				<AggCol>ects</AggCol>
-				<AggColType>varint</AggColType>
-			</joinAgg>
+			
 			
 		</unit>	
 	</mapping>
