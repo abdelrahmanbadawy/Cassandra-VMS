@@ -8,7 +8,7 @@
 			<reverseJoin>RJ_courses_student_faculty_faculty</reverseJoin>
 			<joinKey>faculty</joinKey>
 			
-			<nrJoinAgg>3</nrJoinAgg>
+			<nrJoinAgg>2</nrJoinAgg>
 			<joinAgg>
 				<basetable>courses</basetable>
 				<othertable>student</othertable>

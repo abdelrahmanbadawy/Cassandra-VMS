@@ -3476,28 +3476,38 @@ public class ViewManager {
 				}
 
 
-				// 2.e set agg col values
+				if(myMap2.size()!=1){
+					// 2.e set agg col values
 
-				int prev_count = myMap1.keySet().size();
-				count = myMap2.keySet().size();
+					int prev_count = myMap1.keySet().size();
+					count = myMap2.keySet().size();
 
-				if (count > prev_count)
-					sum = theRow1.getInt("sum") + aggColValue;
-				else
-					sum = theRow1.getInt("sum") - aggColValue_old + aggColValue;
+					if (count > prev_count)
+						sum = theRow1.getInt("sum") + aggColValue;
+					else
+						sum = theRow1.getInt("sum") - aggColValue_old + aggColValue;
 
-				average = sum / count;
+					average = sum / count;
 
-				if (aggColValue < theRow1.getFloat("min")) {
+					if (aggColValue < theRow1.getFloat("min")) {
+						min = aggColValue;
+					} else {
+						min = theRow1.getFloat("min");
+					}
+
+					if (aggColValue > theRow1.getFloat("max")) {
+						max = aggColValue;
+					} else {
+						max = theRow1.getFloat("max");
+					}
+				}else{
+					// 2.c.2 set the agg col values
+					sum += aggColValue;
+					count = 1;
+					average = sum / count;
 					min = aggColValue;
-				} else {
-					min = theRow1.getFloat("min");
-				}
-
-				if (aggColValue > theRow1.getFloat("max")) {
 					max = aggColValue;
-				} else {
-					max = theRow1.getFloat("max");
+					
 				}
 
 			}
