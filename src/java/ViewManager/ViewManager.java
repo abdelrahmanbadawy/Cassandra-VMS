@@ -845,26 +845,37 @@ public class ViewManager {
 
 				// 2.e set agg col values
 
-				count = myMap.keySet().size();
+				if(myMap.size()!=1){
+					count = myMap.keySet().size();
 
-				if (count > prev_count)
-					sum = theRow1.getInt("sum") + aggColValue;
-				else
-					sum = theRow1.getInt("sum") - aggColValue_old + aggColValue;
+					if (count > prev_count)
+						sum = theRow1.getInt("sum") + aggColValue;
+					else
+						sum = theRow1.getInt("sum") - aggColValue_old + aggColValue;
 
-				average = sum / count;
+					average = sum / count;
 
-				if (aggColValue < theRow1.getFloat("min")) {
+					if (aggColValue < theRow1.getFloat("min")) {
+						min = aggColValue;
+					} else {
+						min = theRow1.getFloat("min");
+					}
+
+					if (aggColValue > theRow1.getFloat("max")) {
+						max = aggColValue;
+					} else {
+						max = theRow1.getFloat("max");
+					}
+
+				}else{
+					// 2.c.2 set the agg col values
+					sum = aggColValue;
+					count = 1;
+					average = sum / count;
 					min = aggColValue;
-				} else {
-					min = theRow1.getFloat("min");
+					max = aggColValue;
 				}
 
-				if (aggColValue > theRow1.getFloat("max")) {
-					max = aggColValue;
-				} else {
-					max = theRow1.getFloat("max");
-				}
 
 			}
 			try {
@@ -3502,12 +3513,12 @@ public class ViewManager {
 					}
 				}else{
 					// 2.c.2 set the agg col values
-					sum += aggColValue;
+					sum = aggColValue;
 					count = 1;
 					average = sum / count;
 					min = aggColValue;
 					max = aggColValue;
-					
+
 				}
 
 			}
