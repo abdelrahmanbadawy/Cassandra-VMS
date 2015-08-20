@@ -422,6 +422,7 @@ public abstract class Message {
 						&& ! request.toString().toLowerCase().contains("inner_")
 						&& ! request.toString().toLowerCase().contains("left_")
 						&& ! request.toString().toLowerCase().contains("right_")
+						&& ! request.toString().toLowerCase().contains("join_agg")
 						&& (request.toString().toLowerCase().contains("insert")
 								|| request.toString().toLowerCase()
 										.contains("update") || (request

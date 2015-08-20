@@ -27,12 +27,12 @@ public class ViewManagerController {
 	List<String> deltaTableName;
 	List<String> reverseTableName;
 	List<String> preaggTableNames;
-	List<String> rj_joinTables ;
-	List<String> rj_joinKeys ;
+	List<String> preaggJoinTableNames;
+	List<String> rj_joinTables;
+	List<String> rj_joinKeys;
 	List<String> rj_joinKeyTypes;
-	List<String> rj_nrDelta ;
+	List<String> rj_nrDelta;
 	int rjoins;
-
 
 	public ViewManagerController() {
 
@@ -50,7 +50,7 @@ public class ViewManagerController {
 
 		try {
 			baseTableKeysConfig
-			.load("ViewManager/properties/baseTableKeys.xml");
+					.load("ViewManager/properties/baseTableKeys.xml");
 		} catch (ConfigurationException e) {
 			e.printStackTrace();
 		}
@@ -65,24 +65,27 @@ public class ViewManagerController {
 		reverseTableName = VmXmlHandler.getInstance().getRjJoinMapping()
 				.getList("mapping.unit.reverseJoin");
 
-		rj_joinTables = VmXmlHandler.getInstance()
-				.getDeltaReverseJoinMapping().getList("mapping.unit.Join.name");
+		rj_joinTables = VmXmlHandler.getInstance().getDeltaReverseJoinMapping()
+				.getList("mapping.unit.Join.name");
 
-		rj_joinKeys = VmXmlHandler.getInstance()
-				.getDeltaReverseJoinMapping().getList("mapping.unit.Join.JoinKey");
+		rj_joinKeys = VmXmlHandler.getInstance().getDeltaReverseJoinMapping()
+				.getList("mapping.unit.Join.JoinKey");
 
 		rj_joinKeyTypes = VmXmlHandler.getInstance()
 				.getDeltaReverseJoinMapping().getList("mapping.unit.Join.type");
 
-		rj_nrDelta = VmXmlHandler.getInstance()
-				.getDeltaReverseJoinMapping().getList("mapping.unit.nrDelta");
+		rj_nrDelta = VmXmlHandler.getInstance().getDeltaReverseJoinMapping()
+				.getList("mapping.unit.nrDelta");
 
 		rjoins = VmXmlHandler.getInstance().getDeltaReverseJoinMapping()
 				.getInt("mapping.nrUnit");
 
-		preaggTableNames = VmXmlHandler.getInstance().getHavingPreAggMapping().getList("mapping.unit.preaggTable");
-	}
+		preaggTableNames = VmXmlHandler.getInstance().getHavingPreAggMapping()
+				.getList("mapping.unit.preaggTable");
 
+		preaggJoinTableNames = VmXmlHandler.getInstance()
+				.getHavingJoinAggMapping().getList("mapping.unit.preaggTable");
+	}
 
 	private void connectToCluster() {
 
@@ -90,11 +93,11 @@ public class ViewManagerController {
 				.builder()
 				.addContactPoint(
 						XmlHandler.getInstance().getClusterConfig()
-						.getString("config.host.localhost"))
-						.withRetryPolicy(DefaultRetryPolicy.INSTANCE)
-						.withLoadBalancingPolicy(
-								new TokenAwarePolicy(new DCAwareRoundRobinPolicy()))
-								.build();
+								.getString("config.host.localhost"))
+				.withRetryPolicy(DefaultRetryPolicy.INSTANCE)
+				.withLoadBalancingPolicy(
+						new TokenAwarePolicy(new DCAwareRoundRobinPolicy()))
+				.build();
 
 	}
 
@@ -403,7 +406,7 @@ public class ViewManagerController {
 
 				//check if preagg has some having clauses or not
 				position = preaggTableNames.indexOf(preaggTable);
-
+				
 				if (position1 != -1) {
 
 					String temp4 = "mapping.unit(";
@@ -662,9 +665,10 @@ public class ViewManagerController {
 						}
 					}
 				}else{
-					System.out.println("No Having table for this preaggregation Table "
+					System.out.println("No Having table for this joinpreaggregation Table "
 							+preaggTable+ " available");
 				}
+			
 			}
 
 		}
@@ -780,8 +784,10 @@ public class ViewManagerController {
 				int nrJoinAgg = VmXmlHandler.getInstance().getJoinAggMapping()
 						.getInt(temp + ".nrJoinAgg");
 
+				
+		
 				for ( int i = 0; i < nrJoinAgg; i++) {
-
+					
 					String s = temp + ".joinAgg(" + Integer.toString(i) + ")";
 
 					String basetable = VmXmlHandler.getInstance()
@@ -805,12 +811,12 @@ public class ViewManagerController {
 							.getJoinAggMapping().getString(s + ".AggCol");
 					String aggColType = VmXmlHandler.getInstance()
 							.getJoinAggMapping().getString(s + ".AggColType");
-
+					
 					Row oldReverseRow = vm.getReverseJoinUpdateOldRow();
 					Row newReverseRow = vm.getReverseJoinUpdatedNewRow();
 
 					tableName = (String) json.get("table");
-
+					
 
 					String aggKeyValue = "";
 
@@ -836,14 +842,39 @@ public class ViewManagerController {
 
 					}
 
+					//check if join_preagg has some having clauses or not
+					position = preaggJoinTableNames.indexOf(joinAggTableName);
+					
+					String temp4 = null;
+					int nrConditions = 0 ;
+					if(position!=-1){
+					 temp4 = "mapping.unit(";
+					temp4 += Integer.toString(position);
+					temp4 += ")";
+					
+
+					 nrConditions = VmXmlHandler.getInstance()
+							.getHavingJoinAggMapping().getInt(temp4 + ".nrCond");
+
+					}
+					
 
 					boolean update = true;
+					
 					switch(joinType){
 
 					case "left":
 
 						if(otherTable.equals(tableName) && !newReverseRow.getMap("list_item2", String.class, String.class).isEmpty()){
 							vm.deleteEntireRowWithPK((String)json.get("keyspace"), joinAggTableName, aggKey, aggKeyValue);
+							if (position != -1) {
+								for (i = 0; i < nrConditions; i++) {
+									String s1 = temp4 + ".Cond(" + Integer.toString(i) + ")";
+									String havingTable = VmXmlHandler.getInstance()
+											.getHavingJoinAggMapping().getString(s1 + ".name");
+									vm.deleteEntireRowWithPK((String)json.get("keyspace"), havingTable, aggKey, aggKeyValue);
+							}
+							}
 							update = false;
 						}
 						break;
@@ -851,6 +882,14 @@ public class ViewManagerController {
 					case "right":
 						if(otherTable.equals(tableName) && !newReverseRow.getMap("list_item1", String.class, String.class).isEmpty()){
 							vm.deleteEntireRowWithPK((String)json.get("keyspace"), joinAggTableName, aggKey, aggKeyValue);
+							if (position != -1) {
+								for (i = 0; i < nrConditions; i++) {
+									String s1 = temp4 + ".Cond(" + Integer.toString(i) + ")";
+									String havingTable = VmXmlHandler.getInstance()
+											.getHavingJoinAggMapping().getString(s1 + ".name");
+									vm.deleteEntireRowWithPK((String)json.get("keyspace"), havingTable, aggKey, aggKeyValue);
+							}
+							}
 							update = false;
 						}
 						break;
@@ -859,9 +898,285 @@ public class ViewManagerController {
 						break;
 					}
 
+					
+					
+					
 					if(update && !otherTable.equals(tableName) ){
-						vm.updateJoinAgg(deltaUpdatedRow,json,joinAggTableName,aggKey,aggKeyType,aggCol,aggColType,oldReverseRow,newReverseRow,leftTable,false);
+						vm.updateJoinAgg(deltaUpdatedRow,json,joinAggTableName,aggKey,aggKeyType,aggCol,aggColType,oldReverseRow,newReverseRow,leftTable,false, false);
+						
+						// update having_joinaggs as well
+						if (position != -1 ) {
+							for (int r = 0; r < nrConditions; r++) {
+								String s1 = temp4 + ".Cond(" + Integer.toString(r) + ")";
+								String havingTable = VmXmlHandler.getInstance()
+										.getHavingJoinAggMapping().getString(s1 + ".name");
+								
+								
+								String nrAnd = VmXmlHandler.getInstance()
+										.getHavingJoinAggMapping().getString(s1 + ".nrAnd");
+
+								boolean eval1 = true;
+								boolean eval2 = true;
+
+								
+								
+								for (int k = 0; k < Integer.parseInt(nrAnd); k++) {
+									
+									
+									
+									String s11 = s1 + ".And(";
+									s11 += Integer.toString(k);
+									s11 += ")";
+
+									String aggFct = VmXmlHandler.getInstance()
+											.getHavingJoinAggMapping()
+											.getString(s11 + ".aggFct");
+									String operation = VmXmlHandler.getInstance()
+											.getHavingJoinAggMapping()
+											.getString(s11 + ".operation");
+									String value = VmXmlHandler.getInstance()
+											.getHavingJoinAggMapping()
+											.getString(s11 + ".value");
+									String type = VmXmlHandler.getInstance()
+											.getHavingJoinAggMapping()
+											.getString(s11 + ".type");
+
+									String selColName = VmXmlHandler.getInstance()
+											.getHavingJoinAggMapping()
+											.getString(s11 + ".selectionCol");
+
+									Row PreagRow = vm.getJoinAggRow();
+									Row PreagRowAK = vm.getJoinAggRowChangeAK();
+									
+									
+									if(!(PreagRow==null && PreagRowAK==null)){
+										
+
+									float min1 = PreagRow.getFloat("min");
+									float max1 = PreagRow.getFloat("max");
+									float average1 = PreagRow.getFloat("average");
+									int sum1 = PreagRow.getInt("sum");
+									int count1 = PreagRow.getInt("count");
+
+
+									float min2= 0;
+									float max2= 0;
+									float average2 = 0;
+									int sum2 = 0;
+									int count2= 0;
+
+									if(PreagRowAK!=null){
+										min2 = PreagRowAK.getFloat("min");
+										max2 = PreagRowAK.getFloat("max");
+										average2 = PreagRowAK.getFloat("average");
+										sum2 = PreagRowAK.getInt("sum");
+										count2 = PreagRowAK.getInt("count");
+									}
+
+
+									if(aggFct.equals("sum")){
+
+
+										int compareValue = new Integer(sum1)
+										.compareTo(new Integer(value));
+
+										if ((operation.equals(">") && (compareValue > 0))) {
+											eval1 &= true;
+										} else if ((operation.equals("<") && (compareValue < 0))) {
+											eval1 &= true;
+										} else if ((operation.equals("=") && (compareValue == 0))) {
+											eval1 &= true;
+										} else {
+											eval1 &= false;
+										}
+
+										if(PreagRowAK!=null){
+
+											compareValue = new Integer(sum2)
+											.compareTo(new Integer(value));
+
+											if ((operation.equals(">") && (compareValue > 0))) {
+												eval2 &= true;
+											} else if ((operation.equals("<") && (compareValue < 0))) {
+												eval2 &= true;
+											} else if ((operation.equals("=") && (compareValue == 0))) {
+												eval2 &= true;
+											} else {
+												eval2 &= false;
+											}
+										}
+
+									}else if(aggFct.equals("average")){
+
+
+										int compareValue = Float.compare(average1,Float.valueOf(value));
+
+										if ((operation.equals(">") && (compareValue > 0))) {
+											eval1 &= true;
+										} else if ((operation.equals("<") && (compareValue < 0))) {
+											eval1 &= true;
+										} else if ((operation.equals("=") && (compareValue == 0))) {
+											eval1 &= true;
+										} else {
+											eval1 &= false;
+										}
+
+										if(PreagRowAK!=null){
+
+											compareValue = Float.compare(average2,Float.valueOf(value));
+
+											if ((operation.equals(">") && (compareValue > 0))) {
+												eval1 &= true;
+											} else if ((operation.equals("<") && (compareValue < 0))) {
+												eval1 &= true;
+											} else if ((operation.equals("=") && (compareValue == 0))) {
+												eval1 &= true;
+											} else {
+												eval1 &= false;
+											}
+										}
+
+									}else if(aggFct.equals("count")){
+
+										int compareValue = new Integer(count1)
+										.compareTo(new Integer(value));
+
+										if ((operation.equals(">") && (compareValue > 0))) {
+											eval1 &= true;
+										} else if ((operation.equals("<") && (compareValue < 0))) {
+											eval1 &= true;
+										} else if ((operation.equals("=") && (compareValue == 0))) {
+											eval1 &= true;
+										} else {
+											eval1 &= false;
+										}
+
+										if(PreagRowAK!=null){
+
+											compareValue = new Integer(count2)
+											.compareTo(new Integer(value));
+
+											if ((operation.equals(">") && (compareValue > 0))) {
+												eval2 &= true;
+											} else if ((operation.equals("<") && (compareValue < 0))) {
+												eval2 &= true;
+											} else if ((operation.equals("=") && (compareValue == 0))) {
+												eval2 &= true;
+											} else {
+												eval2 &= false;
+											}
+										}
+
+									}else if(aggFct.equals("min")){
+
+										int compareValue = Float.compare(min1,Float.valueOf(value));
+
+										if ((operation.equals(">") && (compareValue > 0))) {
+											eval1 &= true;
+										} else if ((operation.equals("<") && (compareValue < 0))) {
+											eval1 &= true;
+										} else if ((operation.equals("=") && (compareValue == 0))) {
+											eval1 &= true;
+										} else {
+											eval1 &= false;
+										}
+
+										if(PreagRowAK!=null){
+
+											compareValue = Float.compare(min2,Float.valueOf(value));
+
+											if ((operation.equals(">") && (compareValue > 0))) {
+												eval1 &= true;
+											} else if ((operation.equals("<") && (compareValue < 0))) {
+												eval1 &= true;
+											} else if ((operation.equals("=") && (compareValue == 0))) {
+												eval1 &= true;
+											} else {
+												eval1 &= false;
+											}
+										}
+
+									}else if(aggFct.equals("max")){
+
+										int compareValue = Float.compare(max1,Float.valueOf(value));
+
+										if ((operation.equals(">") && (compareValue > 0))) {
+											eval1 &= true;
+										} else if ((operation.equals("<") && (compareValue < 0))) {
+											eval1 &= true;
+										} else if ((operation.equals("=") && (compareValue == 0))) {
+											eval1 &= true;
+										} else {
+											eval1 &= false;
+										}
+
+										if(PreagRowAK!=null){
+
+											compareValue = Float.compare(max2,Float.valueOf(value));
+
+											if ((operation.equals(">") && (compareValue > 0))) {
+												eval2 &= true;
+											} else if ((operation.equals("<") && (compareValue < 0))) {
+												eval2 &= true;
+											} else if ((operation.equals("=") && (compareValue == 0))) {
+												eval2 &= true;
+											} else {
+												eval2 &= false;
+											}
+										}
+									}
+
+									// if matching now & not matching before
+									// if condition matching now & matched before
+									if (eval1) {
+										vm.updateJoinHaving(
+												(String) json.get("keyspace"), havingTable,
+												PreagRow);
+
+										if(PreagRowAK!=null && eval2){
+											vm.updateJoinHaving(
+													(String) json.get("keyspace"), havingTable,
+													PreagRowAK);
+										}
+
+										// if not matching now
+									} else if (!eval1) {
+										vm.deleteRowJoinHaving(
+												(String) json.get("keyspace"), havingTable,
+												PreagRow);
+
+										if(PreagRowAK!=null && !eval2){
+											vm.deleteRowJoinHaving(
+													(String) json.get("keyspace"), havingTable,
+													PreagRowAK);
+										}
+
+										// if not matching now & not before, ignore
+									}
+
+									
+									Row deletedRow = vm.getUpdatedPreaggRowDeleted();
+									if(deletedRow!=null){
+										vm.deleteRowJoinHaving(
+												(String) json.get("keyspace"), havingTable,
+												deletedRow);
+									}
+								}
+							}
+								
+								
+						}
+							
+						}
+						else{
+							System.out.println("No having for this join agg table!");
+						}
+						
 					}
+					
+					
+					
+					
 				}
 			} else {
 				System.out.println("No agg table for this reverse join table "
@@ -876,8 +1191,6 @@ public class ViewManagerController {
 
 
 	}
-
-
 
 	private boolean checkIfAggIsNull(String aggKey, Row deltaUpdatedRow) {
 
@@ -955,8 +1268,9 @@ public class ViewManagerController {
 
 				// update the corresponding preagg wih having clause
 
-				position =preaggTableNames.indexOf(preaggTable);
+				position = preaggTableNames.indexOf(preaggTable);
 
+				
 				if (position != -1) {
 
 					String temp4 = "mapping.unit(";
@@ -966,14 +1280,17 @@ public class ViewManagerController {
 					int nrConditions = VmXmlHandler.getInstance()
 							.getHavingPreAggMapping().getInt(temp4 + ".nrCond");
 
-					for (i = 0; i < nrConditions; i++) {
+					for (int r = 0; r < nrConditions; r++) {
 
-						String s1 = temp4 + ".Cond(" + Integer.toString(i) + ")";
+						String s1 = temp4 + ".Cond(" + Integer.toString(r)
+								+ ")";
 						String havingTable = VmXmlHandler.getInstance()
-								.getHavingPreAggMapping().getString(s1 + ".name");
+								.getHavingPreAggMapping()
+								.getString(s1 + ".name");
 
 						String nrAnd = VmXmlHandler.getInstance()
-								.getHavingPreAggMapping().getString(s1 + ".nrAnd");
+								.getHavingPreAggMapping()
+								.getString(s1 + ".nrAnd");
 
 						boolean eval1 = true;
 
@@ -1001,16 +1318,18 @@ public class ViewManagerController {
 									.getString(s11 + ".selectionCol");
 
 							Row DeletedPreagRow = vm.getDeletePreaggRow();
-							Row DeletedPreagRowMapSize1 = vm.getDeletePreaggRowDeleted();
-
+							Row DeletedPreagRowMapSize1 = vm
+									.getDeletePreaggRowDeleted();
+							
+							
 
 							float min1 = 0;
 							float max1 = 0;
-							float average1= 0;
-							int sum1= 0;
-							int count1= 0;
+							float average1 = 0;
+							int sum1 = 0;
+							int count1 = 0;
 
-							if(DeletedPreagRow!=null){
+							if (DeletedPreagRow != null) {
 								min1 = DeletedPreagRow.getFloat("min");
 								max1 = DeletedPreagRow.getFloat("max");
 								average1 = DeletedPreagRow.getFloat("average");
@@ -1018,14 +1337,12 @@ public class ViewManagerController {
 								count1 = DeletedPreagRow.getInt("count");
 							}
 
+							if (aggFct.equals("sum")) {
 
-							if(aggFct.equals("sum")){
-
-								if(DeletedPreagRow!=null){
-
+								if (DeletedPreagRow != null) {
 
 									int compareValue = new Integer(sum1)
-									.compareTo(new Integer(value));
+											.compareTo(new Integer(value));
 
 									if ((operation.equals(">") && (compareValue > 0))) {
 										eval1 &= true;
@@ -1038,13 +1355,12 @@ public class ViewManagerController {
 									}
 								}
 
-							}else if(aggFct.equals("average")){
+							} else if (aggFct.equals("average")) {
 
-								if(DeletedPreagRow!=null){
+								if (DeletedPreagRow != null) {
 
-
-
-									int compareValue = Float.compare(average1,Float.valueOf(value));
+									int compareValue = Float.compare(average1,
+											Float.valueOf(value));
 
 									if ((operation.equals(">") && (compareValue > 0))) {
 										eval1 &= true;
@@ -1058,12 +1374,12 @@ public class ViewManagerController {
 
 								}
 
-							}else if(aggFct.equals("count")){
+							} else if (aggFct.equals("count")) {
 
-								if(DeletedPreagRow!=null){
+								if (DeletedPreagRow != null) {
 
 									int compareValue = new Integer(count1)
-									.compareTo(new Integer(value));
+											.compareTo(new Integer(value));
 
 									if ((operation.equals(">") && (compareValue > 0))) {
 										eval1 &= true;
@@ -1077,13 +1393,12 @@ public class ViewManagerController {
 
 								}
 
-							}else if(aggFct.equals("min")){
+							} else if (aggFct.equals("min")) {
 
+								if (DeletedPreagRow != null) {
 
-								if(DeletedPreagRow!=null){
-
-
-									int compareValue = Float.compare(min1,Float.valueOf(value));
+									int compareValue = Float.compare(min1,
+											Float.valueOf(value));
 
 									if ((operation.equals(">") && (compareValue > 0))) {
 										eval1 &= true;
@@ -1097,10 +1412,11 @@ public class ViewManagerController {
 
 								}
 
-							}else if(aggFct.equals("max")){
+							} else if (aggFct.equals("max")) {
 
-								if(DeletedPreagRow!=null){
-									int compareValue = Float.compare(max1,Float.valueOf(value));
+								if (DeletedPreagRow != null) {
+									int compareValue = Float.compare(max1,
+											Float.valueOf(value));
 
 									if ((operation.equals(">") && (compareValue > 0))) {
 										eval1 &= true;
@@ -1111,31 +1427,29 @@ public class ViewManagerController {
 									} else {
 										eval1 &= false;
 									}
-								}							
+								}
 							}
 
-							if(DeletedPreagRow!=null) {
-								if(eval1){
+							if (DeletedPreagRow != null) {
+								if (eval1) {
 									vm.updateHaving(deltaDeletedRow,
-											(String) json.get("keyspace"), havingTable,
-											DeletedPreagRow);
-								}else{
+											(String) json.get("keyspace"),
+											havingTable, DeletedPreagRow);
+								} else {
 									vm.deleteRowHaving(deltaDeletedRow,
-											(String) json.get("keyspace"), havingTable,
-											DeletedPreagRow);
+											(String) json.get("keyspace"),
+											havingTable, DeletedPreagRow);
 								}
-							}else if (DeletedPreagRowMapSize1!=null){
+							} else if (DeletedPreagRowMapSize1 != null) {
 								vm.deleteRowHaving(deltaDeletedRow,
-										(String) json.get("keyspace"), havingTable,
-										DeletedPreagRowMapSize1);
+										(String) json.get("keyspace"),
+										havingTable, DeletedPreagRowMapSize1);
 							}
 						}
 					}
 				}
 
 			}
-
-
 
 		} else {
 			System.out.println("No Preaggregation table for this delta table "
@@ -1259,7 +1573,7 @@ public class ViewManagerController {
 					case "varint":
 
 						s1 = vm.getDeltaDeletedRow()
-						.getVarint(selColName + "_new").toString();
+								.getVarint(selColName + "_new").toString();
 						valueInt = new Integer(new BigInteger(s1).intValue());
 						compareValue = valueInt.compareTo(new Integer(value));
 
@@ -1376,10 +1690,13 @@ public class ViewManagerController {
 
 			// END OF DELETE FROM JOIN TABLES
 
-			// delete operations on agg of joins based on each deletion update of reverse join
+			// delete operations on agg of joins based on each deletion update
+			// of reverse join
 
-			//Update JoinPreagg
+			// Update JoinPreagg
 
+			
+			
 			if (position != -1) {
 
 				String temp = "mapping.unit(";
@@ -1389,6 +1706,8 @@ public class ViewManagerController {
 				int nrJoinAgg = VmXmlHandler.getInstance().getJoinAggMapping()
 						.getInt(temp + ".nrJoinAgg");
 
+				
+				
 				for (int i = 0; i < nrJoinAgg; i++) {
 
 					String s = temp + ".joinAgg(" + Integer.toString(i) + ")";
@@ -1396,9 +1715,8 @@ public class ViewManagerController {
 					String basetable = VmXmlHandler.getInstance()
 							.getJoinAggMapping().getString(s + ".basetable");
 
-
 					tableName = (String) json.get("table");
-					if(!basetable.equals(tableName))
+					if (!basetable.equals(tableName))
 						continue;
 
 					String joinAggTableName = VmXmlHandler.getInstance()
@@ -1417,12 +1735,200 @@ public class ViewManagerController {
 					String aggColType = VmXmlHandler.getInstance()
 							.getJoinAggMapping().getString(s + ".AggColType");
 
-
-
 					Row oldReverseRow = vm.getRevereJoinDeleteOldRow();
 					Row newReverseRow = vm.getReverseJoinDeleteNewRow();
 
-					vm.deleteFromJoinAgg(deltaDeletedRow,json,joinAggTableName,aggKey,aggKeyType1,aggCol,aggColType,oldReverseRow,newReverseRow,leftTable);
+					vm.deleteFromJoinAgg(deltaDeletedRow, json,
+							joinAggTableName, aggKey, aggKeyType1, aggCol,
+							aggColType, oldReverseRow, newReverseRow, leftTable);
+					
+					
+					
+					
+					//check if join_preagg has some having clauses or not
+					position = preaggJoinTableNames.indexOf(joinAggTableName);
+					
+					if (position != -1) {
+
+						String temp4 = "mapping.unit(";
+						temp4 += Integer.toString(position);
+						temp4 += ")";
+
+						int nrConditions = VmXmlHandler.getInstance()
+								.getHavingJoinAggMapping().getInt(temp4 + ".nrCond");
+
+						for (int r = 0; r < nrConditions; r++) {
+
+							String s1 = temp4 + ".Cond(" + Integer.toString(r)
+									+ ")";
+							String havingTable = VmXmlHandler.getInstance()
+									.getHavingJoinAggMapping()
+									.getString(s1 + ".name");
+
+							String nrAnd = VmXmlHandler.getInstance()
+									.getHavingJoinAggMapping()
+									.getString(s1 + ".nrAnd");
+
+							boolean eval1 = true;
+
+							for (int k = 0; k < Integer.parseInt(nrAnd); k++) {
+
+								String s11 = s1 + ".And(";
+								s11 += Integer.toString(k);
+								s11 += ")";
+
+								String aggFct = VmXmlHandler.getInstance()
+										.getHavingJoinAggMapping()
+										.getString(s11 + ".aggFct");
+								String operation = VmXmlHandler.getInstance()
+										.getHavingJoinAggMapping()
+										.getString(s11 + ".operation");
+								String value = VmXmlHandler.getInstance()
+										.getHavingJoinAggMapping()
+										.getString(s11 + ".value");
+								String type = VmXmlHandler.getInstance()
+										.getHavingJoinAggMapping()
+										.getString(s11 + ".type");
+
+								String selColName = VmXmlHandler.getInstance()
+										.getHavingJoinAggMapping()
+										.getString(s11 + ".selectionCol");
+
+								Row DeletedPreagRow = vm.getDeleteRowJoinAgg();
+								
+								Row DeletedPreagRowMapSize1 = vm.getDeleteRowJoinAggDeleted();
+								
+								
+
+								float min1 = 0;
+								float max1 = 0;
+								float average1 = 0;
+								int sum1 = 0;
+								int count1 = 0;
+
+								if (DeletedPreagRow != null) {
+									min1 = DeletedPreagRow.getFloat("min");
+									max1 = DeletedPreagRow.getFloat("max");
+									average1 = DeletedPreagRow.getFloat("average");
+									sum1 = DeletedPreagRow.getInt("sum");
+									count1 = DeletedPreagRow.getInt("count");
+								}
+
+								if (aggFct.equals("sum")) {
+
+									if (DeletedPreagRow != null) {
+
+										int compareValue = new Integer(sum1)
+												.compareTo(new Integer(value));
+
+										if ((operation.equals(">") && (compareValue > 0))) {
+											eval1 &= true;
+										} else if ((operation.equals("<") && (compareValue < 0))) {
+											eval1 &= true;
+										} else if ((operation.equals("=") && (compareValue == 0))) {
+											eval1 &= true;
+										} else {
+											eval1 &= false;
+										}
+									}
+
+								} else if (aggFct.equals("average")) {
+
+									if (DeletedPreagRow != null) {
+
+										int compareValue = Float.compare(average1,
+												Float.valueOf(value));
+
+										if ((operation.equals(">") && (compareValue > 0))) {
+											eval1 &= true;
+										} else if ((operation.equals("<") && (compareValue < 0))) {
+											eval1 &= true;
+										} else if ((operation.equals("=") && (compareValue == 0))) {
+											eval1 &= true;
+										} else {
+											eval1 &= false;
+										}
+
+									}
+
+								} else if (aggFct.equals("count")) {
+
+									if (DeletedPreagRow != null) {
+
+										int compareValue = new Integer(count1)
+												.compareTo(new Integer(value));
+
+										if ((operation.equals(">") && (compareValue > 0))) {
+											eval1 &= true;
+										} else if ((operation.equals("<") && (compareValue < 0))) {
+											eval1 &= true;
+										} else if ((operation.equals("=") && (compareValue == 0))) {
+											eval1 &= true;
+										} else {
+											eval1 &= false;
+										}
+
+									}
+
+								} else if (aggFct.equals("min")) {
+
+									if (DeletedPreagRow != null) {
+
+										int compareValue = Float.compare(min1,
+												Float.valueOf(value));
+
+										if ((operation.equals(">") && (compareValue > 0))) {
+											eval1 &= true;
+										} else if ((operation.equals("<") && (compareValue < 0))) {
+											eval1 &= true;
+										} else if ((operation.equals("=") && (compareValue == 0))) {
+											eval1 &= true;
+										} else {
+											eval1 &= false;
+										}
+
+									}
+
+								} else if (aggFct.equals("max")) {
+
+									if (DeletedPreagRow != null) {
+										int compareValue = Float.compare(max1,
+												Float.valueOf(value));
+
+										if ((operation.equals(">") && (compareValue > 0))) {
+											eval1 &= true;
+										} else if ((operation.equals("<") && (compareValue < 0))) {
+											eval1 &= true;
+										} else if ((operation.equals("=") && (compareValue == 0))) {
+											eval1 &= true;
+										} else {
+											eval1 &= false;
+										}
+									}
+								}
+
+								if (DeletedPreagRow != null) {
+									if (eval1) {
+										vm.updateJoinHaving(
+												(String) json.get("keyspace"),
+												havingTable, DeletedPreagRow);
+									} else {
+										vm.deleteRowJoinHaving(
+												(String) json.get("keyspace"),
+												havingTable, DeletedPreagRow);
+									}
+								} else if (DeletedPreagRowMapSize1 != null) {
+									vm.deleteRowJoinHaving(
+											(String) json.get("keyspace"),
+											havingTable, DeletedPreagRowMapSize1);
+								}
+							}
+						}
+					}
+					
+					
+					
+					
 
 				}
 			} else {
@@ -1431,7 +1937,6 @@ public class ViewManagerController {
 			}
 
 			// END OF UPDATE JoinPreag
-
 
 			cursor += nrOfTables;
 		}

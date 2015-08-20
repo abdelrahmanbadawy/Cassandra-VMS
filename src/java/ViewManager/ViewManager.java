@@ -55,6 +55,15 @@ public class ViewManager {
 
 	private Row reverseJoinDeleteNewRow;
 	private Row revereJoinDeleteOldRow;
+	
+	private Row joinAggRow;
+	private Row joinAggRowChangeAK;
+	private Row joinAggDeletedRow;
+	
+	private Row deleteRowJoinAggDeleted;
+	private Row deleteRowJoinAgg;
+	
+	
 
 	public ViewManager(Cluster currenCluster) {
 		this.currentCluster = currenCluster;
@@ -3250,7 +3259,7 @@ public class ViewManager {
 		this.revereJoinDeleteOldRow = revereJoinDeletedOldRow;
 	}
 
-	public boolean updateJoinAgg(Row deltaUpdatedRow, JSONObject json, String joinAggTableName, String aggKey, String aggKeyType, String aggCol, String aggColType, Row oldReverseRow, Row newReverseRow, boolean left,boolean override) {
+	public boolean updateJoinAgg(Row deltaUpdatedRow, JSONObject json, String joinAggTableName, String aggKey, String aggKeyType, String aggCol, String aggColType, Row oldReverseRow, Row newReverseRow, boolean left,boolean override, boolean mapsize1) {
 
 
 		// 1. check if the aggKey has been updated or not from delta Stream
@@ -3386,7 +3395,7 @@ public class ViewManager {
 			}
 		}
 
-
+		
 		//case: user updated any other col than aggCol & aggKey
 		if(sameKeyValue && sameAggColValue)
 			return true;
@@ -3493,7 +3502,7 @@ public class ViewManager {
 
 			}
 			try {
-
+				
 				// 3. execute the insertion
 				StringBuilder insertQueryAgg = new StringBuilder("INSERT INTO ");
 				insertQueryAgg.append((String) json.get("keyspace"))
@@ -3511,13 +3520,39 @@ public class ViewManager {
 				session1.execute(boundStatement.bind((int) sum,
 						(int) count, average, min, max));
 				System.out.println(boundStatement.toString());
+				
+				
+				StringBuilder selectQuery2 = new StringBuilder("SELECT * FROM ").append(json.get("keyspace")).
+						append(".").append(joinAggTableName)
+						.append(" WHERE ").append(aggKey+ " = ").append(aggKeyValue).append(";");
+				
+				System.out.println(selectQuery2);
+				
+				
+				try{
+				Session session = currentCluster.connect();
+				
+				setJoinAggRow(session.execute(selectQuery2.toString()).one());
+				}
+				catch(Exception e){
+					e.printStackTrace();
+					return false;
+				}
+				
+				if(!override){
+					setJoinAggRowChangeAK(null);
+					setJoinAggDeletedRow(null);
+				}
+				if(!mapsize1){
+					setJoinAggDeletedRow(null);
+				}
 
 			} catch (Exception e) {
 				e.printStackTrace();
 				return false;
 			}
 		} else if ((!sameKeyValue) && !override) {
-
+			
 			// 1. retrieve old agg key value from delta stream to retrieve the
 			// correct row from joinpreagg
 			// was retrieved above in aggKeyValue_old variable
@@ -3568,13 +3603,31 @@ public class ViewManager {
 				}
 
 				if (myMap1.size() == 1) {
+					
+					StringBuilder selectQuery2 = new StringBuilder("SELECT * FROM ").append(json.get("keyspace")).append(joinAggTableName)
+							.append(" WHERE ").append(aggKey+ " = ").append(aggKeyValue_old).append(";");
+					
+					System.out.println(selectQuery2);
+					
+					
+					try{
+					Session session = currentCluster.connect();
+					
+					setJoinAggDeletedRow(session.execute(selectQuery2.toString()).one());
+					}
+					catch(Exception e){
+						e.printStackTrace();
+						return false;
+					}
+					
+					
 					// 4. delete the whole row
 					deleteEntireRowWithPK((String) json.get("keyspace"),
 							joinAggTableName, aggKey, aggKeyValue_old);
 
 					// 4.a perform a new insertion with new values
 					updateJoinAgg(deltaUpdatedRow,json, joinAggTableName,aggKey, aggKeyType,aggCol
-							,aggColType,oldReverseRow,newReverseRow,left,true);
+							,aggColType,oldReverseRow,newReverseRow,left,true,true);
 
 				} else {
 
@@ -3637,7 +3690,24 @@ public class ViewManager {
 
 					// perform a new insertion for the new aggkey given in json
 					updateJoinAgg(deltaUpdatedRow,json, joinAggTableName,aggKey, aggKeyType,aggCol
-							,aggColType,oldReverseRow,newReverseRow,left,true);
+							,aggColType,oldReverseRow,newReverseRow,left,true, false);
+					
+					//selection to  updated row
+					StringBuilder selectQuery2 = new StringBuilder("SELECT * FROM ").append(json.get("keyspace")).append(joinAggTableName)
+							.append(" WHERE ").append(aggKey+ " = ").append(aggKeyValue_old).append(";");
+					
+					System.out.println(selectQuery2);
+					
+					
+					try{
+					Session session = currentCluster.connect();
+					
+					setJoinAggRowChangeAK(session.execute(selectQuery2.toString()).one());
+					}
+					catch(Exception e){
+						e.printStackTrace();
+						return false;
+					}
 				}
 
 			}
@@ -3717,6 +3787,74 @@ public class ViewManager {
 
 		return true;
 	}
+	
+	public boolean updateJoinHaving(String keyspace,
+			String havingTable, Row preagRow) {
+
+		
+
+		float min = preagRow.getFloat("min");
+		float max = preagRow.getFloat("max");
+		float average = preagRow.getFloat("average");
+		int count = preagRow.getInt("count");
+		int sum = preagRow.getInt("sum");
+
+		List<Definition> def= preagRow.getColumnDefinitions().asList();
+		String pkName = def.get(0).getName();
+		String pkType = def.get(0).getType().toString();
+		String pkVAlue = "";
+
+		switch(pkType){
+
+		case "int":
+			pkVAlue = Integer.toString(preagRow.getInt(pkName));
+			break;
+
+		case "float":
+			pkVAlue = Float.toString(preagRow.getFloat(pkName));
+			break;
+
+		case "varint":
+			pkVAlue = preagRow.getVarint(pkName).toString();
+			break;
+
+		case "varchar":
+			pkVAlue =  preagRow.getString(pkName);
+			break;
+
+		case "text":
+			pkVAlue =  preagRow.getString(pkName);
+			break;
+		}
+
+
+		try {
+			// 1. execute the insertion
+			StringBuilder insertQuery = new StringBuilder("INSERT INTO ");
+			insertQuery.append(keyspace).append(".").append(havingTable)
+			.append(" (")
+			.append(pkName + ", ").append("sum, ")
+			.append("count, average, min, max ").append(") VALUES (")
+			.append("?, ?, ?, ?, ?, ?);");
+
+			System.out.println(insertQuery);
+
+			Session session1 = currentCluster.connect();
+
+			PreparedStatement statement1 = session1
+					.prepare(insertQuery.toString());
+			BoundStatement boundStatement = new BoundStatement(
+					statement1);
+			session1.execute(boundStatement.bind(pkVAlue,(int) sum,
+					(int) count, average, min, max));
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+
+		return true;
+	}
 
 	
 	public boolean deleteFromJoinAgg(Row deltaDeletedRow,JSONObject json,String joinAggTableName,String aggKey,String aggKeyType,String aggCol,String aggColType,Row oldReverseRow,Row newReverseRow,Boolean leftTable){
@@ -3787,6 +3925,9 @@ public class ViewManager {
 			count = theRow.getInt("count");
 
 			if (count == 1) {
+				
+				setDeleteRowJoinAggDeleted(theRow);
+				
 				// 4. delete the whole row
 				deleteEntireRowWithPK((String) json.get("keyspace"),
 						joinAggTableName, aggKey, aggKeyValue);
@@ -3871,6 +4012,30 @@ public class ViewManager {
 						(int) count, average, min, max));
 				System.out.println(boundStatement.toString());
 
+				
+//Selection to set DeleteRowDelete variable
+				
+				StringBuilder selectPreaggQuery2 = new StringBuilder("SELECT * ");
+	
+				selectPreaggQuery2.append(" FROM ")
+				.append((String) json.get("keyspace")).append(".")
+				.append(joinAggTableName).append(" where ")
+				.append(aggKey + " = ").append(aggKeyValue).append(";");
+
+				System.out.println(selectPreaggQuery2);
+
+				try {
+
+					Session session = currentCluster.connect();
+					setDeleteRowJoinAgg((session.execute(selectPreaggQuery2.toString()).one()));
+					setDeleteRowJoinAggDeleted(null);
+					
+					
+				} catch (Exception e) {
+					e.printStackTrace();
+					return false;
+				}
+				
 			}
 
 		}
@@ -3912,18 +4077,70 @@ public class ViewManager {
 			break;
 
 		case "varchar":
-			pkVAlue = preagRow.getString(pkName);
+			pkVAlue = "'"+preagRow.getString(pkName)+"'";
 			break;
 
 		case "text":
-			pkVAlue = preagRow.getString(pkName);
+			pkVAlue = "'"+preagRow.getString(pkName)+"'";
 			break;
 		}
 
 
 		StringBuilder deleteQuery = new StringBuilder("delete from ");
 		deleteQuery.append(keyspace).append(".").append(havingTable)
-		.append(" WHERE ").append(pkName + " = ").append("'"+pkVAlue+"'")
+		.append(" WHERE ").append(pkName + " = ").append(pkVAlue)
+		.append(";");
+
+		System.out.println(deleteQuery);
+
+		try {
+
+			Session session = currentCluster.connect();
+			session.execute(deleteQuery.toString());
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+		
+		return true;
+	}
+	
+	public boolean deleteRowJoinHaving( String keyspace,
+			String havingTable, Row preagRow) {
+
+		List<Definition> def= preagRow.getColumnDefinitions().asList();
+		String pkName = def.get(0).getName();
+		String pkType = def.get(0).getType().toString();
+		String pkVAlue = "";
+
+		switch(pkType){
+
+		case "int":
+			pkVAlue = Integer.toString(preagRow.getInt(pkName));
+			break;
+
+		case "float":
+			pkVAlue = Float.toString(preagRow.getFloat(pkName));
+			break;
+
+		case "varint":
+			pkVAlue = preagRow.getVarint(pkName).toString();
+			break;
+
+		case "varchar":
+			pkVAlue = "'"+preagRow.getString(pkName)+"'";
+			break;
+
+		case "text":
+			pkVAlue = "'"+preagRow.getString(pkName)+"'";
+			break;
+		}
+
+
+		StringBuilder deleteQuery = new StringBuilder("delete from ");
+		deleteQuery.append(keyspace).append(".").append(havingTable)
+		.append(" WHERE ").append(pkName + " = ").append(pkVAlue)
 		.append(";");
 
 		System.out.println(deleteQuery);
@@ -3963,6 +4180,46 @@ public class ViewManager {
 
 	public void setDeletePreaggRow(Row deletePreaggRow) {
 		this.deletePreaggRow = deletePreaggRow;
+	}
+
+	public Row getJoinAggRowChangeAK() {
+		return joinAggRowChangeAK;
+	}
+
+	public void setJoinAggRowChangeAK(Row joinAggRowChangeAK) {
+		this.joinAggRowChangeAK = joinAggRowChangeAK;
+	}
+
+	public Row getJoinAggRow() {
+		return joinAggRow;
+	}
+
+	public void setJoinAggRow(Row joinAggRow) {
+		this.joinAggRow = joinAggRow;
+	}
+
+	public Row getJoinAggDeletedRow() {
+		return joinAggDeletedRow;
+	}
+
+	public void setJoinAggDeletedRow(Row joinAggDeletedRow) {
+		this.joinAggDeletedRow = joinAggDeletedRow;
+	}
+
+	public Row getDeleteRowJoinAggDeleted() {
+		return deleteRowJoinAggDeleted;
+	}
+
+	public void setDeleteRowJoinAggDeleted(Row deleteRowJoinAggDeleted) {
+		this.deleteRowJoinAggDeleted = deleteRowJoinAggDeleted;
+	}
+
+	public Row getDeleteRowJoinAgg() {
+		return deleteRowJoinAgg;
+	}
+
+	public void setDeleteRowJoinAgg(Row deleteRowJoinAgg) {
+		this.deleteRowJoinAgg = deleteRowJoinAgg;
 	}
 
 }
