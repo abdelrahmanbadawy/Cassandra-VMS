@@ -3614,7 +3614,7 @@ public class ViewManager {
 
 				if (myMap1.size() == 1) {
 
-					StringBuilder selectQuery2 = new StringBuilder("SELECT * FROM ").append(json.get("keyspace")).append(joinAggTableName)
+					StringBuilder selectQuery2 = new StringBuilder("SELECT * FROM ").append(json.get("keyspace")+".").append(joinAggTableName)
 							.append(" WHERE ").append(aggKey+ " = ").append(aggKeyValue_old).append(";");
 
 					System.out.println(selectQuery2);
@@ -3703,7 +3703,7 @@ public class ViewManager {
 							,aggColType,oldReverseRow,newReverseRow,left,true, false);
 
 					//selection to  updated row
-					StringBuilder selectQuery2 = new StringBuilder("SELECT * FROM ").append(json.get("keyspace")).append(joinAggTableName)
+					StringBuilder selectQuery2 = new StringBuilder("SELECT * FROM ").append(json.get("keyspace")+".").append(joinAggTableName)
 							.append(" WHERE ").append(aggKey+ " = ").append(aggKeyValue_old).append(";");
 
 					System.out.println(selectQuery2);
