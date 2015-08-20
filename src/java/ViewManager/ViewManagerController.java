@@ -777,6 +777,8 @@ public class ViewManagerController {
 				temp += Integer.toString(position);
 				temp += ")";
 
+				String joinKey = temp+".joinKey";
+
 				int nrJoinAgg = VmXmlHandler.getInstance().getJoinAggMapping()
 						.getInt(temp + ".nrJoinAgg");
 
@@ -811,31 +813,55 @@ public class ViewManagerController {
 
 					tableName = (String) json.get("table");
 
-
 					String aggKeyValue = "";
 
-					switch(aggKeyType){
+					if(aggKey.equals(joinKey)){
 
-					case "int":
-						aggKeyValue = "'"+Integer.toString(newReverseRow.getInt(aggKey))+"'";
-						break;
-					case "float":
-						aggKeyValue = "'"+Float.toString(newReverseRow.getFloat(aggKey))+"'";
-						break;
-					case "varint":
-						aggKeyValue = "'"+newReverseRow.getVarint(aggKey).toString()+"'";
-						break;
+						switch(aggKeyType){
 
-					case "text":
-						aggKeyValue = "'"+newReverseRow.getString(aggKey).toString()+"'";
-						break;
+						case "int":
+							aggKeyValue = Integer.toString(newReverseRow.getInt(aggKey));
+							break;
+						case "float":
+							aggKeyValue = Float.toString(newReverseRow.getFloat(aggKey));
+							break;
+						case "varint":
+							aggKeyValue = newReverseRow.getVarint(aggKey).toString();
+							break;
 
-					case "varchar":
-						aggKeyValue = "'"+newReverseRow.getString(aggKey).toString()+"'";
-						break;
+						case "text":
+							aggKeyValue = "'"+newReverseRow.getString(aggKey).toString()+"'";
+							break;
 
+						case "varchar":
+							aggKeyValue = "'"+newReverseRow.getString(aggKey).toString()+"'";
+							break;
+
+						}
+					}else{
+						
+						switch(aggKeyType){
+
+						case "int":
+							aggKeyValue = Integer.toString(deltaUpdatedRow.getInt(aggKey+"_new"));
+							break;
+						case "float":
+							aggKeyValue = Float.toString(deltaUpdatedRow.getFloat(aggKey+"_new"));
+							break;
+						case "varint":
+							aggKeyValue = deltaUpdatedRow.getVarint(aggKey+"_new").toString();
+							break;
+
+						case "text":
+							aggKeyValue = "'"+deltaUpdatedRow.getString(aggKey+"_new").toString()+"'";
+							break;
+
+						case "varchar":
+							aggKeyValue = "'"+deltaUpdatedRow.getString(aggKey+"_new").toString()+"'";
+							break;
+
+						}
 					}
-
 
 					boolean update = true;
 					switch(joinType){

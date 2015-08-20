@@ -3567,7 +3567,7 @@ public class ViewManager {
 							"list_item2", String.class, String.class));
 				}
 
-				if (myMap1.size() == 1) {
+				if (myMap1.size() == 1 || count==1) {
 					// 4. delete the whole row
 					deleteEntireRowWithPK((String) json.get("keyspace"),
 							joinAggTableName, aggKey, aggKeyValue_old);

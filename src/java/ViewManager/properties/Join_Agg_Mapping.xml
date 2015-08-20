@@ -36,7 +36,7 @@
 			<joinAgg>
 				<basetable>courses</basetable>
 				<othertable>student</othertable>
-				<name>innerjoin_agg_courses_faculty_ects</name>
+				<name>innerjoin_agg_courses_name_ects</name>
 				<joinType>inner</joinType>
 				<leftTable>true</leftTable>
 				<rightTable>false</rightTable>

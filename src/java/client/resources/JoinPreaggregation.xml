@@ -101,7 +101,7 @@
 
 			<columnNumber>5</columnNumber>
 			<keyspace>test</keyspace>
-			<name>innerjoin_agg_courses_faculty_ects</name>
+			<name>innerjoin_agg_courses_name_ects</name>
 
 			<primaryKey>
 				<type>text</type>
