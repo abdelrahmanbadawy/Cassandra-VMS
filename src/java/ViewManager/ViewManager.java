@@ -3942,8 +3942,8 @@ public class ViewManager {
 		}
 
 		// 2. select row with aggkeyValue from delta stream
-		StringBuilder selectPreaggQuery1 = new StringBuilder("SELECT ")
-				.append("sum, ").append("count, ").append("average, min, max ");
+		StringBuilder selectPreaggQuery1 = new StringBuilder("SELECT ").append(aggKey)
+				.append(", sum, ").append("count, ").append("average, min, max ");
 		selectPreaggQuery1.append(" FROM ")
 				.append((String) json.get("keyspace")).append(".")
 				.append(joinAggTableName).append(" where ")
@@ -4064,7 +4064,7 @@ public class ViewManager {
 				// Selection to set DeleteRowDelete variable
 
 				StringBuilder selectPreaggQuery2 = new StringBuilder(
-						"SELECT * ");
+						"SELECT ").append(aggKey).append(", sum, ").append("count, ").append("average, min, max ");
 
 				selectPreaggQuery2.append(" FROM ")
 						.append((String) json.get("keyspace")).append(".")
@@ -4158,6 +4158,7 @@ public class ViewManager {
 			Row preagRow) {
 
 		List<Definition> def = preagRow.getColumnDefinitions().asList();
+		
 		String pkName = def.get(0).getName();
 		String pkType = def.get(0).getType().toString();
 		String pkVAlue = "";
