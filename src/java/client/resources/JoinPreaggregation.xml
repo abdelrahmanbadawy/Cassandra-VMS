@@ -186,8 +186,8 @@
 			</column>
 
 			<aggCol>
-				<type>varint</type>
-				<name>ects</name>
+				<type>int</type>
+				<name>age</name>
 			</aggCol>
 
 		</tableDefinition>

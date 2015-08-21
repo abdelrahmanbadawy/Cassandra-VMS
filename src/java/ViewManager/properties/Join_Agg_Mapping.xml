@@ -8,16 +8,15 @@
 			<reverseJoin>RJ_courses_student_faculty_faculty</reverseJoin>
 			<joinKey>faculty</joinKey>
 			
-			<nrJoinAgg>2</nrJoinAgg>
+			<nrJoinAgg>3</nrJoinAgg>
 			<joinAgg>
 				<basetable>courses</basetable>
 				<othertable>student</othertable>
 				<name>leftjoin_agg_courses_faculty_ects</name>
 				<joinType>left</joinType>
-				<leftTable>true</leftTable>
-				<rightTable>false</rightTable>
 				<AggKey>faculty</AggKey>
 				<AggKeyType>text</AggKeyType>
+				<AggColinTable>left</AggColinTable>
 				<AggCol>ects</AggCol>
 				<AggColType>varint</AggColType>
 			</joinAgg>
@@ -26,10 +25,20 @@
 				<othertable>student</othertable>
 				<name>innerjoin_agg_courses_faculty_ects</name>
 				<joinType>inner</joinType>
-				<leftTable>true</leftTable>
-				<rightTable>false</rightTable>
 				<AggKey>faculty</AggKey>
 				<AggKeyType>text</AggKeyType>
+				<AggColinTable>left</AggColinTable>
+				<AggCol>ects</AggCol>
+				<AggColType>varint</AggColType>
+			</joinAgg>
+			<joinAgg>
+				<basetable>student</basetable>
+				<othertable>courses</othertable>
+				<name>rightjoin_agg_courses_faculty_ects</name>
+				<joinType>right</joinType>
+				<AggKey>faculty</AggKey>
+				<AggKeyType>text</AggKeyType>
+				<AggColinTable>left</AggColinTable>
 				<AggCol>ects</AggCol>
 				<AggColType>varint</AggColType>
 			</joinAgg>
