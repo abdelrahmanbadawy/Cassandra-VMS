@@ -1044,7 +1044,6 @@ public class ViewManagerController {
 
 					case "left":
 
-
 						if(deletedFrom!=null && (deletedFrom.getMap("list_item1", String.class, String.class).isEmpty() && deletedFrom.getMap("list_item2", String.class, String.class).isEmpty())){
 
 							vm.deleteEntireRowWithPK((String)json.get("keyspace"), joinAggTableName, aggKey, aggKeyValueDelete);
