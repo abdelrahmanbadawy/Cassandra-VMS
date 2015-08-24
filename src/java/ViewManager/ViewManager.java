@@ -150,11 +150,11 @@ public class ViewManager {
 		// retrieved from json having the baseTablePrimaryKey
 
 		StringBuilder selectQuery = new StringBuilder("SELECT ")
-				.append(selectStatement_new);
+		.append(selectStatement_new);
 		selectQuery.append(" FROM ").append(keyspace).append(".")
-				.append("delta_" + table).append(" WHERE ")
-				.append(baseTablePrimaryKey + " = ")
-				.append(data.get(baseTablePrimaryKey) + " ;");
+		.append("delta_" + table).append(" WHERE ")
+		.append(baseTablePrimaryKey + " = ")
+		.append(data.get(baseTablePrimaryKey) + " ;");
 
 		System.out.println(selectQuery);
 
@@ -180,8 +180,8 @@ public class ViewManager {
 
 			insertQueryAgg = new StringBuilder("INSERT INTO ");
 			insertQueryAgg.append(keyspace).append(".")
-					.append("delta_" + table).append(" ( ")
-					.append(selectStatement_new).append(") VALUES (");
+			.append("delta_" + table).append(" ( ")
+			.append(selectStatement_new).append(") VALUES (");
 
 			for (String s : selectStatement_new_values) {
 				insertQueryAgg.append(s).append(", ");
@@ -203,9 +203,9 @@ public class ViewManager {
 
 			insertQueryAgg = new StringBuilder("INSERT INTO ");
 			insertQueryAgg.append(keyspace).append(".")
-					.append("delta_" + table + " (")
-					.append(selectStatement_new).append(", ")
-					.append(selectStatement_old).append(") VALUES (");
+			.append("delta_" + table + " (")
+			.append(selectStatement_new).append(", ")
+			.append(selectStatement_old).append(") VALUES (");
 
 			Iterator<?> keySetIterator1 = keySet.iterator();
 
@@ -226,7 +226,7 @@ public class ViewManager {
 					if (!theRow.getColumnDefinitions().getName(i)
 							.equals(baseTablePrimaryKey)) {
 						insertQueryAgg
-								.append(", '" + theRow.getString(i) + "'");
+						.append(", '" + theRow.getString(i) + "'");
 					}
 					break;
 				case "int":
@@ -246,7 +246,7 @@ public class ViewManager {
 					if (!theRow.getColumnDefinitions().getName(i)
 							.equals(baseTablePrimaryKey)) {
 						insertQueryAgg
-								.append(", '" + theRow.getString(i) + "'");
+						.append(", '" + theRow.getString(i) + "'");
 					}
 					break;
 
@@ -279,10 +279,10 @@ public class ViewManager {
 		// 5.a save the row and send bk to controller
 
 		StringBuilder selectQuery1 = new StringBuilder("SELECT * ")
-				.append(" FROM ").append(keyspace).append(".")
-				.append("delta_" + table).append(" WHERE ")
-				.append(baseTablePrimaryKey + " = ")
-				.append(data.get(baseTablePrimaryKey) + " ;");
+		.append(" FROM ").append(keyspace).append(".")
+		.append("delta_" + table).append(" WHERE ")
+		.append(baseTablePrimaryKey + " = ")
+		.append(data.get(baseTablePrimaryKey) + " ;");
 
 		System.out.println(selectQuery1);
 
@@ -309,9 +309,9 @@ public class ViewManager {
 
 		StringBuilder selectQuery = new StringBuilder("SELECT *");
 		selectQuery.append(" FROM ").append(json.get("keyspace")).append(".")
-				.append("delta_" + json.get("table")).append(" WHERE ")
-				.append(hm[0]).append(" = ")
-				.append(condition.get(hm[0]) + " ;");
+		.append("delta_" + json.get("table")).append(" WHERE ")
+		.append(hm[0]).append(" = ")
+		.append(condition.get(hm[0]) + " ;");
 
 		System.out.println(selectQuery);
 
@@ -334,13 +334,13 @@ public class ViewManager {
 
 		StringBuilder deleteQuery = new StringBuilder("DELETE FROM ");
 		deleteQuery.append(json.get("keyspace")).append(".")
-				.append("delta_" + json.get("table")).append(" WHERE ");
+		.append("delta_" + json.get("table")).append(" WHERE ");
 
 		Object[] hm1 = condition.keySet().toArray();
 
 		for (int i = 0; i < hm1.length; i++) {
 			deleteQuery.append(hm1[i]).append(" = ")
-					.append(condition.get(hm1[i]));
+			.append(condition.get(hm1[i]));
 			deleteQuery.append(";");
 		}
 
@@ -389,7 +389,7 @@ public class ViewManager {
 
 		case "text":
 			aggKeyValue = "'" + deltaDeletedRow.getString(aggKey + "_new")
-					+ "'";
+			+ "'";
 			break;
 
 		case "int":
@@ -410,35 +410,35 @@ public class ViewManager {
 		switch (deltaDeletedRow.getColumnDefinitions().asList().get(0)
 				.getType().toString()) {
 
-		case "text":
-			pk = deltaDeletedRow.getString(0);
-			break;
+				case "text":
+					pk = deltaDeletedRow.getString(0);
+					break;
 
-		case "int":
-			pk = Integer.toString(deltaDeletedRow.getInt(0));
-			break;
+				case "int":
+					pk = Integer.toString(deltaDeletedRow.getInt(0));
+					break;
 
-		case "varint":
-			pk = deltaDeletedRow.getVarint(0).toString();
-			break;
+				case "varint":
+					pk = deltaDeletedRow.getVarint(0).toString();
+					break;
 
-		case "varchar":
-			pk = deltaDeletedRow.getString(0);
-			break;
+				case "varchar":
+					pk = deltaDeletedRow.getString(0);
+					break;
 
-		case "float":
-			pk = Float.toString(deltaDeletedRow.getFloat(0));
-			break;
+				case "float":
+					pk = Float.toString(deltaDeletedRow.getFloat(0));
+					break;
 		}
 
 		// 2. select row with aggkeyValue from delta stream
 		StringBuilder selectPreaggQuery1 = new StringBuilder("SELECT ")
-				.append(aggKey + ", list_item, ").append("sum, ")
-				.append("count, ").append("average, min, max ");
+		.append(aggKey + ", list_item, ").append("sum, ")
+		.append("count, ").append("average, min, max ");
 		selectPreaggQuery1.append(" FROM ")
-				.append((String) json.get("keyspace")).append(".")
-				.append(preaggTable).append(" where ").append(aggKey + " = ")
-				.append(aggKeyValue).append(";");
+		.append((String) json.get("keyspace")).append(".")
+		.append(preaggTable).append(" where ").append(aggKey + " = ")
+		.append(aggKeyValue).append(";");
 
 		System.out.println(selectPreaggQuery1);
 
@@ -490,7 +490,7 @@ public class ViewManager {
 
 				case "varint":
 					aggColValue = deltaDeletedRow.getVarint(aggCol + "_new")
-							.floatValue();
+					.floatValue();
 					break;
 
 				case "float":
@@ -534,11 +534,11 @@ public class ViewManager {
 
 				StringBuilder insertQueryAgg = new StringBuilder("INSERT INTO ");
 				insertQueryAgg.append((String) json.get("keyspace"))
-						.append(".").append(preaggTable).append(" ( ")
-						.append(aggKey + ", ").append("list_item, ")
-						.append("sum, count, average, min, max")
-						.append(") VALUES (").append(aggKeyValue + ", ")
-						.append("?, ?, ?, ?, ?, ?);");
+				.append(".").append(preaggTable).append(" ( ")
+				.append(aggKey + ", ").append("list_item, ")
+				.append("sum, count, average, min, max")
+				.append(") VALUES (").append(aggKeyValue + ", ")
+				.append("?, ?, ?, ?, ?, ?);");
 
 				Session session1 = currentCluster.connect();
 
@@ -552,12 +552,12 @@ public class ViewManager {
 				// Selection to set DeleteRowDelete variable
 
 				StringBuilder selectPreaggQuery2 = new StringBuilder("SELECT ")
-						.append(aggKey + ",").append("list_item, sum, ")
-						.append("count, ").append("average, min, max ");
+				.append(aggKey + ",").append("list_item, sum, ")
+				.append("count, ").append("average, min, max ");
 				selectPreaggQuery2.append(" FROM ")
-						.append((String) json.get("keyspace")).append(".")
-						.append(preaggTable).append(" where ")
-						.append(aggKey + " = ").append(aggKeyValue).append(";");
+				.append((String) json.get("keyspace")).append(".")
+				.append(preaggTable).append(" where ")
+				.append(aggKey + " = ").append(aggKeyValue).append(";");
 
 				System.out.println(selectPreaggQuery2);
 
@@ -586,8 +586,8 @@ public class ViewManager {
 
 		StringBuilder deleteQuery = new StringBuilder("delete from ");
 		deleteQuery.append(keyspace).append(".").append(tableName)
-				.append(" WHERE ").append(pk + " = ").append(pkValue)
-				.append(";");
+		.append(" WHERE ").append(pk + " = ").append(pkValue)
+		.append(";");
 
 		System.out.println(deleteQuery.toString());
 		try {
@@ -758,7 +758,7 @@ public class ViewManager {
 
 			case "varint":
 				aggColValue = deltaUpdatedRow.getVarint(aggColIndexNew)
-						.floatValue();
+				.floatValue();
 				BigInteger temp = deltaUpdatedRow.getVarint(aggColIndexOld);
 
 				if (temp != null) {
@@ -782,12 +782,12 @@ public class ViewManager {
 			// 2.a select from preagg table row with AggKey as PK
 
 			StringBuilder selectPreaggQuery1 = new StringBuilder("SELECT ")
-					.append("list_item, ").append("sum, ").append("count, ")
-					.append("average, min, max ");
+			.append("list_item, ").append("sum, ").append("count, ")
+			.append("average, min, max ");
 			selectPreaggQuery1.append(" FROM ")
-					.append((String) json.get("keyspace")).append(".")
-					.append(preaggTable).append(" where ")
-					.append(aggKey + " = ").append(aggKeyValue).append(";");
+			.append((String) json.get("keyspace")).append(".")
+			.append(preaggTable).append(" where ")
+			.append(aggKey + " = ").append(aggKeyValue).append(";");
 
 			System.out.println(selectPreaggQuery1);
 
@@ -847,7 +847,7 @@ public class ViewManager {
 						sum = theRow1.getInt("sum") + aggColValue;
 					else
 						sum = theRow1.getInt("sum") - aggColValue_old
-								+ aggColValue;
+						+ aggColValue;
 
 					average = sum / count;
 
@@ -878,11 +878,11 @@ public class ViewManager {
 				// 3. execute the insertion
 				StringBuilder insertQueryAgg = new StringBuilder("INSERT INTO ");
 				insertQueryAgg.append((String) json.get("keyspace"))
-						.append(".").append(preaggTable).append(" ( ")
-						.append(aggKey + ", ").append("list_item, ")
-						.append("sum, count, average, min, max")
-						.append(") VALUES (").append(aggKeyValue + ", ")
-						.append("?, ?, ?, ?, ?, ?);");
+				.append(".").append(preaggTable).append(" ( ")
+				.append(aggKey + ", ").append("list_item, ")
+				.append("sum, count, average, min, max")
+				.append(") VALUES (").append(aggKeyValue + ", ")
+				.append("?, ?, ?, ?, ?, ?);");
 
 				Session session1 = currentCluster.connect();
 
@@ -897,12 +897,12 @@ public class ViewManager {
 				// 4.Retrieve row from preagg
 
 				StringBuilder selectPreaggQuery2 = new StringBuilder("SELECT ")
-						.append(aggKey + ", ").append("list_item, sum, ")
-						.append("count, ").append("average, min, max ");
+				.append(aggKey + ", ").append("list_item, sum, ")
+				.append("count, ").append("average, min, max ");
 				selectPreaggQuery2.append(" from ")
-						.append((String) json.get("keyspace")).append(".")
-						.append(preaggTable).append(" where ")
-						.append(aggKey + " = ").append(aggKeyValue).append(";");
+				.append((String) json.get("keyspace")).append(".")
+				.append(preaggTable).append(" where ")
+				.append(aggKey + " = ").append(aggKeyValue).append(";");
 
 				System.out.println(selectPreaggQuery2);
 
@@ -934,12 +934,12 @@ public class ViewManager {
 
 			// 2. select row with old aggkeyValue from delta stream
 			StringBuilder selectPreaggQuery1 = new StringBuilder("SELECT ")
-					.append("list_item, ").append("sum, ").append("count, ")
-					.append("average, min, max");
+			.append("list_item, ").append("sum, ").append("count, ")
+			.append("average, min, max");
 			selectPreaggQuery1.append(" FROM ")
-					.append((String) json.get("keyspace")).append(".")
-					.append(preaggTable).append(" where ")
-					.append(aggKey + " = ").append(aggKeyValue_old).append(";");
+			.append((String) json.get("keyspace")).append(".")
+			.append(preaggTable).append(" where ")
+			.append(aggKey + " = ").append(aggKeyValue_old).append(";");
 
 			System.out.println(selectPreaggQuery1);
 
@@ -979,10 +979,10 @@ public class ViewManager {
 							.append("list_item, sum, ").append("count, ")
 							.append("average, min, max ");
 					selectPreaggQuery2.append(" FROM ")
-							.append((String) json.get("keyspace")).append(".")
-							.append(preaggTable).append(" where ")
-							.append(aggKey + " = ").append(aggKeyValue_old)
-							.append(";");
+					.append((String) json.get("keyspace")).append(".")
+					.append(preaggTable).append(" where ")
+					.append(aggKey + " = ").append(aggKeyValue_old)
+					.append(";");
 
 					System.out.println(selectPreaggQuery2);
 
@@ -1030,11 +1030,11 @@ public class ViewManager {
 						String[] listArray = list.split(",");
 						if (Float.valueOf(listArray[aggColIndexInList - 1]) < min)
 							min = Float
-									.valueOf(listArray[aggColIndexInList - 1]);
+							.valueOf(listArray[aggColIndexInList - 1]);
 
 						if (Float.valueOf(listArray[aggColIndexInList - 1]) > max)
 							max = Float
-									.valueOf(listArray[aggColIndexInList - 1]);
+							.valueOf(listArray[aggColIndexInList - 1]);
 					}
 
 					// 6. Execute insertion statement of the row with the
@@ -1043,12 +1043,12 @@ public class ViewManager {
 					StringBuilder insertQueryAgg = new StringBuilder(
 							"INSERT INTO ");
 					insertQueryAgg.append((String) json.get("keyspace"))
-							.append(".").append(preaggTable).append(" ( ")
-							.append(aggKey + ", ").append("list_item, ")
-							.append("sum, count, average, min, max")
-							.append(") VALUES (")
-							.append(aggKeyValue_old + ", ")
-							.append("?, ?, ?, ?, ?, ?);");
+					.append(".").append(preaggTable).append(" ( ")
+					.append(aggKey + ", ").append("list_item, ")
+					.append("sum, count, average, min, max")
+					.append(") VALUES (")
+					.append(aggKeyValue_old + ", ")
+					.append("?, ?, ?, ?, ?, ?);");
 
 					Session session1 = currentCluster.connect();
 
@@ -1072,10 +1072,10 @@ public class ViewManager {
 							.append("list_item, sum, ").append("count, ")
 							.append("average, min, max ");
 					selectPreaggQuery2.append(" FROM ")
-							.append((String) json.get("keyspace")).append(".")
-							.append(preaggTable).append(" where ")
-							.append(aggKey + " = ").append(aggKeyValue_old)
-							.append(";");
+					.append((String) json.get("keyspace")).append(".")
+					.append(preaggTable).append(" where ")
+					.append(aggKey + " = ").append(aggKeyValue_old)
+					.append(";");
 
 					System.out.println(selectPreaggQuery2);
 
@@ -1103,6 +1103,7 @@ public class ViewManager {
 			String tableName, String keyspace, String joinKeyType, int column) {
 
 		setReverseJoinName(joinTable);
+		setUpdatedPreaggRowDeleted(null);
 
 		StringBuilder selectQuery = new StringBuilder();
 
@@ -1168,8 +1169,8 @@ public class ViewManager {
 		// System.out.println("oldjoinkeyvalue :"+joinKeyValue);
 
 		selectQuery.append("SELECT * FROM ").append(keyspace).append(".")
-				.append(joinTable).append(" WHERE ").append(joinKeyName)
-				.append(" = ").append(joinKeyValue).append(";");
+		.append(joinTable).append(" WHERE ").append(joinKeyName)
+		.append(" = ").append(joinKeyValue).append(";");
 
 		System.out.println(selectQuery);
 
@@ -1189,9 +1190,9 @@ public class ViewManager {
 		Row theRow = queryResults.one();
 
 		StringBuilder insertQuery = new StringBuilder("INSERT INTO ")
-				.append(keyspace).append(".").append(joinTable).append(" (")
-				.append(joinKeyName).append(", ").append("list_item" + column)
-				.append(") VALUES (").append(joinKeyValue).append(", ?);");
+		.append(keyspace).append(".").append(joinTable).append(" (")
+		.append(joinKeyName).append(", ").append("list_item" + column)
+		.append(") VALUES (").append(joinKeyValue).append(", ?);");
 
 		ArrayList<String> myList = new ArrayList<String>();
 
@@ -1261,8 +1262,8 @@ public class ViewManager {
 
 			StringBuilder selectQuery1 = new StringBuilder();
 			selectQuery1.append("SELECT * FROM ").append(keyspace).append(".")
-					.append(joinTable).append(" WHERE ").append(joinKeyName)
-					.append(" = ").append(oldJoinKeyValue).append(";");
+			.append(joinTable).append(" WHERE ").append(joinKeyName)
+			.append(" = ").append(oldJoinKeyValue).append(";");
 
 			session = currentCluster.connect();
 			queryResults = session.execute(selectQuery1.toString());
@@ -1272,10 +1273,10 @@ public class ViewManager {
 
 			setReverseJoinOldUpdateRow(row_old_join_value);
 			StringBuilder insertQuery2 = new StringBuilder("INSERT INTO ")
-					.append(keyspace).append(".").append(joinTable)
-					.append(" (").append(joinKeyName).append(", ")
-					.append("list_item" + column).append(") VALUES (")
-					.append(oldJoinKeyValue).append(", ?);");
+			.append(keyspace).append(".").append(joinTable)
+			.append(" (").append(joinKeyName).append(", ")
+			.append("list_item" + column).append(") VALUES (")
+			.append(oldJoinKeyValue).append(", ?);");
 
 			Map<String, String> tempMapImmutable2 = row_old_join_value.getMap(
 					"list_item" + column, String.class, String.class);
@@ -1295,8 +1296,8 @@ public class ViewManager {
 			// retrieve and set update old row
 			StringBuilder selectQuery2 = new StringBuilder();
 			selectQuery2.append("SELECT * FROM ").append(keyspace).append(".")
-					.append(joinTable).append(" WHERE ").append(joinKeyName)
-					.append(" = ").append(oldJoinKeyValue).append(";");
+			.append(joinTable).append(" WHERE ").append(joinKeyName)
+			.append(" = ").append(oldJoinKeyValue).append(";");
 
 			session = currentCluster.connect();
 			queryResults = session.execute(selectQuery2.toString());
@@ -1327,8 +1328,8 @@ public class ViewManager {
 			if (allNull) {
 				StringBuilder deleteQuery = new StringBuilder("delete from ");
 				deleteQuery.append(keyspace).append(".").append(joinTable)
-						.append(" WHERE ").append(joinKeyName + " = ")
-						.append(oldJoinKeyValue).append(";");
+				.append(" WHERE ").append(joinKeyName + " = ")
+				.append(oldJoinKeyValue).append(";");
 
 				System.out.println(deleteQuery);
 
@@ -1359,8 +1360,8 @@ public class ViewManager {
 		// Set the rj updated row for join updates
 		StringBuilder selectQuery1 = new StringBuilder();
 		selectQuery1.append("SELECT * FROM ").append(keyspace).append(".")
-				.append(joinTable).append(" WHERE ").append(joinKeyName)
-				.append(" = ").append(joinKeyValue).append(";");
+		.append(joinTable).append(" WHERE ").append(joinKeyName)
+		.append(" = ").append(joinKeyValue).append(";");
 
 		System.out.println(selectQuery1);
 
@@ -1527,39 +1528,39 @@ public class ViewManager {
 				addAllToRightJoinTable(rightJName, getReverseJoinUpdateOldRow()
 						.getMap("list_item2", String.class, String.class), json);
 			}
-			
-			
+
+
 			// remove old from left join
-						if (getReverseJoinUpdateOldRow().getMap("list_item2", String.class,
-								String.class).size() == 0
-								&& myMap2.size() > 0) {
+			if (getReverseJoinUpdateOldRow().getMap("list_item2", String.class,
+					String.class).size() == 0
+					&& myMap2.size() > 0) {
 
-							JSONObject data;
-							if (json.get("type").equals("insert")) {
-								data = (JSONObject) json.get("data");
-							} else
-								data = (JSONObject) json.get("set_data");
+				JSONObject data;
+				if (json.get("type").equals("insert")) {
+					data = (JSONObject) json.get("data");
+				} else
+					data = (JSONObject) json.get("set_data");
 
-							String pkValue = "(" + data.get(pkName) + ",0)";
+				String pkValue = "(" + data.get(pkName) + ",0)";
 
-							int position = XmlHandler.getInstance()
-									.getRightJoinViewConfig()
-									.getList("dbSchema.tableDefinition.name")
-									.indexOf(leftJName);
+				int position = VmXmlHandler.getInstance()
+						.getlJSchema()
+						.getList("dbSchema.tableDefinition.name")
+						.indexOf(leftJName);
 
-							String temp = "dbSchema.tableDefinition(";
-							temp += Integer.toString(position);
-							temp += ")";
+				String temp = "dbSchema.tableDefinition(";
+				temp += Integer.toString(position);
+				temp += ")";
 
-							String joinTablePk = VmXmlHandler.getInstance().getrJSchema()
-									.getString(temp + ".primaryKey.name");
+				String joinTablePk = VmXmlHandler.getInstance().getlJSchema()
+						.getString(temp + ".primaryKey.name");
 
-							deleteEntireRowWithPK(json.get("keyspace").toString(),
-									leftJName, joinTablePk, pkValue);
+				deleteEntireRowWithPK(json.get("keyspace").toString(),
+						leftJName, joinTablePk, pkValue);
 
-						}
-			
-			
+			}
+
+
 		}
 
 		// Case 7: change in join key value and update in right
@@ -1587,8 +1588,8 @@ public class ViewManager {
 
 				String pkValue = "(0," + data.get(pkName) + ")";
 
-				int position = XmlHandler.getInstance()
-						.getRightJoinViewConfig()
+				int position = VmXmlHandler.getInstance()
+						.getrJSchema()
 						.getList("dbSchema.tableDefinition.name")
 						.indexOf(rightJName);
 
@@ -1679,7 +1680,7 @@ public class ViewManager {
 
 				StringBuilder insertQuery = new StringBuilder("Delete from ");
 				insertQuery.append((String) json.get("keyspace")).append(".")
-						.append(rightJName).append(" WHERE ");
+				.append(rightJName).append(" WHERE ");
 				insertQuery.append(rightPkName).append(" = ");
 				insertQuery.append(tuple).append(";");
 
@@ -1753,7 +1754,7 @@ public class ViewManager {
 
 				StringBuilder insertQuery = new StringBuilder("Delete from ");
 				insertQuery.append((String) json.get("keyspace")).append(".")
-						.append(leftJName).append(" WHERE ");
+				.append(leftJName).append(" WHERE ");
 				insertQuery.append(leftPkName).append(" = ");
 				insertQuery.append(tuple).append(";");
 
@@ -1820,7 +1821,7 @@ public class ViewManager {
 
 			case "varint":
 				rightPkValue = deltaUpdatedRow.getVarint(rightPkName)
-						.toString();
+				.toString();
 				break;
 
 			case "varchar":
@@ -1849,7 +1850,7 @@ public class ViewManager {
 
 			StringBuilder insertQuery = new StringBuilder("INSERT INTO ");
 			insertQuery.append((String) json.get("keyspace")).append(".")
-					.append(rightJName).append(" (");
+			.append(rightJName).append(" (");
 			insertQuery.append(joinTablePk).append(", ");
 			insertQuery.append(colNames).append(") VALUES (");
 			insertQuery.append(tuple).append(", ");
@@ -1961,7 +1962,7 @@ public class ViewManager {
 
 			StringBuilder insertQuery = new StringBuilder("INSERT INTO ");
 			insertQuery.append((String) json.get("keyspace")).append(".")
-					.append(leftJName).append(" (");
+			.append(leftJName).append(" (");
 			insertQuery.append(joinTablePk).append(", ");
 			insertQuery.append(colNames).append(") VALUES (");
 			insertQuery.append(tuple).append(", ");
@@ -2053,7 +2054,7 @@ public class ViewManager {
 
 				StringBuilder insertQuery = new StringBuilder("INSERT INTO ");
 				insertQuery.append((String) json.get("keyspace")).append(".")
-						.append(leftJName).append(" (");
+				.append(leftJName).append(" (");
 				insertQuery.append(joinTablePk).append(", ");
 				insertQuery.append(colNames).append(") VALUES (");
 				insertQuery.append(tuple).append(", ");
@@ -2149,7 +2150,7 @@ public class ViewManager {
 
 				StringBuilder insertQuery = new StringBuilder("INSERT INTO ");
 				insertQuery.append((String) json.get("keyspace")).append(".")
-						.append(rightJName).append(" (");
+				.append(rightJName).append(" (");
 				insertQuery.append(joinTablePk).append(", ");
 				insertQuery.append(colNames).append(") VALUES (");
 				insertQuery.append(tuple).append(", ");
@@ -2275,8 +2276,8 @@ public class ViewManager {
 			// 1. execute the insertion
 			StringBuilder insertQuery = new StringBuilder("INSERT INTO ");
 			insertQuery.append(keyspace).append(".").append(selecTable)
-					.append(" (").append(insertion).append(") VALUES (")
-					.append(insertionValues).append(");");
+			.append(" (").append(insertion).append(") VALUES (")
+			.append(insertionValues).append(");");
 
 			System.out.println(insertQuery);
 
@@ -2296,7 +2297,7 @@ public class ViewManager {
 
 		StringBuilder deleteQuery = new StringBuilder("DELETE FROM ");
 		deleteQuery.append(keyspace).append(".").append(selecTable)
-				.append(" WHERE ").append(baseTablePrimaryKey).append(" = ");
+		.append(" WHERE ").append(baseTablePrimaryKey).append(" = ");
 
 		if (json.containsKey("condition")) {
 
@@ -2402,7 +2403,7 @@ public class ViewManager {
 
 			case "varint":
 				rightPkValue = deltaUpdatedRow.getVarint(rightPkName)
-						.toString();
+				.toString();
 				break;
 
 			case "varchar":
@@ -2444,7 +2445,7 @@ public class ViewManager {
 
 				StringBuilder insertQuery = new StringBuilder("INSERT INTO ");
 				insertQuery.append((String) json.get("keyspace")).append(".")
-						.append(innerJTableName).append(" (");
+				.append(innerJTableName).append(" (");
 				insertQuery.append(joinTablePk).append(", ");
 				insertQuery.append(colNames).append(") VALUES (");
 				insertQuery.append(tuple).append(", ");
@@ -2537,7 +2538,7 @@ public class ViewManager {
 
 			case "varint":
 				rightPkValue = deltaUpdatedRow.getVarint(rightPkName)
-						.toString();
+				.toString();
 				break;
 
 			case "varchar":
@@ -2575,7 +2576,7 @@ public class ViewManager {
 
 				StringBuilder deleteQuery = new StringBuilder("DELETE FROM ");
 				deleteQuery.append((String) json.get("keyspace")).append(".")
-						.append(innerJTableName).append(" WHERE ");
+				.append(innerJTableName).append(" WHERE ");
 				deleteQuery.append(joinTablePk).append(" = ");
 				deleteQuery.append(tuple).append(";");
 
@@ -2707,7 +2708,7 @@ public class ViewManager {
 
 				StringBuilder insertQuery = new StringBuilder("INSERT INTO ");
 				insertQuery.append((String) json.get("keyspace")).append(".")
-						.append(innerJTableName).append(" (");
+				.append(innerJTableName).append(" (");
 				insertQuery.append(joinTablePk).append(", ");
 				insertQuery.append(colNames).append(") VALUES (");
 				insertQuery.append(tuple).append(", ");
@@ -2834,7 +2835,7 @@ public class ViewManager {
 
 				StringBuilder deleteQuery = new StringBuilder("DELETE FROM ");
 				deleteQuery.append((String) json.get("keyspace")).append(".")
-						.append(innerJTableName).append(" WHERE ");
+				.append(innerJTableName).append(" WHERE ");
 				deleteQuery.append(joinTablePk).append(" = ");
 				deleteQuery.append(tuple).append(";");
 
@@ -2903,8 +2904,8 @@ public class ViewManager {
 		}
 
 		selectQuery.append("SELECT * FROM ").append(keyspace).append(".")
-				.append(joinTable).append(" WHERE ").append(joinKeyName)
-				.append(" = ").append(joinKeyValue).append(";");
+		.append(joinTable).append(" WHERE ").append(joinKeyName)
+		.append(" = ").append(joinKeyValue).append(";");
 
 		System.out.println(selectQuery);
 
@@ -2926,34 +2927,34 @@ public class ViewManager {
 		setRevereJoinDeleteOldRow(theRow);
 
 		StringBuilder insertQuery = new StringBuilder("INSERT INTO ")
-				.append(keyspace).append(".").append(joinTable).append(" (")
-				.append(joinKeyName).append(", ").append("list_item" + column)
-				.append(") VALUES (").append(joinKeyValue).append(", ?);");
+		.append(keyspace).append(".").append(joinTable).append(" (")
+		.append(joinKeyName).append(", ").append("list_item" + column)
+		.append(") VALUES (").append(joinKeyValue).append(", ?);");
 
 		HashMap<String, String> myMap = null;
 		String pk = "";
 		switch (deltaDeletedRow.getColumnDefinitions().asList().get(0)
 				.getType().toString()) {
 
-		case "text":
-			pk = deltaDeletedRow.getString(0);
-			break;
+				case "text":
+					pk = deltaDeletedRow.getString(0);
+					break;
 
-		case "int":
-			pk = Integer.toString(deltaDeletedRow.getInt(0));
-			break;
+				case "int":
+					pk = Integer.toString(deltaDeletedRow.getInt(0));
+					break;
 
-		case "varint":
-			pk = deltaDeletedRow.getVarint(0).toString();
-			break;
+				case "varint":
+					pk = deltaDeletedRow.getVarint(0).toString();
+					break;
 
-		case "varchar":
-			pk = deltaDeletedRow.getString(0);
-			break;
+				case "varchar":
+					pk = deltaDeletedRow.getString(0);
+					break;
 
-		case "float":
-			pk = Float.toString(deltaDeletedRow.getFloat(0));
-			break;
+				case "float":
+					pk = Float.toString(deltaDeletedRow.getFloat(0));
+					break;
 		}
 
 		// already exists
@@ -3006,8 +3007,8 @@ public class ViewManager {
 			if (allNull) {
 				StringBuilder deleteQuery = new StringBuilder("delete from ");
 				deleteQuery.append(keyspace).append(".").append(joinTable)
-						.append(" WHERE ").append(joinKeyName + " = ")
-						.append(joinKeyValue).append(";");
+				.append(" WHERE ").append(joinKeyName + " = ")
+				.append(joinKeyValue).append(";");
 
 				System.out.println(deleteQuery);
 
@@ -3020,8 +3021,8 @@ public class ViewManager {
 		// get new deleted row from rj
 		StringBuilder selectQuery1 = new StringBuilder();
 		selectQuery1.append("SELECT * FROM ").append(keyspace).append(".")
-				.append(joinTable).append(" WHERE ").append(joinKeyName)
-				.append(" = ").append(joinKeyValue).append(";");
+		.append(joinTable).append(" WHERE ").append(joinKeyName)
+		.append(" = ").append(joinKeyValue).append(";");
 
 		System.out.println(selectQuery1);
 
@@ -3150,25 +3151,25 @@ public class ViewManager {
 		switch (deltaDeletedRow.getColumnDefinitions().asList().get(0)
 				.getType().toString()) {
 
-		case "text":
-			leftPkValue = deltaDeletedRow.getString(0);
-			break;
+				case "text":
+					leftPkValue = deltaDeletedRow.getString(0);
+					break;
 
-		case "int":
-			leftPkValue = Integer.toString(deltaDeletedRow.getInt(0));
-			break;
+				case "int":
+					leftPkValue = Integer.toString(deltaDeletedRow.getInt(0));
+					break;
 
-		case "varint":
-			leftPkValue = deltaDeletedRow.getVarint(0).toString();
-			break;
+				case "varint":
+					leftPkValue = deltaDeletedRow.getVarint(0).toString();
+					break;
 
-		case "varchar":
-			leftPkValue = deltaDeletedRow.getString(0);
-			break;
+				case "varchar":
+					leftPkValue = deltaDeletedRow.getString(0);
+					break;
 
-		case "float":
-			leftPkValue = Float.toString(deltaDeletedRow.getFloat(0));
-			break;
+				case "float":
+					leftPkValue = Float.toString(deltaDeletedRow.getFloat(0));
+					break;
 		}
 
 		for (Map.Entry<String, String> entry : myMap2.entrySet()) {
@@ -3193,8 +3194,8 @@ public class ViewManager {
 
 			StringBuilder deleteQuery = new StringBuilder("delete from ");
 			deleteQuery.append(json.get("keyspace")).append(".")
-					.append(innerJName).append(" WHERE ")
-					.append(joinTablePk + " = ").append(tuple).append(";");
+			.append(innerJName).append(" WHERE ")
+			.append(joinTablePk + " = ").append(tuple).append(";");
 
 			System.out.println(deleteQuery);
 
@@ -3220,25 +3221,25 @@ public class ViewManager {
 		switch (deltaDeletedRow.getColumnDefinitions().asList().get(0)
 				.getType().toString()) {
 
-		case "text":
-			rigthPkValue = deltaDeletedRow.getString(0);
-			break;
+				case "text":
+					rigthPkValue = deltaDeletedRow.getString(0);
+					break;
 
-		case "int":
-			rigthPkValue = Integer.toString(deltaDeletedRow.getInt(0));
-			break;
+				case "int":
+					rigthPkValue = Integer.toString(deltaDeletedRow.getInt(0));
+					break;
 
-		case "varint":
-			rigthPkValue = deltaDeletedRow.getVarint(0).toString();
-			break;
+				case "varint":
+					rigthPkValue = deltaDeletedRow.getVarint(0).toString();
+					break;
 
-		case "varchar":
-			rigthPkValue = deltaDeletedRow.getString(0);
-			break;
+				case "varchar":
+					rigthPkValue = deltaDeletedRow.getString(0);
+					break;
 
-		case "float":
-			rigthPkValue = Float.toString(deltaDeletedRow.getFloat(0));
-			break;
+				case "float":
+					rigthPkValue = Float.toString(deltaDeletedRow.getFloat(0));
+					break;
 		}
 
 		for (Map.Entry<String, String> entry : myMap1.entrySet()) {
@@ -3263,8 +3264,8 @@ public class ViewManager {
 
 			StringBuilder deleteQuery = new StringBuilder("delete from ");
 			deleteQuery.append(json.get("keyspace")).append(".")
-					.append(innerJName).append(" WHERE ")
-					.append(joinTablePk + " = ").append(tuple).append(";");
+			.append(innerJName).append(" WHERE ")
+			.append(joinTablePk + " = ").append(tuple).append(";");
 
 			System.out.println(deleteQuery);
 
@@ -3413,7 +3414,7 @@ public class ViewManager {
 
 			case "varint":
 				aggColValue = deltaUpdatedRow.getVarint(aggColIndexNew)
-						.floatValue();
+				.floatValue();
 				BigInteger temp = deltaUpdatedRow.getVarint(aggColIndexOld);
 
 				if (temp != null) {
@@ -3440,6 +3441,7 @@ public class ViewManager {
 		}
 
 		// case: user updated any other col than aggCol & aggKey
+		//bas me7taga tetne2l men inner le left table masalan ??????
 		if (sameKeyValue && sameAggColValue)
 			return true;
 
@@ -3450,12 +3452,12 @@ public class ViewManager {
 			// 2.a select from joinAgg table row with AggKey as PK
 
 			StringBuilder selectPreaggQuery1 = new StringBuilder("SELECT ")
-					.append("sum, ").append("count, ")
-					.append("average, min, max ");
+			.append("sum, ").append("count, ")
+			.append("average, min, max ");
 			selectPreaggQuery1.append(" FROM ")
-					.append((String) json.get("keyspace")).append(".")
-					.append(joinAggTableName).append(" where ")
-					.append(aggKey + " = ").append(aggKeyValue).append(";");
+			.append((String) json.get("keyspace")).append(".")
+			.append(joinAggTableName).append(" where ")
+			.append(aggKey + " = ").append(aggKeyValue).append(";");
 
 			System.out.println(selectPreaggQuery1);
 
@@ -3531,7 +3533,7 @@ public class ViewManager {
 						sum = theRow1.getInt("sum") + aggColValue;
 					else
 						sum = theRow1.getInt("sum") - aggColValue_old
-								+ aggColValue;
+						+ aggColValue;
 
 					average = sum / count;
 
@@ -3562,11 +3564,11 @@ public class ViewManager {
 				// 3. execute the insertion
 				StringBuilder insertQueryAgg = new StringBuilder("INSERT INTO ");
 				insertQueryAgg.append((String) json.get("keyspace"))
-						.append(".").append(joinAggTableName).append(" ( ")
-						.append(aggKey + ", ")
-						.append("sum, count, average, min, max")
-						.append(") VALUES (").append(aggKeyValue + ", ")
-						.append("?, ?, ?, ?, ?);");
+				.append(".").append(joinAggTableName).append(" ( ")
+				.append(aggKey + ", ")
+				.append("sum, count, average, min, max")
+				.append(") VALUES (").append(aggKeyValue + ", ")
+				.append("?, ?, ?, ?, ?);");
 
 				Session session1 = currentCluster.connect();
 
@@ -3578,9 +3580,9 @@ public class ViewManager {
 				System.out.println(boundStatement.toString());
 
 				StringBuilder selectQuery2 = new StringBuilder("SELECT * FROM ")
-						.append(json.get("keyspace")).append(".")
-						.append(joinAggTableName).append(" WHERE ")
-						.append(aggKey + " = ").append(aggKeyValue).append(";");
+				.append(json.get("keyspace")).append(".")
+				.append(joinAggTableName).append(" WHERE ")
+				.append(aggKey + " = ").append(aggKeyValue).append(";");
 
 				System.out.println(selectQuery2);
 
@@ -3614,12 +3616,12 @@ public class ViewManager {
 
 			// 2. select row with old aggkeyValue from delta stream
 			StringBuilder selectPreaggQuery1 = new StringBuilder("SELECT ")
-					.append("sum, ").append("count, ")
-					.append("average, min, max");
+			.append("sum, ").append("count, ")
+			.append("average, min, max");
 			selectPreaggQuery1.append(" FROM ")
-					.append((String) json.get("keyspace")).append(".")
-					.append(joinAggTableName).append(" where ")
-					.append(aggKey + " = ").append(aggKeyValue_old).append(";");
+			.append((String) json.get("keyspace")).append(".")
+			.append(joinAggTableName).append(" where ")
+			.append(aggKey + " = ").append(aggKeyValue_old).append(";");
 
 			System.out.println(selectPreaggQuery1);
 
@@ -3661,10 +3663,10 @@ public class ViewManager {
 
 					StringBuilder selectQuery2 = new StringBuilder(
 							"SELECT * FROM ")
-							.append(json.get("keyspace") + ".")
-							.append(joinAggTableName).append(" WHERE ")
-							.append(aggKey + " = ").append(aggKeyValue_old)
-							.append(";");
+					.append(json.get("keyspace") + ".")
+					.append(joinAggTableName).append(" WHERE ")
+					.append(aggKey + " = ").append(aggKeyValue_old)
+					.append(";");
 
 					System.out.println(selectQuery2);
 
@@ -3682,11 +3684,14 @@ public class ViewManager {
 					deleteEntireRowWithPK((String) json.get("keyspace"),
 							joinAggTableName, aggKey, aggKeyValue_old);
 
-					// 4.a perform a new insertion with new values
-					updateJoinAgg(deltaUpdatedRow, json, joinAggTableName,
-							aggKey, aggKeyType, aggCol, aggColType,
-							oldReverseRow, newReverseRow, left, true, true);
-
+					if(!((!oldReverseRow.getMap("list_item1",String.class,String.class).isEmpty() && !oldReverseRow.getMap("list_item2",String.class,String.class).isEmpty())&&(newReverseRow.getMap("list_item1",String.class,String.class).isEmpty()||newReverseRow.getMap("list_item2",String.class,String.class).isEmpty())))
+					{
+						// 4.a perform a new insertion with new values
+						updateJoinAgg(deltaUpdatedRow, json, joinAggTableName,
+								aggKey, aggKeyType, aggCol, aggColType,
+								oldReverseRow, newReverseRow, left, true, true);
+					}
+					
 				} else {
 
 					// 5.c adjust sum,count,average values
@@ -3713,11 +3718,11 @@ public class ViewManager {
 
 						if (Float.valueOf(listArray[aggColIndexInList - 1]) < min)
 							min = Float
-									.valueOf(listArray[aggColIndexInList - 1]);
+							.valueOf(listArray[aggColIndexInList - 1]);
 
 						if (Float.valueOf(listArray[aggColIndexInList - 1]) > max)
 							max = Float
-									.valueOf(listArray[aggColIndexInList - 1]);
+							.valueOf(listArray[aggColIndexInList - 1]);
 					}
 
 					// 6. Execute insertion statement of the row with the
@@ -3726,12 +3731,12 @@ public class ViewManager {
 					StringBuilder insertQueryAgg = new StringBuilder(
 							"INSERT INTO ");
 					insertQueryAgg.append((String) json.get("keyspace"))
-							.append(".").append(joinAggTableName).append(" ( ")
-							.append(aggKey + ", ")
-							.append("sum, count, average, min, max")
-							.append(") VALUES (")
-							.append(aggKeyValue_old + ", ")
-							.append("?, ?, ?, ?, ?);");
+					.append(".").append(joinAggTableName).append(" ( ")
+					.append(aggKey + ", ")
+					.append("sum, count, average, min, max")
+					.append(") VALUES (")
+					.append(aggKeyValue_old + ", ")
+					.append("?, ?, ?, ?, ?);");
 
 					Session session1 = currentCluster.connect();
 
@@ -3743,18 +3748,23 @@ public class ViewManager {
 							(int) count, average, min, max));
 					System.out.println(boundStatement.toString());
 
-					// perform a new insertion for the new aggkey given in json
-					updateJoinAgg(deltaUpdatedRow, json, joinAggTableName,
-							aggKey, aggKeyType, aggCol, aggColType,
-							oldReverseRow, newReverseRow, left, true, false);
+
+					if(!((!oldReverseRow.getMap("list_item1",String.class,String.class).isEmpty() && !oldReverseRow.getMap("list_item2",String.class,String.class).isEmpty())&&(newReverseRow.getMap("list_item1",String.class,String.class).isEmpty()||newReverseRow.getMap("list_item2",String.class,String.class).isEmpty())))
+					{
+						// perform a new insertion for the new aggkey given in json
+						updateJoinAgg(deltaUpdatedRow, json, joinAggTableName,
+								aggKey, aggKeyType, aggCol, aggColType,
+								oldReverseRow, newReverseRow, left, true, false);
+
+					}
 
 					// selection to updated row
 					StringBuilder selectQuery2 = new StringBuilder(
 							"SELECT * FROM ")
-							.append(json.get("keyspace") + ".")
-							.append(joinAggTableName).append(" WHERE ")
-							.append(aggKey + " = ").append(aggKeyValue_old)
-							.append(";");
+					.append(json.get("keyspace") + ".")
+					.append(joinAggTableName).append(" WHERE ")
+					.append(aggKey + " = ").append(aggKeyValue_old)
+					.append(";");
 
 					System.out.println(selectQuery2);
 
@@ -3768,6 +3778,67 @@ public class ViewManager {
 						return false;
 					}
 				}
+
+			}else{
+
+				// 2.c.2 set the agg col values
+				sum += aggColValue;
+				count = 1;
+				average = sum / count;
+				min = aggColValue;
+				max = aggColValue;
+
+
+				try {
+
+					// 3. execute the insertion
+					StringBuilder insertQueryAgg = new StringBuilder("INSERT INTO ");
+					insertQueryAgg.append((String) json.get("keyspace"))
+					.append(".").append(joinAggTableName).append(" ( ")
+					.append(aggKey + ", ")
+					.append("sum, count, average, min, max")
+					.append(") VALUES (").append(aggKeyValue + ", ")
+					.append("?, ?, ?, ?, ?);");
+
+					Session session1 = currentCluster.connect();
+
+					PreparedStatement statement1 = session1.prepare(insertQueryAgg
+							.toString());
+					BoundStatement boundStatement = new BoundStatement(statement1);
+					session1.execute(boundStatement.bind((int) sum, (int) count,
+							average, min, max));
+					System.out.println(boundStatement.toString());
+
+					StringBuilder selectQuery2 = new StringBuilder("SELECT * FROM ")
+					.append(json.get("keyspace")).append(".")
+					.append(joinAggTableName).append(" WHERE ")
+					.append(aggKey + " = ").append(aggKeyValue).append(";");
+
+					System.out.println(selectQuery2);
+
+					try {
+						Session session = currentCluster.connect();
+
+						setJoinAggRow(session.execute(selectQuery2.toString())
+								.one());
+					} catch (Exception e) {
+						e.printStackTrace();
+						return false;
+					}
+
+					if (!override) {
+						setJoinAggRowChangeAK(null);
+						setJoinAggDeletedRow(null);
+					}
+					if (!mapsize1) {
+						setJoinAggDeletedRow(null);
+					}
+
+				} catch (Exception e) {
+					e.printStackTrace();
+					return false;
+				}
+
 
 			}
 
@@ -3820,9 +3891,9 @@ public class ViewManager {
 			// 1. execute the insertion
 			StringBuilder insertQuery = new StringBuilder("INSERT INTO ");
 			insertQuery.append(keyspace).append(".").append(havingTable)
-					.append(" (").append(pkName + ", ").append("list_item, ")
-					.append("sum, ").append("count, average, min, max ")
-					.append(") VALUES (").append("?, ?, ?, ?, ?, ?, ?);");
+			.append(" (").append(pkName + ", ").append("list_item, ")
+			.append("sum, ").append("count, average, min, max ")
+			.append(") VALUES (").append("?, ?, ?, ?, ?, ?, ?);");
 
 			System.out.println(insertQuery);
 
@@ -3883,9 +3954,9 @@ public class ViewManager {
 			// 1. execute the insertion
 			StringBuilder insertQuery = new StringBuilder("INSERT INTO ");
 			insertQuery.append(keyspace).append(".").append(havingTable)
-					.append(" (").append(pkName + ", ").append("sum, ")
-					.append("count, average, min, max ").append(") VALUES (")
-					.append("?, ?, ?, ?, ?, ?);");
+			.append(" (").append(pkName + ", ").append("sum, ")
+			.append("count, average, min, max ").append(") VALUES (")
+			.append("?, ?, ?, ?, ?, ?);");
 
 			System.out.println(insertQuery);
 
@@ -3925,7 +3996,7 @@ public class ViewManager {
 
 		case "text":
 			aggKeyValue = "'" + deltaDeletedRow.getString(aggKey + "_new")
-					+ "'";
+			+ "'";
 			break;
 
 		case "int":
@@ -3945,9 +4016,9 @@ public class ViewManager {
 		StringBuilder selectPreaggQuery1 = new StringBuilder("SELECT ").append(aggKey)
 				.append(", sum, ").append("count, ").append("average, min, max ");
 		selectPreaggQuery1.append(" FROM ")
-				.append((String) json.get("keyspace")).append(".")
-				.append(joinAggTableName).append(" where ")
-				.append(aggKey + " = ").append(aggKeyValue).append(";");
+		.append((String) json.get("keyspace")).append(".")
+		.append(joinAggTableName).append(" where ")
+		.append(aggKey + " = ").append(aggKeyValue).append(";");
 
 		System.out.println(selectPreaggQuery1);
 
@@ -3991,7 +4062,7 @@ public class ViewManager {
 
 				case "varint":
 					aggColValue = deltaDeletedRow.getVarint(aggCol + "_new")
-							.floatValue();
+					.floatValue();
 					break;
 
 				case "float":
@@ -4046,11 +4117,11 @@ public class ViewManager {
 
 				StringBuilder insertQueryAgg = new StringBuilder("INSERT INTO ");
 				insertQueryAgg.append((String) json.get("keyspace"))
-						.append(".").append(joinAggTableName).append(" ( ")
-						.append(aggKey + ", ")
-						.append("sum, count, average, min, max")
-						.append(") VALUES (").append(aggKeyValue + ", ")
-						.append("?, ?, ?, ?, ?);");
+				.append(".").append(joinAggTableName).append(" ( ")
+				.append(aggKey + ", ")
+				.append("sum, count, average, min, max")
+				.append(") VALUES (").append(aggKeyValue + ", ")
+				.append("?, ?, ?, ?, ?);");
 
 				Session session1 = currentCluster.connect();
 
@@ -4067,9 +4138,9 @@ public class ViewManager {
 						"SELECT ").append(aggKey).append(", sum, ").append("count, ").append("average, min, max ");
 
 				selectPreaggQuery2.append(" FROM ")
-						.append((String) json.get("keyspace")).append(".")
-						.append(joinAggTableName).append(" where ")
-						.append(aggKey + " = ").append(aggKeyValue).append(";");
+				.append((String) json.get("keyspace")).append(".")
+				.append(joinAggTableName).append(" where ")
+				.append(aggKey + " = ").append(aggKeyValue).append(";");
 
 				System.out.println(selectPreaggQuery2);
 
@@ -4136,8 +4207,8 @@ public class ViewManager {
 
 		StringBuilder deleteQuery = new StringBuilder("delete from ");
 		deleteQuery.append(keyspace).append(".").append(havingTable)
-				.append(" WHERE ").append(pkName + " = ").append(pkVAlue)
-				.append(";");
+		.append(" WHERE ").append(pkName + " = ").append(pkVAlue)
+		.append(";");
 
 		System.out.println(deleteQuery);
 
@@ -4158,7 +4229,7 @@ public class ViewManager {
 			Row preagRow) {
 
 		List<Definition> def = preagRow.getColumnDefinitions().asList();
-		
+
 		String pkName = def.get(0).getName();
 		String pkType = def.get(0).getType().toString();
 		String pkVAlue = "";
@@ -4188,8 +4259,8 @@ public class ViewManager {
 
 		StringBuilder deleteQuery = new StringBuilder("delete from ");
 		deleteQuery.append(keyspace).append(".").append(havingTable)
-				.append(" WHERE ").append(pkName + " = ").append(pkVAlue)
-				.append(";");
+		.append(" WHERE ").append(pkName + " = ").append(pkVAlue)
+		.append(";");
 
 		System.out.println(deleteQuery);
 
@@ -4268,6 +4339,126 @@ public class ViewManager {
 
 	public void setDeleteRowJoinAgg(Row deleteRowJoinAgg) {
 		this.deleteRowJoinAgg = deleteRowJoinAgg;
+	}
+
+	public boolean updateInnerJoinAgg(Row deltaUpdatedRow, JSONObject json,
+			String joinAggTableName, String aggKey, String aggKeyType,
+			String aggCol, String aggColType, Row oldReverseRow,
+			Row newReverseRow, Boolean leftUpdateHappened, boolean override, boolean mapSize1, String basetable) {
+
+
+
+		//Select statement
+		StringBuilder select = new StringBuilder();
+		select.append("Select * FROM ").append((String)(json.get("keyspace"))).append(".")
+		.append(joinAggTableName).append(" WHERE ").append(aggKey +" = ");
+
+		String aggKeyValue = "";
+
+		switch(aggKeyType){
+		case "int":
+			aggKeyValue = ""+newReverseRow.getInt(aggKey);
+
+		case "varint":
+			aggKeyValue = ""+newReverseRow.getVarint(aggKey);
+		case "float":
+			aggKeyValue = ""+newReverseRow.getFloat(aggKey);
+		case "varchar":
+			aggKeyValue = "'"+newReverseRow.getString(aggKey)+"'";
+		case "text":
+			aggKeyValue = "'"+newReverseRow.getString(aggKey)+"'";
+		}
+
+		select.append(aggKeyValue+" ;");
+		Row theRow = null;
+		ResultSet rs = null;
+
+
+		try {
+
+			Session session = currentCluster.connect();
+			// I only need to check if there is one row
+			//theRow = session.execute(select.toString()).one();
+			rs = session.execute(select.toString());
+			theRow = rs.one();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+
+		// no need to update inner join agg table
+		if(theRow!=null){
+			return true;
+		}else{
+
+			List<String> tableNames = VmXmlHandler.getInstance().getInnerJoinMap().getList("mapping.unit.tableName");
+			int index = tableNames.indexOf(joinAggTableName);
+
+			if(index!=-1){
+
+				String temp = "mapping.unit("+index+")";
+
+				int positionInMaps = VmXmlHandler.getInstance().getInnerJoinMap()
+						.getInt(temp + ".positionInMap");
+
+
+				Map<String, String> myMap = new HashMap<String, String>();
+
+				if(leftUpdateHappened){
+					myMap.putAll(newReverseRow.getMap("list_item2", String.class, String.class));
+				}else if(!leftUpdateHappened){
+					myMap.putAll(newReverseRow.getMap("list_item1", String.class, String.class));
+				}
+
+				float sum = 0;
+				float max = -99999999;
+				float min = 999999999;
+
+
+				for (Map.Entry<String, String> entry : myMap.entrySet()) {
+					String list = entry.getValue().replaceAll("\\[", "")
+							.replaceAll("\\]", "");
+					String[] listArray = list.split(",");
+
+					sum+=Float.valueOf(listArray[positionInMaps]);
+
+					if (Float.valueOf(listArray[positionInMaps]) < min)
+						min = Float.valueOf(listArray[positionInMaps]);
+
+					if (Float.valueOf(listArray[positionInMaps]) > max)
+						max = Float.valueOf(listArray[positionInMaps]);
+				}
+
+				//Insertion
+				int count = myMap.size();
+				float average = sum / count;
+
+
+				StringBuilder insertQueryAgg = new StringBuilder("INSERT INTO ");
+				insertQueryAgg.append((String) json.get("keyspace"))
+				.append(".").append(joinAggTableName).append(" ( ")
+				.append(aggKey + ", ")
+				.append("sum, count, average, min, max")
+				.append(") VALUES (").append(aggKeyValue + ", ")
+				.append("?, ?, ?, ?, ?);");
+
+				Session session1 = currentCluster.connect();
+
+				PreparedStatement statement1 = session1.prepare(insertQueryAgg
+						.toString());
+				BoundStatement boundStatement = new BoundStatement(statement1);
+				session1.execute(boundStatement.bind((int) sum, (int) count,
+						average, min, max));
+
+				System.out.println(boundStatement.toString());
+
+			}
+		}
+
+
+		return true;
+
 	}
 
 }

@@ -788,20 +788,22 @@ public class ViewManagerController {
 
 				for ( int i = 0; i < nrJoinAgg; i++) {
 
+					System.out.println("i22222222"+i);
+
 					String s = temp + ".joinAgg(" + Integer.toString(i) + ")";
 
 					String basetable = VmXmlHandler.getInstance()
 							.getJoinAggMapping().getString(s + ".basetable");
 					String otherTable = VmXmlHandler.getInstance()
 							.getJoinAggMapping().getString(s + ".othertable");
+					String aggColOfTable = VmXmlHandler.getInstance()
+							.getJoinAggMapping().getString(s + ".AggColinTable");
+
 					String joinAggTableName = VmXmlHandler.getInstance()
 							.getJoinAggMapping().getString(s + ".name");
 					String joinType = VmXmlHandler.getInstance()
 							.getJoinAggMapping().getString(s + ".joinType");
-					Boolean leftTable = VmXmlHandler.getInstance()
-							.getJoinAggMapping().getBoolean(s + ".leftTable");
-					Boolean rightTable = VmXmlHandler.getInstance()
-							.getJoinAggMapping().getBoolean(s + ".rightTable");
+
 					String aggKey = VmXmlHandler.getInstance()
 							.getJoinAggMapping().getString(s + ".AggKey");
 					String aggKeyType = VmXmlHandler.getInstance()
@@ -814,9 +816,18 @@ public class ViewManagerController {
 
 					Row oldReverseRow = vm.getReverseJoinUpdateOldRow();
 					Row newReverseRow = vm.getReverseJoinUpdatedNewRow();
+					Row deletedFrom = vm.getReverseJoinUpdatedOldRow_changeJoinKey();
 
 					tableName = (String) json.get("table");
 
+					if(!tableName.equals(basetable) && !tableName.equals(otherTable)){
+						continue;
+					}
+
+					Boolean leftUpdateHappened = false;
+					if(tableName.equals(basetable)){
+						leftUpdateHappened = true;
+					}
 
 					String aggKeyValue = "";
 
@@ -842,6 +853,35 @@ public class ViewManagerController {
 
 					}
 
+
+					String aggKeyValueDelete = "";
+
+					if(deletedFrom!=null){
+
+						switch(aggKeyType){
+
+						case "int":
+							aggKeyValueDelete = "'"+Integer.toString(deletedFrom.getInt(aggKey))+"'";
+							break;
+						case "float":
+							aggKeyValueDelete = "'"+Float.toString(deletedFrom.getFloat(aggKey))+"'";
+							break;
+						case "varint":
+							aggKeyValueDelete = "'"+deletedFrom.getVarint(aggKey).toString()+"'";
+							break;
+
+						case "text":
+							aggKeyValueDelete = "'"+deletedFrom.getString(aggKey).toString()+"'";
+							break;
+
+						case "varchar":
+							aggKeyValueDelete = "'"+deletedFrom.getString(aggKey).toString()+"'";
+							break;
+
+						}
+					}
+
+
 					//check if join_preagg has some having clauses or not
 					position = preaggJoinTableNames.indexOf(joinAggTableName);
 
@@ -858,51 +898,140 @@ public class ViewManagerController {
 
 					}
 
-
 					boolean update = true;
 
 					switch(joinType){
 
 					case "left":
 
-						if(otherTable.equals(tableName) && !newReverseRow.getMap("list_item2", String.class, String.class).isEmpty()){
+						if(deletedFrom!=null && (deletedFrom.getMap("list_item1", String.class, String.class).isEmpty() && deletedFrom.getMap("list_item2", String.class, String.class).isEmpty())){
+
+							vm.deleteEntireRowWithPK((String)json.get("keyspace"), joinAggTableName, aggKey, aggKeyValueDelete);
+
+							//TO DO HAVING
+							update = false;
+							
+						}
+
+						if(!newReverseRow.getMap("list_item1", String.class, String.class).isEmpty() && !newReverseRow.getMap("list_item2", String.class, String.class).isEmpty()){
 							vm.deleteEntireRowWithPK((String)json.get("keyspace"), joinAggTableName, aggKey, aggKeyValue);
+
 							if (position != -1) {
-								for (i = 0; i < nrConditions; i++) {
-									String s1 = temp4 + ".Cond(" + Integer.toString(i) + ")";
+								for (int ii = 0; ii < nrConditions; ii++) {
+									String s1 = temp4 + ".Cond(" + Integer.toString(ii) + ")";
 									String havingTable = VmXmlHandler.getInstance()
 											.getHavingJoinAggMapping().getString(s1 + ".name");
 									vm.deleteEntireRowWithPK((String)json.get("keyspace"), havingTable, aggKey, aggKeyValue);
 								}
 							}
+
+							update = false;
+						}else if(!newReverseRow.getMap("list_item1", String.class, String.class).isEmpty() && newReverseRow.getMap("list_item2", String.class, String.class).isEmpty()&& (leftUpdateHappened && aggColOfTable.equals("left"))){
+							update = true;
+						}else{
 							update = false;
 						}
 						break;
 
 					case "right":
-						if(otherTable.equals(tableName) && !newReverseRow.getMap("list_item1", String.class, String.class).isEmpty()){
+
+						if(deletedFrom!=null && (deletedFrom.getMap("list_item1", String.class, String.class).isEmpty() && deletedFrom.getMap("list_item2", String.class, String.class).isEmpty())){
+							vm.deleteEntireRowWithPK((String)json.get("keyspace"), joinAggTableName, aggKey, aggKeyValueDelete);
+							//TO DO HAVING
+
+							update = false;
+							
+						}
+
+						if( !newReverseRow.getMap("list_item2", String.class, String.class).isEmpty() && !newReverseRow.getMap("list_item1", String.class, String.class).isEmpty()){
 							vm.deleteEntireRowWithPK((String)json.get("keyspace"), joinAggTableName, aggKey, aggKeyValue);
+
 							if (position != -1) {
-								for (i = 0; i < nrConditions; i++) {
-									String s1 = temp4 + ".Cond(" + Integer.toString(i) + ")";
+								for (int iii = 0; iii < nrConditions; iii++) {
+									String s1 = temp4 + ".Cond(" + Integer.toString(iii) + ")";
 									String havingTable = VmXmlHandler.getInstance()
 											.getHavingJoinAggMapping().getString(s1 + ".name");
 									vm.deleteEntireRowWithPK((String)json.get("keyspace"), havingTable, aggKey, aggKeyValue);
 								}
 							}
+
+							update = false;
+						}else if(newReverseRow.getMap("list_item1", String.class, String.class).isEmpty() && !newReverseRow.getMap("list_item2", String.class, String.class).isEmpty() && (!leftUpdateHappened && aggColOfTable.equals("right"))){
+							update = true;
+						}else{
 							update = false;
 						}
+
 						break;
 
 					case "inner":
+						
+						if(deletedFrom!=null){
+							if(deletedFrom.getMap("list_item1", String.class, String.class).isEmpty()||deletedFrom.getMap("list_item2", String.class, String.class).isEmpty()){
+								vm.deleteEntireRowWithPK((String)json.get("keyspace"), joinAggTableName, aggKey, aggKeyValueDelete);
+								update = false;
+
+								//To Do: missing having stuff for inner
+							}else{
+								if(aggColOfTable.equals("left") && leftUpdateHappened ){
+									leftUpdateHappened = true;
+									update = true;
+								}else if(aggColOfTable.equals("right") && !leftUpdateHappened ){
+									leftUpdateHappened = false;
+									update = true;
+								}else if(aggColOfTable.equals("left") && !leftUpdateHappened ){
+									vm.updateInnerJoinAgg(deltaUpdatedRow,json,joinAggTableName,aggKey,aggKeyType,aggCol,aggColType,oldReverseRow,deletedFrom,leftUpdateHappened,false, false,basetable);
+									update = false;
+								}else if(aggColOfTable.equals("right") && leftUpdateHappened ){
+									vm.updateInnerJoinAgg(deltaUpdatedRow,json,joinAggTableName,aggKey,aggKeyType,aggCol,aggColType,oldReverseRow,deletedFrom,leftUpdateHappened,false, false,basetable);
+									update = false;
+								}
+							}
+						}
+						
+						if(newReverseRow.getMap("list_item1", String.class, String.class).isEmpty()||newReverseRow.getMap("list_item2", String.class, String.class).isEmpty()){
+							vm.deleteEntireRowWithPK((String)json.get("keyspace"), joinAggTableName, aggKey, aggKeyValue);
+							update = false;
+
+							//To Do: missing having stuff for inner
+						}else{
+							if(aggColOfTable.equals("left") && leftUpdateHappened ){
+								leftUpdateHappened = true;
+								update = true;
+							}else if(aggColOfTable.equals("right") && !leftUpdateHappened ){
+								leftUpdateHappened = false;
+								update = true;
+							}else if(aggColOfTable.equals("left") && !leftUpdateHappened ){
+								vm.updateInnerJoinAgg(deltaUpdatedRow,json,joinAggTableName,aggKey,aggKeyType,aggCol,aggColType,oldReverseRow,newReverseRow,leftUpdateHappened,false, false,basetable);
+								update = false;
+							}else if(aggColOfTable.equals("right") && leftUpdateHappened ){
+								vm.updateInnerJoinAgg(deltaUpdatedRow,json,joinAggTableName,aggKey,aggKeyType,aggCol,aggColType,oldReverseRow,newReverseRow,leftUpdateHappened,false, false,basetable);
+								update = false;
+							}
+						}
+
+					
+						break;
+
+					case "full":
+						if(aggColOfTable.equals("left") && leftUpdateHappened ){
+							leftUpdateHappened = true;
+							update = true;
+						}else if(aggColOfTable.equals("right") && !leftUpdateHappened ){
+							leftUpdateHappened = false;
+							update = true;
+						}else if(aggColOfTable.equals("left") && !leftUpdateHappened ){
+							vm.updateInnerJoinAgg(deltaUpdatedRow,json,joinAggTableName,aggKey,aggKeyType,aggCol,aggColType,oldReverseRow,newReverseRow,leftUpdateHappened,false, false,basetable);
+							update = false;
+						}else if(aggColOfTable.equals("right") && leftUpdateHappened ){
+							vm.updateInnerJoinAgg(deltaUpdatedRow,json,joinAggTableName,aggKey,aggKeyType,aggCol,aggColType,oldReverseRow,newReverseRow,leftUpdateHappened,false, false,basetable);
+							update = false;
+						}
 						break;
 					}
 
-
-
-
-					if(update && !otherTable.equals(tableName) ){
-						vm.updateJoinAgg(deltaUpdatedRow,json,joinAggTableName,aggKey,aggKeyType,aggCol,aggColType,oldReverseRow,newReverseRow,leftTable,false, false);
+					if(update){
+						vm.updateJoinAgg(deltaUpdatedRow,json,joinAggTableName,aggKey,aggKeyType,aggCol,aggColType,oldReverseRow,newReverseRow,leftUpdateHappened,false, false);
 
 						// update having_joinaggs as well
 						if (position != -1 ) {
