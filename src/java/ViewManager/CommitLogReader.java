@@ -57,7 +57,7 @@ public class CommitLogReader {
 				}
 
 				if (type.equals("delete-row")) {
-					vmc.cascadeDelete(json);
+					vmc.cascadeDelete(json, true);
 				}
 
 				raw = br.readLine();

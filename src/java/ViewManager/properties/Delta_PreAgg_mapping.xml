@@ -13,6 +13,16 @@
 				<AggKeyType>text</AggKeyType>
 				<AggCol>ects</AggCol>
 				<AggColType>varint</AggColType>
+				<Cond>
+				<name>ectsEQ4</name>
+				<nrAnd>1</nrAnd>
+				<And>
+					<selectionCol>ects</selectionCol>
+					<type>varint</type>
+					<operation>></operation>
+					<value>4</value>
+				</And>
+			</Cond>
 			</Preagg>
 			
 			<Preagg>

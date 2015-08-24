@@ -362,7 +362,7 @@ public class ViewManager {
 
 	}
 
-	private void setDeltaDeletedRow(Row one) {
+	public void setDeltaDeletedRow(Row one) {
 		deltaDeletedRow = one;
 	}
 
