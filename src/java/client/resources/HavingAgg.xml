@@ -23,7 +23,7 @@
 			</column>
 			<column>
 				<family>colfam1</family>
-				<type>int</type>
+				<type>float</type>
 				<name>sum</name>
 			</column>
 
@@ -76,7 +76,7 @@
 			</column>
 			<column>
 				<family>colfam1</family>
-				<type>int</type>
+				<type>float</type>
 				<name>sum</name>
 			</column>
 

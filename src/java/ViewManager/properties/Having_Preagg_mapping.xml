@@ -4,7 +4,7 @@
 	<mapping>
 		
 		<unit>
-			<preaggTable>innerjoin_agg_courses_faculty_ects</preaggTable>
+			<preaggTable>preagg_agg_courses_faculty_ects</preaggTable>
 			
 			<nrCond>2</nrCond>
 			<Cond>

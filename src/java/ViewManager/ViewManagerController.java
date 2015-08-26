@@ -29,8 +29,7 @@ public class ViewManagerController {
 	List<String> baseTableName;
 	List<String> pkName;
 	List<String> deltaTableName;
-	List<String> reverseTablesNames_Join;
-	List<String> reverseTablesNames_AggJoin;
+	List<String> reverseTableName;
 	List<String> preaggTableNames;
 	List<String> preaggJoinTableNames;
 	List<String> rj_joinTables;
@@ -69,10 +68,7 @@ public class ViewManagerController {
 		pkType = baseTableKeysConfig.getList("tableSchema.table.pkType");
 		deltaTableName = VmXmlHandler.getInstance().getDeltaPreaggMapping()
 				.getList("mapping.unit.deltaTable");
-		reverseTablesNames_Join = VmXmlHandler.getInstance().getRjJoinMapping()
-				.getList("mapping.unit.reverseJoin");
-		
-		reverseTablesNames_AggJoin = VmXmlHandler.getInstance().getRjJoinMapping()
+		reverseTableName = VmXmlHandler.getInstance().getRjJoinMapping()
 				.getList("mapping.unit.reverseJoin");
 
 		rj_joinTables = VmXmlHandler.getInstance().getDeltaReverseJoinMapping()
@@ -1029,7 +1025,7 @@ public class ViewManagerController {
 
 			String updatedReverseJoin = vm.getReverseJoinName();
 
-			position = reverseTablesNames_Join.indexOf(updatedReverseJoin);
+			position = reverseTableName.indexOf(updatedReverseJoin);
 
 			if (position != -1) {
 
@@ -1070,8 +1066,6 @@ public class ViewManagerController {
 							innerJoinTableName, leftJoinTableName,
 							rightJoinTableName, json, updateLeft, updateRight,
 							joinKeyType, joinKeyName, baseTablePrimaryKey);
-					
-					
 
 				}
 			} else {
@@ -1079,71 +1073,11 @@ public class ViewManagerController {
 						+ updatedReverseJoin + " available");
 			}
 
-			
-			
-			
-			//UPDATE join agg
-			
-			int positionAgg = reverseTablesNames_AggJoin.indexOf(joinTable);
-			
-			if(positionAgg!=-1){
-				String temp = "mapping.unit(";
-				temp += Integer.toString(positionAgg);
-				temp += ")";
-				
-				Boolean updateLeft = false;
-				Boolean updateRight = false;
-				
-				String leftJoinTable = VmXmlHandler.getInstance()
-						.getRjJoinMapping().getString(temp + ".LeftTable");
-				String rightJoinTable = VmXmlHandler.getInstance()
-						.getRjJoinMapping().getString(temp + ".RightTable");
-
-
-				tableName = (String) json.get("table");
-				
-				if (tableName.equals(leftJoinTable)) {
-					updateLeft = true;
-				} else {
-					updateRight = true;
-				}
-
-				int nrLeftAggColumns = VmXmlHandler.getInstance().getRJAggJoinMapping()
-						.getInt(temp + ".leftAggColumns.nr");
-				
-				for(int e = 0; e< nrLeftAggColumns; e++){
-					
-					String aggColName = VmXmlHandler.getInstance().getRJAggJoinMapping()
-							.getString(temp + ".leftAggColumns.c("+e+").name");
-					String aggColType = VmXmlHandler.getInstance().getRJAggJoinMapping()
-							.getString(temp + ".leftAggColumns.c("+e+").type");
-					String innerJoinAggTable = VmXmlHandler.getInstance().getRJAggJoinMapping()
-							.getString(temp + ".leftAggColumns.c("+e+").inner");
-					String leftJoinAggTable = VmXmlHandler.getInstance().getRJAggJoinMapping()
-							.getString(temp + ".leftAggColumns.c("+e+").left");
-					
-					
-
-
-					if(updateLeft){
-//						vm.updateJoinAgg_UpdateLeft_AggColLeftSide( innerJoinAggTable,  leftJoinAggTable, json, joinKeyType, joinKeyName,
-//								 aggColName, aggColType );
-					}
-				
-					
-					
-					
-					
-				}
-				
-			}
-			
 			// END OF UPATE JOIN TABLES
 
 			// =====================================================================
 			// Update JoinPreagg
-				
-/*
+
 			if (position != -1) {
 
 				String temp = "mapping.unit(";
@@ -1722,9 +1656,6 @@ public class ViewManagerController {
 				System.out.println("No agg table for this reverse join table "
 						+ updatedReverseJoin + " available");
 			}
-			
-			*/
-		
 
 			// END OF UPDATE JoinPreag
 
@@ -2183,11 +2114,11 @@ public class ViewManagerController {
 
 				// HERE DELETE FROM JOIN TABLES
 
-
+				// 5. delete from join tables
 
 				String updatedReverseJoin = vm.getReverseJoinName();
 
-				position = reverseTablesNames_Join.indexOf(updatedReverseJoin);
+				position = reverseTableName.indexOf(updatedReverseJoin);
 
 				if (position != -1) {
 

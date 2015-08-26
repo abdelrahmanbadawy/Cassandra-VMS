@@ -1,7 +1,7 @@
 <?xml version="1.1" encoding="UTF-8"?>
 <setup>
 	<dbSchema>
-		<tableNumber>1</tableNumber>
+		<tableNumber>2</tableNumber>
 
 		<tableDefinition>
 			<baseTable>delta_courses</baseTable>
@@ -9,6 +9,33 @@
 			<columnNumber>2</columnNumber>
 			<keyspace>test</keyspace>
 			<name>RJ_courses_student_faculty_faculty</name>
+
+			<primaryKey>
+				<type>text</type>
+				<name>faculty</name>
+			</primaryKey>
+
+			<column>
+				<family>colfam1</family>
+				<type>map&lt;text,text&gt;</type>
+				<name>list_item1</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>map&lt;text,text&gt;</type>
+				<name>list_item2</name>
+			</column>
+			
+			
+
+		</tableDefinition>
+		
+		<tableDefinition>
+			<baseTable>delta_courses</baseTable>
+
+			<columnNumber>2</columnNumber>
+			<keyspace>test</keyspace>
+			<name>RJ_courses_student_faculty_faculty_left_ectsEQ4</name>
 
 			<primaryKey>
 				<type>text</type>

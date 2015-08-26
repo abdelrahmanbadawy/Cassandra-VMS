@@ -377,8 +377,8 @@ public class ViewManager {
 		float count = 0;
 		float sum = 0;
 		float average = 0;
-		float min = 9999999;
-		float max = -9999999;
+		float min = Float.MAX_VALUE;
+		float max = -Float.MAX_VALUE;
 
 		// 1. retrieve agg key value from delta stream to retrieve the correct
 		// row from preagg
@@ -503,18 +503,19 @@ public class ViewManager {
 				sum = theRow.getInt("sum") - aggColValue;
 				average = sum / count;
 
-				max = -99999999;
-				min = 999999999;
+				max = -Float.MAX_VALUE;
+				min = Float.MAX_VALUE;
 
-				List<Definition> def = theRow.getColumnDefinitions().asList();
+				List<Definition> def = deltaDeletedRow.getColumnDefinitions().asList();
 
 				int aggColIndexInList = 0;
 
 				for (int i = 0; i < def.size(); i++) {
 					if (def.get(i).getName().contentEquals(aggCol + "_new")) {
-						aggColIndexInList = i;
 						break;
 					}
+					if(def.get(i).getName().contains("_new"))
+					aggColIndexInList++;
 				}
 
 				for (Map.Entry<String, String> entry : myMap.entrySet()) {
@@ -622,8 +623,8 @@ public class ViewManager {
 		float sum = 0;
 		float count = 0;
 		float aggColValue = 0;
-		float min = 99999999;
-		float max = 0;
+		float min = Float.MAX_VALUE;
+		float max = -Float.MAX_VALUE;
 
 		if (deltaUpdatedRow != null) {
 			colDef = deltaUpdatedRow.getColumnDefinitions();
@@ -844,14 +845,14 @@ public class ViewManager {
 					count = myMap.keySet().size();
 
 					if (count > prev_count)
-						sum = theRow1.getInt("sum") + aggColValue;
+						sum = theRow1.getFloat("sum") + aggColValue;
 					else
-						sum = theRow1.getInt("sum") - aggColValue_old
+						sum = theRow1.getFloat("sum") - aggColValue_old
 								+ aggColValue;
 
 					average = sum / count;
 
-					if (aggColValue < theRow1.getFloat("min")) {
+					/*if (aggColValue < theRow1.getFloat("min")) {
 						min = aggColValue;
 					} else {
 						min = theRow1.getFloat("min");
@@ -861,6 +862,22 @@ public class ViewManager {
 						max = aggColValue;
 					} else {
 						max = theRow1.getFloat("max");
+					}*/
+					
+					max = -Float.MAX_VALUE;
+					min = Float.MAX_VALUE;
+
+					for (Map.Entry<String, String> entry : myMap.entrySet()) {
+						String list = entry.getValue().replaceAll("\\[", "")
+								.replaceAll("\\]", "");
+						String[] listArray = list.split(",");
+						if (Float.valueOf(listArray[aggColIndexInList - 1]) < min)
+							min = Float
+							.valueOf(listArray[aggColIndexInList - 1]);
+
+						if (Float.valueOf(listArray[aggColIndexInList - 1]) > max)
+							max = Float
+							.valueOf(listArray[aggColIndexInList - 1]);
 					}
 
 				} else {
@@ -889,7 +906,7 @@ public class ViewManager {
 				PreparedStatement statement1 = session1.prepare(insertQueryAgg
 						.toString());
 				BoundStatement boundStatement = new BoundStatement(statement1);
-				session1.execute(boundStatement.bind(myMap, (int) sum,
+				session1.execute(boundStatement.bind(myMap, sum,
 						(int) count, average, min, max));
 				System.out.println(boundStatement.toString());
 
@@ -1018,11 +1035,11 @@ public class ViewManager {
 
 					// 5.c adjust sum,count,average values
 					count = myMap.size();
-					sum = theRow.getInt("sum") - aggColValue_old;
+					sum = theRow.getFloat("sum") - aggColValue_old;
 					average = sum / count;
 
-					max = -99999999;
-					min = 999999999;
+					max = -Float.MAX_VALUE;
+					min = Float.MAX_VALUE;
 
 					for (Map.Entry<String, String> entry : myMap.entrySet()) {
 						String list = entry.getValue().replaceAll("\\[", "")
@@ -1056,7 +1073,7 @@ public class ViewManager {
 							.prepare(insertQueryAgg.toString());
 					BoundStatement boundStatement = new BoundStatement(
 							statement1);
-					session1.execute(boundStatement.bind(myMap, (int) sum,
+					session1.execute(boundStatement.bind(myMap, sum,
 							(int) count, average, min, max));
 					System.out.println(boundStatement.toString());
 
@@ -3868,7 +3885,7 @@ public class ViewManager {
 		float max = preagRow.getFloat("max");
 		float average = preagRow.getFloat("average");
 		int count = preagRow.getInt("count");
-		int sum = preagRow.getInt("sum");
+		float sum = preagRow.getFloat("sum");
 
 		List<Definition> def = preagRow.getColumnDefinitions().asList();
 		String pkName = def.get(0).getName();
@@ -3913,7 +3930,7 @@ public class ViewManager {
 			PreparedStatement statement1 = session1.prepare(insertQuery
 					.toString());
 			BoundStatement boundStatement = new BoundStatement(statement1);
-			session1.execute(boundStatement.bind(pkVAlue, myMap, (int) sum,
+			session1.execute(boundStatement.bind(pkVAlue, myMap, sum,
 					(int) count, average, min, max));
 
 		} catch (Exception e) {
@@ -3931,7 +3948,7 @@ public class ViewManager {
 		float max = preagRow.getFloat("max");
 		float average = preagRow.getFloat("average");
 		int count = preagRow.getInt("count");
-		int sum = preagRow.getInt("sum");
+		float sum = preagRow.getInt("sum");
 
 		List<Definition> def = preagRow.getColumnDefinitions().asList();
 		String pkName = def.get(0).getName();
@@ -3941,7 +3958,7 @@ public class ViewManager {
 		switch (pkType) {
 
 		case "int":
-			pkVAlue = Integer.toString(preagRow.getInt(pkName));
+			pkVAlue = ""+(preagRow.getFloat(pkName));
 			break;
 
 		case "float":
@@ -3976,7 +3993,7 @@ public class ViewManager {
 			PreparedStatement statement1 = session1.prepare(insertQuery
 					.toString());
 			BoundStatement boundStatement = new BoundStatement(statement1);
-			session1.execute(boundStatement.bind(pkVAlue, (int) sum,
+			session1.execute(boundStatement.bind(pkVAlue, sum,
 					(int) count, average, min, max));
 
 		} catch (Exception e) {

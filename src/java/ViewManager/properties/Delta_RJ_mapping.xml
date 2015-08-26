@@ -2,19 +2,48 @@
 
 <setup>
 	<mapping>
-		<nrUnit>1</nrUnit>
+		<nrUnit>2</nrUnit>
 		<unit>
-		    <nrDelta>2</nrDelta>
+			<nrDelta>2</nrDelta>
+			<Join>
+				<name>RJ_courses_student_faculty_faculty_left_ectsEQ4</name>
+				<JoinKey>faculty</JoinKey>
+				<JoinKey>faculty</JoinKey>
+				<type>text</type>
+
+				<Cond>
+					<name>ectsEQ4</name>
+					
+					<table>
+						<name>courses</name>
+					</table>
+					<otherTable>student</otherTable>
+					
+					<nrAnd>1</nrAnd>
+					<And>
+						<selectionCol>ects</selectionCol>
+						<type>varint</type>
+						<operation>></operation>
+						<value>4</value>
+					</And>
+				</Cond>
+
+			</Join>
+		</unit>
+
+		<unit>
+			<nrDelta>2</nrDelta>
 			<Join>
 				<name>RJ_courses_student_faculty_faculty</name>
 				<JoinKey>faculty</JoinKey>
 				<JoinKey>faculty</JoinKey>
 				<type>text</type>
-				
+
+				<Cond>
+					<name>none</name>
+				</Cond>
 			</Join>
 		</unit>
-		
-
 
 	</mapping>
 </setup>
