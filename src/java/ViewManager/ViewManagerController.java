@@ -1126,8 +1126,8 @@ public class ViewManagerController {
 
 
 					if(updateLeft){
-						vm.updateJoinAgg_UpdateLeft_AggColLeftSide( innerJoinAggTable,  leftJoinAggTable, json, joinKeyType, joinKeyName,
-								 aggColName, aggColType );
+//						vm.updateJoinAgg_UpdateLeft_AggColLeftSide( innerJoinAggTable,  leftJoinAggTable, json, joinKeyType, joinKeyName,
+//								 aggColName, aggColType );
 					}
 				
 					
