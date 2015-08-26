@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.cassandra.db.marshal.ColumnToCollectionType;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.json.simple.JSONObject;
@@ -415,22 +416,26 @@ public class ViewManagerController {
 								.getString(s + ".Cond.nrAnd");
 
 						boolean eval = true;
+						String operation = "";
+						String value = "";
+						String type = "";
+						String colName = "";
 
 						for (int j = 0; j < Integer.parseInt(nrAnd); j++) {
 							String s11 = s + ".Cond.And(";
 							s11 += Integer.toString(j);
 							s11 += ")";
 
-							String operation = VmXmlHandler.getInstance()
+							operation = VmXmlHandler.getInstance()
 									.getDeltaPreaggMapping()
 									.getString(s11 + ".operation");
-							String value = VmXmlHandler.getInstance()
+							value = VmXmlHandler.getInstance()
 									.getDeltaPreaggMapping()
 									.getString(s11 + ".value");
-							String type = VmXmlHandler.getInstance()
+							type = VmXmlHandler.getInstance()
 									.getDeltaPreaggMapping()
 									.getString(s11 + ".type");
-							String colName = VmXmlHandler.getInstance()
+							colName = VmXmlHandler.getInstance()
 									.getDeltaPreaggMapping()
 									.getString(s11 + ".selectionCol");
 
@@ -456,7 +461,7 @@ public class ViewManagerController {
 
 							String pkVAlue = "";
 
-							switch (AggColType) {
+							switch (baseTablePrimaryKeyType) {
 
 							case "int":
 								pkVAlue = Integer.toString(deltaUpdatedRow.getInt(baseTablePrimaryKey));
@@ -479,33 +484,40 @@ public class ViewManagerController {
 								break;
 							}
 
-							// 1. retrieve the row to be deleted from delta table
 
-							StringBuilder selectQuery = new StringBuilder("SELECT *");
-							selectQuery.append(" FROM ").append(json.get("keyspace")).append(".")
-							.append("delta_" + json.get("table")).append(" WHERE ")
-							.append(baseTablePrimaryKey).append(" = ")
-							.append(pkVAlue).append(";");
+							boolean eval_old = evaluateCondition(deltaUpdatedRow,
+									operation, value, type, colName + "_old");
 
-							System.out.println(selectQuery);
+							if(eval_old){
 
-							ResultSet selectionResult;
+								// 1. retrieve the row to be deleted from delta table
 
-							try {
+								StringBuilder selectQuery = new StringBuilder("SELECT *");
+								selectQuery.append(" FROM ").append(json.get("keyspace")).append(".")
+								.append("delta_" + json.get("table")).append(" WHERE ")
+								.append(baseTablePrimaryKey).append(" = ")
+								.append(pkVAlue).append(";");
 
-								Session session = currentCluster.connect();
-								selectionResult = session.execute(selectQuery.toString());
+								System.out.println(selectQuery);
 
-							} catch (Exception e) {
-								e.printStackTrace();
-								return;
+								ResultSet selectionResult;
+
+								try {
+
+									Session session = currentCluster.connect();
+									selectionResult = session.execute(selectQuery.toString());
+
+								} catch (Exception e) {
+									e.printStackTrace();
+									return;
+								}
+
+								// 2. set DeltaDeletedRow variable for streaming
+								vm.setDeltaDeletedRow(selectionResult.one());
+
+								cascadeDelete(json, false);
+
 							}
-
-							// 2. set DeltaDeletedRow variable for streaming
-							vm.setDeltaDeletedRow(selectionResult.one());
-
-							cascadeDelete(json, false);
-
 
 							// continue
 
@@ -539,9 +551,9 @@ public class ViewManagerController {
 					int nrConditions = VmXmlHandler.getInstance()
 							.getHavingPreAggMapping().getInt(temp4 + ".nrCond");
 
-					for (i = 0; i < nrConditions; i++) {
+					for (int m = 0; m < nrConditions; m++) {
 
-						String s1 = temp4 + ".Cond(" + Integer.toString(i)
+						String s1 = temp4 + ".Cond(" + Integer.toString(m)
 								+ ")";
 						String havingTable = VmXmlHandler.getInstance()
 								.getHavingPreAggMapping()
@@ -554,10 +566,10 @@ public class ViewManagerController {
 						boolean eval1 = true;
 						boolean eval2 = true;
 
-						for (int j = 0; j < Integer.parseInt(nrAnd); j++) {
+						for (int n = 0; n < Integer.parseInt(nrAnd); n++) {
 
 							String s11 = s1 + ".And(";
-							s11 += Integer.toString(j);
+							s11 += Integer.toString(n);
 							s11 += ")";
 
 							String aggFct = VmXmlHandler.getInstance()
@@ -872,7 +884,7 @@ public class ViewManagerController {
 					otherTable = VmXmlHandler.getInstance()
 							.getDeltaReverseJoinMapping()
 							.getString(temp + ".Cond.otherTable");
-					
+
 					if(!baseTableNames.contains((String)json.get("table"))&& !otherTable.equals((String)json.get("table"))){
 						continue;
 					}
@@ -892,21 +904,26 @@ public class ViewManagerController {
 
 					boolean eval = true;
 
+					String operation = "";
+					String value = "";
+					String type = "";
+					String colName = "";
+
 					for (int jj = 0; jj < Integer.parseInt(nrAnd); jj++) {
 						String s11 = temp + ".Cond.And(";
 						s11 += Integer.toString(jj);
 						s11 += ")";
 
-						String operation = VmXmlHandler.getInstance()
+						operation = VmXmlHandler.getInstance()
 								.getDeltaReverseJoinMapping()
 								.getString(s11 + ".operation");
-						String value = VmXmlHandler.getInstance()
+						value = VmXmlHandler.getInstance()
 								.getDeltaReverseJoinMapping()
 								.getString(s11 + ".value");
-						String type = VmXmlHandler.getInstance()
+						type = VmXmlHandler.getInstance()
 								.getDeltaReverseJoinMapping()
 								.getString(s11 + ".type");
-						String colName = VmXmlHandler.getInstance()
+						colName = VmXmlHandler.getInstance()
 								.getDeltaReverseJoinMapping()
 								.getString(s11 + ".selectionCol");
 
@@ -953,32 +970,38 @@ public class ViewManagerController {
 							break;
 						}
 
-						// 1. retrieve the row to be deleted from delta table
+						boolean eval_old = evaluateCondition(deltaUpdatedRow,
+								operation, value, type, colName + "_old");
 
-						StringBuilder selectQuery = new StringBuilder("SELECT *");
-						selectQuery.append(" FROM ").append(json.get("keyspace")).append(".")
-						.append("delta_" + json.get("table")).append(" WHERE ")
-						.append(baseTablePrimaryKey).append(" = ")
-						.append(pkVAlue).append(";");
+						if(eval_old){
 
-						System.out.println(selectQuery);
+							// 1. retrieve the row to be deleted from delta table
 
-						ResultSet selectionResult;
+							StringBuilder selectQuery = new StringBuilder("SELECT *");
+							selectQuery.append(" FROM ").append(json.get("keyspace")).append(".")
+							.append("delta_" + json.get("table")).append(" WHERE ")
+							.append(baseTablePrimaryKey).append(" = ")
+							.append(pkVAlue).append(";");
 
-						try {
+							System.out.println(selectQuery);
 
-							Session session = currentCluster.connect();
-							selectionResult = session.execute(selectQuery.toString());
+							ResultSet selectionResult;
 
-						} catch (Exception e) {
-							e.printStackTrace();
-							return;
+							try {
+
+								Session session = currentCluster.connect();
+								selectionResult = session.execute(selectQuery.toString());
+
+							} catch (Exception e) {
+								e.printStackTrace();
+								return;
+							}
+
+							// 2. set DeltaDeletedRow variable for streaming
+							vm.setDeltaDeletedRow(selectionResult.one());
+
+							cascadeDelete(json, false);
 						}
-
-						// 2. set DeltaDeletedRow variable for streaming
-						vm.setDeltaDeletedRow(selectionResult.one());
-
-						cascadeDelete(json, false);
 
 						// continue
 						continue;
@@ -2395,6 +2418,10 @@ public class ViewManagerController {
 
 		boolean eval = true;
 
+		if (row.isNull(colName)){
+			return false;
+		}
+
 		switch (type) {
 
 		case "text":
@@ -2476,6 +2503,21 @@ public class ViewManagerController {
 			break;
 
 		case "float":
+
+			compareValue = Float.compare(
+					row.getFloat(colName), Float.valueOf(value));
+
+			if ((operation.equals(">") && (compareValue > 0))) {
+				eval &= true;
+			} else if ((operation.equals("<") && (compareValue < 0))) {
+				eval &= true;
+			} else if ((operation.equals("=") && (compareValue == 0))) {
+				eval &= true;
+			} else {
+				eval &= false;
+			}
+
+
 			break;
 		}
 
