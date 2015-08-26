@@ -1,0 +1,51 @@
+<?xml version="1.1" encoding="UTF-8"?>
+
+<setup>
+	<mapping>
+		<nrUnit>1</nrUnit>
+		
+		<unit>
+			<reverseJoin>RJ_courses_student_faculty_faculty</reverseJoin>
+			<joinKey>faculty</joinKey>
+			<joinKeyType>text</joinKeyType>
+			<LeftTable>courses</LeftTable>
+			<RightTable>student</RightTable>
+			
+			
+				<InnerJoinKey>faculty</InnerJoinKey>
+				<InnerJoinKeyType>text</InnerJoinKeyType>
+				<LeftJoinKey>faculty</LeftJoinKey>
+				<LeftJoinKeyType>text</LeftJoinKeyType>
+				<RightJoinKey>faculty</RightJoinKey>
+				<RightJoinKeyType>text</RightJoinKeyType>
+			
+			<leftAggColumns>
+			    <nr>1</nr>
+			    
+			    <c>
+			        <name>ects</name>
+			        <type>int</type>
+			        <inner>innerjoin_agg_courses_faculty_ects</inner>
+			        <left>leftjoin_agg_courses_faculty_ects</left>
+			    </c>
+			    
+			    
+			</leftAggColumns>
+			
+			<rightAggColumns>
+			    <nr>1</nr>
+			    
+			    <c>
+			        <name>age</name>
+			        <type>int</type>
+			        <inner>innerjoin_agg_courses_faculty_age</inner>
+			        <right>false</right>
+			    </c>
+			    
+			    
+			</rightAggColumns>
+			
+				
+		</unit>	
+	</mapping>
+</setup>
