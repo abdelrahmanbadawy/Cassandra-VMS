@@ -851,7 +851,7 @@ public class ViewManager {
 
 					average = sum / count;
 
-					if (aggColValue < theRow1.getFloat("min")) {
+					/*if (aggColValue < theRow1.getFloat("min")) {
 						min = aggColValue;
 					} else {
 						min = theRow1.getFloat("min");
@@ -861,6 +861,22 @@ public class ViewManager {
 						max = aggColValue;
 					} else {
 						max = theRow1.getFloat("max");
+					}*/
+					
+					max = -99999999;
+					min = 999999999;
+
+					for (Map.Entry<String, String> entry : myMap.entrySet()) {
+						String list = entry.getValue().replaceAll("\\[", "")
+								.replaceAll("\\]", "");
+						String[] listArray = list.split(",");
+						if (Float.valueOf(listArray[aggColIndexInList - 1]) < min)
+							min = Float
+							.valueOf(listArray[aggColIndexInList - 1]);
+
+						if (Float.valueOf(listArray[aggColIndexInList - 1]) > max)
+							max = Float
+							.valueOf(listArray[aggColIndexInList - 1]);
 					}
 
 				} else {
