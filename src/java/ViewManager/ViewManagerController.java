@@ -599,27 +599,27 @@ public class ViewManagerController {
 							float min1 = PreagRow.getFloat("min");
 							float max1 = PreagRow.getFloat("max");
 							float average1 = PreagRow.getFloat("average");
-							int sum1 = PreagRow.getInt("sum");
+							float sum1 = PreagRow.getFloat("sum");
 							int count1 = PreagRow.getInt("count");
 
 							float min2 = 0;
 							float max2 = 0;
 							float average2 = 0;
-							int sum2 = 0;
+							float sum2 = 0;
 							int count2 = 0;
 
 							if (PreagRowAK != null) {
 								min2 = PreagRowAK.getFloat("min");
 								max2 = PreagRowAK.getFloat("max");
 								average2 = PreagRowAK.getFloat("average");
-								sum2 = PreagRowAK.getInt("sum");
+								sum2 = PreagRowAK.getFloat("sum");
 								count2 = PreagRowAK.getInt("count");
 							}
 
 							if (aggFct.equals("sum")) {
 
-								int compareValue = new Integer(sum1)
-								.compareTo(new Integer(value));
+								int compareValue = new Float(sum1)
+								.compareTo(new Float(value));
 
 								if ((operation.equals(">") && (compareValue > 0))) {
 									eval1 &= true;
@@ -633,8 +633,8 @@ public class ViewManagerController {
 
 								if (PreagRowAK != null) {
 
-									compareValue = new Integer(sum2)
-									.compareTo(new Integer(value));
+									compareValue = new Float(sum2)
+									.compareTo(new Float(value));
 
 									if ((operation.equals(">") && (compareValue > 0))) {
 										eval2 &= true;
