@@ -24,7 +24,8 @@
 			    
 			    <c>
 			        <name>ects</name>
-			        <type>int</type>
+			        <type>varint</type>
+			        <index>1</index>
 			        <inner>innerjoin_agg_courses_faculty_ects</inner>
 			        <left>leftjoin_agg_courses_faculty_ects</left>
 			    </c>
@@ -38,6 +39,7 @@
 			    <c>
 			        <name>age</name>
 			        <type>int</type>
+			        <index>3</index>
 			        <inner>innerjoin_agg_courses_faculty_age</inner>
 			        <right>false</right>
 			    </c>
