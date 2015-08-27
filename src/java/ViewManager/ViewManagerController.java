@@ -1096,8 +1096,7 @@ public class ViewManagerController {
 			int positionAgg = reverseTablesNames_AggJoin.indexOf(joinTable);
 
 			if (positionAgg != -1) {
-				
-				
+
 				String temp = "mapping.unit(";
 				temp += Integer.toString(positionAgg);
 				temp += ")";
@@ -1109,8 +1108,6 @@ public class ViewManagerController {
 						.getRJAggJoinMapping().getString(temp + ".LeftTable");
 				String rightJoinTable = VmXmlHandler.getInstance()
 						.getRJAggJoinMapping().getString(temp + ".RightTable");
-				
-				
 
 				tableName = (String) json.get("table");
 
@@ -1124,11 +1121,8 @@ public class ViewManagerController {
 						.getRJAggJoinMapping()
 						.getInt(temp + ".leftAggColumns.nr");
 
-				
-				
-				
 				for (int e = 0; e < nrLeftAggColumns; e++) {
-					
+
 					String aggColName = VmXmlHandler
 							.getInstance()
 							.getRJAggJoinMapping()
@@ -1149,23 +1143,23 @@ public class ViewManagerController {
 							.getRJAggJoinMapping()
 							.getString(
 									temp + ".leftAggColumns.c(" + e + ").left");
-					
+
 					int index = VmXmlHandler
 							.getInstance()
 							.getRJAggJoinMapping()
-							.getInt(
-									temp + ".leftAggColumns.c(" + e + ").index");
-					
-					
+							.getInt(temp + ".leftAggColumns.c(" + e + ").index");
 
 					if (updateLeft) {
-						
+
 						vm.updateJoinAgg_UpdateLeft_AggColLeftSide(
 								innerJoinAggTable, leftJoinAggTable, json,
 								joinKeyType, joinKeyName, aggColName,
 								aggColType);
 					} else {
-
+						vm.updateJoinAgg_UpdateRight_AggColLeftSide(
+								innerJoinAggTable, leftJoinAggTable, json,
+								joinKeyType, joinKeyName, aggColName,
+								aggColType, index);
 					}
 
 				}
@@ -1190,19 +1184,21 @@ public class ViewManagerController {
 							.getInstance()
 							.getRJAggJoinMapping()
 							.getString(
-									temp + ".rightAggColumns.c(" + e + ").inner");
+									temp + ".rightAggColumns.c(" + e
+											+ ").inner");
 					String rightJoinAggTable = VmXmlHandler
 							.getInstance()
 							.getRJAggJoinMapping()
 							.getString(
-									temp + ".rightAggColumns.c(" + e + ").right");
-					
+									temp + ".rightAggColumns.c(" + e
+											+ ").right");
+
 					int index = VmXmlHandler
 							.getInstance()
 							.getRJAggJoinMapping()
-							.getInt(
-									temp + ".rightAggColumns.c(" + e + ").index");
-					
+							.getInt(temp + ".rightAggColumns.c(" + e
+									+ ").index");
+
 					if (updateLeft) {
 						vm.updateJoinAgg_UpdateLeft_AggColRightSide(
 								innerJoinAggTable, rightJoinAggTable, json,
@@ -1210,8 +1206,11 @@ public class ViewManagerController {
 								aggColType, index);
 					} else {
 
+						vm.updateJoinAgg_UpdateRight_AggColRightSide(
+								innerJoinAggTable, rightJoinAggTable, json,
+								joinKeyType, joinKeyName, aggColName,
+								aggColType);
 					}
-					
 
 				}
 
