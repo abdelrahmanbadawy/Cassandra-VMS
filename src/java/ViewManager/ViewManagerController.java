@@ -1379,11 +1379,18 @@ public class ViewManagerController {
 								.getString(
 										temp + ".rightAggColumns.c(" + e
 										+ ").Agg(" + i + ").right");
+						
+						int AggKeyIndex = VmXmlHandler
+								.getInstance()
+								.getRJAggJoinGroupByMapping()
+								.getInt(temp + ".rightAggColumns.c(" + e + ").Agg(" + i + ").aggKeyIndex");
 
 
 						if (updateLeft) {
-							vm.updateJoinAgg_UpdateLeft_AggColRightSide_GroupBy(innerJoinAggTable, rightJoinAggTable, json,
-									joinKeyType, joinKeyName, aggColName,aggColType, index);
+							vm.updateJoinAgg_UpdateLeft_AggColRightSide_GroupBy(
+									innerJoinAggTable, rightJoinAggTable, json,
+									joinKeyType, joinKeyName, aggColName,
+									aggColType, index, Key,KeyType,AggKeyIndex);
 						} else {
 
 							vm.updateJoinAgg_UpdateRight_AggColRightSide_GroupBy(innerJoinAggTable, rightJoinAggTable, json,

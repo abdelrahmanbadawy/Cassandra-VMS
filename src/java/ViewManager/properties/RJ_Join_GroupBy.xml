@@ -23,13 +23,10 @@
 						<Key>name</Key>
 						<KeyType>text</KeyType>
 						<aggKeyIndex>2</aggKeyIndex>
-						<inner>false</inner>
+						<inner>innerjoin_agg_courses_faculty_ects_groupby_name</inner>
 						<left>leftjoin_agg_courses_faculty_ects_groupby_name</left>
 					</Agg>
-					<Agg>
-						<inner>false</inner>
-						<left>leftjoin_agg_courses_faculty_ects_groupby_name</left>
-					</Agg>
+					
 				</c>
 
 
