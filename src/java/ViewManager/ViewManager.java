@@ -4727,7 +4727,7 @@ public class ViewManager {
 								.replaceAll("\\]", "");
 						String[] listArray = list.split(",");
 						Float x = Float
-								.parseFloat(listArray[aggColIndexInList - 1]);
+								.parseFloat(listArray[aggColIndexInList]);
 						if (x < min)
 							min = x;
 
@@ -4760,7 +4760,7 @@ public class ViewManager {
 							.replaceAll("\\]", "");
 					String[] listArray = list.split(",");
 					Float x = Float
-							.parseFloat(listArray[aggColIndexInList - 1]);
+							.parseFloat(listArray[aggColIndexInList]);
 					if (x > max)
 						max = x;
 
@@ -5117,7 +5117,7 @@ public class ViewManager {
 											.replaceAll("\\]", "");
 									String[] listArray = list.split(",");
 									Float x = Float
-											.parseFloat(listArray[aggColIndexInList - 1]);
+											.parseFloat(listArray[aggColIndexInList]);
 									if (x < min)
 										min = x;
 
@@ -5169,7 +5169,7 @@ public class ViewManager {
 											.replaceAll("\\]", "");
 									String[] listArray = list.split(",");
 									Float x = Float
-											.parseFloat(listArray[aggColIndexInList - 1]);
+											.parseFloat(listArray[aggColIndexInList]);
 									if (x > max)
 										max = x;
 
@@ -5278,26 +5278,31 @@ public class ViewManager {
 						}
 						// more than one item --> update
 						else {
-							StringBuilder selectQuery1 = new StringBuilder(
-									"SELECT ").append(joinKeyName)
-									.append(", sum, ").append("count, ")
-									.append("average, min, max ");
-							selectQuery1.append(" FROM ")
-							.append((String) json.get("keyspace"))
-							.append(".").append(leftJoinAggTable)
-							.append(" where ")
-							.append(joinKeyName + " = ")
-							.append(joinKeyValue).append(";");
+//							StringBuilder selectQuery1 = new StringBuilder(
+//									"SELECT ").append(joinKeyName)
+//									.append(", sum, ").append("count, ")
+//									.append("average, min, max ");
+//							selectQuery1.append(" FROM ")
+//							.append((String) json.get("keyspace"))
+//							.append(".").append(leftJoinAggTable)
+//							.append(" where ")
+//							.append(joinKeyName + " = ")
+//							.append(joinKeyValue).append(";");
 
 							Row theRow = null;
-							try {
-								Session session = currentCluster.connect();
-								theRow = session.execute(
-										selectQuery1.toString()).one();
-							} catch (Exception e) {
-								e.printStackTrace();
-								return false;
-							}
+//							try {
+//								Session session = currentCluster.connect();
+//								theRow = session.execute(
+//										selectQuery1.toString()).one();
+//							} catch (Exception e) {
+//								e.printStackTrace();
+//								return false;
+//							}
+							
+							if(!leftJoinAggTable.equals("false"))
+							theRow =JoinAggregationHelper.selectStatement(joinKeyName, joinKeyValue, leftJoinAggTable, json);
+							else
+							theRow =JoinAggregationHelper.selectStatement(joinKeyName, joinKeyValue, innerJoinAggTable, json);
 
 							Float sum = theRow.getFloat("sum");
 							if (aggColValue != null
@@ -5374,7 +5379,7 @@ public class ViewManager {
 											.replaceAll("\\]", "");
 									String[] listArray = list.split(",");
 									Float x = Float
-											.parseFloat(listArray[aggColIndexInList - 1]);
+											.parseFloat(listArray[aggColIndexInList]);
 									if (x < min)
 										min = x;
 
@@ -5426,7 +5431,7 @@ public class ViewManager {
 											.replaceAll("\\]", "");
 									String[] listArray = list.split(",");
 									Float x = Float
-											.parseFloat(listArray[aggColIndexInList - 1]);
+											.parseFloat(listArray[aggColIndexInList]);
 									if (x > max)
 										max = x;
 
@@ -5741,7 +5746,7 @@ public class ViewManager {
 								.replaceAll("\\]", "");
 						String[] listArray = list.split(",");
 						Float x = Float
-								.parseFloat(listArray[aggColIndexInList - 1]);
+								.parseFloat(listArray[aggColIndexInList]);
 						if (x < min)
 							min = x;
 
@@ -5774,7 +5779,7 @@ public class ViewManager {
 							.replaceAll("\\]", "");
 					String[] listArray = list.split(",");
 					Float x = Float
-							.parseFloat(listArray[aggColIndexInList - 1]);
+							.parseFloat(listArray[aggColIndexInList]);
 					if (x > max)
 						max = x;
 
@@ -6131,7 +6136,7 @@ public class ViewManager {
 											.replaceAll("\\]", "");
 									String[] listArray = list.split(",");
 									Float x = Float
-											.parseFloat(listArray[aggColIndexInList - 1]);
+											.parseFloat(listArray[aggColIndexInList]);
 									if (x < min)
 										min = x;
 
@@ -6183,7 +6188,7 @@ public class ViewManager {
 											.replaceAll("\\]", "");
 									String[] listArray = list.split(",");
 									Float x = Float
-											.parseFloat(listArray[aggColIndexInList - 1]);
+											.parseFloat(listArray[aggColIndexInList]);
 									if (x > max)
 										max = x;
 
@@ -6292,26 +6297,31 @@ public class ViewManager {
 						}
 						// more than one item --> update
 						else {
-							StringBuilder selectQuery1 = new StringBuilder(
-									"SELECT ").append(joinKeyName)
-									.append(", sum, ").append("count, ")
-									.append("average, min, max ");
-							selectQuery1.append(" FROM ")
-							.append((String) json.get("keyspace"))
-							.append(".").append(rightJoinAggTable)
-							.append(" where ")
-							.append(joinKeyName + " = ")
-							.append(joinKeyValue).append(";");
+//							StringBuilder selectQuery1 = new StringBuilder(
+//									"SELECT ").append(joinKeyName)
+//									.append(", sum, ").append("count, ")
+//									.append("average, min, max ");
+//							selectQuery1.append(" FROM ")
+//							.append((String) json.get("keyspace"))
+//							.append(".").append(rightJoinAggTable)
+//							.append(" where ")
+//							.append(joinKeyName + " = ")
+//							.append(joinKeyValue).append(";");
 
 							Row theRow = null;
-							try {
-								Session session = currentCluster.connect();
-								theRow = session.execute(
-										selectQuery1.toString()).one();
-							} catch (Exception e) {
-								e.printStackTrace();
-								return false;
-							}
+//							try {
+//								Session session = currentCluster.connect();
+//								theRow = session.execute(
+//										selectQuery1.toString()).one();
+//							} catch (Exception e) {
+//								e.printStackTrace();
+//								return false;
+//							}
+							if(!rightJoinAggTable.equals("false"))
+							theRow = JoinAggregationHelper.selectStatement(joinKeyName, joinKeyValue, rightJoinAggTable, json);
+							
+							else
+							theRow = JoinAggregationHelper.selectStatement(joinKeyName, joinKeyValue, innerJoinAggTable, json);
 
 							Float sum = theRow.getFloat("sum");
 							if (aggColValue != null
@@ -6388,7 +6398,7 @@ public class ViewManager {
 											.replaceAll("\\]", "");
 									String[] listArray = list.split(",");
 									Float x = Float
-											.parseFloat(listArray[aggColIndexInList - 1]);
+											.parseFloat(listArray[aggColIndexInList]);
 									if (x < min)
 										min = x;
 
@@ -6440,7 +6450,7 @@ public class ViewManager {
 											.replaceAll("\\]", "");
 									String[] listArray = list.split(",");
 									Float x = Float
-											.parseFloat(listArray[aggColIndexInList - 1]);
+											.parseFloat(listArray[aggColIndexInList]);
 									if (x > max)
 										max = x;
 
