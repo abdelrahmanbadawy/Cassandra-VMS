@@ -7184,7 +7184,7 @@ public class ViewManager {
 
 
 
-	public void JoinAggGroupByChangeAddRow(JSONObject json, String leftJoinAggTable, String aggKey, String aggKeyValue, String aggColValue, String oldAggColValue){
+	public void JoinAggGroupByChangeAddRow(JSONObject json, String leftJoinAggTable, String aggKey, String aggKeyValue, String aggColValue, String oldAggColValue,String innerJoinTable){
 
 		float sum = 0;
 		float min = 0;
@@ -7193,9 +7193,15 @@ public class ViewManager {
 		float average = 0;
 		List<Float> myList = new ArrayList<Float>();
 
+		String joinTable = "";
+		if(leftJoinAggTable.equals("false"))
+			joinTable = innerJoinTable;
+		else
+			joinTable = leftJoinAggTable;
+		
 		StringBuilder selectQuery1 = new StringBuilder("SELECT ")
 		.append("list_item, sum, count, average, min, max FROM ")
-		.append((String) json.get("keyspace")).append(".").append(leftJoinAggTable)
+		.append((String) json.get("keyspace")).append(".").append(joinTable)
 		.append(" WHERE ").append(aggKey + " = ").append(aggKeyValue).append(";");
 
 		Row theRow = null;
@@ -7210,7 +7216,7 @@ public class ViewManager {
 
 		//First Insertion
 		if(theRow==null){
-			if(aggColValue!="'null'"){
+			if(!aggColValue.equals("'null'") && !aggColValue.equals("null") ){
 				sum = Float.valueOf(aggColValue);
 				min = Float.valueOf(aggColValue);
 				max = Float.valueOf(aggColValue);
@@ -7224,8 +7230,8 @@ public class ViewManager {
 			sum = theRow.getFloat("sum");
 			count = theRow.getInt("count");
 
-			if(oldAggColValue=="'null'"){
-				if(aggColValue!="'null'"){
+			if(oldAggColValue.equals("'null'")|| oldAggColValue.equals("null") ){
+				if(!aggColValue.equals("'null'") && !aggColValue.equals("null")){
 					count++;								
 					sum += Float.parseFloat(aggColValue);
 					average = sum/count;
@@ -7233,11 +7239,11 @@ public class ViewManager {
 				}
 			}
 
-			if(oldAggColValue!="'null'"){
-				if(aggColValue!="'null'"){
+			if(!oldAggColValue.equals("'null'") && !oldAggColValue.equals("null")){
+				if(!aggColValue.equals("'null'") && !aggColValue.equals("null")){
 					sum+=Float.parseFloat(aggColValue);
 					sum-=Float.parseFloat(oldAggColValue);
-					myList.remove(oldAggColValue);
+					myList.remove(Float.parseFloat(oldAggColValue));
 					myList.add(Float.parseFloat(aggColValue));
 					average = sum/count;
 				}
@@ -7385,7 +7391,7 @@ public class ViewManager {
 
 
 		// change in agg key value
-		if (!(oldJoinKeyValue.equals("'null'")) && !joinKeyValue.equals(oldJoinKeyValue)) {
+		if (!(oldJoinKeyValue.equals("'null'")) && !joinKeyValue.equals(oldJoinKeyValue) && !aggKeyValue.equals(oldAggKeyValue)) {
 
 			// a - First update old agg key, if the left list has only 1 item, delete entire row, else search for it then delete
 			if (!leftJoinAggTable.equals("false")) {
@@ -7404,25 +7410,25 @@ public class ViewManager {
 			}else {
 				//Row with old agg key already deleted from left or inner
 				// b - Update new agg key
-				JoinAggGroupByChangeAddRow(json,leftJoinAggTable,aggKey,aggKeyValue,aggColValue,oldAggColValue);
+				JoinAggGroupByChangeAddRow(json,leftJoinAggTable,aggKey,aggKeyValue,aggColValue,oldAggColValue,innerJoinAggTable);
 			}
 		} else {
 			// Case No change in join Key or Case of first insertion
 
 			// if there is  no change in join key  values ignore
-			if (!aggKey.equals(oldAggKeyValue)) {
+			if (!aggColValue.equals(oldAggColValue)) {
 
 				// updates take place in left_join_agg only
 				if (newRJRow.getMap("list_item2", String.class, String.class).isEmpty()) {
 
 					if (!leftJoinAggTable.equals("false")) {
-						JoinAggGroupByChangeAddRow(json,leftJoinAggTable,aggKey,aggKeyValue,aggColValue,oldAggColValue);
+						JoinAggGroupByChangeAddRow(json,leftJoinAggTable,aggKey,aggKeyValue,aggColValue,oldAggColValue,innerJoinAggTable);
 					}
 				}else {
 					// insert row with aggkey/joinkey as pk to left and inner
 					if (!leftJoinAggTable.equals("false")|| !innerJoinAggTable.equals("false")) {
-						JoinAggGroupByChangeAddRow(json,leftJoinAggTable,aggKey,aggKeyValue,aggColValue,oldAggColValue);
-						JoinAggGroupByChangeAddRow(json,innerJoinAggTable,aggKey,aggKeyValue,aggColValue,oldAggColValue);
+						JoinAggGroupByChangeAddRow(json,leftJoinAggTable,aggKey,aggKeyValue,aggColValue,oldAggColValue,innerJoinAggTable);
+						JoinAggGroupByChangeAddRow(json,innerJoinAggTable,aggKey,aggKeyValue,aggColValue,oldAggColValue,innerJoinAggTable);
 					}
 
 				}
@@ -7708,7 +7714,7 @@ public class ViewManager {
 			}else {
 				//Row with old agg key already deleted from left or inner
 				// b - Update new agg key
-				JoinAggGroupByChangeAddRow(json,rightJoinAggTable,aggKey,aggKeyValue,aggColValue,oldAggColValue);
+				JoinAggGroupByChangeAddRow(json,rightJoinAggTable,aggKey,aggKeyValue,aggColValue,oldAggColValue,innerJoinAggTable);
 			}
 		} else {
 			// Case No change in join Key or Case of first insertion
@@ -7720,13 +7726,13 @@ public class ViewManager {
 				if (newRJRow.getMap("list_item1", String.class, String.class).isEmpty()) {
 
 					if (!rightJoinAggTable.equals("false")) {
-						JoinAggGroupByChangeAddRow(json,rightJoinAggTable,aggKey,aggKeyValue,aggColValue,oldAggColValue);
+						JoinAggGroupByChangeAddRow(json,rightJoinAggTable,aggKey,aggKeyValue,aggColValue,oldAggColValue,innerJoinAggTable);
 					}
 				}else {
 					// insert row with aggkey/joinkey as pk to left and inner
 					if (!rightJoinAggTable.equals("false")|| !innerJoinAggTable.equals("false")) {
-						JoinAggGroupByChangeAddRow(json,rightJoinAggTable,aggKey,aggKeyValue,aggColValue,oldAggColValue);
-						JoinAggGroupByChangeAddRow(json,innerJoinAggTable,aggKey,aggKeyValue,aggColValue,oldAggColValue);
+						JoinAggGroupByChangeAddRow(json,rightJoinAggTable,aggKey,aggKeyValue,aggColValue,oldAggColValue,innerJoinAggTable);
+						JoinAggGroupByChangeAddRow(json,innerJoinAggTable,aggKey,aggKeyValue,aggColValue,oldAggColValue,innerJoinAggTable);
 					}
 				}
 			}
