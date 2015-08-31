@@ -5278,6 +5278,7 @@ public class ViewManager {
 						}
 						// more than one item --> update
 						else {
+
 							//							StringBuilder selectQuery1 = new StringBuilder(
 							//									"SELECT ").append(joinKeyName)
 							//									.append(", sum, ").append("count, ")
@@ -5303,6 +5304,7 @@ public class ViewManager {
 								theRow =JoinAggregationHelper.selectStatement(joinKeyName, joinKeyValue, leftJoinAggTable, json);
 							else
 								theRow =JoinAggregationHelper.selectStatement(joinKeyName, joinKeyValue, innerJoinAggTable, json);
+
 
 							Float sum = theRow.getFloat("sum");
 							if (aggColValue != null
@@ -6297,6 +6299,7 @@ public class ViewManager {
 						}
 						// more than one item --> update
 						else {
+
 							//							StringBuilder selectQuery1 = new StringBuilder(
 							//									"SELECT ").append(joinKeyName)
 							//									.append(", sum, ").append("count, ")
@@ -6322,6 +6325,7 @@ public class ViewManager {
 
 							else
 								theRow = JoinAggregationHelper.selectStatement(joinKeyName, joinKeyValue, innerJoinAggTable, json);
+
 
 							Float sum = theRow.getFloat("sum");
 							if (aggColValue != null
