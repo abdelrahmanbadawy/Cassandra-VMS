@@ -7477,6 +7477,7 @@ public class ViewManager {
 						JoinAggGroupByChangeAddRow(json,leftJoinAggTable,aggKey,aggKeyValue,aggColValue,oldAggColValue,oldAggKeyValue);
 					}
 
+				}
 					if(!newRJRow.getMap("list_item2", String.class, String.class).isEmpty()){
 						if (!innerJoinAggTable.equals("false")) {
 							JoinAggGroupByChangeAddRow(json,innerJoinAggTable,aggKey,aggKeyValue,aggColValue,oldAggColValue,oldAggKeyValue);
@@ -7485,7 +7486,7 @@ public class ViewManager {
 							JoinAggGroupByChangeAddRow(json,leftJoinAggTable,aggKey,aggKeyValue,aggColValue,oldAggColValue,oldAggKeyValue);
 						}
 					}
-				}
+				
 			}
 		}
 		return true;
