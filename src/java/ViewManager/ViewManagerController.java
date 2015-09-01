@@ -1913,7 +1913,7 @@ public class ViewManagerController {
 				}
 
 				// END OF DELETE FROM JOIN TABLES
-
+/*
 				// delete operations on agg of joins based on each deletion
 				// update
 				// of reverse join
@@ -2173,6 +2173,136 @@ public class ViewManagerController {
 				}
 
 				// END OF UPDATE JoinPreag
+				
+				*/
+				//UPDATE join aggregation
+				int positionAgg = reverseTablesNames_AggJoin.indexOf(joinTable);
+				
+				String joinKeyType = rj_joinKeyTypes.get(j);
+
+				if (positionAgg != -1) {
+
+					String temp = "mapping.unit(";
+					temp += Integer.toString(positionAgg);
+					temp += ")";
+
+					Boolean updateLeft = false;
+					Boolean updateRight = false;
+
+					String leftJoinTable = VmXmlHandler.getInstance()
+							.getRJAggJoinMapping().getString(temp + ".LeftTable");
+					String rightJoinTable = VmXmlHandler.getInstance()
+							.getRJAggJoinMapping().getString(temp + ".RightTable");
+
+					tableName = (String) json.get("table");
+
+					if (tableName.equals(leftJoinTable)) {
+						updateLeft = true;
+					} else {
+						updateRight = true;
+					}
+
+					int nrLeftAggColumns = VmXmlHandler.getInstance()
+							.getRJAggJoinMapping()
+							.getInt(temp + ".leftAggColumns.nr");
+
+					for (int e = 0; e < nrLeftAggColumns; e++) {
+
+						String aggColName = VmXmlHandler
+								.getInstance()
+								.getRJAggJoinMapping()
+								.getString(
+										temp + ".leftAggColumns.c(" + e + ").name");
+						String aggColType = VmXmlHandler
+								.getInstance()
+								.getRJAggJoinMapping()
+								.getString(
+										temp + ".leftAggColumns.c(" + e + ").type");
+						String innerJoinAggTable = VmXmlHandler
+								.getInstance()
+								.getRJAggJoinMapping()
+								.getString(
+										temp + ".leftAggColumns.c(" + e + ").inner");
+						String leftJoinAggTable = VmXmlHandler
+								.getInstance()
+								.getRJAggJoinMapping()
+								.getString(
+										temp + ".leftAggColumns.c(" + e + ").left");
+
+						int index = VmXmlHandler
+								.getInstance()
+								.getRJAggJoinMapping()
+								.getInt(temp + ".leftAggColumns.c(" + e + ").index");
+
+						if (updateLeft) {
+							
+							vm.deleteJoinAgg_DeleteLeft_AggColLeftSide(
+									innerJoinAggTable, leftJoinAggTable, json,
+									joinKeyType, joinKeyName, aggColName,
+									aggColType);
+						} else {
+							
+							vm.deleteJoinAgg_DeleteLeft_AggColRightSide(
+									innerJoinAggTable, leftJoinAggTable, json,
+									joinKeyType, joinKeyName, aggColName,
+									aggColType);
+						}
+
+					}
+
+					int nrRightAggColumns = VmXmlHandler.getInstance()
+							.getRJAggJoinMapping()
+							.getInt(temp + ".rightAggColumns.nr");
+
+					for (int e = 0; e < nrRightAggColumns; e++) {
+
+						String aggColName = VmXmlHandler
+								.getInstance()
+								.getRJAggJoinMapping()
+								.getString(
+										temp + ".rightAggColumns.c(" + e + ").name");
+						String aggColType = VmXmlHandler
+								.getInstance()
+								.getRJAggJoinMapping()
+								.getString(
+										temp + ".rightAggColumns.c(" + e + ").type");
+						String innerJoinAggTable = VmXmlHandler
+								.getInstance()
+								.getRJAggJoinMapping()
+								.getString(
+										temp + ".rightAggColumns.c(" + e
+										+ ").inner");
+						String rightJoinAggTable = VmXmlHandler
+								.getInstance()
+								.getRJAggJoinMapping()
+								.getString(
+										temp + ".rightAggColumns.c(" + e
+										+ ").right");
+
+						int index = VmXmlHandler
+								.getInstance()
+								.getRJAggJoinMapping()
+								.getInt(temp + ".rightAggColumns.c(" + e
+										+ ").index");
+
+						if (updateLeft) {
+//							x;
+//							vm.updateJoinAgg_UpdateLeft_AggColRightSide(
+//									innerJoinAggTable, rightJoinAggTable, json,
+//									joinKeyType, joinKeyName, aggColName,
+//									aggColType, index);
+						} else {
+
+//							x;
+//							vm.updateJoinAgg_UpdateRight_AggColRightSide(
+//									innerJoinAggTable, rightJoinAggTable, json,
+//									joinKeyType, joinKeyName, aggColName,
+//									aggColType);
+						}
+
+					}
+
+				}
 
 				cursor += nrOfTables;
 			}
