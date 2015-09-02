@@ -1,0 +1,433 @@
+package ViewManager;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import org.json.simple.JSONObject;
+
+import client.client.XmlHandler;
+
+import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.Row;
+import com.datastax.driver.core.Session;
+import com.datastax.driver.core.ColumnDefinitions.Definition;
+import com.datastax.driver.core.policies.DCAwareRoundRobinPolicy;
+import com.datastax.driver.core.policies.DefaultRetryPolicy;
+import com.datastax.driver.core.policies.TokenAwarePolicy;
+
+public class JoinAggGroupByHelper {
+
+	static Cluster currentCluster = Cluster
+			.builder()
+			.addContactPoint(
+					XmlHandler.getInstance().getClusterConfig()
+					.getString("config.host.localhost"))
+					.withRetryPolicy(DefaultRetryPolicy.INSTANCE)
+					.withLoadBalancingPolicy(
+							new TokenAwarePolicy(new DCAwareRoundRobinPolicy()))
+							.build();
+
+
+	public static void deleteListItem1FromGroupBy(Row row, int index, String aggKeyType, String aggKeyName, JSONObject json, String innerJoinAggTable, int aggKeyIndex){
+
+		Map<String,String> temp= row.getMap("list_item1", String.class, String.class);
+
+		for (Map.Entry<String, String> entry : temp.entrySet()) {
+
+			String list = entry.getValue().replaceAll("\\[", "").replaceAll("\\]", "");
+			String[] listArray = list.split(",");
+			String aggColValue = listArray[index];
+			String aggKeyValue = listArray[aggKeyIndex];
+			searchAndDeleteRowFromJoinAggGroupBy(json, innerJoinAggTable, aggKeyName, aggKeyValue, aggColValue);
+
+		}
+	}
+
+	public static void deleteListItem2FromGroupBy(Row row, int index, String aggKeyType, String aggKeyName, JSONObject json, String innerJoinAggTable, int aggKeyIndex){
+
+		Map<String,String> temp= row.getMap("list_item2", String.class, String.class);
+
+		for (Map.Entry<String, String> entry : temp.entrySet()) {
+
+			String list = entry.getValue().replaceAll("\\[", "").replaceAll("\\]", "");
+			String[] listArray = list.split(",");
+			String aggColValue = listArray[index];
+			String aggKeyValue = listArray[aggKeyIndex];
+			searchAndDeleteRowFromJoinAggGroupBy(json, innerJoinAggTable, aggKeyName, aggKeyValue, aggColValue);
+
+		}
+	}
+
+	public static void searchAndDeleteRowFromJoinAggGroupBy(JSONObject json, String joinAggTable, String aggKeyName, String aggKeyValue, String aggColValue) {
+
+		List<Float> myList = new ArrayList<Float>();
+
+		StringBuilder selectQuery1 = new StringBuilder("SELECT ").append("list_item")
+				.append(", sum, count,average, min, max ").append(" FROM ").append((String) json.get("keyspace")).append(".")
+				.append(joinAggTable).append(" where ").append(aggKeyName + " = ").append(aggKeyValue).append(";");
+
+		Row theRow = null;
+		try {
+			Session session = currentCluster.connect();
+			theRow = session.execute(selectQuery1.toString()).one();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		if(theRow.getInt("count")==1){
+			Utils.deleteEntireRowWithPK((String) json.get("keyspace"), joinAggTable, aggKeyName, aggKeyValue);
+		}else{
+
+			Float sum = theRow.getFloat("sum");
+			sum -= Float.parseFloat(aggColValue);
+
+			int count = theRow.getInt("count");
+			count--;
+
+			Float avg = sum / (float) count;
+
+			float min = Float.MAX_VALUE;
+			float max = -Float.MAX_VALUE;
+
+			myList.addAll(theRow.getList("list_item", Float.class));
+			myList.remove(Float.parseFloat(aggColValue));
+
+			for(int i=0;i<myList.size();i++){
+				if(myList.get(i)<min){
+					min = myList.get(i);
+				}
+
+				if(myList.get(i)>max){
+					max =myList.get(i);
+				}
+			}
+
+
+			if (!joinAggTable.equals("false")) {
+
+				StringBuilder insertQueryAgg = new StringBuilder("INSERT INTO ").append((String) json.get("keyspace"))
+						.append(".").append(joinAggTable).append(" ( ")
+						.append(aggKeyName + ", ").append("list_item, sum, count, average, min, max")
+						.append(") VALUES (")
+						.append(aggKeyValue + ", ").append(myList+", ").append(sum).append(", ").append(count).append(", ")
+						.append(avg).append(", ").append(min).append(", ").append(max).append(");");
+
+				System.out.println(insertQueryAgg);
+
+				try {
+					Session session = currentCluster.connect();
+					session.execute(insertQueryAgg.toString());
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+
+			}
+		}
+
+	}
+
+	public static void addKeytoInnerAggJoinGroupBy(Row deltaUpdatedRow, String leftJoinAggTable,JSONObject json, String aggColValue, String aggColName,int index,Row newRJRow, String innerJoinAggTable,String aggKey,String aggKeyValue){
+
+		float sum = 0 ;
+		int count = 0 ;
+		float avg = 0 ;
+		float min = 0 ;
+		float max = 0 ;
+		List<Float> myList = new ArrayList<Float>();
+
+		if (!leftJoinAggTable.equals("false")) {
+
+			StringBuilder selectQuery1 = new StringBuilder("SELECT ")
+			.append("list_item").append(", sum, ")
+			.append("count, ").append("average, min, max ");
+			selectQuery1.append(" FROM ")
+			.append((String) json.get("keyspace")).append(".")
+			.append(leftJoinAggTable).append(" where ")
+			.append(aggKey + " = ").append(aggKeyValue)
+			.append(";");
+
+			Row theRow = null;
+			try {
+				Session session = currentCluster.connect();
+				theRow = session.execute(selectQuery1.toString()).one();
+			} catch (Exception e) {
+				e.printStackTrace();
+
+			}
+
+			myList.addAll(theRow.getList("list_item", Float.class));
+			sum = theRow.getFloat("sum");
+			count = theRow.getInt("count");
+			avg = sum / (float) count;
+			min = theRow.getFloat("min");
+			max = theRow.getFloat("max");
+
+		} else {
+
+			sum = 0;
+			count = 0;
+			min = Float.MAX_VALUE;
+			max = Float.MIN_VALUE;
+
+			List<Definition> def = deltaUpdatedRow.getColumnDefinitions().asList();
+
+			Map<String, String> map1 = newRJRow.getMap("list_item1",String.class, String.class);
+
+			for (Map.Entry<String, String> entry : map1.entrySet()) {
+
+				String list = entry.getValue().replaceAll("\\[", "").replaceAll("\\]", "");
+				String[] listArray = list.split(",");
+				Float x = Float.parseFloat(listArray[index]); // if
+				myList.add(x);
+				if (x > max)
+					max = x;
+				if (x < min)
+					min = x;
+				count++;
+				sum += x;
+			}
+		}
+
+		StringBuilder insertQueryAgg = new StringBuilder(
+				"INSERT INTO ");
+		insertQueryAgg.append((String) json.get("keyspace"))
+		.append(".").append(innerJoinAggTable)
+		.append(" ( ").append(aggKey + ", ").append("list_item, ")
+		.append("sum, count, average, min, max")
+		.append(") VALUES (").append(aggKeyValue + ", ").append(myList+", ")
+		.append(sum).append(", ").append(count)
+		.append(", ").append(avg).append(", ").append(min)
+		.append(", ").append(max).append(");");
+		System.out.println(insertQueryAgg);
+
+		try {
+			Session session = currentCluster.connect();
+			session.execute(insertQueryAgg.toString());
+		} catch (Exception e) {
+			e.printStackTrace();
+
+		}
+
+	}
+
+	public static void addListItem1toInnerJoinGroupBy(Row deltaUpdatedRow,String aggColName, String leftJoinAggTable, Row newRJRow, int index,
+			String aggKeyType, String aggKeyName, JSONObject json,
+			String innerJoinAggTable, int aggKeyIndex) {
+
+
+		Map<String,String> temp= newRJRow.getMap("list_item1", String.class, String.class);
+
+		for (Map.Entry<String, String> entry : temp.entrySet()) {
+
+			String list = entry.getValue().replaceAll("\\[", "").replaceAll("\\]", "");
+			String[] listArray = list.split(",");
+			String aggColValue = listArray[index];
+			String aggKeyValue = listArray[aggKeyIndex];
+			addKeytoInnerAggJoinGroupBy(deltaUpdatedRow,leftJoinAggTable, json, aggColValue, aggColName, aggKeyIndex, newRJRow, innerJoinAggTable, aggKeyName, aggKeyValue);
+
+		}
+
+	}
+
+	public static void JoinAggGroupByChangeinAggKUpdateOldRow(JSONObject json, String leftJoinAggTable, String aggKey, String aggKeyValue, String aggColValue, String oldAggColValue, String oldAggKeyValue, String innerJoinAggTable) {
+
+
+		List<Float> myList = new ArrayList<Float>();
+
+		StringBuilder selectQuery1 = new StringBuilder("SELECT ").append("list_item")
+				.append(", sum, count,average, min, max ").append(" FROM ").append((String) json.get("keyspace")).append(".")
+				.append(leftJoinAggTable).append(" where ").append(aggKey + " = ").append(oldAggKeyValue).append(";");
+
+		Row theRow = null;
+		try {
+			Session session = currentCluster.connect();
+			theRow = session.execute(selectQuery1.toString()).one();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		Float sum = theRow.getFloat("sum");
+		sum -= Float.parseFloat(oldAggColValue);
+
+		int count = theRow.getInt("count");
+		count--;
+
+		Float avg = sum / (float) count;
+
+		float min = Float.MAX_VALUE;
+		float max = -Float.MAX_VALUE;
+
+		for(int i=0;i<myList.size();i++){
+			if(myList.get(i)<min){
+				min =myList.get(i);
+			}
+
+			if(myList.get(i)>max){
+				max = myList.get(i);
+			}
+		}
+
+		myList.addAll(theRow.getList("list_item", Float.class));
+		myList.remove(oldAggColValue);
+
+		// update thw row with this join/aggkey in left join agg, if
+		// exits
+		if (!leftJoinAggTable.equals("false")) {
+
+			StringBuilder insertQueryAgg = new StringBuilder("INSERT INTO ").append((String) json.get("keyspace"))
+					.append(".").append(leftJoinAggTable).append(" ( ")
+					.append(aggKey + ", ").append("list_item, sum, count, average, min, max")
+					.append(") VALUES (")
+					.append(oldAggKeyValue + ", ").append(myList+", ").append(sum).append(", ").append(count).append(", ")
+					.append(avg).append(", ").append(min).append(", ").append(max).append(");");
+
+			System.out.println(insertQueryAgg);
+
+			try {
+				Session session = currentCluster.connect();
+				session.execute(insertQueryAgg.toString());
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+		}
+
+		// remove this key inner join aggs, if they exist
+		if (!innerJoinAggTable.equals("false")) {
+
+			StringBuilder insertQueryAgg = new StringBuilder("INSERT INTO ");
+			insertQueryAgg.append((String) json.get("keyspace")).append(".").append(innerJoinAggTable)
+			.append(" ( ").append(aggKey + ", list_item, ").append("sum, count, average, min, max").append(") VALUES (")
+			.append(oldAggKeyValue + ", ").append(myList+", ").append(sum).append(", ").append(count).append(", ")
+			.append(avg).append(", ").append(min).append(", ").append(max).append(");");
+
+			System.out.println(insertQueryAgg);
+
+			try {
+				Session session = currentCluster.connect();
+				session.execute(insertQueryAgg.toString());
+			} catch (Exception e) {
+				e.printStackTrace();
+
+			}
+		}
+
+	}
+
+	public static void JoinAggGroupByChangeAddRow(JSONObject json, String joinTable, String aggKey, String aggKeyValue, String aggColValue, String oldAggColValue,String oldAggKeyValue){
+
+		float sum = 0;
+		float min = 0;
+		float max = 0;
+		int count = 0;
+		float average = 0;
+		List<Float> myList = new ArrayList<Float>();
+
+
+		StringBuilder selectQuery1 = new StringBuilder("SELECT ")
+		.append("list_item, sum, count, average, min, max FROM ")
+		.append((String) json.get("keyspace")).append(".").append(joinTable)
+		.append(" WHERE ").append(aggKey + " = ").append(aggKeyValue).append(";");
+
+		Row theRow = null;
+		try {
+			Session session = currentCluster.connect();
+			theRow = session.execute(
+					selectQuery1.toString()).one();
+		} catch (Exception e) {
+			e.printStackTrace();
+
+		}
+
+		//First Insertion
+		if(theRow==null){
+			if(!aggColValue.equals("'null'") && !aggColValue.equals("null") ){
+				sum = Float.valueOf(aggColValue);
+				min = Float.valueOf(aggColValue);
+				max = Float.valueOf(aggColValue);
+				count = 1;
+				average = Float.valueOf(aggColValue);
+				myList.add(Float.valueOf(aggColValue));
+			}
+		}else{
+			//Update
+			myList.addAll(theRow.getList("list_item", Float.class));
+			sum = theRow.getFloat("sum");
+			count = theRow.getInt("count");
+
+			if((oldAggColValue.equals("'null'")|| oldAggColValue.equals("null"))|| (!aggKeyValue.equals(oldAggKeyValue)) ){
+				if(!aggColValue.equals("'null'") && !aggColValue.equals("null")){
+					count++;								
+					sum += Float.parseFloat(aggColValue);
+					average = sum/count;
+					myList.add(Float.parseFloat(aggColValue));
+				}
+			}
+
+			if(!oldAggColValue.equals("'null'") && !oldAggColValue.equals("null") && aggKeyValue.equals(oldAggKeyValue)){
+				if(!aggColValue.equals("'null'") && !aggColValue.equals("null")){
+					sum+=Float.parseFloat(aggColValue);
+					sum-=Float.parseFloat(oldAggColValue);
+					myList.remove(Float.parseFloat(oldAggColValue));
+					myList.add(Float.parseFloat(aggColValue));
+					average = sum/count;
+				}
+			}
+
+
+			min = Float.MAX_VALUE;
+			max = -Float.MAX_VALUE;
+
+			for(int i=0;i<myList.size();i++){
+				if(myList.get(i)<min){
+					min = myList.get(i);
+				}
+
+				if(myList.get(i)>max){
+					max = myList.get(i);
+				}
+			}
+		}
+
+		StringBuilder insertQueryAgg = new StringBuilder("INSERT INTO ");
+		insertQueryAgg
+		.append((String) json.get("keyspace"))
+		.append(".").append(joinTable).append(" ( ").append(aggKey + ", ").append("list_item, sum, count, average, min, max").append(") VALUES (")
+		.append(aggKeyValue + ", ").append(myList+", ").append(sum).append(", ").append(count).append(", ")
+		.append(average).append(", ").append(min).append(", ").append(max).append(");");
+
+		System.out.println(insertQueryAgg);
+
+		try {
+			Session session = currentCluster.connect();
+			session.execute(insertQueryAgg.toString());
+		} catch (Exception e) {
+			e.printStackTrace();
+
+		}
+	}
+
+	public static void addListItem2toInnerJoinGroupBy(Row deltaUpdatedRow, String aggColName,
+			String rightJoinAggTable, Row newRJRow, int index, String keyType,
+			String aggKeyName, JSONObject json, String innerJoinAggTable,
+			int aggKeyIndex) {
+		
+		
+		Map<String,String> temp= newRJRow.getMap("list_item2", String.class, String.class);
+
+		for (Map.Entry<String, String> entry : temp.entrySet()) {
+
+			String list = entry.getValue().replaceAll("\\[", "").replaceAll("\\]", "");
+			String[] listArray = list.split(",");
+			String aggColValue = listArray[index];
+			String aggKeyValue = listArray[aggKeyIndex];
+			addKeytoInnerAggJoinGroupBy(deltaUpdatedRow,rightJoinAggTable, json, aggColValue, aggColName, aggKeyIndex, newRJRow, innerJoinAggTable, aggKeyName, aggKeyValue);
+
+		}
+		
+		
+	}
+
+
+}
