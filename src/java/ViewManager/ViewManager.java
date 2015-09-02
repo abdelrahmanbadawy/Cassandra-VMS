@@ -7158,7 +7158,7 @@ public class ViewManager {
 
 	}
 
-	public String getColumnValueFromDeltaStream(String name,String type, String suffix){
+	public String getColumnValueFromDeltaStream(Row stream, String name,String type, String suffix){
 
 		String value = "";
 
@@ -7166,27 +7166,27 @@ public class ViewManager {
 
 		case "text":
 
-			value = ("'"+ deltaUpdatedRow.getString(name + suffix) + "'");
+			value = ("'"+ stream.getString(name + suffix) + "'");
 			break;
 
 		case "int":
 
-			value = ("" + deltaUpdatedRow.getInt(name + suffix));
+			value = ("" + stream.getInt(name + suffix));
 			break;
 
 		case "varint":
 
-			value = ("" + deltaUpdatedRow.getVarint(name + suffix));
+			value = ("" + stream.getVarint(name + suffix));
 			break;
 
 		case "varchar":
 
-			value = ("'"+ deltaUpdatedRow.getString(name + suffix) + "'");
+			value = ("'"+ stream.getString(name + suffix) + "'");
 			break;
 
 		case "float":
 
-			value = ("" + deltaUpdatedRow.getFloat(name + suffix));
+			value = ("" + stream.getFloat(name + suffix));
 			break;
 
 		}
@@ -7383,14 +7383,14 @@ public class ViewManager {
 			String aggKeyType, String aggKey, String aggColName,
 			String aggColType, String joinKeyName, String joinKeyType) {
 
-		String joinKeyValue = getColumnValueFromDeltaStream(joinKeyName,joinKeyType,"_new");
-		String oldJoinKeyValue = getColumnValueFromDeltaStream(joinKeyName,joinKeyType,"_old");
+		String joinKeyValue = getColumnValueFromDeltaStream(deltaUpdatedRow,joinKeyName,joinKeyType,"_new");
+		String oldJoinKeyValue = getColumnValueFromDeltaStream(deltaUpdatedRow,joinKeyName,joinKeyType,"_old");
 
-		String aggKeyValue = getColumnValueFromDeltaStream(aggKey,aggKeyType,"_new");
-		String oldAggKeyValue = getColumnValueFromDeltaStream(aggKey,aggKeyType,"_old");
+		String aggKeyValue = getColumnValueFromDeltaStream(deltaUpdatedRow,aggKey,aggKeyType,"_new");
+		String oldAggKeyValue = getColumnValueFromDeltaStream(deltaUpdatedRow,aggKey,aggKeyType,"_old");
 
-		String aggColValue = getColumnValueFromDeltaStream(aggColName,aggColType,"_new");
-		String oldAggColValue = getColumnValueFromDeltaStream(aggColName,aggColType,"_old");
+		String aggColValue = getColumnValueFromDeltaStream(deltaUpdatedRow,aggColName,aggColType,"_new");
+		String oldAggColValue = getColumnValueFromDeltaStream(deltaUpdatedRow,aggColName,aggColType,"_old");
 
 		Row newRJRow = getrjUpdatedRow();
 		Row oldRJRow = getReverseJoinUpdateOldRow();
@@ -7478,15 +7478,15 @@ public class ViewManager {
 					}
 
 				}
-					if(!newRJRow.getMap("list_item2", String.class, String.class).isEmpty()){
-						if (!innerJoinAggTable.equals("false")) {
-							JoinAggGroupByChangeAddRow(json,innerJoinAggTable,aggKey,aggKeyValue,aggColValue,oldAggColValue,oldAggKeyValue);
-						}
-						if (!leftJoinAggTable.equals("false")) {
-							JoinAggGroupByChangeAddRow(json,leftJoinAggTable,aggKey,aggKeyValue,aggColValue,oldAggColValue,oldAggKeyValue);
-						}
+				if(!newRJRow.getMap("list_item2", String.class, String.class).isEmpty()){
+					if (!innerJoinAggTable.equals("false")) {
+						JoinAggGroupByChangeAddRow(json,innerJoinAggTable,aggKey,aggKeyValue,aggColValue,oldAggColValue,oldAggKeyValue);
 					}
-				
+					if (!leftJoinAggTable.equals("false")) {
+						JoinAggGroupByChangeAddRow(json,leftJoinAggTable,aggKey,aggKeyValue,aggColValue,oldAggColValue,oldAggKeyValue);
+					}
+				}
+
 			}
 		}
 		return true;
@@ -7588,7 +7588,7 @@ public class ViewManager {
 				e.printStackTrace();
 
 			}
-			
+
 			myList.addAll(theRow.getList("list_item", Float.class));
 			sum = theRow.getFloat("sum");
 			count = theRow.getInt("count");
@@ -7612,7 +7612,7 @@ public class ViewManager {
 				String list = entry.getValue().replaceAll("\\[", "").replaceAll("\\]", "");
 				String[] listArray = list.split(",");
 				Float x = Float.parseFloat(listArray[index]); // if
-					myList.add(x);
+				myList.add(x);
 				if (x > max)
 					max = x;
 				if (x < min)
@@ -7665,8 +7665,8 @@ public class ViewManager {
 			String aggColType, int index, String key, String keyType, int aggKeyIndex) {
 
 
-		String joinKeyValue = getColumnValueFromDeltaStream(joinKey,joinKeyType,"_new");
-		String oldJoinKeyValue = getColumnValueFromDeltaStream(joinKey,joinKeyType,"_old");
+		String joinKeyValue = getColumnValueFromDeltaStream(deltaUpdatedRow,joinKey,joinKeyType,"_new");
+		String oldJoinKeyValue = getColumnValueFromDeltaStream(deltaUpdatedRow,joinKey,joinKeyType,"_old");
 
 		Row newRJRow = getrjUpdatedRow();
 		Row oldRJRow = getReverseJoinUpdateOldRow();
@@ -7734,14 +7734,14 @@ public class ViewManager {
 			JSONObject json, String aggKeyType, String aggKey, String aggColName,
 			String aggColType, String joinKeyName, String joinKeyType) {
 
-		String joinKeyValue = getColumnValueFromDeltaStream(joinKeyName,joinKeyType,"_new");
-		String oldJoinKeyValue = getColumnValueFromDeltaStream(joinKeyName,joinKeyType,"_old");
+		String joinKeyValue = getColumnValueFromDeltaStream(deltaUpdatedRow,joinKeyName,joinKeyType,"_new");
+		String oldJoinKeyValue = getColumnValueFromDeltaStream(deltaUpdatedRow,joinKeyName,joinKeyType,"_old");
 
-		String aggKeyValue = getColumnValueFromDeltaStream(aggKey,aggKeyType,"_new");
-		String oldAggKeyValue = getColumnValueFromDeltaStream(aggKey,aggKeyType,"_old");
+		String aggKeyValue = getColumnValueFromDeltaStream(deltaUpdatedRow,aggKey,aggKeyType,"_new");
+		String oldAggKeyValue = getColumnValueFromDeltaStream(deltaUpdatedRow,aggKey,aggKeyType,"_old");
 
-		String aggColValue = getColumnValueFromDeltaStream(aggColName,aggColType,"_new");
-		String oldAggColValue = getColumnValueFromDeltaStream(aggColName,aggColType,"_old");
+		String aggColValue = getColumnValueFromDeltaStream(deltaUpdatedRow,aggColName,aggColType,"_new");
+		String oldAggColValue = getColumnValueFromDeltaStream(deltaUpdatedRow,aggColName,aggColType,"_old");
 
 		Row newRJRow = getrjUpdatedRow();
 		Row oldRJRow = getReverseJoinUpdateOldRow();
@@ -7850,10 +7850,10 @@ public class ViewManager {
 			JSONObject json, String joinKeyType, String joinKeyName,String aggColName, String aggColType, int index, String key, String keyType, int aggKeyIndex) {
 
 
-		String joinKeyValue = getColumnValueFromDeltaStream(joinKeyName,joinKeyType,"_new");
-		String oldJoinKeyValue = getColumnValueFromDeltaStream(joinKeyName,joinKeyType,"_old");
-		String aggColValue = getColumnValueFromDeltaStream(aggColName,aggColType,"_new");
-		String oldAggColValue = getColumnValueFromDeltaStream(aggColName,aggColType,"_old");
+		String joinKeyValue = getColumnValueFromDeltaStream(deltaUpdatedRow,joinKeyName,joinKeyType,"_new");
+		String oldJoinKeyValue = getColumnValueFromDeltaStream(deltaUpdatedRow,joinKeyName,joinKeyType,"_old");
+		String aggColValue = getColumnValueFromDeltaStream(deltaUpdatedRow,aggColName,aggColType,"_new");
+		String oldAggColValue = getColumnValueFromDeltaStream(deltaUpdatedRow,aggColName,aggColType,"_old");
 
 		Row newRJRow = getrjUpdatedRow();
 		Row oldRJRow = getReverseJoinUpdateOldRow();
@@ -7896,31 +7896,31 @@ public class ViewManager {
 		return true;
 
 	}
-	
-	
+
+
 	public boolean deleteJoinAgg_DeleteLeft_AggColLeftSide(String innerJoinAggTable, String leftJoinAggTable, JSONObject json,
 			String joinKeyType, String joinKeyName, String aggColName,
 			String aggColType){
 		String joinKeyValue = null;
-		
+
 
 		String aggColValue = null;
-		
 
-		
+
+
 		switch (joinKeyType) {
 		case "text":
 
 			joinKeyValue = ("'"
 					+ deltaDeletedRow.getString(joinKeyName + "_new") + "'");
-			
+
 
 			break;
 
 		case "int":
 
 			joinKeyValue = ("" + deltaDeletedRow.getInt(joinKeyName + "_new"));
-			
+
 
 			break;
 
@@ -7928,7 +7928,7 @@ public class ViewManager {
 
 			joinKeyValue = ("" + deltaDeletedRow
 					.getVarint(joinKeyName + "_new"));
-			
+
 
 			break;
 
@@ -7936,14 +7936,14 @@ public class ViewManager {
 
 			joinKeyValue = ("" + deltaDeletedRow
 					.getString(joinKeyName + "_new"));
-			
+
 
 			break;
 
 		case "float":
 
 			joinKeyValue = ("" + deltaDeletedRow.getFloat(joinKeyName + "_new"));
-			
+
 
 			break;
 		}
@@ -7952,43 +7952,43 @@ public class ViewManager {
 		case "text":
 
 			aggColValue = ("'" + deltaDeletedRow.getString(aggColName + "_new") + "'");
-			
+
 
 			break;
 
 		case "int":
 
 			aggColValue = ("" + deltaDeletedRow.getInt(aggColName + "_new"));
-			
+
 
 			break;
 
 		case "varint":
 
 			aggColValue = ("" + deltaDeletedRow.getVarint(aggColName + "_new"));
-			
+
 
 			break;
 
 		case "varchar":
 
 			aggColValue = ("" + deltaDeletedRow.getString(aggColName + "_new"));
-			
+
 
 			break;
 
 		case "float":
 
 			aggColValue = ("" + deltaDeletedRow.getFloat(aggColName + "_new"));
-			
+
 
 			break;
 		}
-		
+
 		Row newRJRow = getReverseJoinDeleteNewRow();
-		
+
 		if(newRJRow.getMap("list_item2", String.class, String.class).isEmpty()){
-			
+
 			if(newRJRow.getMap("list_item1", String.class, String.class).isEmpty()){
 				//remove from left
 				if(!leftJoinAggTable.equals("false"))
@@ -7999,7 +7999,7 @@ public class ViewManager {
 						&& !aggColValue.equals("null")
 						&& !aggColValue.equals("'null'")){
 					Row theRow = JoinAggregationHelper.selectStatement(joinKeyName, joinKeyValue, leftJoinAggTable, json);
-					
+
 					Float sum = theRow.getFloat("sum");
 					sum -= Float.parseFloat(aggColValue);
 
@@ -8009,11 +8009,11 @@ public class ViewManager {
 					Float avg = sum / (float) count;
 
 					Float min = theRow.getFloat("min");
-					
+
 					//loop to calculate new minimum
 					if(Float.parseFloat(aggColValue)==min){
-						
-						
+
+
 						Map<String, String> map1 = newRJRow.getMap(
 								"list_item1", String.class,
 								String.class);
@@ -8048,14 +8048,14 @@ public class ViewManager {
 
 						}
 
-						
+
 					}
-					
+
 					Float max = theRow.getFloat("max");
-					
+
 					if(max == Float.parseFloat(aggColValue)){
-						
-						
+
+
 						Map<String, String> map1 = newRJRow.getMap(
 								"list_item1", String.class,
 								String.class);
@@ -8089,17 +8089,17 @@ public class ViewManager {
 								max = x;
 
 						}
-						
+
 					}
-					
+
 					JoinAggregationHelper.insertStatement(sum, count, avg, min, max, joinKeyName, joinKeyValue, leftJoinAggTable, json);
-					
+
 				}
-				
+
 			}
-			
+
 		}else{
-			
+
 			if(newRJRow.getMap("list_item1", String.class, String.class).isEmpty()){
 				//remove from left and inner
 				if(!leftJoinAggTable.equals("false"))
@@ -8108,18 +8108,18 @@ public class ViewManager {
 					Utils.deleteEntireRowWithPK(json.get("keyspace").toString(), innerJoinAggTable, joinKeyName, joinKeyValue);
 			}else{
 				//update left and inner
-				
+
 				if((!leftJoinAggTable.equals("false") || !innerJoinAggTable.equals("false")) && aggColValue != null
 						&& !aggColValue.equals("null")
 						&& !aggColValue.equals("'null'")){
-					
-					
+
+
 					Row theRow = null;
-				if(!leftJoinAggTable.equals("false"))
-					theRow = JoinAggregationHelper.selectStatement(joinKeyName, joinKeyValue, leftJoinAggTable, json);
-				else
-					theRow = JoinAggregationHelper.selectStatement(joinKeyName, joinKeyValue, innerJoinAggTable, json);
-					
+					if(!leftJoinAggTable.equals("false"))
+						theRow = JoinAggregationHelper.selectStatement(joinKeyName, joinKeyValue, leftJoinAggTable, json);
+					else
+						theRow = JoinAggregationHelper.selectStatement(joinKeyName, joinKeyValue, innerJoinAggTable, json);
+
 					Float sum = theRow.getFloat("sum");
 					sum -= Float.parseFloat(aggColValue);
 
@@ -8129,11 +8129,11 @@ public class ViewManager {
 					Float avg = sum / (float) count;
 
 					Float min = theRow.getFloat("min");
-					
+
 					//loop to calculate new minimum
 					if(Float.parseFloat(aggColValue)==min){
-						
-						
+
+
 						Map<String, String> map1 = newRJRow.getMap(
 								"list_item1", String.class,
 								String.class);
@@ -8168,14 +8168,14 @@ public class ViewManager {
 
 						}
 
-						
+
 					}
-					
+
 					Float max = theRow.getFloat("max");
-					
+
 					if(max == Float.parseFloat(aggColValue)){
-						
-						
+
+
 						Map<String, String> map1 = newRJRow.getMap(
 								"list_item1", String.class,
 								String.class);
@@ -8209,40 +8209,40 @@ public class ViewManager {
 								max = x;
 
 						}
-						
+
 					}
 					if(!leftJoinAggTable.equals("false"))
-					JoinAggregationHelper.insertStatement(sum, count, avg, min, max, joinKeyName, joinKeyValue, leftJoinAggTable, json);
+						JoinAggregationHelper.insertStatement(sum, count, avg, min, max, joinKeyName, joinKeyValue, leftJoinAggTable, json);
 					if(!innerJoinAggTable.equals("false"))
 						JoinAggregationHelper.insertStatement(sum, count, avg, min, max, joinKeyName, joinKeyValue, innerJoinAggTable, json);
-					
+
 				}
-				
+
 			}
 		}
 		return true;
 	}
-	
-	
+
+
 	public boolean deleteJoinAgg_DeleteLeft_AggColRightSide(String innerJoinAggTable, String leftJoinAggTable, JSONObject json,
 			String joinKeyType, String joinKeyName, String aggColName,
 			String aggColType){
-		
+
 		String joinKeyValue = null;
-		
+
 		switch (joinKeyType) {
 		case "text":
 
 			joinKeyValue = ("'"
 					+ deltaDeletedRow.getString(joinKeyName + "_new") + "'");
-			
+
 
 			break;
 
 		case "int":
 
 			joinKeyValue = ("" + deltaDeletedRow.getInt(joinKeyName + "_new"));
-			
+
 
 			break;
 
@@ -8250,7 +8250,7 @@ public class ViewManager {
 
 			joinKeyValue = ("" + deltaDeletedRow
 					.getVarint(joinKeyName + "_new"));
-			
+
 
 			break;
 
@@ -8258,20 +8258,20 @@ public class ViewManager {
 
 			joinKeyValue = ("" + deltaDeletedRow
 					.getString(joinKeyName + "_new"));
-			
+
 
 			break;
 
 		case "float":
 
 			joinKeyValue = ("" + deltaDeletedRow.getFloat(joinKeyName + "_new"));
-			
+
 
 			break;
 		}
-		
+
 		Row newRJRow = getReverseJoinDeleteNewRow();
-		
+
 		if(newRJRow.getMap(
 				"list_item1", String.class,
 				String.class).isEmpty() && !newRJRow.getMap(
@@ -8279,10 +8279,127 @@ public class ViewManager {
 						String.class).isEmpty() ){
 			//remove from inner
 			if(!innerJoinAggTable.equals("false"))
-			Utils.deleteEntireRowWithPK(json.get("keyspace").toString(), innerJoinAggTable, joinKeyName, joinKeyValue);
+				Utils.deleteEntireRowWithPK(json.get("keyspace").toString(), innerJoinAggTable, joinKeyName, joinKeyValue);
 		}
 		return true;
-		
+
+	}
+
+	public Boolean deleteJoinAgg_DeleteLeft_AggColLeftSide_GroupBy(
+			String innerJoinAggTable, String leftJoinAggTable, JSONObject json,
+			String aggKeyType, String aggkey, String aggColName, String aggColType) {
+
+
+		String aggColValue = getColumnValueFromDeltaStream(deltaDeletedRow,aggColName,aggColType, "_new");
+		String aggKeyValue =   getColumnValueFromDeltaStream(deltaDeletedRow,aggkey,aggKeyType, "_new");
+
+		Row newRJRow = getReverseJoinDeleteNewRow();
+
+
+		if(newRJRow.getMap("list_item2", String.class, String.class).isEmpty()){
+
+			//remove from left: if count == 1, then delete entire row, else substract & update row
+			if(!leftJoinAggTable.equals("false")){
+				searchAndDeleteRowFromJoinAggGroupBy(json, leftJoinAggTable, aggkey, aggKeyValue, aggColValue);
+			}
+
+
+		}else{
+
+			if(newRJRow.getMap("list_item1", String.class, String.class).isEmpty()){
+				//remove from left and inner
+				if(!leftJoinAggTable.equals("false")){
+					searchAndDeleteRowFromJoinAggGroupBy(json, leftJoinAggTable, aggkey, aggKeyValue, aggColValue);
+				}
+				if(!innerJoinAggTable.equals("false")){
+					searchAndDeleteRowFromJoinAggGroupBy(json, innerJoinAggTable, aggkey, aggKeyValue, aggColValue);
+				}
+			}
+		}
+
+		return true;
+	}
+
+	public Boolean deleteJoinAgg_DeleteRight_AggColRightSide_GroupBy(
+			String innerJoinAggTable, String rightJoinAggTable,
+			JSONObject json, String aggKeyType, String aggKey,
+			String aggColName, String aggColType) {
+
+
+		String aggColValue = getColumnValueFromDeltaStream(deltaDeletedRow,aggColName,aggColType, "_new");
+		String aggKeyValue =   getColumnValueFromDeltaStream(deltaDeletedRow,aggKey,aggKeyType, "_new");
+
+		Row newRJRow = getReverseJoinDeleteNewRow();
+
+
+		if(newRJRow.getMap("list_item1", String.class, String.class).isEmpty()){
+
+			//remove from left: if count == 1, then delete entire row, else substract & update row
+			if(!rightJoinAggTable.equals("false")){
+				searchAndDeleteRowFromJoinAggGroupBy(json, rightJoinAggTable, aggKey, aggKeyValue, aggColValue);
+			}
+
+
+		}else{
+
+			if(newRJRow.getMap("list_item2", String.class, String.class).isEmpty()){
+				//remove from left and inner
+				if(!rightJoinAggTable.equals("false")){
+					searchAndDeleteRowFromJoinAggGroupBy(json, rightJoinAggTable, aggKey, aggKeyValue, aggColValue);
+				}
+				if(!innerJoinAggTable.equals("false")){
+					searchAndDeleteRowFromJoinAggGroupBy(json, innerJoinAggTable, aggKey, aggKeyValue, aggColValue);
+				}
+			}
+		}
+
+		return true;	
+	}
+
+
+
+	public Boolean deleteJoinAgg_DeleteLeft_AggColRightSide_GroupBy(
+			String innerJoinAggTable, String leftJoinAggTable, JSONObject json,
+			String aggKeyType, String aggKey, String aggColName,
+			String aggColType, int aggKeyIndex,int index) {
+
+		Row newRJRow = getReverseJoinDeleteNewRow();
+
+		if(newRJRow.getMap("list_item1", String.class,String.class).isEmpty() && 
+				!newRJRow.getMap("list_item2", String.class,String.class).isEmpty() ){
+
+			//remove from inner
+			if(!innerJoinAggTable.equals("false")){
+				deleteListItem1FromGroupBy(newRJRow, index, aggKeyType, aggKey, json, innerJoinAggTable, aggKeyIndex);
+			}
+
+		}
+
+		return true;
+
+	}
+
+	public Boolean deleteJoinAgg_DeleteRight_AggColLeftSide_GroupBy(
+			String innerJoinAggTable, String leftJoinAggTable, JSONObject json,
+			String aggKeyType, String aggKey, String aggColName,
+			String aggColType, int aggKeyIndex, int index) {
+
+
+		Row newRJRow = getReverseJoinDeleteNewRow();
+
+		if(newRJRow.getMap("list_item2", String.class,String.class).isEmpty() && 
+				!newRJRow.getMap("list_item1", String.class,String.class).isEmpty() ){
+
+			//remove from inner
+			if(!innerJoinAggTable.equals("false")){
+				deleteListItem1FromGroupBy(newRJRow, index, aggKeyType, aggKey, json, innerJoinAggTable, aggKeyIndex);
+			}
+
+		}
+
+	
+		return true;
+
 	}
 
 

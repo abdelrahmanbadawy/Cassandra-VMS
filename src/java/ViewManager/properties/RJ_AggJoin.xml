@@ -39,7 +39,7 @@
 			    <c>
 			        <name>age</name>
 			        <type>int</type>
-			        <index>3</index>
+			        <index>2</index>
 			        <inner>innerjoin_agg_courses_faculty_age</inner>
 			        <right>false</right>
 			    </c>
