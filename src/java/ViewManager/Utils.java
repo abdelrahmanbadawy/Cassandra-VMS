@@ -159,4 +159,41 @@ public class Utils {
 
 	}
 	
+	public static String getColumnValueFromDeltaStream(Row stream, String name,String type, String suffix){
+
+		String value = "";
+
+		switch (type) {
+
+		case "text":
+
+			value = ("'"+ stream.getString(name + suffix) + "'");
+			break;
+
+		case "int":
+
+			value = ("" + stream.getInt(name + suffix));
+			break;
+
+		case "varint":
+
+			value = ("" + stream.getVarint(name + suffix));
+			break;
+
+		case "varchar":
+
+			value = ("'"+ stream.getString(name + suffix) + "'");
+			break;
+
+		case "float":
+
+			value = ("" + stream.getFloat(name + suffix));
+			break;
+
+		}
+
+		return value;
+
+	}
+
 }
