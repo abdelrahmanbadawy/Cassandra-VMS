@@ -1156,15 +1156,15 @@ public class ViewManagerController {
 
 					if (updateLeft) {
 
-						/*vm.updateJoinAgg_UpdateLeft_AggColLeftSide(
+						vm.updateJoinAgg_UpdateLeft_AggColLeftSide(
 								innerJoinAggTable, leftJoinAggTable, json,
 								joinKeyType, joinKeyName, aggColName,
-								aggColType);*/
+								aggColType);
 					} else {
-						/*vm.updateJoinAgg_UpdateRight_AggColLeftSide(
+						vm.updateJoinAgg_UpdateRight_AggColLeftSide(
 								innerJoinAggTable, leftJoinAggTable, json,
 								joinKeyType, joinKeyName, aggColName,
-								aggColType, index);*/
+								aggColType, index);
 					}
 
 				}
@@ -1205,16 +1205,16 @@ public class ViewManagerController {
 									+ ").index");
 
 					if (updateLeft) {
-						/*vm.updateJoinAgg_UpdateLeft_AggColRightSide(
+						vm.updateJoinAgg_UpdateLeft_AggColRightSide(
 								innerJoinAggTable, rightJoinAggTable, json,
 								joinKeyType, joinKeyName, aggColName,
-								aggColType, index);*/
+								aggColType, index);
 					} else {
 
-					/*	vm.updateJoinAgg_UpdateRight_AggColRightSide(
+						vm.updateJoinAgg_UpdateRight_AggColRightSide(
 								innerJoinAggTable, rightJoinAggTable, json,
 								joinKeyType, joinKeyName, aggColName,
-								aggColType);*/
+								aggColType);
 					}
 
 				}
@@ -1493,6 +1493,8 @@ public class ViewManagerController {
 
 				position = preaggTableNames.indexOf(preaggTable);
 
+				
+				
 				if (position != -1) {
 
 					String temp4 = "mapping.unit(";
@@ -1668,6 +1670,7 @@ public class ViewManagerController {
 						}
 					}
 				}
+				
 
 			}
 
@@ -2242,10 +2245,10 @@ public class ViewManagerController {
 									aggColType);
 						} else {
 							
-							vm.deleteJoinAgg_DeleteLeft_AggColRightSide(
-									innerJoinAggTable, leftJoinAggTable, json,
-									joinKeyType, joinKeyName, aggColName,
-									aggColType);
+							vm.deleteJoinAgg_DeleteRight_AggColLeftSide(
+							innerJoinAggTable, json,
+							joinKeyType, joinKeyName, aggColName,
+							aggColType);
 						}
 
 					}
@@ -2286,18 +2289,19 @@ public class ViewManagerController {
 										+ ").index");
 
 						if (updateLeft) {
-//							x;
-//							vm.updateJoinAgg_UpdateLeft_AggColRightSide(
-//									innerJoinAggTable, rightJoinAggTable, json,
-//									joinKeyType, joinKeyName, aggColName,
-//									aggColType, index);
+							
+							vm.deleteJoinAgg_DeleteLeft_AggColRightSide(
+									innerJoinAggTable, json,
+									joinKeyType, joinKeyName, aggColName,
+									aggColType);
+
 						} else {
 
-//							x;
-//							vm.updateJoinAgg_UpdateRight_AggColRightSide(
-//									innerJoinAggTable, rightJoinAggTable, json,
-//									joinKeyType, joinKeyName, aggColName,
-//									aggColType);
+							vm.deleteJoinAgg_DeleteRight_AggColRightSide(
+									innerJoinAggTable, rightJoinAggTable, json,
+									joinKeyType, joinKeyName, aggColName,
+									aggColType);
+
 						}
 
 					}
