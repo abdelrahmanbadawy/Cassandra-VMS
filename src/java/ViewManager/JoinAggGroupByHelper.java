@@ -29,7 +29,59 @@ public class JoinAggGroupByHelper {
 							.build();
 
 
-	public static void deleteListItem1FromGroupBy(Row row, int index, String aggKeyType, String aggKeyName, JSONObject json, String innerJoinAggTable, int aggKeyIndex){
+	public static void insertStatement(JSONObject json, String joinAggTable,Row row){
+		
+		String aggKeyName = row.getColumnDefinitions().getName(0);
+		String aggKeyType = row.getColumnDefinitions().getType(0).toString();
+		String aggKeyValue = Utils.getColumnValueFromDeltaStream(row, aggKeyName, aggKeyType, "");
+		
+		List<Float> myList = new ArrayList<Float>();
+		myList.addAll(row.getList("list_item", Float.class));
+
+		float sum = row.getFloat("sum");
+		float avg = row.getFloat("average");
+		float min = row.getFloat("min");
+		float max = row.getFloat("max");
+		int count = row.getInt("count");
+		
+		StringBuilder insertQueryAgg = new StringBuilder("INSERT INTO ").append((String) json.get("keyspace"))
+				.append(".").append(joinAggTable).append(" ( ")
+				.append(aggKeyName + ", ").append("list_item, sum, count, average, min, max")
+				.append(") VALUES (")
+				.append(aggKeyValue + ", ").append(myList+", ").append(sum).append(", ").append(count).append(", ")
+				.append(avg).append(", ").append(min).append(", ").append(max).append(");");
+
+		System.out.println(insertQueryAgg);
+
+		try {
+			Session session = currentCluster.connect();
+			session.execute(insertQueryAgg.toString());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+	}
+	
+	
+	public static Row selectStatement(String joinAggTable,String aggKeyName,String aggKeyValue,JSONObject json){
+
+		StringBuilder selectQuery1 = new StringBuilder("SELECT ").append(aggKeyName+", ").append("list_item")
+				.append(", sum, count,average, min, max ").append(" FROM ").append((String) json.get("keyspace")).append(".")
+				.append(joinAggTable).append(" where ").append(aggKeyName + " = ").append(aggKeyValue).append(";");
+
+		Row theRow = null;
+		try {
+			Session session = currentCluster.connect();
+			theRow = session.execute(selectQuery1.toString()).one();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return theRow;
+	}
+
+
+	public static void deleteListItem1FromGroupBy(Stream stream,Row row, int index, String aggKeyType, String aggKeyName, JSONObject json, String innerJoinAggTable, int aggKeyIndex){
 
 		Map<String,String> temp= row.getMap("list_item1", String.class, String.class);
 
@@ -39,12 +91,12 @@ public class JoinAggGroupByHelper {
 			String[] listArray = list.split(",");
 			String aggColValue = listArray[index];
 			String aggKeyValue = listArray[aggKeyIndex];
-			searchAndDeleteRowFromJoinAggGroupBy(json, innerJoinAggTable, aggKeyName, aggKeyValue, aggColValue);
+			searchAndDeleteRowFromJoinAggGroupBy(stream,json, innerJoinAggTable, aggKeyName, aggKeyValue, aggColValue);
 
 		}
 	}
 
-	public static void deleteListItem2FromGroupBy(Row row, int index, String aggKeyType, String aggKeyName, JSONObject json, String innerJoinAggTable, int aggKeyIndex){
+	public static void deleteListItem2FromGroupBy(Stream stream,Row row, int index, String aggKeyType, String aggKeyName, JSONObject json, String innerJoinAggTable, int aggKeyIndex){
 
 		Map<String,String> temp= row.getMap("list_item2", String.class, String.class);
 
@@ -54,12 +106,12 @@ public class JoinAggGroupByHelper {
 			String[] listArray = list.split(",");
 			String aggColValue = listArray[index];
 			String aggKeyValue = listArray[aggKeyIndex];
-			searchAndDeleteRowFromJoinAggGroupBy(json, innerJoinAggTable, aggKeyName, aggKeyValue, aggColValue);
+			searchAndDeleteRowFromJoinAggGroupBy(stream,json, innerJoinAggTable, aggKeyName, aggKeyValue, aggColValue);
 
 		}
 	}
 
-	public static void searchAndDeleteRowFromJoinAggGroupBy(JSONObject json, String joinAggTable, String aggKeyName, String aggKeyValue, String aggColValue) {
+	public static void searchAndDeleteRowFromJoinAggGroupBy(Stream stream, JSONObject json, String joinAggTable, String aggKeyName, String aggKeyValue, String aggColValue) {
 
 		List<Float> myList = new ArrayList<Float>();
 
@@ -76,8 +128,21 @@ public class JoinAggGroupByHelper {
 		}
 
 		if(theRow.getInt("count")==1){
+
+			if(joinAggTable.contains("inner"))
+				stream.setInnerJoinAggGroupByDeleteOldRow(theRow);
+			else
+				stream.setLeftOrRightJoinAggGroupByDeleteRow(theRow);
+
 			Utils.deleteEntireRowWithPK((String) json.get("keyspace"), joinAggTable, aggKeyName, aggKeyValue);
 		}else{
+
+
+			if(joinAggTable.contains("inner"))
+				stream.setInnerJoinAggGroupByOldRow(theRow);
+			else
+				stream.setLeftOrRightJoinAggGroupByOldRow(theRow);
+
 
 			Float sum = theRow.getFloat("sum");
 			sum -= Float.parseFloat(aggColValue);
@@ -122,12 +187,18 @@ public class JoinAggGroupByHelper {
 					e.printStackTrace();
 				}
 
+				if(joinAggTable.contains("inner"))
+					stream.setInnerJoinAggGroupByUpdatedOldRow(selectStatement(joinAggTable, aggKeyName, aggKeyValue, json));
+				else
+					stream.setLeftOrRightJoinAggGroupByUpdatedOldRow(selectStatement(joinAggTable, aggKeyName, aggKeyValue, json));
+
+
 			}
 		}
 
 	}
 
-	public static void addKeytoInnerAggJoinGroupBy(Row deltaUpdatedRow, String leftJoinAggTable,JSONObject json, String aggColValue, String aggColName,int index,Row newRJRow, String innerJoinAggTable,String aggKey,String aggKeyValue){
+	public static void addKeytoInnerAggJoinGroupBy(Stream stream,Row deltaUpdatedRow, String leftJoinAggTable,JSONObject json, String aggColValue, String aggColName,int index,Row newRJRow, String innerJoinAggTable,String aggKey,String aggKeyValue){
 
 		float sum = 0 ;
 		int count = 0 ;
@@ -208,10 +279,13 @@ public class JoinAggGroupByHelper {
 			e.printStackTrace();
 
 		}
+		
+		stream.setInnerJoinAggGroupByNewRow(selectStatement(innerJoinAggTable, aggKey, aggKeyValue, json));
+		
 
 	}
 
-	public static void addListItem1toInnerJoinGroupBy(Row deltaUpdatedRow,String aggColName, String leftJoinAggTable, Row newRJRow, int index,
+	public static void addListItem1toInnerJoinGroupBy(Stream stream,Row deltaUpdatedRow,String aggColName, String leftJoinAggTable, Row newRJRow, int index,
 			String aggKeyType, String aggKeyName, JSONObject json,
 			String innerJoinAggTable, int aggKeyIndex) {
 
@@ -224,7 +298,7 @@ public class JoinAggGroupByHelper {
 			String[] listArray = list.split(",");
 			String aggColValue = listArray[index];
 			String aggKeyValue = listArray[aggKeyIndex];
-			addKeytoInnerAggJoinGroupBy(deltaUpdatedRow,leftJoinAggTable, json, aggColValue, aggColName, aggKeyIndex, newRJRow, innerJoinAggTable, aggKeyName, aggKeyValue);
+			addKeytoInnerAggJoinGroupBy(stream,deltaUpdatedRow,leftJoinAggTable, json, aggColValue, aggColName, aggKeyIndex, newRJRow, innerJoinAggTable, aggKeyName, aggKeyValue);
 
 		}
 
@@ -315,7 +389,7 @@ public class JoinAggGroupByHelper {
 
 	}
 
-	public static void JoinAggGroupByChangeAddRow(JSONObject json, String joinTable, String aggKey, String aggKeyValue, String aggColValue, String oldAggColValue,String oldAggKeyValue){
+	public static void JoinAggGroupByChangeAddRow(Stream stream, JSONObject json, String joinTable, String aggKey, String aggKeyValue, String aggColValue, String oldAggColValue,String oldAggKeyValue){
 
 		float sum = 0;
 		float min = 0;
@@ -406,14 +480,20 @@ public class JoinAggGroupByHelper {
 			e.printStackTrace();
 
 		}
+
+		if(joinTable.contains("inner"))
+			stream.setInnerJoinAggGroupByNewRow(selectStatement(joinTable, aggKey, aggKeyValue, json));
+		else
+			stream.setLeftOrRightJoinAggGroupByNewRow(selectStatement(joinTable, aggKey, aggKeyValue, json));
+
 	}
 
-	public static void addListItem2toInnerJoinGroupBy(Row deltaUpdatedRow, String aggColName,
+	public static void addListItem2toInnerJoinGroupBy(Stream stream,Row deltaUpdatedRow, String aggColName,
 			String rightJoinAggTable, Row newRJRow, int index, String keyType,
 			String aggKeyName, JSONObject json, String innerJoinAggTable,
 			int aggKeyIndex) {
-		
-		
+
+
 		Map<String,String> temp= newRJRow.getMap("list_item2", String.class, String.class);
 
 		for (Map.Entry<String, String> entry : temp.entrySet()) {
@@ -422,11 +502,11 @@ public class JoinAggGroupByHelper {
 			String[] listArray = list.split(",");
 			String aggColValue = listArray[index];
 			String aggKeyValue = listArray[aggKeyIndex];
-			addKeytoInnerAggJoinGroupBy(deltaUpdatedRow,rightJoinAggTable, json, aggColValue, aggColName, aggKeyIndex, newRJRow, innerJoinAggTable, aggKeyName, aggKeyValue);
+			addKeytoInnerAggJoinGroupBy(stream,deltaUpdatedRow,rightJoinAggTable, json, aggColValue, aggColName, aggKeyIndex, newRJRow, innerJoinAggTable, aggKeyName, aggKeyValue);
 
 		}
-		
-		
+
+
 	}
 
 

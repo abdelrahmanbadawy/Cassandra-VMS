@@ -1,0 +1,114 @@
+<setup>
+	<dbSchema>
+		<tableNumber>2</tableNumber>
+
+		<tableDefinition>
+			<baseTable>RJ_courses_student_faculty_faculty</baseTable>
+
+			<columnNumber>6</columnNumber>
+			<keyspace>test</keyspace>
+			<name>leftjoin_agg_courses_faculty_ects_gb_name_1</name>
+
+			<primaryKey>
+				<type>text</type>
+				<name>name</name>
+			</primaryKey>
+			
+			<column>
+				<family>colfam1</family>
+				<type>list&lt;float&gt;</type>
+				<name>list_item</name>
+			</column>
+
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>sum</name>
+			</column>
+
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>average</name>
+			</column>
+
+			<column>
+				<family>colfam1</family>
+				<type>int</type>
+				<name>count</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>min</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>max</name>
+			</column>
+
+			<aggCol>
+				<type>varint</type>
+				<name>ects</name>
+			</aggCol>
+
+		</tableDefinition>
+		
+		<tableDefinition>
+			<baseTable>RJ_courses_student_faculty_faculty</baseTable>
+
+			<columnNumber>6</columnNumber>
+			<keyspace>test</keyspace>
+			<name>innerjoin_agg_courses_faculty_ects_gb_name_1</name>
+
+			<primaryKey>
+				<type>text</type>
+				<name>name</name>
+			</primaryKey>
+			
+			<column>
+				<family>colfam1</family>
+				<type>list&lt;float&gt;</type>
+				<name>list_item</name>
+			</column>
+
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>sum</name>
+			</column>
+
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>average</name>
+			</column>
+
+			<column>
+				<family>colfam1</family>
+				<type>int</type>
+				<name>count</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>min</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>max</name>
+			</column>
+
+			<aggCol>
+				<type>varint</type>
+				<name>ects</name>
+			</aggCol>
+
+		</tableDefinition>
+		</dbSchema>
+
+
+</setup>
+		

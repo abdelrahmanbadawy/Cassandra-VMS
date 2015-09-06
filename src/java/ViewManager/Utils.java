@@ -211,4 +211,116 @@ public class Utils {
 
 	}
 
+	public static boolean evalueJoinAggConditions(Row row, String aggFct, String operation, String value){
+
+		boolean eval = true;
+		float min1 = 0;
+		float max1 = 0;
+		float average1 = 0;
+		float sum1 = 0;
+		int count1 = 0;
+
+		if (row != null) {
+			min1 = row.getFloat("min");
+			max1 = row.getFloat("max");
+			average1 = row.getFloat("average");
+			sum1 = row.getFloat("sum");
+			count1 = row.getInt("count");
+		}
+
+		if (aggFct.equals("sum")) {
+
+			if (row != null) {
+
+				int compareValue = new Float(sum1)
+				.compareTo(new Float(value));
+
+				if ((operation.equals(">") && (compareValue > 0))) {
+					eval &= true;
+				} else if ((operation.equals("<") && (compareValue < 0))) {
+					eval &= true;
+				} else if ((operation.equals("=") && (compareValue == 0))) {
+					eval &= true;
+				} else {
+					eval &= false;
+				}
+			}
+
+		} else if (aggFct.equals("average")) {
+
+			if (row != null) {
+
+				int compareValue = Float.compare(average1,
+						Float.valueOf(value));
+
+				if ((operation.equals(">") && (compareValue > 0))) {
+					eval &= true;
+				} else if ((operation.equals("<") && (compareValue < 0))) {
+					eval &= true;
+				} else if ((operation.equals("=") && (compareValue == 0))) {
+					eval &= true;
+				} else {
+					eval &= false;
+				}
+
+			}
+
+		} else if (aggFct.equals("count")) {
+
+			if (row != null) {
+
+				int compareValue = new Integer(count1)
+				.compareTo(new Integer(value));
+
+				if ((operation.equals(">") && (compareValue > 0))) {
+					eval &= true;
+				} else if ((operation.equals("<") && (compareValue < 0))) {
+					eval &= true;
+				} else if ((operation.equals("=") && (compareValue == 0))) {
+					eval &= true;
+				} else {
+					eval &= false;
+				}
+
+			}
+
+		} else if (aggFct.equals("min")) {
+
+			if (row != null) {
+
+				int compareValue = Float.compare(min1,
+						Float.valueOf(value));
+
+				if ((operation.equals(">") && (compareValue > 0))) {
+					eval &= true;
+				} else if ((operation.equals("<") && (compareValue < 0))) {
+					eval &= true;
+				} else if ((operation.equals("=") && (compareValue == 0))) {
+					eval &= true;
+				} else {
+					eval &= false;
+				}
+
+			}
+
+		} else if (aggFct.equals("max")) {
+
+			if (row != null) {
+				int compareValue = Float.compare(max1,
+						Float.valueOf(value));
+
+				if ((operation.equals(">") && (compareValue > 0))) {
+					eval &= true;
+				} else if ((operation.equals("<") && (compareValue < 0))) {
+					eval &= true;
+				} else if ((operation.equals("=") && (compareValue == 0))) {
+					eval &= true;
+				} else {
+					eval &= false;
+				}
+			}
+		}
+
+		return eval;
+	}
 }

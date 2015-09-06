@@ -18,6 +18,7 @@ public class XmlHandler {
 	private static XMLConfiguration joinPreAggViewConfig;
 	private static XMLConfiguration havingAggConfig;
 	private static XMLConfiguration havingJoinAggConfig;
+	private static XMLConfiguration havingJoinAggGroupBy;
 	
 
 	private static XmlHandler _instance = null;
@@ -59,6 +60,9 @@ public class XmlHandler {
 		havingJoinAggConfig = new XMLConfiguration();
 		havingJoinAggConfig.setDelimiterParsingDisabled(true);
 		
+		havingJoinAggGroupBy = new XMLConfiguration();
+		havingJoinAggGroupBy.setDelimiterParsingDisabled(true);
+		
 		try {
 			databaseConfig.load("client/resources/DatabaseConfig.xml");
 			selectViewConfig.load("client/resources/SelectViewConfig.xml");
@@ -72,6 +76,7 @@ public class XmlHandler {
 			joinPreAggViewConfig.load("client/resources/JoinPreaggregation.xml");
 			havingAggConfig.load("client/resources/HavingAgg.xml");
 			havingJoinAggConfig.load("client/resources/HavingJoinAggregation.xml");
+			havingJoinAggGroupBy.load("client/resources/HavingGroupByJoin.xml");
 			
 		} catch (ConfigurationException e) {
 			e.printStackTrace();
@@ -132,6 +137,10 @@ public class XmlHandler {
 	
 	public static XMLConfiguration getHavingJoinAggConfig() {
 		return havingJoinAggConfig;
+	}
+	
+	public static XMLConfiguration getHavingJoinAggGroupBy() {
+		return havingJoinAggGroupBy;
 	}
 
 

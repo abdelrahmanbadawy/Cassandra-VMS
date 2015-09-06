@@ -23,10 +23,43 @@
 						<Key>name</Key>
 						<KeyType>text</KeyType>
 						<aggKeyIndex>2</aggKeyIndex>
-						<inner>innerjoin_agg_courses_faculty_ects_groupby_name</inner>
-						<left>leftjoin_agg_courses_faculty_ects_groupby_name</left>
+						
+						<inner>
+							<name>innerjoin_agg_courses_faculty_ects_groupby_name</name>
+							<nrHaving>1</nrHaving>
+							<Having>
+								<name>innerjoin_agg_courses_faculty_ects_gb_name_1
+								</name>
+								<nrAnd>1</nrAnd>
+								<And>
+									<selectionCol>ects</selectionCol>
+									<aggFct>sum</aggFct>
+									<type>varint</type>
+									<operation>></operation>
+									<value>4</value>
+								</And>
+							</Having>
+						</inner>
+
+						<left>
+							<name>leftjoin_agg_courses_faculty_ects_groupby_name</name>
+							<nrHaving>1</nrHaving>
+							<Having>
+								<name>leftjoin_agg_courses_faculty_ects_gb_name_1
+								</name>
+								<nrAnd>1</nrAnd>
+								<And>
+									<selectionCol>ects</selectionCol>
+									<aggFct>sum</aggFct>
+									<type>varint</type>
+									<operation>></operation>
+									<value>4</value>
+								</And>
+							</Having>
+						</left>
+
 					</Agg>
-					
+
 				</c>
 
 
