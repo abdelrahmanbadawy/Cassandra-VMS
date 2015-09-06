@@ -12,16 +12,16 @@ import com.datastax.driver.core.policies.DefaultRetryPolicy;
 import com.datastax.driver.core.policies.TokenAwarePolicy;
 
 public class Utils {
-	
+
 	static Cluster currentCluster = Cluster
 			.builder()
 			.addContactPoint(
 					XmlHandler.getInstance().getClusterConfig()
-							.getString("config.host.localhost"))
-			.withRetryPolicy(DefaultRetryPolicy.INSTANCE)
-			.withLoadBalancingPolicy(
-					new TokenAwarePolicy(new DCAwareRoundRobinPolicy()))
-			.build();
+					.getString("config.host.localhost"))
+					.withRetryPolicy(DefaultRetryPolicy.INSTANCE)
+					.withLoadBalancingPolicy(
+							new TokenAwarePolicy(new DCAwareRoundRobinPolicy()))
+							.build();
 
 	//delete row from a table with primary key
 	public static boolean deleteEntireRowWithPK(String keyspace, String tableName,
@@ -29,8 +29,8 @@ public class Utils {
 
 		StringBuilder deleteQuery = new StringBuilder("delete from ");
 		deleteQuery.append(keyspace).append(".").append(tableName)
-				.append(" WHERE ").append(pk + " = ").append(pkValue)
-				.append(";");
+		.append(" WHERE ").append(pk + " = ").append(pkValue)
+		.append(";");
 
 		System.out.println(deleteQuery.toString());
 		try {
@@ -45,8 +45,8 @@ public class Utils {
 
 		return true;
 	}
-	
-	
+
+
 	//evaluates a condition
 	public static boolean evaluateCondition(Row row, String operation, String value,
 			String type, String colName) {
@@ -158,7 +158,7 @@ public class Utils {
 		return eval;
 
 	}
-	
+
 	public static String getColumnValueFromDeltaStream(Row stream, String name,String type, String suffix){
 
 		String value = "";
@@ -166,28 +166,43 @@ public class Utils {
 		switch (type) {
 
 		case "text":
-
-			value = ("'"+ stream.getString(name + suffix) + "'");
+			if(stream.isNull(name + suffix)){
+				value = "null";
+			}else{
+				value = ("'"+ stream.getString(name + suffix) + "'");
+			}	
 			break;
 
 		case "int":
-
-			value = ("" + stream.getInt(name + suffix));
+			if(stream.isNull(name + suffix)){
+				value = "null";
+			}else {
+				value = ("" + stream.getInt(name + suffix));
+			}
 			break;
 
 		case "varint":
-
-			value = ("" + stream.getVarint(name + suffix));
+			if(stream.isNull(name + suffix)){
+				value = "null";
+			}else{
+				value = ("" + stream.getVarint(name + suffix));
+			}
 			break;
 
 		case "varchar":
-
-			value = ("'"+ stream.getString(name + suffix) + "'");
+			if(stream.isNull(name + suffix)){
+				value = "null";
+			}else{
+				value = ("'"+ stream.getString(name + suffix) + "'");
+			}
 			break;
 
 		case "float":
-
-			value = ("" + stream.getFloat(name + suffix));
+			if(stream.isNull(name + suffix)){
+				value = "null";
+			}else{
+				value = ("" + stream.getFloat(name + suffix));
+			}	
 			break;
 
 		}

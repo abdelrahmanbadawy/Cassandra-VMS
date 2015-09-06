@@ -854,13 +854,6 @@ public class ViewManager {
 
 					average = sum / count;
 
-					/*
-					 * if (aggColValue < theRow1.getFloat("min")) { min =
-					 * aggColValue; } else { min = theRow1.getFloat("min"); }
-					 * 
-					 * if (aggColValue > theRow1.getFloat("max")) { max =
-					 * aggColValue; } else { max = theRow1.getFloat("max"); }
-					 */
 
 					max = -Float.MAX_VALUE;
 					min = Float.MAX_VALUE;
@@ -1132,56 +1125,8 @@ public class ViewManager {
 			data = (JSONObject) json.get("set_data");
 		}
 
-		String joinKeyValue = null;
-		String oldJoinKeyValue = null;
-
-		switch (joinKeyType) {
-		case "text":
-
-			joinKeyValue = ("'"
-					+ deltaUpdatedRow.getString(joinKeyName + "_new") + "'");
-			oldJoinKeyValue = ("'"
-					+ deltaUpdatedRow.getString(joinKeyName + "_old") + "'");
-
-			break;
-
-		case "int":
-
-			joinKeyValue = ("" + deltaUpdatedRow.getInt(joinKeyName + "_new"));
-			oldJoinKeyValue = ("" + deltaUpdatedRow
-					.getInt(joinKeyName + "_old"));
-
-			break;
-
-		case "varint":
-
-			joinKeyValue = ("" + deltaUpdatedRow
-					.getVarint(joinKeyName + "_new"));
-			oldJoinKeyValue = ("" + deltaUpdatedRow.getVarint(joinKeyName
-					+ "_old"));
-
-			break;
-
-		case "varchar":
-
-			joinKeyValue = ("" + deltaUpdatedRow
-					.getString(joinKeyName + "_new"));
-			oldJoinKeyValue = ("" + deltaUpdatedRow.getString(joinKeyName
-					+ "_old"));
-
-			break;
-
-		case "float":
-
-			joinKeyValue = ("" + deltaUpdatedRow.getFloat(joinKeyName + "_new"));
-			oldJoinKeyValue = ("" + deltaUpdatedRow.getFloat(joinKeyName
-					+ "_old"));
-
-			break;
-		}
-
-		// System.out.println("oldjoinkeyvalue :"+oldJoinKeyValue);
-		// System.out.println("oldjoinkeyvalue :"+joinKeyValue);
+		String joinKeyValue = Utils.getColumnValueFromDeltaStream(deltaUpdatedRow, joinKeyName, joinKeyType, "_new");
+		String oldJoinKeyValue = Utils.getColumnValueFromDeltaStream(deltaUpdatedRow, joinKeyName, joinKeyType, "_old");
 
 		selectQuery.append("SELECT * FROM ").append(keyspace).append(".")
 		.append(joinTable).append(" WHERE ").append(joinKeyName)
@@ -1441,53 +1386,9 @@ public class ViewManager {
 
 		// 3. Check if the join key value changed
 
-		String joinKeyValue = null;
-		String oldJoinKeyValue = null;
+		String joinKeyValue = Utils.getColumnValueFromDeltaStream(deltaUpdatedRow, joinKeyName, joinKeyType, "_new");
+		String oldJoinKeyValue = Utils.getColumnValueFromDeltaStream(deltaUpdatedRow, joinKeyName, joinKeyType, "_old");
 
-		switch (joinKeyType) {
-		case "text":
-
-			joinKeyValue = ("'"
-					+ deltaUpdatedRow.getString(joinKeyName + "_new") + "'");
-			oldJoinKeyValue = ("'"
-					+ deltaUpdatedRow.getString(joinKeyName + "_old") + "'");
-
-			break;
-
-		case "int":
-
-			joinKeyValue = ("" + deltaUpdatedRow.getInt(joinKeyName + "_new"));
-			oldJoinKeyValue = ("" + deltaUpdatedRow
-					.getInt(joinKeyName + "_old"));
-
-			break;
-
-		case "varint":
-
-			joinKeyValue = ("" + deltaUpdatedRow
-					.getVarint(joinKeyName + "_new"));
-			oldJoinKeyValue = ("" + deltaUpdatedRow.getVarint(joinKeyName
-					+ "_old"));
-
-			break;
-
-		case "varchar":
-
-			joinKeyValue = ("" + deltaUpdatedRow
-					.getString(joinKeyName + "_new"));
-			oldJoinKeyValue = ("" + deltaUpdatedRow.getString(joinKeyName
-					+ "_old"));
-
-			break;
-
-		case "float":
-
-			joinKeyValue = ("" + deltaUpdatedRow.getFloat(joinKeyName + "_new"));
-			oldJoinKeyValue = ("" + deltaUpdatedRow.getFloat(joinKeyName
-					+ "_old"));
-
-			break;
-		}
 		boolean changeJoinKey = !oldJoinKeyValue.equals("null")
 				&& !oldJoinKeyValue.equals("'null'")
 				&& !joinKeyValue.equals(oldJoinKeyValue);
@@ -1822,6 +1723,8 @@ public class ViewManager {
 					.getString(rightPkType);
 
 			String rightPkValue = "";
+
+			//String rightPkValue = Utils.getColumnValueFromDeltaStream(deltaUpdatedRow, rightPkName, rightPkType, "");
 
 			// 3.a. get from delta row, the left pk value
 			switch (rightPkType) {
@@ -4493,101 +4396,15 @@ public class ViewManager {
 			String aggColType) {
 		// TODO Auto-generated method stub
 
-		String joinKeyValue = null;
-		String oldJoinKeyValue = null;
-
-		String aggColValue = null;
-		String oldAggColValue = null;
 
 		Row newRJRow = getrjUpdatedRow();
 		Row oldRJRow = getReverseJoinUpdateOldRow();
 		Row changeAK = getReverseJoinUpdatedOldRow_changeJoinKey();
 
-		switch (joinKeyType) {
-		case "text":
-
-			joinKeyValue = ("'"
-					+ deltaUpdatedRow.getString(joinKeyName + "_new") + "'");
-			oldJoinKeyValue = ("'"
-					+ deltaUpdatedRow.getString(joinKeyName + "_old") + "'");
-
-			break;
-
-		case "int":
-
-			joinKeyValue = ("" + deltaUpdatedRow.getInt(joinKeyName + "_new"));
-			oldJoinKeyValue = ("" + deltaUpdatedRow
-					.getInt(joinKeyName + "_old"));
-
-			break;
-
-		case "varint":
-
-			joinKeyValue = ("" + deltaUpdatedRow
-					.getVarint(joinKeyName + "_new"));
-			oldJoinKeyValue = ("" + deltaUpdatedRow.getVarint(joinKeyName
-					+ "_old"));
-
-			break;
-
-		case "varchar":
-
-			joinKeyValue = ("" + deltaUpdatedRow
-					.getString(joinKeyName + "_new"));
-			oldJoinKeyValue = ("" + deltaUpdatedRow.getString(joinKeyName
-					+ "_old"));
-
-			break;
-
-		case "float":
-
-			joinKeyValue = ("" + deltaUpdatedRow.getFloat(joinKeyName + "_new"));
-			oldJoinKeyValue = ("" + deltaUpdatedRow.getFloat(joinKeyName
-					+ "_old"));
-
-			break;
-		}
-
-		switch (aggColType) {
-		case "text":
-
-			aggColValue = ("'" + deltaUpdatedRow.getString(aggColName + "_new") + "'");
-			oldAggColValue = ("'"
-					+ deltaUpdatedRow.getString(aggColName + "_old") + "'");
-
-			break;
-
-		case "int":
-
-			aggColValue = ("" + deltaUpdatedRow.getInt(aggColName + "_new"));
-			oldAggColValue = ("" + deltaUpdatedRow.getInt(aggColName + "_old"));
-
-			break;
-
-		case "varint":
-
-			aggColValue = ("" + deltaUpdatedRow.getVarint(aggColName + "_new"));
-			oldAggColValue = ("" + deltaUpdatedRow.getVarint(aggColName
-					+ "_old"));
-
-			break;
-
-		case "varchar":
-
-			aggColValue = ("" + deltaUpdatedRow.getString(aggColName + "_new"));
-			oldAggColValue = ("" + deltaUpdatedRow.getString(aggColName
-					+ "_old"));
-
-			break;
-
-		case "float":
-
-			aggColValue = ("" + deltaUpdatedRow.getFloat(aggColName + "_new"));
-			oldAggColValue = ("" + deltaUpdatedRow
-					.getFloat(aggColName + "_old"));
-
-			break;
-		}
+		String joinKeyValue = Utils.getColumnValueFromDeltaStream(deltaUpdatedRow, joinKeyName, joinKeyType, "_new");
+		String oldJoinKeyValue = Utils.getColumnValueFromDeltaStream(deltaUpdatedRow, joinKeyName, joinKeyType, "_old");
+		String aggColValue = Utils.getColumnValueFromDeltaStream(deltaUpdatedRow, aggColName, aggColType, "_new");
+		String oldAggColValue = Utils.getColumnValueFromDeltaStream(deltaUpdatedRow, aggColName, aggColType, "_old");
 
 		// change in join key value
 		if (!oldJoinKeyValue.equals("null")
@@ -4595,239 +4412,39 @@ public class ViewManager {
 				&& !joinKeyValue.equals(oldJoinKeyValue)) {
 
 			// a - First update old agg key
-			if (oldRJRow.getMap("list_item1", String.class, String.class)
-					.size() == 1) {
+			if (oldRJRow.getMap("list_item1", String.class, String.class).size() == 1) {
 
-				if (oldRJRow.getMap("list_item2", String.class, String.class)
-						.size() == 0) {
+				if (oldRJRow.getMap("list_item2", String.class, String.class).size() == 0) {
 					// remove this key from left join agg, if exits
 					if (!leftJoinAggTable.equals("false")) {
-
-						StringBuilder deleteQuery = new StringBuilder(
-								"delete from ");
-						deleteQuery.append((String) json.get("keyspace"))
-						.append(".").append(leftJoinAggTable)
-						.append(" WHERE ").append(joinKeyName + " = ")
-						.append(oldJoinKeyValue).append(";");
-
-						System.out.println(deleteQuery.toString());
-						try {
-
-							Session session = currentCluster.connect();
-							session.execute(deleteQuery.toString());
-
-						} catch (Exception e) {
-							e.printStackTrace();
-							return false;
-						}
-
+						Utils.deleteEntireRowWithPK((String) json.get("keyspace"), leftJoinAggTable, joinKeyName, oldJoinKeyValue);
 					}
+
 				} else {
 					// remove this key left and inner join aggs, if they exist
 
 					if (!leftJoinAggTable.equals("false")) {
-
-						StringBuilder deleteQuery = new StringBuilder(
-								"delete from ");
-						deleteQuery.append((String) json.get("keyspace"))
-						.append(".").append(leftJoinAggTable)
-						.append(" WHERE ").append(joinKeyName + " = ")
-						.append(oldJoinKeyValue).append(";");
-
-						System.out.println(deleteQuery.toString());
-						try {
-
-							Session session = currentCluster.connect();
-							session.execute(deleteQuery.toString());
-
-						} catch (Exception e) {
-							e.printStackTrace();
-							return false;
-						}
-
+						Utils.deleteEntireRowWithPK((String) json.get("keyspace"), leftJoinAggTable, joinKeyName, oldJoinKeyValue);
 					}
 					if (!innerJoinAggTable.equals("false")) {
-
-						StringBuilder deleteQuery = new StringBuilder(
-								"delete from ");
-						deleteQuery.append((String) json.get("keyspace"))
-						.append(".").append(innerJoinAggTable)
-						.append(" WHERE ").append(joinKeyName + " = ")
-						.append(oldJoinKeyValue).append(";");
-
-						System.out.println(deleteQuery.toString());
-						try {
-
-							Session session = currentCluster.connect();
-							session.execute(deleteQuery.toString());
-
-						} catch (Exception e) {
-							e.printStackTrace();
-							return false;
-						}
-
+						Utils.deleteEntireRowWithPK((String) json.get("keyspace"), innerJoinAggTable, joinKeyName, oldJoinKeyValue);
 					}
-
 				}
 
 			} else {
 
-				StringBuilder selectQuery1 = new StringBuilder("SELECT ")
-				.append(joinKeyName).append(", sum, ")
-				.append("count, ").append("average, min, max ");
-				selectQuery1.append(" FROM ")
-				.append((String) json.get("keyspace")).append(".")
-				.append(leftJoinAggTable).append(" where ")
-				.append(joinKeyName + " = ").append(oldJoinKeyValue)
-				.append(";");
-
-				Row theRow = null;
-				try {
-					Session session = currentCluster.connect();
-					theRow = session.execute(selectQuery1.toString()).one();
-				} catch (Exception e) {
-					e.printStackTrace();
-					return false;
-				}
-
-				Float sum = theRow.getFloat("sum");
-				sum -= Float.parseFloat(oldAggColValue);
-
-				int count = theRow.getInt("count");
-				count--;
-
-				Float avg = sum / (float) count;
-
-				Float min = theRow.getFloat("min");
-
-				if (min == Float.parseFloat(oldAggColValue)) {
-					// loop on list_item1 to get the new minimum
-
-					Map<String, String> map1 = changeAK.getMap("list_item1",
-							String.class, String.class);
-
-					min = Float.MAX_VALUE;
-
-					List<Definition> def = deltaUpdatedRow
-							.getColumnDefinitions().asList();
-
-					int aggColIndexInList = 0;
-
-					for (int i = 0; i < def.size(); i++) {
-						if (def.get(i).getName()
-								.contentEquals(aggColName + "_new")) {
-							break;
-						}
-						if (def.get(i).getName().contains("_new"))
-							aggColIndexInList++;
-					}
-
-					for (Map.Entry<String, String> entry : map1.entrySet()) {
-
-						String list = entry.getValue().replaceAll("\\[", "")
-								.replaceAll("\\]", "");
-						String[] listArray = list.split(",");
-						Float x = Float
-								.parseFloat(listArray[aggColIndexInList]);
-						if (x < min)
-							min = x;
-
-					}
-				}
-
-				Float max = theRow.getFloat("max");
-
-				Map<String, String> map1 = changeAK.getMap("list_item1",
-						String.class, String.class);
-
-				max = Float.MIN_VALUE;
-
-				List<Definition> def = deltaUpdatedRow.getColumnDefinitions()
-						.asList();
-
-				int aggColIndexInList = 0;
-
-				for (int i = 0; i < def.size(); i++) {
-					if (def.get(i).getName().contentEquals(aggColName + "_new")) {
-						break;
-					}
-					if (def.get(i).getName().contains("_new"))
-						aggColIndexInList++;
-				}
-
-				for (Map.Entry<String, String> entry : map1.entrySet()) {
-
-					String list = entry.getValue().replaceAll("\\[", "")
-							.replaceAll("\\]", "");
-					String[] listArray = list.split(",");
-					Float x = Float
-							.parseFloat(listArray[aggColIndexInList]);
-					if (x > max)
-						max = x;
-
-				}
-
-				// update thw row with this join/aggkey in left join agg, if
-				// exits
 				if (!leftJoinAggTable.equals("false")) {
-
-					StringBuilder insertQueryAgg = new StringBuilder(
-							"INSERT INTO ");
-					insertQueryAgg.append((String) json.get("keyspace"))
-					.append(".").append(leftJoinAggTable).append(" ( ")
-					.append(joinKeyName + ", ")
-					.append("sum, count, average, min, max")
-					.append(") VALUES (")
-					.append(oldJoinKeyValue + ", ").append(sum)
-					.append(", ").append(count).append(", ")
-					.append(avg).append(", ").append(min).append(", ")
-					.append(max).append(");");
-
-					System.out.println(insertQueryAgg);
-
-					try {
-						Session session = currentCluster.connect();
-						session.execute(insertQueryAgg.toString());
-					} catch (Exception e) {
-						e.printStackTrace();
-						return false;
-					}
-
+					JoinAggregationHelper.UpdateOldRowBySubtracting("list_item1",deltaUpdatedRow, json, leftJoinAggTable, joinKeyName, oldJoinKeyValue, aggColName, oldAggColValue, changeAK);
 				}
 
-				// remove this key inner join aggs, if they exist
-				if (oldRJRow.getMap("list_item2", String.class, String.class)
-						.size() == 1 && !innerJoinAggTable.equals("false")) {
-
-					StringBuilder insertQueryAgg = new StringBuilder(
-							"INSERT INTO ");
-					insertQueryAgg.append((String) json.get("keyspace"))
-					.append(".").append(innerJoinAggTable)
-					.append(" ( ").append(joinKeyName + ", ")
-					.append("sum, count, average, min, max")
-					.append(") VALUES (")
-					.append(oldJoinKeyValue + ", ").append(sum)
-					.append(", ").append(count).append(", ")
-					.append(avg).append(", ").append(min).append(", ")
-					.append(max).append(");");
-
-					System.out.println(insertQueryAgg);
-
-					try {
-						Session session = currentCluster.connect();
-						session.execute(insertQueryAgg.toString());
-					} catch (Exception e) {
-						e.printStackTrace();
-						return false;
-					}
+				if (!innerJoinAggTable.equals("false") && !oldRJRow.getMap("list_item2", String.class, String.class).isEmpty()){
+					JoinAggregationHelper.UpdateOldRowBySubtracting("list_item1",deltaUpdatedRow, json, innerJoinAggTable, joinKeyName, oldJoinKeyValue, aggColName, oldAggColValue, changeAK);
 				}
-
 			}
 
 			// b - Update new agg key
 
-			if (newRJRow.getMap("list_item1", String.class, String.class)
-					.size() == 1) {
+			if (newRJRow.getMap("list_item1", String.class, String.class).size() == 1) {
 
 				// if(new.list_item2 == 0)
 				// add this key to left table if exist [one item only]
@@ -4841,135 +4458,25 @@ public class ViewManager {
 				String max = aggColValue;
 				// add this key to left table if exist [one item only]
 				if (!leftJoinAggTable.equals("false") && aggColValue != null
-						&& !aggColValue.equals("null")
-						&& !aggColValue.equals("'null'")) {
-					StringBuilder insertQueryAgg = new StringBuilder(
-							"INSERT INTO ");
-					insertQueryAgg.append((String) json.get("keyspace"))
-					.append(".").append(leftJoinAggTable).append(" ( ")
-					.append(joinKeyName + ", ")
-					.append("sum, count, average, min, max")
-					.append(") VALUES (").append(joinKeyValue + ", ")
-					.append(sum).append(", ").append(count)
-					.append(", ").append(avg).append(", ").append(min)
-					.append(", ").append(max).append(");");
+						&& !aggColValue.equals("null")&& !aggColValue.equals("'null'")) {
 
-					System.out.println(insertQueryAgg);
+					JoinAggregationHelper.insertStatement(Float.valueOf(sum),count, Float.valueOf(avg), Float.valueOf(min),Float.valueOf(max), joinKeyName, joinKeyValue, leftJoinAggTable, json);
 				}
 
 				// add this key to inner table if exist [one item only]
-				if (!newRJRow.getMap("list_item2", String.class, String.class)
-						.isEmpty()) {
-					if (!innerJoinAggTable.equals("false")) {
-						StringBuilder insertQueryAgg = new StringBuilder(
-								"INSERT INTO ");
-						insertQueryAgg.append((String) json.get("keyspace"))
-						.append(".").append(innerJoinAggTable)
-						.append(" ( ").append(joinKeyName + ", ")
-						.append("sum, count, average, min, max")
-						.append(") VALUES (")
-						.append(joinKeyValue + ", ").append(sum)
-						.append(", ").append(count).append(", ")
-						.append(avg).append(", ").append(min)
-						.append(", ").append(max).append(");");
-
-						System.out.println(insertQueryAgg);
-					}
-
+				if (!newRJRow.getMap("list_item2", String.class, String.class).isEmpty() && !innerJoinAggTable.equals("false") ) {
+					JoinAggregationHelper.insertStatement(Float.valueOf(sum), count, Float.valueOf(avg), Float.valueOf(min), Float.valueOf(max), joinKeyName, joinKeyValue, innerJoinAggTable, json);
 				}
 
 			} else {
 
-				StringBuilder selectQuery1 = new StringBuilder("SELECT ")
-				.append(joinKeyName).append(", sum, ")
-				.append("count, ").append("average, min, max ");
-				selectQuery1.append(" FROM ")
-				.append((String) json.get("keyspace")).append(".")
-				.append(leftJoinAggTable).append(" where ")
-				.append(joinKeyName + " = ").append(joinKeyValue)
-				.append(";");
-
-				Row theRow = null;
-				try {
-					Session session = currentCluster.connect();
-					theRow = session.execute(selectQuery1.toString()).one();
-				} catch (Exception e) {
-					e.printStackTrace();
-					return false;
-				}
-
-				Float sum = theRow.getFloat("sum");
-				sum += Float.parseFloat(aggColValue);
-
-				int count = theRow.getInt("count");
-				count++;
-
-				Float avg = sum / (float) count;
-
-				Float min = theRow.getFloat("min");
-
-				if (aggColValue != null && !aggColValue.equals("null")
-						&& !aggColValue.equals("'null'")
-						&& Float.parseFloat(aggColValue) < min) {
-					min = Float.parseFloat(aggColValue);
-				}
-
-				Float max = theRow.getFloat("max");
-
-				if (aggColValue != null && !aggColValue.equals("null")
-						&& !aggColValue.equals("'null'")
-						&& Float.parseFloat(aggColValue) > max) {
-					max = Float.parseFloat(aggColValue);
-				}
-
 				if (!leftJoinAggTable.equals("false")) {
-					StringBuilder insertQueryAgg = new StringBuilder(
-							"INSERT INTO ");
-					insertQueryAgg.append((String) json.get("keyspace"))
-					.append(".").append(leftJoinAggTable).append(" ( ")
-					.append(joinKeyName + ", ")
-					.append("sum, count, average, min, max")
-					.append(") VALUES (").append(joinKeyValue + ", ")
-					.append(sum).append(", ").append(count)
-					.append(", ").append(avg).append(", ").append(min)
-					.append(", ").append(max).append(");");
-
-					System.out.println(insertQueryAgg);
-
-					try {
-						Session session = currentCluster.connect();
-						session.execute(insertQueryAgg.toString());
-					} catch (Exception e) {
-						e.printStackTrace();
-						return false;
-					}
+					JoinAggregationHelper.updateNewRowByAddingNewElement(joinKeyName, joinKeyValue, json, leftJoinAggTable, aggColValue);
 				}
 
-				if (newRJRow.getMap("list_item2", String.class, String.class)
-						.isEmpty()) {
-					if (!innerJoinAggTable.equals("false")) {
-						StringBuilder insertQueryAgg = new StringBuilder(
-								"INSERT INTO ");
-						insertQueryAgg.append((String) json.get("keyspace"))
-						.append(".").append(innerJoinAggTable)
-						.append(" ( ").append(joinKeyName + ", ")
-						.append("sum, count, average, min, max")
-						.append(") VALUES (")
-						.append(joinKeyValue + ", ").append(sum)
-						.append(", ").append(count).append(", ")
-						.append(avg).append(", ").append(min)
-						.append(", ").append(max).append(");");
-
-						System.out.println(insertQueryAgg);
-
-						try {
-							Session session = currentCluster.connect();
-							session.execute(insertQueryAgg.toString());
-						} catch (Exception e) {
-							e.printStackTrace();
-							return false;
-						}
-					}
+				if (!newRJRow.getMap("list_item2", String.class, String.class)
+						.isEmpty() && !innerJoinAggTable.equals("false")) {
+					JoinAggregationHelper.updateNewRowByAddingNewElement(joinKeyName, joinKeyValue, json, innerJoinAggTable, aggColValue);
 				}
 
 			}
@@ -4981,14 +4488,12 @@ public class ViewManager {
 			if (!oldAggColValue.equals(aggColValue)) {
 
 				// updates take place in left_join_agg only
-				if (newRJRow.getMap("list_item2", String.class, String.class)
-						.isEmpty()) {
+				if (newRJRow.getMap("list_item2", String.class, String.class).isEmpty()) {
 
 					if (!leftJoinAggTable.equals("false")) {
 
 						// only one item
-						if (newRJRow.getMap("list_item1", String.class,
-								String.class).size() == 1) {
+						if (newRJRow.getMap("list_item1", String.class,String.class).size() == 1) {
 
 							String sum = aggColValue;
 							int count = 1;
@@ -4996,578 +4501,74 @@ public class ViewManager {
 							String min = aggColValue;
 							String max = aggColValue;
 
-							StringBuilder insertQueryAgg = new StringBuilder(
-									"INSERT INTO ");
-							insertQueryAgg
-							.append((String) json.get("keyspace"))
-							.append(".").append(leftJoinAggTable)
-							.append(" ( ").append(joinKeyName + ", ")
-							.append("sum, count, average, min, max")
-							.append(") VALUES (")
-							.append(joinKeyValue + ", ").append(sum)
-							.append(", ").append(count).append(", ")
-							.append(avg).append(", ").append(min)
-							.append(", ").append(max).append(");");
-
-							System.out.println(insertQueryAgg);
-
-							try {
-								Session session = currentCluster.connect();
-								session.execute(insertQueryAgg.toString());
-							} catch (Exception e) {
-								e.printStackTrace();
-								return false;
-							}
+							JoinAggregationHelper.insertStatement(Float.valueOf(sum), count,Float.valueOf(avg), Float.valueOf(min), Float.valueOf(max), joinKeyName, joinKeyValue, leftJoinAggTable, json);
 
 						}
 						// more than one item --> update
 						else {
-							StringBuilder selectQuery1 = new StringBuilder(
-									"SELECT ").append(joinKeyName)
-									.append(", sum, ").append("count, ")
-									.append("average, min, max ");
-							selectQuery1.append(" FROM ")
-							.append((String) json.get("keyspace"))
-							.append(".").append(leftJoinAggTable)
-							.append(" where ")
-							.append(joinKeyName + " = ")
-							.append(joinKeyValue).append(";");
 
-							Row theRow = null;
-							try {
-								Session session = currentCluster.connect();
-								theRow = session.execute(
-										selectQuery1.toString()).one();
-							} catch (Exception e) {
-								e.printStackTrace();
-								return false;
+							if (!leftJoinAggTable.equals("false")) {
+								JoinAggregationHelper.updateAggColValueOfNewRow("list_item1",deltaUpdatedRow, newRJRow, json, joinKeyName, joinKeyValue, leftJoinAggTable, aggColName, aggColValue, oldAggColValue,oldRJRow);
 							}
-
-							Float sum = theRow.getFloat("sum");
-							if (aggColValue != null
-									&& !aggColValue.equals("null")
-									&& !aggColValue.equals("'null'"))
-								sum += Float.parseFloat(aggColValue);
-
-							if (oldAggColValue != null
-									&& !oldAggColValue.equals("null")
-									&& !oldAggColValue.equals("'null'"))
-								sum -= Float.parseFloat(oldAggColValue);
-
-							int count = theRow.getInt("count");
-							// old = null and new != null
-							if ((oldAggColValue == null
-									|| oldAggColValue.equals("null") || oldAggColValue
-									.equals("'null'"))
-									&& (aggColValue != null
-									|| !aggColValue.equals("null") || !aggColValue
-									.equals("'null'")))
-								count++;
-							else // new = null and old != null
-								if ((oldAggColValue != null
-								|| !oldAggColValue.equals("null") || !oldAggColValue
-								.equals("'null'"))
-								&& (aggColValue == null
-								|| aggColValue.equals("null") || aggColValue
-								.equals("'null'")))
-									count--;
-
-							Float avg = sum / (float) count;
-
-							Float min = theRow.getFloat("min");
-
-							// if newAggCol != null and newAggCol < min
-							if (aggColValue != null
-									&& !aggColValue.equals("null")
-									&& !aggColValue.equals("'null'")
-									&& Float.parseFloat(aggColValue) < min)
-
-								min = Float.parseFloat(aggColValue);
-							// if(oldAggCol == min)
-							else if (oldAggColValue != null
-									&& !oldAggColValue.equals("null")
-									&& !oldAggColValue.equals("'null'")
-									&& Float.parseFloat(oldAggColValue) == min) {
-								// loop on list_item1 to get the new minimum
-
-								Map<String, String> map1 = newRJRow.getMap(
-										"list_item1", String.class,
-										String.class);
-
-								min = Float.MAX_VALUE;
-
-								List<Definition> def = deltaUpdatedRow
-										.getColumnDefinitions().asList();
-
-								int aggColIndexInList = 0;
-
-								for (int i = 0; i < def.size(); i++) {
-									if (def.get(i).getName()
-											.contentEquals(aggColName + "_new")) {
-										break;
-									}
-									if (def.get(i).getName().contains("_new"))
-										aggColIndexInList++;
-								}
-
-								for (Map.Entry<String, String> entry : map1
-										.entrySet()) {
-
-									String list = entry.getValue()
-											.replaceAll("\\[", "")
-											.replaceAll("\\]", "");
-									String[] listArray = list.split(",");
-									Float x = Float
-											.parseFloat(listArray[aggColIndexInList]);
-									if (x < min)
-										min = x;
-
-								}
-
-							}
-
-							Float max = theRow.getFloat("max");
-
-							// if newAggCol != null and newAggCol < min
-							if (aggColValue != null
-									&& !aggColValue.equals("null")
-									&& !aggColValue.equals("'null'")
-									&& Float.parseFloat(aggColValue) > max)
-
-								max = Float.parseFloat(aggColValue);
-							// if(oldAggCol == min)
-							else if (oldAggColValue != null
-									&& !oldAggColValue.equals("null")
-									&& !oldAggColValue.equals("'null'")
-									&& Float.parseFloat(oldAggColValue) == max) {
-								// loop on list_item1 to get the new minimum
-
-								Map<String, String> map1 = newRJRow.getMap(
-										"list_item1", String.class,
-										String.class);
-
-								max = Float.MIN_VALUE;
-
-								List<Definition> def = deltaUpdatedRow
-										.getColumnDefinitions().asList();
-
-								int aggColIndexInList = 0;
-
-								for (int i = 0; i < def.size(); i++) {
-									if (def.get(i).getName()
-											.contentEquals(aggColName + "_new")) {
-										break;
-									}
-									if (def.get(i).getName().contains("_new"))
-										aggColIndexInList++;
-								}
-
-								for (Map.Entry<String, String> entry : map1
-										.entrySet()) {
-
-									String list = entry.getValue()
-											.replaceAll("\\[", "")
-											.replaceAll("\\]", "");
-									String[] listArray = list.split(",");
-									Float x = Float
-											.parseFloat(listArray[aggColIndexInList]);
-									if (x > max)
-										max = x;
-
-								}
-
-							}
-
-							StringBuilder insertQueryAgg = new StringBuilder(
-									"INSERT INTO ");
-							insertQueryAgg
-							.append((String) json.get("keyspace"))
-							.append(".").append(leftJoinAggTable)
-							.append(" ( ").append(joinKeyName + ", ")
-							.append("sum, count, average, min, max")
-							.append(") VALUES (")
-							.append(joinKeyValue + ", ").append(sum)
-							.append(", ").append(count).append(", ")
-							.append(avg).append(", ").append(min)
-							.append(", ").append(max).append(");");
-
-							System.out.println(insertQueryAgg);
-
-							try {
-								Session session = currentCluster.connect();
-								session.execute(insertQueryAgg.toString());
-							} catch (Exception e) {
-								e.printStackTrace();
-								return false;
-							}
-
 						}
 					}
 
-				}
-				// update takes place in inner and left join aggs
-				else {
+				}else {// update takes place in inner and left join aggs
 					// insert row with aggkey/joinkey as pk to left and inner
 					// join agg, if exists and values for sum,count,..
 					// are calculated for this item only
 
-					if (!leftJoinAggTable.equals("false")
-							|| !innerJoinAggTable.equals("false")) {
+					if (!leftJoinAggTable.equals("false")|| !innerJoinAggTable.equals("false")) {
 
 						// only one item
-						if (newRJRow.getMap("list_item1", String.class,
-								String.class).size() == 1) {
+						if (newRJRow.getMap("list_item1", String.class,String.class).size() == 1) {
 
 							String sum = aggColValue;
 							int count = 1;
 							String avg = aggColValue;
 							String min = aggColValue;
 							String max = aggColValue;
+
 							if (!leftJoinAggTable.equals("false")) {
-								StringBuilder insertQueryAgg = new StringBuilder(
-										"INSERT INTO ");
-								insertQueryAgg
-								.append((String) json.get("keyspace"))
-								.append(".")
-								.append(leftJoinAggTable)
-								.append(" ( ")
-								.append(joinKeyName + ", ")
-								.append("sum, count, average, min, max")
-								.append(") VALUES (")
-								.append(joinKeyValue + ", ")
-								.append(sum).append(", ").append(count)
-								.append(", ").append(avg).append(", ")
-								.append(min).append(", ").append(max)
-								.append(");");
-								System.out.println(insertQueryAgg);
-
-								try {
-									Session session = currentCluster.connect();
-									session.execute(insertQueryAgg.toString());
-								} catch (Exception e) {
-									e.printStackTrace();
-									return false;
-								}
+								JoinAggregationHelper.insertStatement(Float.valueOf(sum), count,Float.valueOf(avg),Float.valueOf(min),Float.valueOf(max), joinKeyName, joinKeyValue, leftJoinAggTable, json);
 							}
-							if (!innerJoinAggTable.equals("false")) {
-								StringBuilder insertQueryAgg = new StringBuilder(
-										"INSERT INTO ");
-								insertQueryAgg
-								.append((String) json.get("keyspace"))
-								.append(".")
-								.append(innerJoinAggTable)
-								.append(" ( ")
-								.append(joinKeyName + ", ")
-								.append("sum, count, average, min, max")
-								.append(") VALUES (")
-								.append(joinKeyValue + ", ")
-								.append(sum).append(", ").append(count)
-								.append(", ").append(avg).append(", ")
-								.append(min).append(", ").append(max)
-								.append(");");
-								System.out.println(insertQueryAgg);
 
-								try {
-									Session session = currentCluster.connect();
-									session.execute(insertQueryAgg.toString());
-								} catch (Exception e) {
-									e.printStackTrace();
-									return false;
-								}
+							if (!innerJoinAggTable.equals("false")) {
+								JoinAggregationHelper.insertStatement(Float.valueOf(sum), count, Float.valueOf(avg),Float.valueOf(min),Float.valueOf(max), joinKeyName, joinKeyValue, innerJoinAggTable, json);
 							}
 
 						}
 						// more than one item --> update
 						else {
 
-							//							StringBuilder selectQuery1 = new StringBuilder(
-							//									"SELECT ").append(joinKeyName)
-							//									.append(", sum, ").append("count, ")
-							//									.append("average, min, max ");
-							//							selectQuery1.append(" FROM ")
-							//							.append((String) json.get("keyspace"))
-							//							.append(".").append(leftJoinAggTable)
-							//							.append(" where ")
-							//							.append(joinKeyName + " = ")
-							//							.append(joinKeyValue).append(";");
-
-							Row theRow = null;
-							//							try {
-							//								Session session = currentCluster.connect();
-							//								theRow = session.execute(
-							//										selectQuery1.toString()).one();
-							//							} catch (Exception e) {
-							//								e.printStackTrace();
-							//								return false;
-							//							}
-
-							if(!leftJoinAggTable.equals("false"))
-								theRow =JoinAggregationHelper.selectStatement(joinKeyName, joinKeyValue, leftJoinAggTable, json);
-							else
-								theRow =JoinAggregationHelper.selectStatement(joinKeyName, joinKeyValue, innerJoinAggTable, json);
-
-
-							Float sum = theRow.getFloat("sum");
-							if (aggColValue != null
-									&& !aggColValue.equals("null")
-									&& !aggColValue.equals("'null'"))
-								sum += Float.parseFloat(aggColValue);
-
-							if (oldAggColValue != null
-									&& !oldAggColValue.equals("null")
-									&& !oldAggColValue.equals("'null'"))
-								sum -= Float.parseFloat(oldAggColValue);
-
-							int count = theRow.getInt("count");
-							// old = null and new != null
-							if ((oldAggColValue == null
-									|| oldAggColValue.equals("null") || oldAggColValue
-									.equals("'null'"))
-									&& (aggColValue != null
-									|| !aggColValue.equals("null") || !aggColValue
-									.equals("'null'")))
-								count++;
-							else // new = null and old != null
-								if ((oldAggColValue != null
-								|| !oldAggColValue.equals("null") || !oldAggColValue
-								.equals("'null'"))
-								&& (aggColValue == null
-								|| aggColValue.equals("null") || aggColValue
-								.equals("'null'")))
-									count--;
-
-							Float avg = sum / (float) count;
-
-							Float min = theRow.getFloat("min");
-
-							// if newAggCol != null and newAggCol < min
-							if (aggColValue != null
-									&& !aggColValue.equals("null")
-									&& !aggColValue.equals("'null'")
-									&& Float.parseFloat(aggColValue) < min)
-
-								min = Float.parseFloat(aggColValue);
-							// if(oldAggCol == min)
-							else if (oldAggColValue != null
-									&& !oldAggColValue.equals("null")
-									&& !oldAggColValue.equals("'null'")
-									&& Float.parseFloat(oldAggColValue) == min) {
-								// loop on list_item1 to get the new minimum
-
-								Map<String, String> map1 = newRJRow.getMap(
-										"list_item1", String.class,
-										String.class);
-
-								min = Float.MAX_VALUE;
-
-								List<Definition> def = deltaUpdatedRow
-										.getColumnDefinitions().asList();
-
-								int aggColIndexInList = 0;
-
-								for (int i = 0; i < def.size(); i++) {
-									if (def.get(i).getName()
-											.contentEquals(aggColName + "_new")) {
-										break;
-									}
-									if (def.get(i).getName().contains("_new"))
-										aggColIndexInList++;
-								}
-
-								for (Map.Entry<String, String> entry : map1
-										.entrySet()) {
-
-									String list = entry.getValue()
-											.replaceAll("\\[", "")
-											.replaceAll("\\]", "");
-									String[] listArray = list.split(",");
-									Float x = Float
-											.parseFloat(listArray[aggColIndexInList]);
-									if (x < min)
-										min = x;
-
-								}
-
-							}
-
-							Float max = theRow.getFloat("max");
-
-							// if newAggCol != null and newAggCol < min
-							if (aggColValue != null
-									&& !aggColValue.equals("null")
-									&& !aggColValue.equals("'null'")
-									&& Float.parseFloat(aggColValue) > max)
-
-								max = Float.parseFloat(aggColValue);
-							// if(oldAggCol == min)
-							else if (oldAggColValue != null
-									&& !oldAggColValue.equals("null")
-									&& !oldAggColValue.equals("'null'")
-									&& Float.parseFloat(oldAggColValue) == max) {
-								// loop on list_item1 to get the new minimum
-
-								Map<String, String> map1 = newRJRow.getMap(
-										"list_item1", String.class,
-										String.class);
-
-								max = Float.MIN_VALUE;
-
-								List<Definition> def = deltaUpdatedRow
-										.getColumnDefinitions().asList();
-
-								int aggColIndexInList = 0;
-
-								for (int i = 0; i < def.size(); i++) {
-									if (def.get(i).getName()
-											.contentEquals(aggColName + "_new")) {
-										break;
-									}
-									if (def.get(i).getName().contains("_new"))
-										aggColIndexInList++;
-								}
-
-								for (Map.Entry<String, String> entry : map1
-										.entrySet()) {
-
-									String list = entry.getValue()
-											.replaceAll("\\[", "")
-											.replaceAll("\\]", "");
-									String[] listArray = list.split(",");
-									Float x = Float
-											.parseFloat(listArray[aggColIndexInList]);
-									if (x > max)
-										max = x;
-
-								}
-
-							}
-
 							if (!leftJoinAggTable.equals("false")) {
-								StringBuilder insertQueryAgg = new StringBuilder(
-										"INSERT INTO ");
-								insertQueryAgg
-								.append((String) json.get("keyspace"))
-								.append(".")
-								.append(leftJoinAggTable)
-								.append(" ( ")
-								.append(joinKeyName + ", ")
-								.append("sum, count, average, min, max")
-								.append(") VALUES (")
-								.append(joinKeyValue + ", ")
-								.append(sum).append(", ").append(count)
-								.append(", ").append(avg).append(", ")
-								.append(min).append(", ").append(max)
-								.append(");");
-								System.out.println(insertQueryAgg);
-
-								try {
-									Session session = currentCluster.connect();
-									session.execute(insertQueryAgg.toString());
-								} catch (Exception e) {
-									e.printStackTrace();
-									return false;
-								}
+								JoinAggregationHelper.updateAggColValueOfNewRow("list_item1",deltaUpdatedRow, newRJRow, json, joinKeyName, joinKeyValue, leftJoinAggTable, aggColName, aggColValue, oldAggColValue,oldRJRow);
 							}
-							if (!innerJoinAggTable.equals("false")) {
-								StringBuilder insertQueryAgg = new StringBuilder(
-										"INSERT INTO ");
-								insertQueryAgg
-								.append((String) json.get("keyspace"))
-								.append(".")
-								.append(innerJoinAggTable)
-								.append(" ( ")
-								.append(joinKeyName + ", ")
-								.append("sum, count, average, min, max")
-								.append(") VALUES (")
-								.append(joinKeyValue + ", ")
-								.append(sum).append(", ").append(count)
-								.append(", ").append(avg).append(", ")
-								.append(min).append(", ").append(max)
-								.append(");");
-								System.out.println(insertQueryAgg);
 
-								try {
-									Session session = currentCluster.connect();
-									session.execute(insertQueryAgg.toString());
-								} catch (Exception e) {
-									e.printStackTrace();
-									return false;
-								}
+							if (!innerJoinAggTable.equals("false")) {
+								JoinAggregationHelper.updateAggColValueOfNewRow("list_item1",deltaUpdatedRow, newRJRow, json, joinKeyName, joinKeyValue, innerJoinAggTable, aggColName, aggColValue, oldAggColValue,oldRJRow);
 							}
 
 						}
 					}
-
 				}
-			}
 
+			}
 		}
 
 		return true;
 	}
 
-
-
 	public boolean updateJoinAgg_UpdateRight_AggColRightSide(
 			String innerJoinAggTable, String rightJoinAggTable, JSONObject json,
 			String joinKeyType, String joinKeyName, String aggColName,
 			String aggColType) {
-		// TODO Auto-generated method stub
 
-		String joinKeyValue = null;
-		String oldJoinKeyValue = null;
 
-		String aggColValue = null;
-		String oldAggColValue = null;
-
-		Row newRJRow = getrjUpdatedRow();
-		Row oldRJRow = getReverseJoinUpdateOldRow();
-		Row changeAK = getReverseJoinUpdatedOldRow_changeJoinKey();
-
-		switch (joinKeyType) {
-		case "text":
-
-			joinKeyValue = ("'"
-					+ deltaUpdatedRow.getString(joinKeyName + "_new") + "'");
-			oldJoinKeyValue = ("'"
-					+ deltaUpdatedRow.getString(joinKeyName + "_old") + "'");
-
-			break;
-
-		case "int":
-
-			joinKeyValue = ("" + deltaUpdatedRow.getInt(joinKeyName + "_new"));
-			oldJoinKeyValue = ("" + deltaUpdatedRow
-					.getInt(joinKeyName + "_old"));
-
-			break;
-
-		case "varint":
-
-			joinKeyValue = ("" + deltaUpdatedRow
-					.getVarint(joinKeyName + "_new"));
-			oldJoinKeyValue = ("" + deltaUpdatedRow.getVarint(joinKeyName
-					+ "_old"));
-
-			break;
-
-		case "varchar":
-
-			joinKeyValue = ("" + deltaUpdatedRow
-					.getString(joinKeyName + "_new"));
-			oldJoinKeyValue = ("" + deltaUpdatedRow.getString(joinKeyName
-					+ "_old"));
-
-			break;
-
-		case "float":
-
-			joinKeyValue = ("" + deltaUpdatedRow.getFloat(joinKeyName + "_new"));
-			oldJoinKeyValue = ("" + deltaUpdatedRow.getFloat(joinKeyName
-					+ "_old"));
-
-			break;
-		}
+		String joinKeyValue = Utils.getColumnValueFromDeltaStream(deltaUpdatedRow, joinKeyName, joinKeyType, "_new");
+		String oldJoinKeyValue = Utils.getColumnValueFromDeltaStream(deltaUpdatedRow, joinKeyName, joinKeyType, "_old");
+		String aggColValue = Utils.getColumnValueFromDeltaStream(deltaUpdatedRow, aggColName, aggColType, "_new");
+		String oldAggColValue = Utils.getColumnValueFromDeltaStream(deltaUpdatedRow, aggColName, aggColType, "_old");
 
 		switch (aggColType) {
 		case "text":
@@ -5610,245 +4611,47 @@ public class ViewManager {
 			break;
 		}
 
+		Row newRJRow = getrjUpdatedRow();
+		Row oldRJRow = getReverseJoinUpdateOldRow();
+		Row changeAK = getReverseJoinUpdatedOldRow_changeJoinKey();
+
 		// change in join key value
-		if (!oldJoinKeyValue.equals("null")
-				&& !oldJoinKeyValue.equals("'null'")
-				&& !joinKeyValue.equals(oldJoinKeyValue)) {
+		if (!oldJoinKeyValue.equals("null")&& !oldJoinKeyValue.equals("'null'")&& !joinKeyValue.equals(oldJoinKeyValue)) {
 
 			// a - First update old agg key
-			if (oldRJRow.getMap("list_item2", String.class, String.class)
-					.size() == 1) {
+			if (oldRJRow.getMap("list_item2", String.class, String.class).size() == 1) {
 
-				if (oldRJRow.getMap("list_item1", String.class, String.class)
-						.size() == 0) {
+				if (oldRJRow.getMap("list_item1", String.class, String.class).size() == 0) {
+
 					// remove this key from right join agg, if exits
 					if (!rightJoinAggTable.equals("false")) {
-
-						StringBuilder deleteQuery = new StringBuilder(
-								"delete from ");
-						deleteQuery.append((String) json.get("keyspace"))
-						.append(".").append(rightJoinAggTable)
-						.append(" WHERE ").append(joinKeyName + " = ")
-						.append(oldJoinKeyValue).append(";");
-
-						System.out.println(deleteQuery.toString());
-						try {
-
-							Session session = currentCluster.connect();
-							session.execute(deleteQuery.toString());
-
-						} catch (Exception e) {
-							e.printStackTrace();
-							return false;
-						}
-
+						Utils.deleteEntireRowWithPK((String) json.get("keyspace"), rightJoinAggTable, joinKeyName, oldJoinKeyValue);
 					}
 				} else {
 					// remove this key right and inner join aggs, if they exist
-
 					if (!rightJoinAggTable.equals("false")) {
-
-						StringBuilder deleteQuery = new StringBuilder(
-								"delete from ");
-						deleteQuery.append((String) json.get("keyspace"))
-						.append(".").append(rightJoinAggTable)
-						.append(" WHERE ").append(joinKeyName + " = ")
-						.append(oldJoinKeyValue).append(";");
-
-						System.out.println(deleteQuery.toString());
-						try {
-
-							Session session = currentCluster.connect();
-							session.execute(deleteQuery.toString());
-
-						} catch (Exception e) {
-							e.printStackTrace();
-							return false;
-						}
-
+						Utils.deleteEntireRowWithPK((String) json.get("keyspace"), rightJoinAggTable, joinKeyName, oldJoinKeyValue);
 					}
+
 					if (!innerJoinAggTable.equals("false")) {
-
-						StringBuilder deleteQuery = new StringBuilder(
-								"delete from ");
-						deleteQuery.append((String) json.get("keyspace"))
-						.append(".").append(innerJoinAggTable)
-						.append(" WHERE ").append(joinKeyName + " = ")
-						.append(oldJoinKeyValue).append(";");
-
-						System.out.println(deleteQuery.toString());
-						try {
-
-							Session session = currentCluster.connect();
-							session.execute(deleteQuery.toString());
-
-						} catch (Exception e) {
-							e.printStackTrace();
-							return false;
-						}
-
+						Utils.deleteEntireRowWithPK((String) json.get("keyspace"), innerJoinAggTable, joinKeyName, oldJoinKeyValue);
 					}
-
 				}
 
 			} else {
 
-				StringBuilder selectQuery1 = new StringBuilder("SELECT ")
-				.append(joinKeyName).append(", sum, ")
-				.append("count, ").append("average, min, max ");
-				selectQuery1.append(" FROM ")
-				.append((String) json.get("keyspace")).append(".")
-				.append(rightJoinAggTable).append(" where ")
-				.append(joinKeyName + " = ").append(oldJoinKeyValue)
-				.append(";");
-
-				Row theRow = null;
-				try {
-					Session session = currentCluster.connect();
-					theRow = session.execute(selectQuery1.toString()).one();
-				} catch (Exception e) {
-					e.printStackTrace();
-					return false;
-				}
-
-				Float sum = theRow.getFloat("sum");
-				sum -= Float.parseFloat(oldAggColValue);
-
-				int count = theRow.getInt("count");
-				count--;
-
-				Float avg = sum / (float) count;
-
-				Float min = theRow.getFloat("min");
-
-				if (min == Float.parseFloat(oldAggColValue)) {
-					// loop on list_item2 to get the new minimum
-
-					Map<String, String> map2 = changeAK.getMap("list_item2",
-							String.class, String.class);
-
-					min = Float.MAX_VALUE;
-
-					List<Definition> def = deltaUpdatedRow
-							.getColumnDefinitions().asList();
-
-					int aggColIndexInList = 0;
-
-					for (int i = 0; i < def.size(); i++) {
-						if (def.get(i).getName()
-								.contentEquals(aggColName + "_new")) {
-							break;
-						}
-						if (def.get(i).getName().contains("_new"))
-							aggColIndexInList++;
-					}
-
-					for (Map.Entry<String, String> entry : map2.entrySet()) {
-
-						String list = entry.getValue().replaceAll("\\[", "")
-								.replaceAll("\\]", "");
-						String[] listArray = list.split(",");
-						Float x = Float
-								.parseFloat(listArray[aggColIndexInList]);
-						if (x < min)
-							min = x;
-
-					}
-				}
-
-				Float max = theRow.getFloat("max");
-
-				Map<String, String> map2 = changeAK.getMap("list_item2",
-						String.class, String.class);
-
-				max = Float.MIN_VALUE;
-
-				List<Definition> def = deltaUpdatedRow.getColumnDefinitions()
-						.asList();
-
-				int aggColIndexInList = 0;
-
-				for (int i = 0; i < def.size(); i++) {
-					if (def.get(i).getName().contentEquals(aggColName + "_new")) {
-						break;
-					}
-					if (def.get(i).getName().contains("_new"))
-						aggColIndexInList++;
-				}
-
-				for (Map.Entry<String, String> entry : map2.entrySet()) {
-
-					String list = entry.getValue().replaceAll("\\[", "")
-							.replaceAll("\\]", "");
-					String[] listArray = list.split(",");
-					Float x = Float
-							.parseFloat(listArray[aggColIndexInList]);
-					if (x > max)
-						max = x;
-
-				}
-
-				// update thw row with this join/aggkey in right join agg, if
-				// exits
 				if (!rightJoinAggTable.equals("false")) {
-
-					StringBuilder insertQueryAgg = new StringBuilder(
-							"INSERT INTO ");
-					insertQueryAgg.append((String) json.get("keyspace"))
-					.append(".").append(rightJoinAggTable).append(" ( ")
-					.append(joinKeyName + ", ")
-					.append("sum, count, average, min, max")
-					.append(") VALUES (")
-					.append(oldJoinKeyValue + ", ").append(sum)
-					.append(", ").append(count).append(", ")
-					.append(avg).append(", ").append(min).append(", ")
-					.append(max).append(");");
-
-					System.out.println(insertQueryAgg);
-
-					try {
-						Session session = currentCluster.connect();
-						session.execute(insertQueryAgg.toString());
-					} catch (Exception e) {
-						e.printStackTrace();
-						return false;
-					}
-
+					JoinAggregationHelper.UpdateOldRowBySubtracting("list_item2", deltaUpdatedRow, json, rightJoinAggTable, joinKeyName, oldJoinKeyValue, aggColName, oldAggColValue, changeAK);
 				}
 
-				// remove this key inner join aggs, if they exist
-				if (oldRJRow.getMap("list_item1", String.class, String.class)
-						.size() == 1 && !innerJoinAggTable.equals("false")) {
-
-					StringBuilder insertQueryAgg = new StringBuilder(
-							"INSERT INTO ");
-					insertQueryAgg.append((String) json.get("keyspace"))
-					.append(".").append(innerJoinAggTable)
-					.append(" ( ").append(joinKeyName + ", ")
-					.append("sum, count, average, min, max")
-					.append(") VALUES (")
-					.append(oldJoinKeyValue + ", ").append(sum)
-					.append(", ").append(count).append(", ")
-					.append(avg).append(", ").append(min).append(", ")
-					.append(max).append(");");
-
-					System.out.println(insertQueryAgg);
-
-					try {
-						Session session = currentCluster.connect();
-						session.execute(insertQueryAgg.toString());
-					} catch (Exception e) {
-						e.printStackTrace();
-						return false;
-					}
+				if (!oldRJRow.getMap("list_item1", String.class, String.class).isEmpty() && !innerJoinAggTable.equals("false")) {
+					JoinAggregationHelper.UpdateOldRowBySubtracting("list_item2", deltaUpdatedRow, json, innerJoinAggTable, joinKeyName, oldJoinKeyValue, aggColName, oldAggColValue, changeAK);
 				}
-
 			}
 
 			// b - Update new agg key
 
-			if (newRJRow.getMap("list_item2", String.class, String.class)
-					.size() == 1) {
+			if (newRJRow.getMap("list_item2", String.class, String.class).size() == 1) {
 
 				// if(new.list_item1 == 0)
 				// add this key to right table if exist [one item only]
@@ -5860,139 +4663,28 @@ public class ViewManager {
 				String avg = aggColValue;
 				String min = aggColValue;
 				String max = aggColValue;
-				// add this key to right table if exist [one item only]
-				if (!rightJoinAggTable.equals("false") && aggColValue != null
-						&& !aggColValue.equals("null")
-						&& !aggColValue.equals("'null'")) {
-					StringBuilder insertQueryAgg = new StringBuilder(
-							"INSERT INTO ");
-					insertQueryAgg.append((String) json.get("keyspace"))
-					.append(".").append(rightJoinAggTable).append(" ( ")
-					.append(joinKeyName + ", ")
-					.append("sum, count, average, min, max")
-					.append(") VALUES (").append(joinKeyValue + ", ")
-					.append(sum).append(", ").append(count)
-					.append(", ").append(avg).append(", ").append(min)
-					.append(", ").append(max).append(");");
 
-					System.out.println(insertQueryAgg);
+				// add this key to right table if exist [one item only]
+				if (!rightJoinAggTable.equals("false") && aggColValue != null && !aggColValue.equals("null") && !aggColValue.equals("'null'")) {
+					JoinAggregationHelper.insertStatement(Float.valueOf(sum), count, Float.valueOf(avg), Float.valueOf(min), Float.valueOf(max), joinKeyName, joinKeyValue, rightJoinAggTable, json);
 				}
 
 				// add this key to inner table if exist [one item only]
-				if (!newRJRow.getMap("list_item1", String.class, String.class)
-						.isEmpty()) {
-					if (!innerJoinAggTable.equals("false")) {
-						StringBuilder insertQueryAgg = new StringBuilder(
-								"INSERT INTO ");
-						insertQueryAgg.append((String) json.get("keyspace"))
-						.append(".").append(innerJoinAggTable)
-						.append(" ( ").append(joinKeyName + ", ")
-						.append("sum, count, average, min, max")
-						.append(") VALUES (")
-						.append(joinKeyValue + ", ").append(sum)
-						.append(", ").append(count).append(", ")
-						.append(avg).append(", ").append(min)
-						.append(", ").append(max).append(");");
-
-						System.out.println(insertQueryAgg);
-					}
-
+				if (!newRJRow.getMap("list_item1", String.class, String.class).isEmpty() && !innerJoinAggTable.equals("false")) {
+					JoinAggregationHelper.insertStatement(Float.valueOf(sum), count, Float.valueOf(avg), Float.valueOf(min), Float.valueOf(max), joinKeyName, joinKeyValue, innerJoinAggTable, json);
 				}
 
 			} else {
 
-				StringBuilder selectQuery1 = new StringBuilder("SELECT ")
-				.append(joinKeyName).append(", sum, ")
-				.append("count, ").append("average, min, max ");
-				selectQuery1.append(" FROM ")
-				.append((String) json.get("keyspace")).append(".")
-				.append(rightJoinAggTable).append(" where ")
-				.append(joinKeyName + " = ").append(joinKeyValue)
-				.append(";");
 
-				Row theRow = null;
-				try {
-					Session session = currentCluster.connect();
-					theRow = session.execute(selectQuery1.toString()).one();
-				} catch (Exception e) {
-					e.printStackTrace();
-					return false;
+				if (!rightJoinAggTable.equals("false") && aggColValue != null && !aggColValue.equals("null") && !aggColValue.equals("'null'")) {
+					JoinAggregationHelper.updateNewRowByAddingNewElement(joinKeyName, joinKeyValue, json, rightJoinAggTable, aggColValue);
 				}
 
-				Float sum = theRow.getFloat("sum");
-				sum += Float.parseFloat(aggColValue);
-
-				int count = theRow.getInt("count");
-				count++;
-
-				Float avg = sum / (float) count;
-
-				Float min = theRow.getFloat("min");
-
-				if (aggColValue != null && !aggColValue.equals("null")
-						&& !aggColValue.equals("'null'")
-						&& Float.parseFloat(aggColValue) < min) {
-					min = Float.parseFloat(aggColValue);
+				// add this key to inner table if exist [one item only]
+				if (!newRJRow.getMap("list_item1", String.class, String.class).isEmpty() && !innerJoinAggTable.equals("false")) {
+					JoinAggregationHelper.updateNewRowByAddingNewElement(joinKeyName, joinKeyValue, json, innerJoinAggTable, aggColValue);
 				}
-
-				Float max = theRow.getFloat("max");
-
-				if (aggColValue != null && !aggColValue.equals("null")
-						&& !aggColValue.equals("'null'")
-						&& Float.parseFloat(aggColValue) > max) {
-					max = Float.parseFloat(aggColValue);
-				}
-
-				if (!rightJoinAggTable.equals("false")) {
-					StringBuilder insertQueryAgg = new StringBuilder(
-							"INSERT INTO ");
-					insertQueryAgg.append((String) json.get("keyspace"))
-					.append(".").append(rightJoinAggTable).append(" ( ")
-					.append(joinKeyName + ", ")
-					.append("sum, count, average, min, max")
-					.append(") VALUES (").append(joinKeyValue + ", ")
-					.append(sum).append(", ").append(count)
-					.append(", ").append(avg).append(", ").append(min)
-					.append(", ").append(max).append(");");
-
-					System.out.println(insertQueryAgg);
-
-					try {
-						Session session = currentCluster.connect();
-						session.execute(insertQueryAgg.toString());
-					} catch (Exception e) {
-						e.printStackTrace();
-						return false;
-					}
-				}
-
-				if (newRJRow.getMap("list_item1", String.class, String.class)
-						.isEmpty()) {
-					if (!innerJoinAggTable.equals("false")) {
-						StringBuilder insertQueryAgg = new StringBuilder(
-								"INSERT INTO ");
-						insertQueryAgg.append((String) json.get("keyspace"))
-						.append(".").append(innerJoinAggTable)
-						.append(" ( ").append(joinKeyName + ", ")
-						.append("sum, count, average, min, max")
-						.append(") VALUES (")
-						.append(joinKeyValue + ", ").append(sum)
-						.append(", ").append(count).append(", ")
-						.append(avg).append(", ").append(min)
-						.append(", ").append(max).append(");");
-
-						System.out.println(insertQueryAgg);
-
-						try {
-							Session session = currentCluster.connect();
-							session.execute(insertQueryAgg.toString());
-						} catch (Exception e) {
-							e.printStackTrace();
-							return false;
-						}
-					}
-				}
-
 			}
 
 		} else {
@@ -6002,14 +4694,12 @@ public class ViewManager {
 			if (!oldAggColValue.equals(aggColValue)) {
 
 				// updates take place in right_join_agg only
-				if (newRJRow.getMap("list_item1", String.class, String.class)
-						.isEmpty()) {
+				if (newRJRow.getMap("list_item1", String.class, String.class).isEmpty()) {
 
 					if (!rightJoinAggTable.equals("false")) {
 
 						// only one item
-						if (newRJRow.getMap("list_item2", String.class,
-								String.class).size() == 1) {
+						if (newRJRow.getMap("list_item2", String.class,String.class).size() == 1) {
 
 							String sum = aggColValue;
 							int count = 1;
@@ -6017,214 +4707,15 @@ public class ViewManager {
 							String min = aggColValue;
 							String max = aggColValue;
 
-							StringBuilder insertQueryAgg = new StringBuilder(
-									"INSERT INTO ");
-							insertQueryAgg
-							.append((String) json.get("keyspace"))
-							.append(".").append(rightJoinAggTable)
-							.append(" ( ").append(joinKeyName + ", ")
-							.append("sum, count, average, min, max")
-							.append(") VALUES (")
-							.append(joinKeyValue + ", ").append(sum)
-							.append(", ").append(count).append(", ")
-							.append(avg).append(", ").append(min)
-							.append(", ").append(max).append(");");
-
-							System.out.println(insertQueryAgg);
-
-							try {
-								Session session = currentCluster.connect();
-								session.execute(insertQueryAgg.toString());
-							} catch (Exception e) {
-								e.printStackTrace();
-								return false;
-							}
+							JoinAggregationHelper.insertStatement(Float.valueOf(sum), count, Float.valueOf(avg), Float.valueOf(min), Float.valueOf(max), joinKeyName, joinKeyValue, rightJoinAggTable, json);
 
 						}
 						// more than one item --> update
 						else {
-							StringBuilder selectQuery1 = new StringBuilder(
-									"SELECT ").append(joinKeyName)
-									.append(", sum, ").append("count, ")
-									.append("average, min, max ");
-							selectQuery1.append(" FROM ")
-							.append((String) json.get("keyspace"))
-							.append(".").append(rightJoinAggTable)
-							.append(" where ")
-							.append(joinKeyName + " = ")
-							.append(joinKeyValue).append(";");
 
-							Row theRow = null;
-							try {
-								Session session = currentCluster.connect();
-								theRow = session.execute(
-										selectQuery1.toString()).one();
-							} catch (Exception e) {
-								e.printStackTrace();
-								return false;
-							}
-
-							Float sum = theRow.getFloat("sum");
-							if (aggColValue != null
-									&& !aggColValue.equals("null")
-									&& !aggColValue.equals("'null'"))
-								sum += Float.parseFloat(aggColValue);
-
-							if (oldAggColValue != null
-									&& !oldAggColValue.equals("null")
-									&& !oldAggColValue.equals("'null'"))
-								sum -= Float.parseFloat(oldAggColValue);
-
-							int count = theRow.getInt("count");
-							// old = null and new != null
-							if ((oldAggColValue == null
-									|| oldAggColValue.equals("null") || oldAggColValue
-									.equals("'null'"))
-									&& (aggColValue != null
-									|| !aggColValue.equals("null") || !aggColValue
-									.equals("'null'")))
-								count++;
-							else // new = null and old != null
-								if ((oldAggColValue != null
-								|| !oldAggColValue.equals("null") || !oldAggColValue
-								.equals("'null'"))
-								&& (aggColValue == null
-								|| aggColValue.equals("null") || aggColValue
-								.equals("'null'")))
-									count--;
-
-							Float avg = sum / (float) count;
-
-							Float min = theRow.getFloat("min");
-
-							// if newAggCol != null and newAggCol < min
-							if (aggColValue != null
-									&& !aggColValue.equals("null")
-									&& !aggColValue.equals("'null'")
-									&& Float.parseFloat(aggColValue) < min)
-
-								min = Float.parseFloat(aggColValue);
-							// if(oldAggCol == min)
-							else if (oldAggColValue != null
-									&& !oldAggColValue.equals("null")
-									&& !oldAggColValue.equals("'null'")
-									&& Float.parseFloat(oldAggColValue) == min) {
-								// loop on list_item2 to get the new minimum
-
-								Map<String, String> map2 = newRJRow.getMap(
-										"list_item2", String.class,
-										String.class);
-
-								min = Float.MAX_VALUE;
-
-								List<Definition> def = deltaUpdatedRow
-										.getColumnDefinitions().asList();
-
-								int aggColIndexInList = 0;
-
-								for (int i = 0; i < def.size(); i++) {
-									if (def.get(i).getName()
-											.contentEquals(aggColName + "_new")) {
-										break;
-									}
-									if (def.get(i).getName().contains("_new"))
-										aggColIndexInList++;
-								}
-
-								for (Map.Entry<String, String> entry : map2
-										.entrySet()) {
-
-									String list = entry.getValue()
-											.replaceAll("\\[", "")
-											.replaceAll("\\]", "");
-									String[] listArray = list.split(",");
-									Float x = Float
-											.parseFloat(listArray[aggColIndexInList]);
-									if (x < min)
-										min = x;
-
-								}
-
-							}
-
-							Float max = theRow.getFloat("max");
-
-							// if newAggCol != null and newAggCol < min
-							if (aggColValue != null
-									&& !aggColValue.equals("null")
-									&& !aggColValue.equals("'null'")
-									&& Float.parseFloat(aggColValue) > max)
-
-								max = Float.parseFloat(aggColValue);
-							// if(oldAggCol == min)
-							else if (oldAggColValue != null
-									&& !oldAggColValue.equals("null")
-									&& !oldAggColValue.equals("'null'")
-									&& Float.parseFloat(oldAggColValue) == max) {
-								// loop on list_item1 to get the new minimum
-
-								Map<String, String> map2 = newRJRow.getMap(
-										"list_item2", String.class,
-										String.class);
-
-								max = Float.MIN_VALUE;
-
-								List<Definition> def = deltaUpdatedRow
-										.getColumnDefinitions().asList();
-
-								int aggColIndexInList = 0;
-
-								for (int i = 0; i < def.size(); i++) {
-									if (def.get(i).getName()
-											.contentEquals(aggColName + "_new")) {
-										break;
-									}
-									if (def.get(i).getName().contains("_new"))
-										aggColIndexInList++;
-								}
-
-								for (Map.Entry<String, String> entry : map2
-										.entrySet()) {
-
-									String list = entry.getValue()
-											.replaceAll("\\[", "")
-											.replaceAll("\\]", "");
-									String[] listArray = list.split(",");
-									Float x = Float
-											.parseFloat(listArray[aggColIndexInList]);
-									if (x > max)
-										max = x;
-
-								}
-
-							}
-
-							StringBuilder insertQueryAgg = new StringBuilder(
-									"INSERT INTO ");
-							insertQueryAgg
-							.append((String) json.get("keyspace"))
-							.append(".").append(rightJoinAggTable)
-							.append(" ( ").append(joinKeyName + ", ")
-							.append("sum, count, average, min, max")
-							.append(") VALUES (")
-							.append(joinKeyValue + ", ").append(sum)
-							.append(", ").append(count).append(", ")
-							.append(avg).append(", ").append(min)
-							.append(", ").append(max).append(");");
-
-							System.out.println(insertQueryAgg);
-
-							try {
-								Session session = currentCluster.connect();
-								session.execute(insertQueryAgg.toString());
-							} catch (Exception e) {
-								e.printStackTrace();
-								return false;
-							}
-
+							JoinAggregationHelper.updateAggColValueOfNewRow("list_item2", deltaUpdatedRow, newRJRow, json, joinKeyName, joinKeyValue, rightJoinAggTable, aggColName, aggColValue, oldAggColValue,oldRJRow);
 						}
 					}
-
 				}
 				// update takes place in inner and right join aggs
 				else {
@@ -6232,8 +4723,7 @@ public class ViewManager {
 					// join agg, if exists and values for sum,count,..
 					// are calculated for this item only
 
-					if (!rightJoinAggTable.equals("false")
-							|| !innerJoinAggTable.equals("false")) {
+					if (!rightJoinAggTable.equals("false")|| !innerJoinAggTable.equals("false")) {
 
 						// only one item
 						if (newRJRow.getMap("list_item2", String.class,
@@ -6244,362 +4734,50 @@ public class ViewManager {
 							String avg = aggColValue;
 							String min = aggColValue;
 							String max = aggColValue;
+
+							if(!rightJoinAggTable.equals("false")) {
+								JoinAggregationHelper.insertStatement(Float.valueOf(sum), count, Float.valueOf(avg), Float.valueOf(min), Float.valueOf(max), joinKeyName, joinKeyValue, rightJoinAggTable, json);
+							}
+
+							if(!innerJoinAggTable.equals("false")) {
+								JoinAggregationHelper.insertStatement(Float.valueOf(sum), count, Float.valueOf(avg), Float.valueOf(min), Float.valueOf(max), joinKeyName, joinKeyValue, innerJoinAggTable, json);
+							}
+
+						}else { 
 							if (!rightJoinAggTable.equals("false")) {
-								StringBuilder insertQueryAgg = new StringBuilder(
-										"INSERT INTO ");
-								insertQueryAgg
-								.append((String) json.get("keyspace"))
-								.append(".")
-								.append(rightJoinAggTable)
-								.append(" ( ")
-								.append(joinKeyName + ", ")
-								.append("sum, count, average, min, max")
-								.append(") VALUES (")
-								.append(joinKeyValue + ", ")
-								.append(sum).append(", ").append(count)
-								.append(", ").append(avg).append(", ")
-								.append(min).append(", ").append(max)
-								.append(");");
-								System.out.println(insertQueryAgg);
-
-								try {
-									Session session = currentCluster.connect();
-									session.execute(insertQueryAgg.toString());
-								} catch (Exception e) {
-									e.printStackTrace();
-									return false;
-								}
+								JoinAggregationHelper.updateAggColValueOfNewRow("list_item2",deltaUpdatedRow, newRJRow, json, joinKeyName, joinKeyValue, rightJoinAggTable, aggColName, aggColValue, oldAggColValue,oldRJRow);
 							}
+
 							if (!innerJoinAggTable.equals("false")) {
-								StringBuilder insertQueryAgg = new StringBuilder(
-										"INSERT INTO ");
-								insertQueryAgg
-								.append((String) json.get("keyspace"))
-								.append(".")
-								.append(innerJoinAggTable)
-								.append(" ( ")
-								.append(joinKeyName + ", ")
-								.append("sum, count, average, min, max")
-								.append(") VALUES (")
-								.append(joinKeyValue + ", ")
-								.append(sum).append(", ").append(count)
-								.append(", ").append(avg).append(", ")
-								.append(min).append(", ").append(max)
-								.append(");");
-								System.out.println(insertQueryAgg);
-
-								try {
-									Session session = currentCluster.connect();
-									session.execute(insertQueryAgg.toString());
-								} catch (Exception e) {
-									e.printStackTrace();
-									return false;
-								}
+								JoinAggregationHelper.updateAggColValueOfNewRow("list_item2",deltaUpdatedRow, newRJRow, json, joinKeyName, joinKeyValue, innerJoinAggTable, aggColName, aggColValue, oldAggColValue,oldRJRow);
 							}
-
-						}
-						// more than one item --> update
-						else {
-
-							//							StringBuilder selectQuery1 = new StringBuilder(
-							//									"SELECT ").append(joinKeyName)
-							//									.append(", sum, ").append("count, ")
-							//									.append("average, min, max ");
-							//							selectQuery1.append(" FROM ")
-							//							.append((String) json.get("keyspace"))
-							//							.append(".").append(rightJoinAggTable)
-							//							.append(" where ")
-							//							.append(joinKeyName + " = ")
-							//							.append(joinKeyValue).append(";");
-
-							Row theRow = null;
-							//							try {
-							//								Session session = currentCluster.connect();
-							//								theRow = session.execute(
-							//										selectQuery1.toString()).one();
-							//							} catch (Exception e) {
-							//								e.printStackTrace();
-							//								return false;
-							//							}
-							if(!rightJoinAggTable.equals("false"))
-								theRow = JoinAggregationHelper.selectStatement(joinKeyName, joinKeyValue, rightJoinAggTable, json);
-
-							else
-								theRow = JoinAggregationHelper.selectStatement(joinKeyName, joinKeyValue, innerJoinAggTable, json);
-
-
-							Float sum = theRow.getFloat("sum");
-							if (aggColValue != null
-									&& !aggColValue.equals("null")
-									&& !aggColValue.equals("'null'"))
-								sum += Float.parseFloat(aggColValue);
-
-							if (oldAggColValue != null
-									&& !oldAggColValue.equals("null")
-									&& !oldAggColValue.equals("'null'"))
-								sum -= Float.parseFloat(oldAggColValue);
-
-							int count = theRow.getInt("count");
-							// old = null and new != null
-							if ((oldAggColValue == null
-									|| oldAggColValue.equals("null") || oldAggColValue
-									.equals("'null'"))
-									&& (aggColValue != null
-									|| !aggColValue.equals("null") || !aggColValue
-									.equals("'null'")))
-								count++;
-							else // new = null and old != null
-								if ((oldAggColValue != null
-								|| !oldAggColValue.equals("null") || !oldAggColValue
-								.equals("'null'"))
-								&& (aggColValue == null
-								|| aggColValue.equals("null") || aggColValue
-								.equals("'null'")))
-									count--;
-
-							Float avg = sum / (float) count;
-
-							Float min = theRow.getFloat("min");
-
-							// if newAggCol != null and newAggCol < min
-							if (aggColValue != null
-									&& !aggColValue.equals("null")
-									&& !aggColValue.equals("'null'")
-									&& Float.parseFloat(aggColValue) < min)
-
-								min = Float.parseFloat(aggColValue);
-							// if(oldAggCol == min)
-							else if (oldAggColValue != null
-									&& !oldAggColValue.equals("null")
-									&& !oldAggColValue.equals("'null'")
-									&& Float.parseFloat(oldAggColValue) == min) {
-								// loop on list_item2 to get the new minimum
-
-								Map<String, String> map1 = newRJRow.getMap(
-										"list_item2", String.class,
-										String.class);
-
-								min = Float.MAX_VALUE;
-
-								List<Definition> def = deltaUpdatedRow
-										.getColumnDefinitions().asList();
-
-								int aggColIndexInList = 0;
-
-								for (int i = 0; i < def.size(); i++) {
-									if (def.get(i).getName()
-											.contentEquals(aggColName + "_new")) {
-										break;
-									}
-									if (def.get(i).getName().contains("_new"))
-										aggColIndexInList++;
-								}
-
-								for (Map.Entry<String, String> entry : map1
-										.entrySet()) {
-
-									String list = entry.getValue()
-											.replaceAll("\\[", "")
-											.replaceAll("\\]", "");
-									String[] listArray = list.split(",");
-									Float x = Float
-											.parseFloat(listArray[aggColIndexInList]);
-									if (x < min)
-										min = x;
-
-								}
-
-							}
-
-							Float max = theRow.getFloat("max");
-
-							// if newAggCol != null and newAggCol < min
-							if (aggColValue != null
-									&& !aggColValue.equals("null")
-									&& !aggColValue.equals("'null'")
-									&& Float.parseFloat(aggColValue) > max)
-
-								max = Float.parseFloat(aggColValue);
-							// if(oldAggCol == min)
-							else if (oldAggColValue != null
-									&& !oldAggColValue.equals("null")
-									&& !oldAggColValue.equals("'null'")
-									&& Float.parseFloat(oldAggColValue) == max) {
-								// loop on list_item2 to get the new minimum
-
-								Map<String, String> map1 = newRJRow.getMap(
-										"list_item2", String.class,
-										String.class);
-
-								max = Float.MIN_VALUE;
-
-								List<Definition> def = deltaUpdatedRow
-										.getColumnDefinitions().asList();
-
-								int aggColIndexInList = 0;
-
-								for (int i = 0; i < def.size(); i++) {
-									if (def.get(i).getName()
-											.contentEquals(aggColName + "_new")) {
-										break;
-									}
-									if (def.get(i).getName().contains("_new"))
-										aggColIndexInList++;
-								}
-
-								for (Map.Entry<String, String> entry : map1
-										.entrySet()) {
-
-									String list = entry.getValue()
-											.replaceAll("\\[", "")
-											.replaceAll("\\]", "");
-									String[] listArray = list.split(",");
-									Float x = Float
-											.parseFloat(listArray[aggColIndexInList]);
-									if (x > max)
-										max = x;
-
-								}
-
-							}
-
-							if (!rightJoinAggTable.equals("false")) {
-								StringBuilder insertQueryAgg = new StringBuilder(
-										"INSERT INTO ");
-								insertQueryAgg
-								.append((String) json.get("keyspace"))
-								.append(".")
-								.append(rightJoinAggTable)
-								.append(" ( ")
-								.append(joinKeyName + ", ")
-								.append("sum, count, average, min, max")
-								.append(") VALUES (")
-								.append(joinKeyValue + ", ")
-								.append(sum).append(", ").append(count)
-								.append(", ").append(avg).append(", ")
-								.append(min).append(", ").append(max)
-								.append(");");
-								System.out.println(insertQueryAgg);
-
-								try {
-									Session session = currentCluster.connect();
-									session.execute(insertQueryAgg.toString());
-								} catch (Exception e) {
-									e.printStackTrace();
-									return false;
-								}
-							}
-							if (!innerJoinAggTable.equals("false")) {
-								StringBuilder insertQueryAgg = new StringBuilder(
-										"INSERT INTO ");
-								insertQueryAgg
-								.append((String) json.get("keyspace"))
-								.append(".")
-								.append(innerJoinAggTable)
-								.append(" ( ")
-								.append(joinKeyName + ", ")
-								.append("sum, count, average, min, max")
-								.append(") VALUES (")
-								.append(joinKeyValue + ", ")
-								.append(sum).append(", ").append(count)
-								.append(", ").append(avg).append(", ")
-								.append(min).append(", ").append(max)
-								.append(");");
-								System.out.println(insertQueryAgg);
-
-								try {
-									Session session = currentCluster.connect();
-									session.execute(insertQueryAgg.toString());
-								} catch (Exception e) {
-									e.printStackTrace();
-									return false;
-								}
-							}
-
 						}
 					}
-
 				}
-			}
 
+			}
 		}
 
 		return true;
 	}
 
-
-
-
-
-
-
-
-
 	public boolean updateJoinAgg_UpdateLeft_AggColRightSide(
 			String innerJoinAggTable, String rightJoinAggTable,
 			JSONObject json, String joinKeyType, String joinKeyName,
 			String aggColName, String aggColType, int aggColIndexInList) {
-		// TODO Auto-generated method stub
-
-		String joinKeyValue = null;
-		String oldJoinKeyValue = null;
 
 
+		String joinKeyValue = getColumnValueFromDeltaStream(deltaUpdatedRow, joinKeyName, joinKeyType, "_new");
+		String oldJoinKeyValue = getColumnValueFromDeltaStream(deltaUpdatedRow, joinKeyName, joinKeyType, "_old");
 
 		Row newRJRow = getrjUpdatedRow();
 		Row oldRJRow = getReverseJoinUpdateOldRow();
 		Row changeAK = getReverseJoinUpdatedOldRow_changeJoinKey();
 
-		switch (joinKeyType) {
-		case "text":
-
-			joinKeyValue = ("'"
-					+ deltaUpdatedRow.getString(joinKeyName + "_new") + "'");
-			oldJoinKeyValue = ("'"
-					+ deltaUpdatedRow.getString(joinKeyName + "_old") + "'");
-
-			break;
-
-		case "int":
-
-			joinKeyValue = ("" + deltaUpdatedRow.getInt(joinKeyName + "_new"));
-			oldJoinKeyValue = ("" + deltaUpdatedRow
-					.getInt(joinKeyName + "_old"));
-
-			break;
-
-		case "varint":
-
-			joinKeyValue = ("" + deltaUpdatedRow
-					.getVarint(joinKeyName + "_new"));
-			oldJoinKeyValue = ("" + deltaUpdatedRow.getVarint(joinKeyName
-					+ "_old"));
-
-			break;
-
-		case "varchar":
-
-			joinKeyValue = ("" + deltaUpdatedRow
-					.getString(joinKeyName + "_new"));
-			oldJoinKeyValue = ("" + deltaUpdatedRow.getString(joinKeyName
-					+ "_old"));
-
-			break;
-
-		case "float":
-
-			joinKeyValue = ("" + deltaUpdatedRow.getFloat(joinKeyName + "_new"));
-			oldJoinKeyValue = ("" + deltaUpdatedRow.getFloat(joinKeyName
-					+ "_old"));
-
-			break;
-		}
-
 
 		//  change in join/agg Key
 
-		if (!oldJoinKeyValue.equals("null")
-				&& !oldJoinKeyValue.equals("'null'")
+		if (!oldJoinKeyValue.equals("null")&& !oldJoinKeyValue.equals("'null'")
 				&& !joinKeyValue.equals(oldJoinKeyValue)) {
 
 			// if(new.list_tem1 == 1 && new.list_tem2 > 0)
@@ -6607,242 +4785,42 @@ public class ViewManager {
 			// // u can get from the right join agg table if it exists
 			// //otherwise u must loop on new.list_item2
 
-			if (oldRJRow.getMap("list_item1", String.class, String.class)
-					.size() == 1
-					&& !oldRJRow.getMap("list_item2", String.class,
-							String.class).isEmpty()
-							&& !innerJoinAggTable.equals("false")) {
+			if (oldRJRow.getMap("list_item1", String.class, String.class).size() == 1 && !oldRJRow.getMap("list_item2", String.class,String.class).isEmpty()
+					&& !innerJoinAggTable.equals("false")) {
 
-				StringBuilder deleteQuery = new StringBuilder("delete from ");
-				deleteQuery.append((String) json.get("keyspace")).append(".")
-				.append(innerJoinAggTable).append(" WHERE ")
-				.append(joinKeyName + " = ").append(oldJoinKeyValue)
-				.append(";");
-
-				System.out.println(deleteQuery.toString());
-				try {
-
-					Session session = currentCluster.connect();
-					session.execute(deleteQuery.toString());
-
-				} catch (Exception e) {
-					e.printStackTrace();
-					return false;
-				}
-
+				Utils.deleteEntireRowWithPK((String) json.get("keyspace"), innerJoinAggTable, joinKeyName, oldJoinKeyValue);
 			}
 
 			// if(new.list_tem1 == 1 && new.list_tem2 > 0)
 			// add this new key to inner table
 			// u can get from the right join agg table if it exists
 			// otherwise u must loop on new.list_item2
-			if (newRJRow.getMap("list_item1", String.class, String.class)
-					.size() == 1
-					&& !newRJRow.getMap("list_item2", String.class,
-							String.class).isEmpty()
-							&& !innerJoinAggTable.equals("false")) {
+			if (newRJRow.getMap("list_item1", String.class, String.class).size() == 1
+					&& !newRJRow.getMap("list_item2", String.class,String.class).isEmpty() && !innerJoinAggTable.equals("false") && !rightJoinAggTable.equals("false")) {
 
-				if (!rightJoinAggTable.equals("false")) {
-					StringBuilder selectQuery1 = new StringBuilder("SELECT ")
-					.append(joinKeyName).append(", sum, ")
-					.append("count, ").append("average, min, max ");
-					selectQuery1.append(" FROM ")
-					.append((String) json.get("keyspace")).append(".")
-					.append(rightJoinAggTable).append(" where ")
-					.append(joinKeyName + " = ").append(joinKeyValue)
-					.append(";");
+				JoinAggregationHelper.moveRowsToInnerJoinAgg(rightJoinAggTable, innerJoinAggTable, joinKeyName, joinKeyValue, json);
 
-					Row theRow = null;
-					try {
-						Session session = currentCluster.connect();
-						theRow = session.execute(selectQuery1.toString()).one();
-					} catch (Exception e) {
-						e.printStackTrace();
-						return false;
-					}
-
-					Float sum = theRow.getFloat("sum");
-					int count = theRow.getInt("count");
-					Float avg = sum / (float) count;
-					Float min = theRow.getFloat("min");
-					Float max = theRow.getFloat("max");
-
-					StringBuilder insertQueryAgg = new StringBuilder(
-							"INSERT INTO ");
-					insertQueryAgg.append((String) json.get("keyspace"))
-					.append(".").append(innerJoinAggTable)
-					.append(" ( ").append(joinKeyName + ", ")
-					.append("sum, count, average, min, max")
-					.append(") VALUES (").append(joinKeyValue + ", ")
-					.append(sum).append(", ").append(count)
-					.append(", ").append(avg).append(", ").append(min)
-					.append(", ").append(max).append(");");
-					System.out.println(insertQueryAgg);
-
-					try {
-						Session session = currentCluster.connect();
-						session.execute(insertQueryAgg.toString());
-					} catch (Exception e) {
-						e.printStackTrace();
-						return false;
-					}
-
-				} else {
-
-					Float sum = 0.0f;
-
-					int count = 0;
-
-					Float min = Float.MAX_VALUE;
-
-					Float max = Float.MIN_VALUE;
-
-					List<Definition> def = deltaUpdatedRow
-							.getColumnDefinitions().asList();
-
-
-
-
-					Map<String, String> map2 = newRJRow.getMap("list_item2",
-							String.class, String.class);
-
-					for (Map.Entry<String, String> entry : map2.entrySet()) {
-
-						String list = entry.getValue().replaceAll("\\[", "")
-								.replaceAll("\\]", "");
-						String[] listArray = list.split(",");
-						Float x = Float
-								.parseFloat(listArray[aggColIndexInList]); // if
-						// x
-						// is
-						// not
-						// null
-						if (x > max)
-							max = x;
-
-						if (x < min)
-							min = x;
-
-						count++;
-
-						sum += x;
-
-					}
-
-				}
-
+			} else if (newRJRow.getMap("list_item1", String.class, String.class).size() == 1
+					&& !newRJRow.getMap("list_item2", String.class,String.class).isEmpty() && !innerJoinAggTable.equals("false") && rightJoinAggTable.equals("false")) {
+				JoinAggregationHelper.addRowsToInnerJoinAgg("list_item2", deltaUpdatedRow, newRJRow, aggColIndexInList, innerJoinAggTable, json, joinKeyName, joinKeyValue);
 			}
 
 		} else {
 
-			//change in join key
+			//no change in join key
 
-			if (newRJRow.getMap("list_item1", String.class, String.class)
-					.size() == 1
-					&& !newRJRow.getMap("list_item2", String.class,
-							String.class).isEmpty()) {
-
+			if (newRJRow.getMap("list_item1", String.class, String.class).size() == 1
+					&& !newRJRow.getMap("list_item2", String.class,String.class).isEmpty()) {
 				// add this key to the inner table
 				// u can get from the right join agg table if it exists
 				// otherwise u must loop on new.list_item2
+				if (!innerJoinAggTable.equals("false") && !rightJoinAggTable.equals("false") ) {
+					JoinAggregationHelper.moveRowsToInnerJoinAgg(rightJoinAggTable, innerJoinAggTable, joinKeyName, oldJoinKeyValue, json);
 
-				if (!innerJoinAggTable.equals("false")) {
-
-					if (!rightJoinAggTable.equals("false")) {
-						StringBuilder selectQuery1 = new StringBuilder(
-								"SELECT ").append(joinKeyName)
-								.append(", sum, ").append("count, ")
-								.append("average, min, max ");
-						selectQuery1.append(" FROM ")
-						.append((String) json.get("keyspace"))
-						.append(".").append(rightJoinAggTable)
-						.append(" where ").append(joinKeyName + " = ")
-						.append(joinKeyValue).append(";");
-
-						Row theRow = null;
-						try {
-							Session session = currentCluster.connect();
-							theRow = session.execute(selectQuery1.toString())
-									.one();
-						} catch (Exception e) {
-							e.printStackTrace();
-							return false;
-						}
-
-						Float sum = theRow.getFloat("sum");
-						int count = theRow.getInt("count");
-						Float avg = sum / (float) count;
-						Float min = theRow.getFloat("min");
-						Float max = theRow.getFloat("max");
-
-						StringBuilder insertQueryAgg = new StringBuilder(
-								"INSERT INTO ");
-						insertQueryAgg.append((String) json.get("keyspace"))
-						.append(".").append(innerJoinAggTable)
-						.append(" ( ").append(joinKeyName + ", ")
-						.append("sum, count, average, min, max")
-						.append(") VALUES (")
-						.append(joinKeyValue + ", ").append(sum)
-						.append(", ").append(count).append(", ")
-						.append(avg).append(", ").append(min)
-						.append(", ").append(max).append(");");
-						System.out.println(insertQueryAgg);
-
-						try {
-							Session session = currentCluster.connect();
-							session.execute(insertQueryAgg.toString());
-						} catch (Exception e) {
-							e.printStackTrace();
-							return false;
-						}
-					} else {
-
-						Float sum = 0.0f;
-
-						int count = 0;
-
-						Float min = Float.MAX_VALUE;
-
-						Float max = Float.MIN_VALUE;
-
-						List<Definition> def = deltaUpdatedRow
-								.getColumnDefinitions().asList();
-
-
-
-						Map<String, String> map2 = newRJRow.getMap(
-								"list_item2", String.class, String.class);
-
-						for (Map.Entry<String, String> entry : map2.entrySet()) {
-
-							String list = entry.getValue()
-									.replaceAll("\\[", "")
-									.replaceAll("\\]", "");
-							String[] listArray = list.split(",");
-							Float x = Float
-									.parseFloat(listArray[aggColIndexInList]); // if
-							// x
-							// is
-							// not
-							// null
-							if (x > max)
-								max = x;
-
-							if (x < min)
-								min = x;
-
-							count++;
-
-							sum += x;
-
-						}
-
-					}
-
+				}else {
+					JoinAggregationHelper.addRowsToInnerJoinAgg("list_item1", deltaUpdatedRow, newRJRow, aggColIndexInList, innerJoinAggTable, json, joinKeyName, oldJoinKeyValue);
 				}
-
 			}
-
 		}
 
 		return true;
@@ -6854,93 +4832,24 @@ public class ViewManager {
 			String innerJoinAggTable, String leftJoinAggTable,
 			JSONObject json, String joinKeyType, String joinKeyName,
 			String aggColName, String aggColType, int aggColIndexInList) {
-		// TODO Auto-generated method stub
-
-		String joinKeyValue = null;
-		String oldJoinKeyValue = null;
 
 
+		String oldJoinKeyValue = Utils.getColumnValueFromDeltaStream(deltaUpdatedRow, joinKeyName, joinKeyType, "_old");
+		String joinKeyValue = Utils.getColumnValueFromDeltaStream(deltaUpdatedRow, joinKeyName, joinKeyType, "_new");
 
 		Row newRJRow = getrjUpdatedRow();
 		Row oldRJRow = getReverseJoinUpdateOldRow();
 		Row changeAK = getReverseJoinUpdatedOldRow_changeJoinKey();
 
-		switch (joinKeyType) {
-		case "text":
-
-			joinKeyValue = ("'"
-					+ deltaUpdatedRow.getString(joinKeyName + "_new") + "'");
-			oldJoinKeyValue = ("'"
-					+ deltaUpdatedRow.getString(joinKeyName + "_old") + "'");
-
-			break;
-
-		case "int":
-
-			joinKeyValue = ("" + deltaUpdatedRow.getInt(joinKeyName + "_new"));
-			oldJoinKeyValue = ("" + deltaUpdatedRow
-					.getInt(joinKeyName + "_old"));
-
-			break;
-
-		case "varint":
-
-			joinKeyValue = ("" + deltaUpdatedRow
-					.getVarint(joinKeyName + "_new"));
-			oldJoinKeyValue = ("" + deltaUpdatedRow.getVarint(joinKeyName
-					+ "_old"));
-
-			break;
-
-		case "varchar":
-
-			joinKeyValue = ("" + deltaUpdatedRow
-					.getString(joinKeyName + "_new"));
-			oldJoinKeyValue = ("" + deltaUpdatedRow.getString(joinKeyName
-					+ "_old"));
-
-			break;
-
-		case "float":
-
-			joinKeyValue = ("" + deltaUpdatedRow.getFloat(joinKeyName + "_new"));
-			oldJoinKeyValue = ("" + deltaUpdatedRow.getFloat(joinKeyName
-					+ "_old"));
-
-			break;
-		}
-
-
 		//  change in join/agg Key
 
-		if (!oldJoinKeyValue.equals("null")
-				&& !oldJoinKeyValue.equals("'null'")
-				&& !joinKeyValue.equals(oldJoinKeyValue)) {
+		if (!oldJoinKeyValue.equals("null") && !oldJoinKeyValue.equals("'null'") && !joinKeyValue.equals(oldJoinKeyValue)) {
 
+			if (oldRJRow.getMap("list_item2", String.class, String.class).size() == 1
+					&& !oldRJRow.getMap("list_item1", String.class,String.class).isEmpty()
+					&& !innerJoinAggTable.equals("false")) {
 
-
-			if (oldRJRow.getMap("list_item2", String.class, String.class)
-					.size() == 1
-					&& !oldRJRow.getMap("list_item1", String.class,
-							String.class).isEmpty()
-							&& !innerJoinAggTable.equals("false")) {
-
-				StringBuilder deleteQuery = new StringBuilder("delete from ");
-				deleteQuery.append((String) json.get("keyspace")).append(".")
-				.append(innerJoinAggTable).append(" WHERE ")
-				.append(joinKeyName + " = ").append(oldJoinKeyValue)
-				.append(";");
-
-				System.out.println(deleteQuery.toString());
-				try {
-
-					Session session = currentCluster.connect();
-					session.execute(deleteQuery.toString());
-
-				} catch (Exception e) {
-					e.printStackTrace();
-					return false;
-				}
+				Utils.deleteEntireRowWithPK((String) json.get("keyspace"), innerJoinAggTable, joinKeyName, oldJoinKeyValue);
 
 			}
 
@@ -6948,210 +4857,34 @@ public class ViewManager {
 			// add this new key to inner table
 			// u can get from the left join agg table if it exists
 			// otherwise u must loop on new.list_item2
-			if (newRJRow.getMap("list_item2", String.class, String.class)
-					.size() == 1
-					&& !newRJRow.getMap("list_item1", String.class,
-							String.class).isEmpty()
-							&& !innerJoinAggTable.equals("false")) {
+			if (newRJRow.getMap("list_item2", String.class, String.class).size() == 1
+					&& !newRJRow.getMap("list_item1", String.class,	String.class).isEmpty()
+					&& !innerJoinAggTable.equals("false") && !leftJoinAggTable.equals("false")) {
 
-				if (!leftJoinAggTable.equals("false")) {
-					StringBuilder selectQuery1 = new StringBuilder("SELECT ")
-					.append(joinKeyName).append(", sum, ")
-					.append("count, ").append("average, min, max ");
-					selectQuery1.append(" FROM ")
-					.append((String) json.get("keyspace")).append(".")
-					.append(leftJoinAggTable).append(" where ")
-					.append(joinKeyName + " = ").append(joinKeyValue)
-					.append(";");
+				JoinAggregationHelper.moveRowsToInnerJoinAgg(leftJoinAggTable, innerJoinAggTable, joinKeyName, joinKeyValue, json);
 
-					Row theRow = null;
-					try {
-						Session session = currentCluster.connect();
-						theRow = session.execute(selectQuery1.toString()).one();
-					} catch (Exception e) {
-						e.printStackTrace();
-						return false;
-					}
+			} else if(newRJRow.getMap("list_item2", String.class, String.class).size() == 1
+					&& !newRJRow.getMap("list_item1", String.class,	String.class).isEmpty()
+					&& !innerJoinAggTable.equals("false") && leftJoinAggTable.equals("false")) {
 
-					Float sum = theRow.getFloat("sum");
-					int count = theRow.getInt("count");
-					Float avg = sum / (float) count;
-					Float min = theRow.getFloat("min");
-					Float max = theRow.getFloat("max");
-
-					StringBuilder insertQueryAgg = new StringBuilder(
-							"INSERT INTO ");
-					insertQueryAgg.append((String) json.get("keyspace"))
-					.append(".").append(innerJoinAggTable)
-					.append(" ( ").append(joinKeyName + ", ")
-					.append("sum, count, average, min, max")
-					.append(") VALUES (").append(joinKeyValue + ", ")
-					.append(sum).append(", ").append(count)
-					.append(", ").append(avg).append(", ").append(min)
-					.append(", ").append(max).append(");");
-					System.out.println(insertQueryAgg);
-
-					try {
-						Session session = currentCluster.connect();
-						session.execute(insertQueryAgg.toString());
-					} catch (Exception e) {
-						e.printStackTrace();
-						return false;
-					}
-
-				} else {
-
-					Float sum = 0.0f;
-
-					int count = 0;
-
-					Float min = Float.MAX_VALUE;
-
-					Float max = Float.MIN_VALUE;
-
-					List<Definition> def = deltaUpdatedRow
-							.getColumnDefinitions().asList();
-
-
-
-
-					Map<String, String> map1 = newRJRow.getMap("list_item1",
-							String.class, String.class);
-
-					for (Map.Entry<String, String> entry : map1.entrySet()) {
-
-						String list = entry.getValue().replaceAll("\\[", "")
-								.replaceAll("\\]", "");
-						String[] listArray = list.split(",");
-						Float x = Float
-								.parseFloat(listArray[aggColIndexInList]); // if
-						// x
-						// is
-						// not
-						// null
-						if (x > max)
-							max = x;
-
-						if (x < min)
-							min = x;
-
-						count++;
-
-						sum += x;
-
-					}
-
-				}
-
+				JoinAggregationHelper.addRowsToInnerJoinAgg("list_item1", deltaUpdatedRow, newRJRow, aggColIndexInList, innerJoinAggTable, json, joinKeyName, joinKeyValue);
 			}
 
 		} else {
 
 			// no change in join key
 
-			if (newRJRow.getMap("list_item2", String.class, String.class)
-					.size() == 1
-					&& !newRJRow.getMap("list_item1", String.class,
-							String.class).isEmpty()) {
-
+			if (newRJRow.getMap("list_item2", String.class, String.class).size() == 1
+					&& !newRJRow.getMap("list_item1", String.class,String.class).isEmpty()) {
 				// add this key to the inner table
 				// u can get from the right join agg table if it exists
 				// otherwise u must loop on new.list_item2
-
-				if (!innerJoinAggTable.equals("false")) {
-
-					if (!leftJoinAggTable.equals("false")) {
-						StringBuilder selectQuery1 = new StringBuilder(
-								"SELECT ").append(joinKeyName)
-								.append(", sum, ").append("count, ")
-								.append("average, min, max ");
-						selectQuery1.append(" FROM ")
-						.append((String) json.get("keyspace"))
-						.append(".").append(leftJoinAggTable)
-						.append(" where ").append(joinKeyName + " = ")
-						.append(joinKeyValue).append(";");
-
-						Row theRow = null;
-						try {
-							Session session = currentCluster.connect();
-							theRow = session.execute(selectQuery1.toString())
-									.one();
-						} catch (Exception e) {
-							e.printStackTrace();
-							return false;
-						}
-
-						Float sum = theRow.getFloat("sum");
-						int count = theRow.getInt("count");
-						Float avg = sum / (float) count;
-						Float min = theRow.getFloat("min");
-						Float max = theRow.getFloat("max");
-
-						StringBuilder insertQueryAgg = new StringBuilder(
-								"INSERT INTO ");
-						insertQueryAgg.append((String) json.get("keyspace"))
-						.append(".").append(innerJoinAggTable)
-						.append(" ( ").append(joinKeyName + ", ")
-						.append("sum, count, average, min, max")
-						.append(") VALUES (")
-						.append(joinKeyValue + ", ").append(sum)
-						.append(", ").append(count).append(", ")
-						.append(avg).append(", ").append(min)
-						.append(", ").append(max).append(");");
-						System.out.println(insertQueryAgg);
-
-						try {
-							Session session = currentCluster.connect();
-							session.execute(insertQueryAgg.toString());
-						} catch (Exception e) {
-							e.printStackTrace();
-							return false;
-						}
-					} else {
-
-						Float sum = 0.0f;
-
-						int count = 0;
-
-						Float min = Float.MAX_VALUE;
-
-						Float max = Float.MIN_VALUE;
-
-
-
-						Map<String, String> map1 = newRJRow.getMap(
-								"list_item1", String.class, String.class);
-
-						for (Map.Entry<String, String> entry : map1.entrySet()) {
-
-							String list = entry.getValue()
-									.replaceAll("\\[", "")
-									.replaceAll("\\]", "");
-							String[] listArray = list.split(",");
-							Float x = Float
-									.parseFloat(listArray[aggColIndexInList]); // if
-							// x
-							// is
-							// not
-							// null
-							if (x > max)
-								max = x;
-
-							if (x < min)
-								min = x;
-
-							count++;
-
-							sum += x;
-
-						}
-
-					}
-
+				if (!innerJoinAggTable.equals("false") && !leftJoinAggTable.equals("false")) {
+					JoinAggregationHelper.moveRowsToInnerJoinAgg(leftJoinAggTable, innerJoinAggTable, joinKeyName, joinKeyValue, json);
+				}else{
+					JoinAggregationHelper.addRowsToInnerJoinAgg("list_item1", deltaUpdatedRow, newRJRow, aggColIndexInList, innerJoinAggTable, json, joinKeyName, joinKeyValue);
 				}
-
 			}
-
 		}
 
 		return true;
@@ -7410,7 +5143,7 @@ public class ViewManager {
 					}
 				}
 			}
-			
+
 		} else {
 			// Case No change in join Key or Case of first insertion
 
@@ -7937,7 +5670,7 @@ public class ViewManager {
 			}
 		}
 
-		return true;	
+		return true;
 	}
 
 	public Boolean deleteJoinAgg_DeleteLeft_AggColRightSide_GroupBy(

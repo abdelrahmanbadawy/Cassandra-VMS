@@ -1156,15 +1156,15 @@ public class ViewManagerController {
 
 					if (updateLeft) {
 
-						/*vm.updateJoinAgg_UpdateLeft_AggColLeftSide(
+						vm.updateJoinAgg_UpdateLeft_AggColLeftSide(
 								innerJoinAggTable, leftJoinAggTable, json,
 								joinKeyType, joinKeyName, aggColName,
-								aggColType);*/
+								aggColType);
 					} else {
-						/*vm.updateJoinAgg_UpdateRight_AggColLeftSide(
+						vm.updateJoinAgg_UpdateRight_AggColLeftSide(
 								innerJoinAggTable, leftJoinAggTable, json,
 								joinKeyType, joinKeyName, aggColName,
-								aggColType, index);*/
+								aggColType, index);
 					}
 
 				}
@@ -1205,16 +1205,16 @@ public class ViewManagerController {
 									+ ").index");
 
 					if (updateLeft) {
-						/*vm.updateJoinAgg_UpdateLeft_AggColRightSide(
+						vm.updateJoinAgg_UpdateLeft_AggColRightSide(
 								innerJoinAggTable, rightJoinAggTable, json,
 								joinKeyType, joinKeyName, aggColName,
-								aggColType, index);*/
+								aggColType, index);
 					} else {
 
-					/*	vm.updateJoinAgg_UpdateRight_AggColRightSide(
+						vm.updateJoinAgg_UpdateRight_AggColRightSide(
 								innerJoinAggTable, rightJoinAggTable, json,
 								joinKeyType, joinKeyName, aggColName,
-								aggColType);*/
+								aggColType);
 					}
 
 				}
@@ -2242,10 +2242,10 @@ public class ViewManagerController {
 									aggColType);
 						} else {
 							
-							vm.deleteJoinAgg_DeleteLeft_AggColRightSide(
+						/*	vm.deleteJoinAgg_DeleteLeft_AggColRightSide(
 									innerJoinAggTable, leftJoinAggTable, json,
 									joinKeyType, joinKeyName, aggColName,
-									aggColType);
+									aggColType);*/
 						}
 
 					}
