@@ -112,14 +112,13 @@ public class ViewManager {
 		updatedPreaggRowChangeAK = row;
 	}
 
-	public boolean updateDelta(JSONObject json, int indexBaseTableName,
+	public boolean updateDelta(Stream stream,JSONObject json, int indexBaseTableName,
 			String baseTablePrimaryKey) {
 
 		// retrieve values from json
 		String table = (String) json.get("table");
 		String keyspace = (String) json.get("keyspace");
 		JSONObject data = (JSONObject) json.get("data");
-		boolean firstInsertion = false;
 
 		Set<?> keySet = data.keySet();
 		Iterator<?> keySetIterator = keySet.iterator();
@@ -150,26 +149,9 @@ public class ViewManager {
 		// 1. Retrieve from the delta table the _new column values of columns
 		// retrieved from json having the baseTablePrimaryKey
 
-		StringBuilder selectQuery = new StringBuilder("SELECT ")
-		.append(selectStatement_new);
-		selectQuery.append(" FROM ").append(keyspace).append(".")
-		.append("delta_" + table).append(" WHERE ")
-		.append(baseTablePrimaryKey + " = ")
-		.append(data.get(baseTablePrimaryKey) + " ;");
-
-		System.out.println(selectQuery);
-
-		ResultSet previousCol_newValues;
-
-		try {
-			Session session = currentCluster.connect();
-			previousCol_newValues = session.execute(selectQuery.toString());
-		} catch (Exception e) {
-			e.printStackTrace();
-			return false;
-		}
-
-		Row theRow = previousCol_newValues.one();
+		ResultSet result = Utils.selectStatement(selectStatement_new.toString(), keyspace, table, baseTablePrimaryKey, data.get(baseTablePrimaryKey).toString());
+		
+		Row theRow = result.one();
 		StringBuilder insertQueryAgg = new StringBuilder();
 
 		// 2. If the row retrieved is empty, then this is a new insertion
@@ -179,20 +161,9 @@ public class ViewManager {
 
 		if (theRow == null) {
 
-			insertQueryAgg = new StringBuilder("INSERT INTO ");
-			insertQueryAgg.append(keyspace).append(".")
-			.append("delta_" + table).append(" ( ")
-			.append(selectStatement_new).append(") VALUES (");
-
-			for (String s : selectStatement_new_values) {
-				insertQueryAgg.append(s).append(", ");
-			}
-
-			insertQueryAgg.deleteCharAt(insertQueryAgg.length() - 2);
-
-			System.out.println(insertQueryAgg);
-
-			firstInsertion = true;
+			// 3. Execute insertion statement in delta
+			org.apache.commons.lang.StringUtils.join(selectStatement_new_values,", ");
+			Utils.insertStatement(keyspace,"delta_"+ table,selectStatement_new.toString(), selectStatement_new_values.toString().replace("[", "").replace("]",""));
 
 		} else {
 
@@ -202,21 +173,15 @@ public class ViewManager {
 			// columns
 			// 3.b the _old columns will have the retrieved values from 3.
 
-			insertQueryAgg = new StringBuilder("INSERT INTO ");
-			insertQueryAgg.append(keyspace).append(".")
-			.append("delta_" + table + " (")
-			.append(selectStatement_new).append(", ")
-			.append(selectStatement_old).append(") VALUES (");
-
 			Iterator<?> keySetIterator1 = keySet.iterator();
 
 			while (keySetIterator1.hasNext()) {
 				String key = (String) keySetIterator1.next();
 				insertQueryAgg.append(data.get(key).toString()).append(", ");
 			}
-
 			insertQueryAgg.deleteCharAt(insertQueryAgg.length() - 2);
 
+			
 			int nrColumns = theRow.getColumnDefinitions().size();
 
 			for (int i = 0; i < nrColumns; i++) {
@@ -260,103 +225,42 @@ public class ViewManager {
 
 				}
 			}
+			
+			// 4. Execute insertion statement in delta
+			Utils.insertStatement(keyspace,"delta_"+ table,selectStatement_new.toString()+", "+selectStatement_old, insertQueryAgg.toString());
+			
 		}
-
-		// 4. Execute insertion statement in delta
-		try {
-			insertQueryAgg.append(");");
-			Session session = currentCluster.connect();
-			session.execute(insertQueryAgg.toString());
-			System.out.println(insertQueryAgg.toString());
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			return false;
-		}
-
+		
 		System.out.println("Done Delta update");
 
 		// 5. get the entire row from delta where update has happened
 		// 5.a save the row and send bk to controller
 
-		StringBuilder selectQuery1 = new StringBuilder("SELECT * ")
-		.append(" FROM ").append(keyspace).append(".")
-		.append("delta_" + table).append(" WHERE ")
-		.append(baseTablePrimaryKey + " = ")
-		.append(data.get(baseTablePrimaryKey) + " ;");
-
-		System.out.println(selectQuery1);
-
-		try {
-			Session session = currentCluster.connect();
-			setDeltaUpdatedRow(session.execute(selectQuery1.toString()).one());
-		} catch (Exception e) {
-			e.printStackTrace();
-			return false;
-		}
-
-		firstInsertion = false;
-
+		Row row = Utils.selectAllStatement(keyspace, "delta_"+table, baseTablePrimaryKey, data.get(baseTablePrimaryKey).toString());
+		stream.setDeltaUpdatedRow(row);
+		
+		//TO BE REMOVED
+		setDeltaUpdatedRow(row);
+		
 		return true;
-
 	}
 
-	public boolean deleteRowDelta(JSONObject json) {
+	public boolean deleteRowDelta(Stream stream,JSONObject json) {
 
 		JSONObject condition = (JSONObject) json.get("condition");
 		Object[] hm = condition.keySet().toArray();
 
 		// 1. retrieve the row to be deleted from delta table
-
-		StringBuilder selectQuery = new StringBuilder("SELECT *");
-		selectQuery.append(" FROM ").append(json.get("keyspace")).append(".")
-		.append("delta_" + json.get("table")).append(" WHERE ")
-		.append(hm[0]).append(" = ")
-		.append(condition.get(hm[0]) + " ;");
-
-		System.out.println(selectQuery);
-
-		ResultSet selectionResult;
-
-		try {
-
-			Session session = currentCluster.connect();
-			selectionResult = session.execute(selectQuery.toString());
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			return false;
-		}
-
+		Row row = Utils.selectAllStatement((String)json.get("keyspace"), "delta_" + json.get("table"), hm[0].toString(), condition.get(hm[0]).toString());
+		
 		// 2. set DeltaDeletedRow variable for streaming
-		setDeltaDeletedRow(selectionResult.one());
+		stream.setDeltaDeletedRow(row);
+		//TO BE REMOVED
+		setDeltaDeletedRow(row);
 
 		// 3. delete row from delta
-
-		StringBuilder deleteQuery = new StringBuilder("DELETE FROM ");
-		deleteQuery.append(json.get("keyspace")).append(".")
-		.append("delta_" + json.get("table")).append(" WHERE ");
-
-		Object[] hm1 = condition.keySet().toArray();
-
-		for (int i = 0; i < hm1.length; i++) {
-			deleteQuery.append(hm1[i]).append(" = ")
-			.append(condition.get(hm1[i]));
-			deleteQuery.append(";");
-		}
-
-		System.out.println(deleteQuery);
-
-		ResultSet deleteResult;
-		try {
-
-			Session session = currentCluster.connect();
-			deleteResult = session.execute(deleteQuery.toString());
-		} catch (Exception e) {
-			e.printStackTrace();
-			return false;
-		}
-
+		Utils.deleteEntireRowWithPK((String)json.get("keyspace"), "delta_" + json.get("table"),  hm[0].toString(), condition.get(hm[0]).toString());
+		
 		System.out.println("Delete Successful from Delta Table");
 
 		return true;

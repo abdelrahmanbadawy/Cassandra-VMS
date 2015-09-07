@@ -5,6 +5,7 @@ import java.math.BigInteger;
 import client.client.XmlHandler;
 
 import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.policies.DCAwareRoundRobinPolicy;
@@ -46,7 +47,72 @@ public class Utils {
 		return true;
 	}
 
+	public static Row selectAllStatement(String keyspace,String table,String pk,String pkValue ){
 
+		StringBuilder selectQuery1 = new StringBuilder("SELECT * ")
+		.append(" FROM ").append(keyspace).append(".")
+		.append(table).append(" WHERE ")
+		.append(pk + " = ")
+		.append(pkValue + " ;");
+
+		System.out.println(selectQuery1);
+
+		ResultSet rs = null;
+		try {
+			Session session = currentCluster.connect();
+			rs = session.execute(selectQuery1.toString());
+		} catch (Exception e) {
+			e.printStackTrace();
+
+		}
+
+		return rs.one();
+	}
+
+
+	public static ResultSet selectStatement(String selectColNames,String keyspace,String table, String pk, String pkValue){
+
+		StringBuilder selectQuery = new StringBuilder("SELECT ")
+		.append(selectColNames);
+		selectQuery.append(" FROM ").append(keyspace).append(".")
+		.append("delta_" + table).append(" WHERE ")
+		.append(pk + " = ")
+		.append(pkValue + " ;");
+
+		System.out.println(selectQuery);
+
+		ResultSet result = null;
+
+		try {
+			Session session = currentCluster.connect();
+			result = session.execute(selectQuery.toString());
+		} catch (Exception e) {
+			e.printStackTrace();
+
+		}
+
+		return result;
+	}
+
+	
+	
+	public static void insertStatement(String keyspace,String table, String colNames, String colValues){
+		
+		StringBuilder insertQueryAgg = new StringBuilder("INSERT INTO ");
+		insertQueryAgg.append(keyspace).append(".")
+		.append(table).append(" ( ").append(colNames).append(") VALUES (").append(colValues).append(" );");
+
+		System.out.println(insertQueryAgg);
+		
+		try {
+			Session session = currentCluster.connect();
+			session.execute(insertQueryAgg.toString());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	
 	//evaluates a condition
 	public static boolean evaluateCondition(Row row, String operation, String value,
 			String type, String colName) {

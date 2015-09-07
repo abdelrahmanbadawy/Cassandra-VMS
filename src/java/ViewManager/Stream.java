@@ -24,9 +24,19 @@ public class Stream {
 	private Row leftOrRightJoinAggNewRow;
 	private Row leftOrRightJoinAggDeleteRow;
 
+	//Delta
+	private Row deltaUpdatedRow;
+	private Row deltaDeletedRow;
+
 	public Stream() {
 		resetJoinAggGroupByUpRows();
 		resetJoinAggRows();
+		resetDeltaRows();
+	}
+
+	private void resetDeltaRows() {
+		deltaUpdatedRow = null;
+		deltaDeletedRow = null;
 	}
 
 	public void resetJoinAggRows() {
@@ -190,6 +200,22 @@ public class Stream {
 	public void setLeftOrRightJoinAggDeleteRow(
 			Row leftOrRightJoinAggGroupDeleteRow) {
 		this.leftOrRightJoinAggDeleteRow = leftOrRightJoinAggGroupDeleteRow;
+	}
+
+	public Row getDeltaUpdatedRow() {
+		return deltaUpdatedRow;
+	}
+
+	public void setDeltaUpdatedRow(Row deltaUpdatedRow) {
+		this.deltaUpdatedRow = deltaUpdatedRow;
+	}
+
+	public Row getDeltaDeletedRow() {
+		return deltaDeletedRow;
+	}
+
+	public void setDeltaDeletedRow(Row deltaDeletedRow) {
+		this.deltaDeletedRow = deltaDeletedRow;
 	}
 
 

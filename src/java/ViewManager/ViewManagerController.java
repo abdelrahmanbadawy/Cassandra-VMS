@@ -125,8 +125,7 @@ public class ViewManagerController {
 
 		// get position of basetable from xml list
 		// retrieve pk of basetable and delta from XML mapping file
-		int indexBaseTableName = baseTableName.indexOf((String) json
-				.get("table"));
+		int indexBaseTableName = baseTableName.indexOf((String) json.get("table"));
 		String baseTablePrimaryKey = pkName.get(indexBaseTableName);
 		String baseTablePrimaryKeyType = pkType.get(indexBaseTableName);
 
@@ -136,7 +135,7 @@ public class ViewManagerController {
 		// 1.a If successful, retrieve entire updated Row from Delta to pass on
 		// as streams
 
-		if (vm.updateDelta(json, indexBaseTableName, baseTablePrimaryKey)) {
+		if (vm.updateDelta(stream,json, indexBaseTableName, baseTablePrimaryKey)) {
 			deltaUpdatedRow = vm.getDeltaUpdatedRow();
 		}
 
@@ -1676,7 +1675,7 @@ public class ViewManagerController {
 		// 1.a If successful, retrieve entire delta Row from Delta to pass on as
 		// streams
 		if (deleteOperation) {
-			if (vm.deleteRowDelta(json)) {
+			if (vm.deleteRowDelta(stream,json)) {
 				deltaDeletedRow = vm.getDeltaDeletedRow();
 			}
 		} else
