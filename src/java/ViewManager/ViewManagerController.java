@@ -147,8 +147,7 @@ public class ViewManagerController {
 		// also compare old values of selection condition, if they have changed
 		// then delete row from table
 
-		int position1 = deltaTableName.indexOf("delta_"
-				+ (String) json.get("table"));
+		int position1 = deltaTableName.indexOf("delta_" + (String) json.get("table"));
 
 		if (position1 != -1) {
 
@@ -167,9 +166,6 @@ public class ViewManagerController {
 
 				String nrAnd = VmXmlHandler.getInstance()
 						.getDeltaSelectionMapping().getString(s + ".nrAnd");
-
-				boolean eval = true;
-				boolean eval_old = true;
 
 				for (int j = 0; j < Integer.parseInt(nrAnd); j++) {
 
@@ -191,184 +187,31 @@ public class ViewManagerController {
 							.getDeltaSelectionMapping()
 							.getString(s11 + ".selectionCol");
 
-					switch (type) {
+					boolean myEval = true;
+					boolean myEval_old = true;
+					myEval &= Utils.evaluateCondition(stream.getDeltaUpdatedRow(), operation, value, type, selColName+"_new");
+					myEval &= Utils.evaluateCondition(stream.getDeltaUpdatedRow(), operation, value, type, selColName+"_old");
 
-					case "text":
+					// if condition matching now & matched before
+					if (myEval && myEval_old) {
+						vm.updateSelection(stream.getDeltaUpdatedRow(),
+								(String) json.get("keyspace"), selecTable,
+								baseTablePrimaryKey);
 
-						if (operation.equals("=")) {
-							if (deltaUpdatedRow.getString(selColName + "_new")
-									.equals(value)) {
-								eval &= true;
-							} else {
-								eval &= false;
-							}
+						// if matching now & not matching before
+					} else if (myEval && !myEval_old) {
+						vm.updateSelection(stream.getDeltaUpdatedRow(),
+								(String) json.get("keyspace"), selecTable,
+								baseTablePrimaryKey);
 
-							if (deltaUpdatedRow.getString(selColName + "_old") == null) {
-								eval_old = false;
-							} else if (deltaUpdatedRow.getString(
-									selColName + "_old").equals(value)) {
-								eval_old &= true;
-							} else {
-								eval_old &= false;
-							}
-						} else if (operation.equals("!=")) {
-							if (!deltaUpdatedRow.getString(selColName + "_new")
-									.equals(value)) {
-								eval = true;
-							} else {
-								eval = false;
-							}
+						// if not matching now & matching before
+					} else if (!myEval && myEval_old) {
+						vm.deleteRowSelection(stream.getDeltaUpdatedRow(),
+								(String) json.get("keyspace"), selecTable,
+								baseTablePrimaryKey, json);
 
-							if (deltaUpdatedRow.getString(selColName + "_old") == null) {
-								eval_old = false;
-							} else if (!deltaUpdatedRow.getString(
-									selColName + "_old").equals(value)) {
-								eval_old &= true;
-							} else {
-								eval_old &= false;
-							}
-						}
-
-						break;
-
-					case "varchar":
-
-						if (operation.equals("=")) {
-							if (deltaUpdatedRow.getString(selColName + "_new")
-									.equals(value)) {
-								eval &= true;
-							} else {
-								eval &= false;
-							}
-
-							if (deltaUpdatedRow.getString(selColName + "_old") == null) {
-								eval_old = false;
-							} else if (deltaUpdatedRow.getString(
-									selColName + "_old").equals(value)) {
-								eval_old &= true;
-							} else {
-								eval_old &= false;
-							}
-						} else if (operation.equals("!=")) {
-							if (!deltaUpdatedRow.getString(selColName + "_new")
-									.equals(value)) {
-								eval &= true;
-							} else {
-								eval &= false;
-							}
-
-							if (deltaUpdatedRow.getString(selColName + "_old") == null) {
-								eval_old = false;
-							} else if (!deltaUpdatedRow.getString(
-									selColName + "_old").equals(value)) {
-								eval_old &= true;
-							} else {
-								eval_old &= false;
-							}
-						}
-
-						break;
-
-					case "int":
-
-						// for _new col
-						String s1 = Integer.toString(deltaUpdatedRow
-								.getInt(selColName + "_new"));
-						Integer valueInt = new Integer(s1);
-						int compareValue = valueInt
-								.compareTo(new Integer(value));
-
-						if ((operation.equals(">") && (compareValue > 0))) {
-							eval &= true;
-						} else if ((operation.equals("<") && (compareValue < 0))) {
-							eval &= true;
-						} else if ((operation.equals("=") && (compareValue == 0))) {
-							eval &= true;
-						} else {
-							eval &= false;
-						}
-
-						// for _old col
-
-						int v = deltaUpdatedRow.getInt(selColName + "_old");
-						compareValue = valueInt.compareTo(new Integer(v));
-
-						if ((operation.equals(">") && (compareValue > 0))) {
-							eval_old &= true;
-						} else if ((operation.equals("<") && (compareValue < 0))) {
-							eval_old &= true;
-						} else if ((operation.equals("=") && (compareValue == 0))) {
-							eval_old &= true;
-						} else {
-							eval_old &= false;
-						}
-
-						break;
-
-					case "varint":
-
-						// for _new col
-						s1 = deltaUpdatedRow.getVarint(selColName + "_new")
-						.toString();
-						valueInt = new Integer(new BigInteger(s1).intValue());
-						compareValue = valueInt.compareTo(new Integer(value));
-
-						if ((operation.equals(">") && (compareValue > 0))) {
-							eval &= true;
-						} else if ((operation.equals("<") && (compareValue < 0))) {
-							eval &= true;
-						} else if ((operation.equals("=") && (compareValue == 0))) {
-							eval &= true;
-						} else {
-							eval &= false;
-						}
-
-						// for _old col
-						BigInteger bigInt = deltaUpdatedRow
-								.getVarint(selColName + "_old");
-						if (bigInt != null) {
-							valueInt = bigInt.intValue();
-						} else {
-							valueInt = 0;
-						}
-						compareValue = valueInt.compareTo(new Integer(value));
-
-						if ((operation.equals(">") && (compareValue > 0))) {
-							eval_old &= true;
-						} else if ((operation.equals("<") && (compareValue < 0))) {
-							eval_old &= true;
-						} else if ((operation.equals("=") && (compareValue == 0))) {
-							eval_old &= true;
-						} else {
-							eval_old &= false;
-						}
-
-						break;
-
-					case "float":
-						break;
+						// if not matching now & not before, ignore
 					}
-				}
-
-				// if condition matching now & matched before
-				if (eval && eval_old) {
-					vm.updateSelection(deltaUpdatedRow,
-							(String) json.get("keyspace"), selecTable,
-							baseTablePrimaryKey);
-
-					// if matching now & not matching before
-				} else if (eval && !eval_old) {
-					vm.updateSelection(deltaUpdatedRow,
-							(String) json.get("keyspace"), selecTable,
-							baseTablePrimaryKey);
-
-					// if not matching now & matching before
-				} else if (!eval && eval_old) {
-					vm.deleteRowSelection(vm.getDeltaUpdatedRow(),
-							(String) json.get("keyspace"), selecTable,
-							baseTablePrimaryKey, json);
-
-					// if not matching now & not before, ignore
 				}
 			}
 		}
@@ -2224,7 +2067,7 @@ public class ViewManagerController {
 									innerJoinAggTable, json, joinKeyType,
 									joinKeyName, aggColName, aggColType);
 						}
-						
+
 						if(!leftJoinAggTable.equals("false")){
 							evaluateLeftorRightJoinAggHaving(temp,"leftAggColumns", e, json,"left");
 						}
@@ -2288,7 +2131,7 @@ public class ViewManagerController {
 									aggColType);
 
 						}
-						
+
 						if(!rightJoinAggTable.equals("false")){
 							evaluateLeftorRightJoinAggHaving(temp,"rightAggColumns", e, json,"right");
 						}
@@ -2409,7 +2252,7 @@ public class ViewManagerController {
 										json, aggKeyType, aggKey, aggColName,
 										aggColType, AggKeyIndex, index);
 							}
-							
+
 
 							//evalute Left Having
 							if(!leftJoinAggTable.equals("false")){							
@@ -2505,7 +2348,7 @@ public class ViewManagerController {
 										json, aggKeyType, aggKey, aggColName,
 										aggColType);
 							}
-							
+
 							//evalute Left Having
 							if(!rightJoinAggTable.equals("false")){							
 								evaluateLeftorRightJoinAggGroupByHaving(i,e,temp,json,"right");
@@ -2530,6 +2373,6 @@ public class ViewManagerController {
 		}
 	}
 
-	
+
 
 }

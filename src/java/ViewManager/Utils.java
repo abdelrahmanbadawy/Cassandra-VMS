@@ -128,14 +128,20 @@ public class Utils {
 		case "text":
 
 			if (operation.equals("=")) {
-				if (row.getString(colName).equals(value)) {
+				
+				if(row.isNull(colName)){
+					eval = false;
+				}else if (row.getString(colName).equals(value)) {
 					eval &= true;
 				} else {
 					eval &= false;
 				}
 
 			} else if (operation.equals("!=")) {
-				if (!row.getString(colName).equals(value)) {
+				
+				if(row.isNull(colName)){
+					eval = false;
+				}else if (!row.getString(colName).equals(value)) {
 					eval = true;
 				} else {
 					eval = false;
@@ -148,7 +154,10 @@ public class Utils {
 		case "varchar":
 
 			if (operation.equals("=")) {
-				if (row.getString(colName).equals(value)) {
+				
+				if(row.isNull(colName)){
+					eval = false;
+				}else if (row.getString(colName).equals(value)) {
 					eval &= true;
 				} else {
 					eval &= false;
@@ -168,6 +177,12 @@ public class Utils {
 		case "int":
 
 			// for _new col
+			
+			if(row.isNull(colName)){
+				eval = false;
+				return eval;
+			}
+			
 			String s1 = Integer.toString(row.getInt(colName));
 			Integer valueInt = new Integer(s1);
 			int compareValue = valueInt.compareTo(new Integer(value));
@@ -186,6 +201,11 @@ public class Utils {
 
 		case "varint":
 
+			if(row.isNull(colName)){
+				eval = false;
+				return eval;
+			}
+			
 			// for _new col
 			s1 = row.getVarint(colName).toString();
 			valueInt = new Integer(new BigInteger(s1).intValue());
@@ -204,6 +224,11 @@ public class Utils {
 			break;
 
 		case "float":
+			
+			if(row.isNull(colName)){
+				eval = false;
+				return eval;
+			}
 
 			compareValue = Float.compare(row.getFloat(colName),
 					Float.valueOf(value));

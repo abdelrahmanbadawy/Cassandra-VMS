@@ -150,7 +150,7 @@ public class ViewManager {
 		// retrieved from json having the baseTablePrimaryKey
 
 		ResultSet result = Utils.selectStatement(selectStatement_new.toString(), keyspace, table, baseTablePrimaryKey, data.get(baseTablePrimaryKey).toString());
-		
+
 		Row theRow = result.one();
 		StringBuilder insertQueryAgg = new StringBuilder();
 
@@ -181,7 +181,7 @@ public class ViewManager {
 			}
 			insertQueryAgg.deleteCharAt(insertQueryAgg.length() - 2);
 
-			
+
 			int nrColumns = theRow.getColumnDefinitions().size();
 
 			for (int i = 0; i < nrColumns; i++) {
@@ -225,12 +225,12 @@ public class ViewManager {
 
 				}
 			}
-			
+
 			// 4. Execute insertion statement in delta
 			Utils.insertStatement(keyspace,"delta_"+ table,selectStatement_new.toString()+", "+selectStatement_old, insertQueryAgg.toString());
-			
+
 		}
-		
+
 		System.out.println("Done Delta update");
 
 		// 5. get the entire row from delta where update has happened
@@ -238,10 +238,10 @@ public class ViewManager {
 
 		Row row = Utils.selectAllStatement(keyspace, "delta_"+table, baseTablePrimaryKey, data.get(baseTablePrimaryKey).toString());
 		stream.setDeltaUpdatedRow(row);
-		
+
 		//TO BE REMOVED
 		setDeltaUpdatedRow(row);
-		
+
 		return true;
 	}
 
@@ -252,7 +252,7 @@ public class ViewManager {
 
 		// 1. retrieve the row to be deleted from delta table
 		Row row = Utils.selectAllStatement((String)json.get("keyspace"), "delta_" + json.get("table"), hm[0].toString(), condition.get(hm[0]).toString());
-		
+
 		// 2. set DeltaDeletedRow variable for streaming
 		stream.setDeltaDeletedRow(row);
 		//TO BE REMOVED
@@ -260,7 +260,7 @@ public class ViewManager {
 
 		// 3. delete row from delta
 		Utils.deleteEntireRowWithPK((String)json.get("keyspace"), "delta_" + json.get("table"),  hm[0].toString(), condition.get(hm[0]).toString());
-		
+
 		System.out.println("Delete Successful from Delta Table");
 
 		return true;
@@ -2098,23 +2098,8 @@ public class ViewManager {
 		insertion.deleteCharAt(insertion.length() - 2);
 		insertionValues.deleteCharAt(insertionValues.length() - 2);
 
-		try {
+		Utils.insertStatement(keyspace, selecTable, insertion.toString(), insertionValues.toString());
 
-			// 1. execute the insertion
-			StringBuilder insertQuery = new StringBuilder("INSERT INTO ");
-			insertQuery.append(keyspace).append(".").append(selecTable)
-			.append(" (").append(insertion).append(") VALUES (")
-			.append(insertionValues).append(");");
-
-			System.out.println(insertQuery);
-
-			Session session1 = currentCluster.connect();
-			session1.execute(insertQuery.toString());
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			return false;
-		}
 
 		return true;
 	}
@@ -2122,31 +2107,14 @@ public class ViewManager {
 	public boolean deleteRowSelection(Row deltaDeletedRow2, String keyspace,
 			String selecTable, String baseTablePrimaryKey, JSONObject json) {
 
-		StringBuilder deleteQuery = new StringBuilder("DELETE FROM ");
-		deleteQuery.append(keyspace).append(".").append(selecTable)
-		.append(" WHERE ").append(baseTablePrimaryKey).append(" = ");
-
 		if (json.containsKey("condition")) {
 
 			JSONObject condition = (JSONObject) json.get("condition");
 			Object[] hm = condition.keySet().toArray();
-			deleteQuery.append(condition.get(hm[0]));
-			deleteQuery.append(";");
-
+			Utils.deleteEntireRowWithPK(keyspace, selecTable, baseTablePrimaryKey,condition.get(hm[0]).toString());
 		} else {
 			JSONObject data = (JSONObject) json.get("data");
-			deleteQuery.append(data.get(baseTablePrimaryKey)).append(" ;");
-		}
-
-		System.out.println(deleteQuery);
-
-		try {
-
-			Session session = currentCluster.connect();
-			session.execute(deleteQuery.toString());
-		} catch (Exception e) {
-			e.printStackTrace();
-			return false;
+			Utils.deleteEntireRowWithPK(keyspace, selecTable, baseTablePrimaryKey, data.get(baseTablePrimaryKey).toString());
 		}
 
 		System.out.println("Possible Deletes Successful from Selection View");
