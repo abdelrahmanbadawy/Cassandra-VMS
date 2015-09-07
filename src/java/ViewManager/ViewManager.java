@@ -3839,7 +3839,7 @@ public class ViewManager {
 
 	}
 
-	public boolean updateJoinAgg_UpdateLeft_AggColLeftSide(
+	public boolean updateJoinAgg_UpdateLeft_AggColLeftSide(Stream stream,
 			String innerJoinAggTable, String leftJoinAggTable, JSONObject json,
 			String joinKeyType, String joinKeyName, String aggColName,
 			String aggColType) {
@@ -3866,6 +3866,7 @@ public class ViewManager {
 				if (oldRJRow.getMap("list_item2", String.class, String.class).size() == 0) {
 					// remove this key from left join agg, if exits
 					if (!leftJoinAggTable.equals("false")) {
+						stream.setLeftOrRightJoinAggDeleteRow(JoinAggregationHelper.selectStatement(joinKeyName, oldJoinKeyValue, leftJoinAggTable, json));
 						Utils.deleteEntireRowWithPK((String) json.get("keyspace"), leftJoinAggTable, joinKeyName, oldJoinKeyValue);
 					}
 
@@ -3873,9 +3874,11 @@ public class ViewManager {
 					// remove this key left and inner join aggs, if they exist
 
 					if (!leftJoinAggTable.equals("false")) {
+						stream.setLeftOrRightJoinAggDeleteRow(JoinAggregationHelper.selectStatement(joinKeyName, oldJoinKeyValue, leftJoinAggTable, json));
 						Utils.deleteEntireRowWithPK((String) json.get("keyspace"), leftJoinAggTable, joinKeyName, oldJoinKeyValue);
 					}
 					if (!innerJoinAggTable.equals("false")) {
+						stream.setInnerJoinAggDeleteRow(JoinAggregationHelper.selectStatement(joinKeyName, oldJoinKeyValue, innerJoinAggTable, json));
 						Utils.deleteEntireRowWithPK((String) json.get("keyspace"), innerJoinAggTable, joinKeyName, oldJoinKeyValue);
 					}
 				}
@@ -3883,11 +3886,11 @@ public class ViewManager {
 			} else {
 
 				if (!leftJoinAggTable.equals("false")) {
-					JoinAggregationHelper.UpdateOldRowBySubtracting("list_item1",deltaUpdatedRow, json, leftJoinAggTable, joinKeyName, oldJoinKeyValue, aggColName, oldAggColValue, changeAK);
+					JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item1",deltaUpdatedRow, json, leftJoinAggTable, joinKeyName, oldJoinKeyValue, aggColName, oldAggColValue, changeAK);
 				}
 
 				if (!innerJoinAggTable.equals("false") && !oldRJRow.getMap("list_item2", String.class, String.class).isEmpty()){
-					JoinAggregationHelper.UpdateOldRowBySubtracting("list_item1",deltaUpdatedRow, json, innerJoinAggTable, joinKeyName, oldJoinKeyValue, aggColName, oldAggColValue, changeAK);
+					JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item1",deltaUpdatedRow, json, innerJoinAggTable, joinKeyName, oldJoinKeyValue, aggColName, oldAggColValue, changeAK);
 				}
 			}
 
@@ -3909,23 +3912,25 @@ public class ViewManager {
 				if (!leftJoinAggTable.equals("false") && aggColValue != null
 						&& !aggColValue.equals("null")&& !aggColValue.equals("'null'")) {
 
+					stream.setLeftOrRightJoinAggNewRow(JoinAggregationHelper.selectStatement(joinKeyName, joinKeyValue, leftJoinAggTable, json));
 					JoinAggregationHelper.insertStatement(Float.valueOf(sum),count, Float.valueOf(avg), Float.valueOf(min),Float.valueOf(max), joinKeyName, joinKeyValue, leftJoinAggTable, json);
 				}
 
 				// add this key to inner table if exist [one item only]
 				if (!newRJRow.getMap("list_item2", String.class, String.class).isEmpty() && !innerJoinAggTable.equals("false") ) {
+					stream.setInnerJoinAggNewRow(JoinAggregationHelper.selectStatement(joinKeyName, joinKeyValue, innerJoinAggTable, json));
 					JoinAggregationHelper.insertStatement(Float.valueOf(sum), count, Float.valueOf(avg), Float.valueOf(min), Float.valueOf(max), joinKeyName, joinKeyValue, innerJoinAggTable, json);
 				}
 
 			} else {
 
 				if (!leftJoinAggTable.equals("false")) {
-					JoinAggregationHelper.updateNewRowByAddingNewElement(joinKeyName, joinKeyValue, json, leftJoinAggTable, aggColValue);
+					JoinAggregationHelper.updateNewRowByAddingNewElement(stream,joinKeyName, joinKeyValue, json, leftJoinAggTable, aggColValue);
 				}
 
 				if (!newRJRow.getMap("list_item2", String.class, String.class)
 						.isEmpty() && !innerJoinAggTable.equals("false")) {
-					JoinAggregationHelper.updateNewRowByAddingNewElement(joinKeyName, joinKeyValue, json, innerJoinAggTable, aggColValue);
+					JoinAggregationHelper.updateNewRowByAddingNewElement(stream,joinKeyName, joinKeyValue, json, innerJoinAggTable, aggColValue);
 				}
 
 			}
@@ -3951,13 +3956,13 @@ public class ViewManager {
 							String max = aggColValue;
 
 							JoinAggregationHelper.insertStatement(Float.valueOf(sum), count,Float.valueOf(avg), Float.valueOf(min), Float.valueOf(max), joinKeyName, joinKeyValue, leftJoinAggTable, json);
-
+							stream.setLeftOrRightJoinAggNewRow(JoinAggregationHelper.selectStatement(joinKeyName, joinKeyValue, leftJoinAggTable, json));
 						}
 						// more than one item --> update
 						else {
 
 							if (!leftJoinAggTable.equals("false")) {
-								JoinAggregationHelper.updateAggColValueOfNewRow("list_item1",deltaUpdatedRow, newRJRow, json, joinKeyName, joinKeyValue, leftJoinAggTable, aggColName, aggColValue, oldAggColValue,oldRJRow);
+								JoinAggregationHelper.updateAggColValueOfNewRow(stream,"list_item1",deltaUpdatedRow, newRJRow, json, joinKeyName, joinKeyValue, leftJoinAggTable, aggColName, aggColValue, oldAggColValue,oldRJRow);
 							}
 						}
 					}
@@ -3980,10 +3985,14 @@ public class ViewManager {
 
 							if (!leftJoinAggTable.equals("false")) {
 								JoinAggregationHelper.insertStatement(Float.valueOf(sum), count,Float.valueOf(avg),Float.valueOf(min),Float.valueOf(max), joinKeyName, joinKeyValue, leftJoinAggTable, json);
+								stream.setLeftOrRightJoinAggNewRow(JoinAggregationHelper.selectStatement(joinKeyName, joinKeyValue, leftJoinAggTable, json));
+
 							}
 
 							if (!innerJoinAggTable.equals("false")) {
 								JoinAggregationHelper.insertStatement(Float.valueOf(sum), count, Float.valueOf(avg),Float.valueOf(min),Float.valueOf(max), joinKeyName, joinKeyValue, innerJoinAggTable, json);
+								stream.setInnerJoinAggNewRow(JoinAggregationHelper.selectStatement(joinKeyName, joinKeyValue, innerJoinAggTable, json));
+
 							}
 
 						}
@@ -3991,11 +4000,11 @@ public class ViewManager {
 						else {
 
 							if (!leftJoinAggTable.equals("false")) {
-								JoinAggregationHelper.updateAggColValueOfNewRow("list_item1",deltaUpdatedRow, newRJRow, json, joinKeyName, joinKeyValue, leftJoinAggTable, aggColName, aggColValue, oldAggColValue,oldRJRow);
+								JoinAggregationHelper.updateAggColValueOfNewRow(stream,"list_item1",deltaUpdatedRow, newRJRow, json, joinKeyName, joinKeyValue, leftJoinAggTable, aggColName, aggColValue, oldAggColValue,oldRJRow);
 							}
 
 							if (!innerJoinAggTable.equals("false")) {
-								JoinAggregationHelper.updateAggColValueOfNewRow("list_item1",deltaUpdatedRow, newRJRow, json, joinKeyName, joinKeyValue, innerJoinAggTable, aggColName, aggColValue, oldAggColValue,oldRJRow);
+								JoinAggregationHelper.updateAggColValueOfNewRow(stream,"list_item1",deltaUpdatedRow, newRJRow, json, joinKeyName, joinKeyValue, innerJoinAggTable, aggColName, aggColValue, oldAggColValue,oldRJRow);
 							}
 
 						}
@@ -4008,7 +4017,7 @@ public class ViewManager {
 		return true;
 	}
 
-	public boolean updateJoinAgg_UpdateRight_AggColRightSide(String innerJoinAggTable, String rightJoinAggTable, JSONObject json,
+	public boolean updateJoinAgg_UpdateRight_AggColRightSide(Stream stream,String innerJoinAggTable, String rightJoinAggTable, JSONObject json,
 			String joinKeyType, String joinKeyName, String aggColName,
 			String aggColType) {
 
@@ -4033,15 +4042,20 @@ public class ViewManager {
 
 					// remove this key from right join agg, if exits
 					if (!rightJoinAggTable.equals("false")) {
+						stream.setLeftOrRightJoinAggDeleteRow(JoinAggregationHelper.selectStatement(joinKeyName, oldJoinKeyValue, rightJoinAggTable, json));
 						Utils.deleteEntireRowWithPK((String) json.get("keyspace"), rightJoinAggTable, joinKeyName, oldJoinKeyValue);
 					}
 				} else {
 					// remove this key right and inner join aggs, if they exist
 					if (!rightJoinAggTable.equals("false")) {
+						stream.setLeftOrRightJoinAggDeleteRow(JoinAggregationHelper.selectStatement(joinKeyName, oldJoinKeyValue, rightJoinAggTable, json));
+
 						Utils.deleteEntireRowWithPK((String) json.get("keyspace"), rightJoinAggTable, joinKeyName, oldJoinKeyValue);
 					}
 
 					if (!innerJoinAggTable.equals("false")) {
+						stream.setInnerJoinAggDeleteRow(JoinAggregationHelper.selectStatement(joinKeyName, oldJoinKeyValue, rightJoinAggTable, json));
+
 						Utils.deleteEntireRowWithPK((String) json.get("keyspace"), innerJoinAggTable, joinKeyName, oldJoinKeyValue);
 					}
 				}
@@ -4049,11 +4063,11 @@ public class ViewManager {
 			} else {
 
 				if (!rightJoinAggTable.equals("false")) {
-					JoinAggregationHelper.UpdateOldRowBySubtracting("list_item2", deltaUpdatedRow, json, rightJoinAggTable, joinKeyName, oldJoinKeyValue, aggColName, oldAggColValue, changeAK);
+					JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item2", deltaUpdatedRow, json, rightJoinAggTable, joinKeyName, oldJoinKeyValue, aggColName, oldAggColValue, changeAK);
 				}
 
 				if (!oldRJRow.getMap("list_item1", String.class, String.class).isEmpty() && !innerJoinAggTable.equals("false")) {
-					JoinAggregationHelper.UpdateOldRowBySubtracting("list_item2", deltaUpdatedRow, json, innerJoinAggTable, joinKeyName, oldJoinKeyValue, aggColName, oldAggColValue, changeAK);
+					JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item2", deltaUpdatedRow, json, innerJoinAggTable, joinKeyName, oldJoinKeyValue, aggColName, oldAggColValue, changeAK);
 				}
 			}
 
@@ -4075,23 +4089,25 @@ public class ViewManager {
 				// add this key to right table if exist [one item only]
 				if (!rightJoinAggTable.equals("false") && aggColValue != null && !aggColValue.equals("null") && !aggColValue.equals("'null'")) {
 					JoinAggregationHelper.insertStatement(Float.valueOf(sum), count, Float.valueOf(avg), Float.valueOf(min), Float.valueOf(max), joinKeyName, joinKeyValue, rightJoinAggTable, json);
+					stream.setLeftOrRightJoinAggNewRow(JoinAggregationHelper.selectStatement(joinKeyName, joinKeyValue, rightJoinAggTable, json));
 				}
 
 				// add this key to inner table if exist [one item only]
 				if (!newRJRow.getMap("list_item1", String.class, String.class).isEmpty() && !innerJoinAggTable.equals("false")) {
 					JoinAggregationHelper.insertStatement(Float.valueOf(sum), count, Float.valueOf(avg), Float.valueOf(min), Float.valueOf(max), joinKeyName, joinKeyValue, innerJoinAggTable, json);
+					stream.setInnerJoinAggNewRow(JoinAggregationHelper.selectStatement(joinKeyName, joinKeyValue, innerJoinAggTable, json));
 				}
 
 			} else {
 
 
 				if (!rightJoinAggTable.equals("false") && aggColValue != null && !aggColValue.equals("null") && !aggColValue.equals("'null'")) {
-					JoinAggregationHelper.updateNewRowByAddingNewElement(joinKeyName, joinKeyValue, json, rightJoinAggTable, aggColValue);
+					JoinAggregationHelper.updateNewRowByAddingNewElement(stream,joinKeyName, joinKeyValue, json, rightJoinAggTable, aggColValue);
 				}
 
 				// add this key to inner table if exist [one item only]
 				if (!newRJRow.getMap("list_item1", String.class, String.class).isEmpty() && !innerJoinAggTable.equals("false")) {
-					JoinAggregationHelper.updateNewRowByAddingNewElement(joinKeyName, joinKeyValue, json, innerJoinAggTable, aggColValue);
+					JoinAggregationHelper.updateNewRowByAddingNewElement(stream,joinKeyName, joinKeyValue, json, innerJoinAggTable, aggColValue);
 				}
 			}
 
@@ -4116,12 +4132,13 @@ public class ViewManager {
 							String max = aggColValue;
 
 							JoinAggregationHelper.insertStatement(Float.valueOf(sum), count, Float.valueOf(avg), Float.valueOf(min), Float.valueOf(max), joinKeyName, joinKeyValue, rightJoinAggTable, json);
+							stream.setLeftOrRightJoinAggNewRow(JoinAggregationHelper.selectStatement(joinKeyName, joinKeyValue, rightJoinAggTable, json));
 
 						}
 						// more than one item --> update
 						else {
 
-							JoinAggregationHelper.updateAggColValueOfNewRow("list_item2", deltaUpdatedRow, newRJRow, json, joinKeyName, joinKeyValue, rightJoinAggTable, aggColName, aggColValue, oldAggColValue,oldRJRow);
+							JoinAggregationHelper.updateAggColValueOfNewRow(stream,"list_item2", deltaUpdatedRow, newRJRow, json, joinKeyName, joinKeyValue, rightJoinAggTable, aggColName, aggColValue, oldAggColValue,oldRJRow);
 						}
 					}
 				}
@@ -4145,19 +4162,22 @@ public class ViewManager {
 
 							if(!rightJoinAggTable.equals("false")) {
 								JoinAggregationHelper.insertStatement(Float.valueOf(sum), count, Float.valueOf(avg), Float.valueOf(min), Float.valueOf(max), joinKeyName, joinKeyValue, rightJoinAggTable, json);
+								stream.setLeftOrRightJoinAggNewRow(JoinAggregationHelper.selectStatement(joinKeyName, joinKeyValue, rightJoinAggTable, json));
 							}
 
 							if(!innerJoinAggTable.equals("false")) {
 								JoinAggregationHelper.insertStatement(Float.valueOf(sum), count, Float.valueOf(avg), Float.valueOf(min), Float.valueOf(max), joinKeyName, joinKeyValue, innerJoinAggTable, json);
+								stream.setInnerJoinAggNewRow(JoinAggregationHelper.selectStatement(joinKeyName, joinKeyValue, rightJoinAggTable, json));
+
 							}
 
 						}else { 
 							if (!rightJoinAggTable.equals("false")) {
-								JoinAggregationHelper.updateAggColValueOfNewRow("list_item2",deltaUpdatedRow, newRJRow, json, joinKeyName, joinKeyValue, rightJoinAggTable, aggColName, aggColValue, oldAggColValue,oldRJRow);
+								JoinAggregationHelper.updateAggColValueOfNewRow(stream,"list_item2",deltaUpdatedRow, newRJRow, json, joinKeyName, joinKeyValue, rightJoinAggTable, aggColName, aggColValue, oldAggColValue,oldRJRow);
 							}
 
 							if (!innerJoinAggTable.equals("false")) {
-								JoinAggregationHelper.updateAggColValueOfNewRow("list_item2",deltaUpdatedRow, newRJRow, json, joinKeyName, joinKeyValue, innerJoinAggTable, aggColName, aggColValue, oldAggColValue,oldRJRow);
+								JoinAggregationHelper.updateAggColValueOfNewRow(stream,"list_item2",deltaUpdatedRow, newRJRow, json, joinKeyName, joinKeyValue, innerJoinAggTable, aggColName, aggColValue, oldAggColValue,oldRJRow);
 							}
 						}
 					}
@@ -4169,7 +4189,7 @@ public class ViewManager {
 		return true;
 	}
 
-	public boolean updateJoinAgg_UpdateLeft_AggColRightSide(
+	public boolean updateJoinAgg_UpdateLeft_AggColRightSide(Stream stream,
 			String innerJoinAggTable, String rightJoinAggTable,
 			JSONObject json, String joinKeyType, String joinKeyName,
 			String aggColName, String aggColType, int aggColIndexInList) {
@@ -4196,6 +4216,7 @@ public class ViewManager {
 			if (oldRJRow.getMap("list_item1", String.class, String.class).size() == 1 && !oldRJRow.getMap("list_item2", String.class,String.class).isEmpty()
 					&& !innerJoinAggTable.equals("false")) {
 
+				stream.setInnerJoinAggDeleteRow(JoinAggregationHelper.selectStatement(joinKeyName, oldJoinKeyValue, innerJoinAggTable, json));
 				Utils.deleteEntireRowWithPK((String) json.get("keyspace"), innerJoinAggTable, joinKeyName, oldJoinKeyValue);
 			}
 
@@ -4206,11 +4227,11 @@ public class ViewManager {
 			if (newRJRow.getMap("list_item1", String.class, String.class).size() == 1
 					&& !newRJRow.getMap("list_item2", String.class,String.class).isEmpty() && !innerJoinAggTable.equals("false") && !rightJoinAggTable.equals("false")) {
 
-				JoinAggregationHelper.moveRowsToInnerJoinAgg(rightJoinAggTable, innerJoinAggTable, joinKeyName, joinKeyValue, json);
+				JoinAggregationHelper.moveRowsToInnerJoinAgg(stream,rightJoinAggTable, innerJoinAggTable, joinKeyName, joinKeyValue, json);
 
 			} else if (newRJRow.getMap("list_item1", String.class, String.class).size() == 1
 					&& !newRJRow.getMap("list_item2", String.class,String.class).isEmpty() && !innerJoinAggTable.equals("false") && rightJoinAggTable.equals("false")) {
-				JoinAggregationHelper.addRowsToInnerJoinAgg("list_item2", deltaUpdatedRow, newRJRow, aggColIndexInList, innerJoinAggTable, json, joinKeyName, joinKeyValue);
+				JoinAggregationHelper.addRowsToInnerJoinAgg(stream,"list_item2", deltaUpdatedRow, newRJRow, aggColIndexInList, innerJoinAggTable, json, joinKeyName, joinKeyValue);
 			}
 
 		} else {
@@ -4223,10 +4244,10 @@ public class ViewManager {
 				// u can get from the right join agg table if it exists
 				// otherwise u must loop on new.list_item2
 				if (!innerJoinAggTable.equals("false") && !rightJoinAggTable.equals("false") ) {
-					JoinAggregationHelper.moveRowsToInnerJoinAgg(rightJoinAggTable, innerJoinAggTable, joinKeyName, oldJoinKeyValue, json);
+					JoinAggregationHelper.moveRowsToInnerJoinAgg(stream,rightJoinAggTable, innerJoinAggTable, joinKeyName, oldJoinKeyValue, json);
 
 				}else {
-					JoinAggregationHelper.addRowsToInnerJoinAgg("list_item1", deltaUpdatedRow, newRJRow, aggColIndexInList, innerJoinAggTable, json, joinKeyName, oldJoinKeyValue);
+					JoinAggregationHelper.addRowsToInnerJoinAgg(stream,"list_item1", deltaUpdatedRow, newRJRow, aggColIndexInList, innerJoinAggTable, json, joinKeyName, oldJoinKeyValue);
 				}
 			}
 		}
@@ -4235,7 +4256,7 @@ public class ViewManager {
 
 	}
 
-	public boolean updateJoinAgg_UpdateRight_AggColLeftSide(
+	public boolean updateJoinAgg_UpdateRight_AggColLeftSide(Stream stream,
 			String innerJoinAggTable, String leftJoinAggTable,
 			JSONObject json, String joinKeyType, String joinKeyName,
 			String aggColName, String aggColType, int aggColIndexInList) {
@@ -4256,6 +4277,7 @@ public class ViewManager {
 					&& !oldRJRow.getMap("list_item1", String.class,String.class).isEmpty()
 					&& !innerJoinAggTable.equals("false")) {
 
+				stream.setInnerJoinAggDeleteRow(JoinAggregationHelper.selectStatement(joinKeyName, oldJoinKeyValue, innerJoinAggTable, json));
 				Utils.deleteEntireRowWithPK((String) json.get("keyspace"), innerJoinAggTable, joinKeyName, oldJoinKeyValue);
 
 			}
@@ -4268,13 +4290,13 @@ public class ViewManager {
 					&& !newRJRow.getMap("list_item1", String.class,	String.class).isEmpty()
 					&& !innerJoinAggTable.equals("false") && !leftJoinAggTable.equals("false")) {
 
-				JoinAggregationHelper.moveRowsToInnerJoinAgg(leftJoinAggTable, innerJoinAggTable, joinKeyName, joinKeyValue, json);
+				JoinAggregationHelper.moveRowsToInnerJoinAgg(stream,leftJoinAggTable, innerJoinAggTable, joinKeyName, joinKeyValue, json);
 
 			} else if(newRJRow.getMap("list_item2", String.class, String.class).size() == 1
 					&& !newRJRow.getMap("list_item1", String.class,	String.class).isEmpty()
 					&& !innerJoinAggTable.equals("false") && leftJoinAggTable.equals("false")) {
 
-				JoinAggregationHelper.addRowsToInnerJoinAgg("list_item1", deltaUpdatedRow, newRJRow, aggColIndexInList, innerJoinAggTable, json, joinKeyName, joinKeyValue);
+				JoinAggregationHelper.addRowsToInnerJoinAgg(stream,"list_item1", deltaUpdatedRow, newRJRow, aggColIndexInList, innerJoinAggTable, json, joinKeyName, joinKeyValue);
 			}
 
 		} else {
@@ -4287,9 +4309,9 @@ public class ViewManager {
 				// u can get from the right join agg table if it exists
 				// otherwise u must loop on new.list_item2
 				if (!innerJoinAggTable.equals("false") && !leftJoinAggTable.equals("false")) {
-					JoinAggregationHelper.moveRowsToInnerJoinAgg(leftJoinAggTable, innerJoinAggTable, joinKeyName, joinKeyValue, json);
+					JoinAggregationHelper.moveRowsToInnerJoinAgg(stream,leftJoinAggTable, innerJoinAggTable, joinKeyName, joinKeyValue, json);
 				}else{
-					JoinAggregationHelper.addRowsToInnerJoinAgg("list_item1", deltaUpdatedRow, newRJRow, aggColIndexInList, innerJoinAggTable, json, joinKeyName, joinKeyValue);
+					JoinAggregationHelper.addRowsToInnerJoinAgg(stream,"list_item1", deltaUpdatedRow, newRJRow, aggColIndexInList, innerJoinAggTable, json, joinKeyName, joinKeyValue);
 				}
 			}
 		}
@@ -4756,7 +4778,7 @@ public class ViewManager {
 		return true;
 	}
 
-	public boolean deleteJoinAgg_DeleteLeft_AggColLeftSide(
+	public boolean deleteJoinAgg_DeleteLeft_AggColLeftSide(Stream stream,
 			String innerJoinAggTable, String leftJoinAggTable, JSONObject json,
 			String joinKeyType, String joinKeyName, String aggColName,
 			String aggColType) {
@@ -4771,11 +4793,12 @@ public class ViewManager {
 			if (newRJRow.getMap("list_item1", String.class, String.class).isEmpty()) {
 				// remove from left
 				if (!leftJoinAggTable.equals("false"))
-					Utils.deleteEntireRowWithPK(json.get("keyspace").toString(), leftJoinAggTable,joinKeyName, joinKeyValue);
+					stream.setLeftOrRightJoinAggDeleteRow(JoinAggregationHelper.selectStatement(joinKeyName, joinKeyValue, leftJoinAggTable, json));
+				Utils.deleteEntireRowWithPK(json.get("keyspace").toString(), leftJoinAggTable,joinKeyName, joinKeyValue);
 			} else {
 				// update left by subtracting
 				if (!leftJoinAggTable.equals("false") && aggColValue != null && !aggColValue.equals("null") && !aggColValue.equals("'null'")) {
-					JoinAggregationHelper.UpdateOldRowBySubtracting("list_item1", deltaDeletedRow, json, leftJoinAggTable, joinKeyName, joinKeyValue, aggColName, aggColValue, newRJRow);
+					JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item1", deltaDeletedRow, json, leftJoinAggTable, joinKeyName, joinKeyValue, aggColName, aggColValue, newRJRow);
 				}
 			}
 
@@ -4783,23 +4806,25 @@ public class ViewManager {
 
 			if (newRJRow.getMap("list_item1", String.class, String.class).isEmpty()) {
 				// remove from left and inner
-				if (!leftJoinAggTable.equals("false"))
-					Utils.deleteEntireRowWithPK(json.get("keyspace").toString(), leftJoinAggTable,joinKeyName, joinKeyValue);
+				if (!leftJoinAggTable.equals("false")){
+					stream.setLeftOrRightJoinAggDeleteRow(JoinAggregationHelper.selectStatement(joinKeyName, joinKeyValue, leftJoinAggTable, json));
+				}
 
-				if (!innerJoinAggTable.equals("false"))
+				if (!innerJoinAggTable.equals("false")){
+					stream.setLeftOrRightJoinAggDeleteRow(JoinAggregationHelper.selectStatement(joinKeyName, joinKeyValue, innerJoinAggTable, json));
 					Utils.deleteEntireRowWithPK(json.get("keyspace").toString(), innerJoinAggTable,joinKeyName, joinKeyValue);
-
+				}
 			} else {
 				// update left and inner
 				if ((!leftJoinAggTable.equals("false") || !innerJoinAggTable.equals("false"))
 						&& aggColValue != null && !aggColValue.equals("null") && !aggColValue.equals("'null'")) {
 
 					if (!leftJoinAggTable.equals("false")) {
-						JoinAggregationHelper.UpdateOldRowBySubtracting("list_item1", deltaDeletedRow, json, leftJoinAggTable, joinKeyName, joinKeyValue, aggColName, aggColValue, newRJRow);
+						JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item1", deltaDeletedRow, json, leftJoinAggTable, joinKeyName, joinKeyValue, aggColName, aggColValue, newRJRow);
 					}
 
 					if (!innerJoinAggTable.equals("false")) {
-						JoinAggregationHelper.UpdateOldRowBySubtracting("list_item1", deltaDeletedRow, json, innerJoinAggTable, joinKeyName, joinKeyValue, aggColName, aggColValue, newRJRow);
+						JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item1", deltaDeletedRow, json, innerJoinAggTable, joinKeyName, joinKeyValue, aggColName, aggColValue, newRJRow);
 					}
 
 				}
@@ -4808,7 +4833,7 @@ public class ViewManager {
 		return true;
 	}
 
-	public boolean deleteJoinAgg_DeleteRight_AggColRightSide(String innerJoinAggTable, String rightJoinAggTable,
+	public boolean deleteJoinAgg_DeleteRight_AggColRightSide(Stream stream, String innerJoinAggTable, String rightJoinAggTable,
 			JSONObject json, String joinKeyType, String joinKeyName,String aggColName, String aggColType) {
 
 		String joinKeyValue = Utils.getColumnValueFromDeltaStream(deltaDeletedRow, joinKeyName, joinKeyType, "_new");
@@ -4820,13 +4845,14 @@ public class ViewManager {
 
 			if (newRJRow.getMap("list_item2", String.class, String.class).isEmpty()) {
 				// remove from rightJoinAggTable
-				if (!rightJoinAggTable.equals("false"))
+				if (!rightJoinAggTable.equals("false")){
+					stream.setLeftOrRightJoinAggDeleteRow(JoinAggregationHelper.selectStatement(joinKeyName, joinKeyValue, rightJoinAggTable, json));
 					Utils.deleteEntireRowWithPK(json.get("keyspace").toString(), rightJoinAggTable,joinKeyName, joinKeyValue);
-
+				}
 			} else {
 				// update right by subtracting
 				if (!rightJoinAggTable.equals("false") && aggColValue != null && !aggColValue.equals("null") && !aggColValue.equals("'null'")) {
-					JoinAggregationHelper.UpdateOldRowBySubtracting("list_item2", deltaDeletedRow, json, rightJoinAggTable, joinKeyName, joinKeyValue, aggColName, aggColValue, newRJRow);
+					JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item2", deltaDeletedRow, json, rightJoinAggTable, joinKeyName, joinKeyValue, aggColName, aggColValue, newRJRow);
 				}
 			}
 
@@ -4834,11 +4860,15 @@ public class ViewManager {
 
 			if (newRJRow.getMap("list_item2", String.class, String.class).isEmpty()) {
 				// remove from left and inner
-				if (!rightJoinAggTable.equals("false"))
+				if (!rightJoinAggTable.equals("false")){
+					stream.setLeftOrRightJoinAggDeleteRow(JoinAggregationHelper.selectStatement(joinKeyName, joinKeyValue, rightJoinAggTable, json));
 					Utils.deleteEntireRowWithPK(json.get("keyspace").toString(), rightJoinAggTable,joinKeyName, joinKeyValue);
+				}
 
-				if (!innerJoinAggTable.equals("false"))
+				if (!innerJoinAggTable.equals("false")){
+					stream.setInnerJoinAggDeleteRow(JoinAggregationHelper.selectStatement(joinKeyName, joinKeyValue, innerJoinAggTable, json));
 					Utils.deleteEntireRowWithPK(json.get("keyspace").toString(), innerJoinAggTable, joinKeyName, joinKeyValue);
+				}
 
 			} else {
 				// update rightJoinAggTable and inner<
@@ -4849,11 +4879,11 @@ public class ViewManager {
 						&& !aggColValue.equals("'null'")) {
 
 					if (!rightJoinAggTable.equals("false")) {
-						JoinAggregationHelper.UpdateOldRowBySubtracting("list_item2", deltaDeletedRow, json, rightJoinAggTable, joinKeyName, joinKeyValue, aggColName, aggColValue, newRJRow);
+						JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item2", deltaDeletedRow, json, rightJoinAggTable, joinKeyName, joinKeyValue, aggColName, aggColValue, newRJRow);
 					}
 
 					if (!innerJoinAggTable.equals("false")) {
-						JoinAggregationHelper.UpdateOldRowBySubtracting("list_item2", deltaDeletedRow, json, innerJoinAggTable, joinKeyName, joinKeyValue, aggColName, aggColValue, newRJRow);
+						JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item2", deltaDeletedRow, json, innerJoinAggTable, joinKeyName, joinKeyValue, aggColName, aggColValue, newRJRow);
 					}
 				}
 			}
@@ -4864,7 +4894,7 @@ public class ViewManager {
 	}
 
 
-	public boolean deleteJoinAgg_DeleteLeft_AggColRightSide(String innerJoinAggTable, JSONObject json, String joinKeyType,
+	public boolean deleteJoinAgg_DeleteLeft_AggColRightSide(Stream stream, String innerJoinAggTable, JSONObject json, String joinKeyType,
 			String joinKeyName, String aggColName, String aggColType) {
 
 		String joinKeyValue = Utils.getColumnValueFromDeltaStream(deltaDeletedRow, joinKeyName, joinKeyType, "_new");
@@ -4874,15 +4904,17 @@ public class ViewManager {
 		if (newRJRow.getMap("list_item1", String.class, String.class).isEmpty() && !newRJRow.getMap("list_item2", String.class, String.class).isEmpty()) {
 
 			// remove from inner
-			if (!innerJoinAggTable.equals("false"))
+			if (!innerJoinAggTable.equals("false")){
+				stream.setInnerJoinAggDeleteRow(JoinAggregationHelper.selectStatement(joinKeyName, joinKeyValue, innerJoinAggTable, json));
 				Utils.deleteEntireRowWithPK(json.get("keyspace").toString(),innerJoinAggTable, joinKeyName, joinKeyValue);
+			}
 		}
 		return true;
 
 	}
 
 
-	public boolean deleteJoinAgg_DeleteRight_AggColLeftSide(
+	public boolean deleteJoinAgg_DeleteRight_AggColLeftSide(Stream stream,
 			String innerJoinAggTable, JSONObject json, String joinKeyType,
 			String joinKeyName, String aggColName, String aggColType) {
 
@@ -4892,8 +4924,10 @@ public class ViewManager {
 
 		if (newRJRow.getMap("list_item2", String.class, String.class).isEmpty() && !newRJRow.getMap("list_item1", String.class, String.class).isEmpty()) {
 			// remove from inner
-			if (!innerJoinAggTable.equals("false"))
+			if (!innerJoinAggTable.equals("false")){
+				stream.setInnerJoinAggDeleteRow(JoinAggregationHelper.selectStatement(joinKeyName, joinKeyValue, innerJoinAggTable, json));
 				Utils.deleteEntireRowWithPK(json.get("keyspace").toString(),innerJoinAggTable, joinKeyName, joinKeyValue);
+			}
 		}
 		return true;
 

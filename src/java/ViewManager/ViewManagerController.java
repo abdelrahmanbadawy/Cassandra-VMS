@@ -1159,12 +1159,12 @@ public class ViewManagerController {
 
 					if (updateLeft) {
 
-						vm.updateJoinAgg_UpdateLeft_AggColLeftSide(
+						vm.updateJoinAgg_UpdateLeft_AggColLeftSide(stream,
 								innerJoinAggTable, leftJoinAggTable, json,
 								joinKeyType, joinKeyName, aggColName,
 								aggColType);
 					} else {
-						vm.updateJoinAgg_UpdateRight_AggColLeftSide(
+						vm.updateJoinAgg_UpdateRight_AggColLeftSide(stream,
 								innerJoinAggTable, leftJoinAggTable, json,
 								joinKeyType, joinKeyName, aggColName,
 								aggColType, index);
@@ -1208,13 +1208,13 @@ public class ViewManagerController {
 									+ ").index");
 
 					if (updateLeft) {
-						vm.updateJoinAgg_UpdateLeft_AggColRightSide(
+						vm.updateJoinAgg_UpdateLeft_AggColRightSide(stream,
 								innerJoinAggTable, rightJoinAggTable, json,
 								joinKeyType, joinKeyName, aggColName,
 								aggColType, index);
 					} else {
 
-						vm.updateJoinAgg_UpdateRight_AggColRightSide(
+						vm.updateJoinAgg_UpdateRight_AggColRightSide(stream,
 								innerJoinAggTable, rightJoinAggTable, json,
 								joinKeyType, joinKeyName, aggColName,
 								aggColType);
@@ -2136,14 +2136,14 @@ public class ViewManagerController {
 
 						if (updateLeft) {
 
-							vm.deleteJoinAgg_DeleteLeft_AggColLeftSide(
+							vm.deleteJoinAgg_DeleteLeft_AggColLeftSide(stream,
 									innerJoinAggTable, leftJoinAggTable, json,
 									joinKeyType, joinKeyName, aggColName,
 									aggColType);
 						} else {
 
 
-							vm.deleteJoinAgg_DeleteRight_AggColLeftSide(
+							vm.deleteJoinAgg_DeleteRight_AggColLeftSide(stream,
 									innerJoinAggTable, json, joinKeyType,
 									joinKeyName, aggColName, aggColType);
 						}
@@ -2189,13 +2189,13 @@ public class ViewManagerController {
 
 						if (updateLeft) {
 
-							vm.deleteJoinAgg_DeleteLeft_AggColRightSide(
+							vm.deleteJoinAgg_DeleteLeft_AggColRightSide(stream,
 									innerJoinAggTable, json, joinKeyType,
 									joinKeyName, aggColName, aggColType);
 
 						} else {
 
-							vm.deleteJoinAgg_DeleteRight_AggColRightSide(
+							vm.deleteJoinAgg_DeleteRight_AggColRightSide(stream,
 									innerJoinAggTable, rightJoinAggTable, json,
 									joinKeyType, joinKeyName, aggColName,
 									aggColType);

@@ -82,7 +82,7 @@ public class JoinAggregationHelper {
 
 	}
 
-	public static void UpdateOldRowBySubtracting(String listItem,Row deltaUpdatedRow, JSONObject json,String joinAggTable, String joinKey,String joinKeyValue, String aggColName, String aggColValue, Row changedKeyReverseRow){
+	public static void UpdateOldRowBySubtracting(Stream stream,String listItem,Row deltaUpdatedRow, JSONObject json,String joinAggTable, String joinKey,String joinKeyValue, String aggColName, String aggColValue, Row changedKeyReverseRow){
 
 
 		Row theRow = selectStatement(joinKey, joinKeyValue, joinAggTable, json);
@@ -184,10 +184,15 @@ public class JoinAggregationHelper {
 			}
 
 		}
+		
+		if(joinAggTable.contains("inner"))
+			stream.setInnerJoinAggUpdatedOldRow(selectStatement(joinKey, joinKeyValue, joinAggTable, json));
+		else
+			stream.setLeftOrRightJoinAggUpdatedOldRow(selectStatement(joinKey, joinKeyValue, joinAggTable, json));
 
 	}
 
-	public static void updateNewRowByAddingNewElement(String joinKeyName,String joinKeyValue, JSONObject json,String joinAggTable,String aggColValue){
+	public static void updateNewRowByAddingNewElement(Stream stream,String joinKeyName,String joinKeyValue, JSONObject json,String joinAggTable,String aggColValue){
 
 		Row theRow = selectStatement(joinKeyName, joinKeyValue, joinAggTable, json);
 
@@ -235,9 +240,14 @@ public class JoinAggregationHelper {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		
+		if(joinAggTable.contains("inner"))
+			stream.setInnerJoinAggNewRow(selectStatement(joinKeyName, joinKeyValue, joinAggTable, json));
+		else
+			stream.setLeftOrRightJoinAggNewRow(selectStatement(joinKeyName, joinKeyValue, joinAggTable, json));
 	}
 
-	public static void updateAggColValueOfNewRow(String listItem,Row deltaUpdatedRow, Row newRJRow, JSONObject json, String joinKeyName, String joinKeyValue,String joinAggTable, String aggColName, String aggColValue, String oldAggColValue, Row oldRJRow){
+	public static void updateAggColValueOfNewRow(Stream stream, String listItem,Row deltaUpdatedRow, Row newRJRow, JSONObject json, String joinKeyName, String joinKeyValue,String joinAggTable, String aggColName, String aggColValue, String oldAggColValue, Row oldRJRow){
 
 		
 		Row theRow = selectStatement(joinKeyName, joinKeyValue, joinAggTable, json);
@@ -363,9 +373,14 @@ public class JoinAggregationHelper {
 
 		insertStatement(sum, count, avg, min, max, joinKeyName, joinKeyValue, joinAggTable, json);
 
+		if(joinAggTable.contains("inner"))
+			stream.setInnerJoinAggUpdatedOldRow(selectStatement(joinKeyName, joinKeyValue, joinAggTable, json));
+		else
+			stream.setLeftOrRightJoinAggUpdatedOldRow(selectStatement(joinKeyName, joinKeyValue, joinAggTable, json));
+		
 	}
 
-	public static void moveRowsToInnerJoinAgg(String joinAggTable,String innerJoinAggTable,String joinKeyName,String joinKeyValue,JSONObject json){
+	public static void moveRowsToInnerJoinAgg(Stream stream,String joinAggTable,String innerJoinAggTable,String joinKeyName,String joinKeyValue,JSONObject json){
 		
 		if (!joinAggTable.equals("false")) {
 			
@@ -378,11 +393,12 @@ public class JoinAggregationHelper {
 			Float max = theRow.getFloat("max");
 
 			insertStatement(sum, count, avg, min, max, joinKeyName, joinKeyValue, innerJoinAggTable, json);
-	
+			stream.setInnerJoinAggNewRow(selectStatement(joinKeyName, joinKeyValue, innerJoinAggTable, json));
+			
 		}
 	}
 		
-	public static void addRowsToInnerJoinAgg(String listItem,Row deltaUpdatedRow,Row newRJRow,int aggColIndexInList,String innerJoinAggTable,JSONObject json,String joinKey,String joinKeyValue){
+	public static void addRowsToInnerJoinAgg(Stream stream,String listItem,Row deltaUpdatedRow,Row newRJRow,int aggColIndexInList,String innerJoinAggTable,JSONObject json,String joinKey,String joinKeyValue){
 		
 		Float sum = 0.0f;
 		Float avg = 0.0f;
@@ -419,6 +435,7 @@ public class JoinAggregationHelper {
 		avg = sum/count;
 		
 		insertStatement(sum, count, avg, min, max, joinKey, joinKeyValue,innerJoinAggTable,json);
+		stream.setInnerJoinAggNewRow(selectStatement(joinKey, joinKeyValue, innerJoinAggTable, json));
 
 	}
 
