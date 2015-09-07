@@ -2284,6 +2284,16 @@ public class ViewManagerController {
 									innerJoinAggTable, json, joinKeyType,
 									joinKeyName, aggColName, aggColType);
 						}
+						
+						if(!leftJoinAggTable.equals("false")){
+							evaluateLeftorRightJoinAggHaving(temp,"leftAggColumns", e, json,"left");
+						}
+
+						if(!innerJoinAggTable.equals("false")){
+							evaluateInnerJoinAggHaving(temp, "leftAggColumns", e, json);
+						}
+
+						stream.resetJoinAggRows();
 
 					}
 
@@ -2338,6 +2348,16 @@ public class ViewManagerController {
 									aggColType);
 
 						}
+						
+						if(!rightJoinAggTable.equals("false")){
+							evaluateLeftorRightJoinAggHaving(temp,"rightAggColumns", e, json,"right");
+						}
+
+						if(!innerJoinAggTable.equals("false")){
+							evaluateInnerJoinAggHaving(temp, "rightAggColumns", e, json);
+						}
+
+						stream.resetJoinAggRows();
 
 					}
 
@@ -2449,6 +2469,19 @@ public class ViewManagerController {
 										json, aggKeyType, aggKey, aggColName,
 										aggColType, AggKeyIndex, index);
 							}
+							
+
+							//evalute Left Having
+							if(!leftJoinAggTable.equals("false")){							
+								evaluateLeftorRightJoinAggGroupByHaving(i,e,temp,json,"left");
+							}
+
+							//evalute Inner Having
+							if(!innerJoinAggTable.equals("false")){
+								evaluateInnerJoinAggGroupByHaving(i,e,temp,json,"leftAggColumns");
+							}
+
+							stream.resetJoinAggGroupByUpRows();
 
 						}
 					}
@@ -2532,6 +2565,18 @@ public class ViewManagerController {
 										json, aggKeyType, aggKey, aggColName,
 										aggColType);
 							}
+							
+							//evalute Left Having
+							if(!rightJoinAggTable.equals("false")){							
+								evaluateLeftorRightJoinAggGroupByHaving(i,e,temp,json,"right");
+							}
+
+							//evalute Inner Having
+							if(!innerJoinAggTable.equals("false")){
+								evaluateInnerJoinAggGroupByHaving(i,e,temp,json,"rightAggColumns");
+							}
+
+							stream.resetJoinAggGroupByUpRows();
 
 						}
 					}
