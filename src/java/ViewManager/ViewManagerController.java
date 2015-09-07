@@ -190,7 +190,7 @@ public class ViewManagerController {
 					boolean myEval = true;
 					boolean myEval_old = true;
 					myEval &= Utils.evaluateCondition(stream.getDeltaUpdatedRow(), operation, value, type, selColName+"_new");
-					myEval &= Utils.evaluateCondition(stream.getDeltaUpdatedRow(), operation, value, type, selColName+"_old");
+					myEval_old &= Utils.evaluateCondition(stream.getDeltaUpdatedRow(), operation, value, type, selColName+"_old");
 
 					// if condition matching now & matched before
 					if (myEval && myEval_old) {
