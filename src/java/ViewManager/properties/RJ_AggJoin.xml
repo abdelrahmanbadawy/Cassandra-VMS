@@ -3,51 +3,90 @@
 <setup>
 	<mapping>
 		<nrUnit>1</nrUnit>
-		
+
 		<unit>
 			<reverseJoin>RJ_courses_student_faculty_faculty</reverseJoin>
 			<joinKey>faculty</joinKey>
 			<joinKeyType>text</joinKeyType>
 			<LeftTable>courses</LeftTable>
 			<RightTable>student</RightTable>
-			
-			
-				<InnerJoinKey>faculty</InnerJoinKey>
-				<InnerJoinKeyType>text</InnerJoinKeyType>
-				<LeftJoinKey>faculty</LeftJoinKey>
-				<LeftJoinKeyType>text</LeftJoinKeyType>
-				<RightJoinKey>faculty</RightJoinKey>
-				<RightJoinKeyType>text</RightJoinKeyType>
-			
+
+
+			<InnerJoinKey>faculty</InnerJoinKey>
+			<InnerJoinKeyType>text</InnerJoinKeyType>
+			<LeftJoinKey>faculty</LeftJoinKey>
+			<LeftJoinKeyType>text</LeftJoinKeyType>
+			<RightJoinKey>faculty</RightJoinKey>
+			<RightJoinKeyType>text</RightJoinKeyType>
+
 			<leftAggColumns>
-			    <nr>1</nr>
-			    
-			    <c>
-			        <name>ects</name>
-			        <type>varint</type>
-			        <index>1</index>
-			        <inner>innerjoin_agg_courses_faculty_ects</inner>
-			        <left>leftjoin_agg_courses_faculty_ects</left>
-			    </c>
-			    
-			    
+				<nr>1</nr>
+
+				<c>
+					<name>ects</name>
+					<type>varint</type>
+					<index>1</index>
+					<inner>
+						<name> innerjoin_agg_courses_faculty_ects</name>
+						<nrHaving>1</nrHaving>
+						<Having>
+							<name>having_innerjoin_agg_courses_faculty_ects_cond1
+							</name>
+							<nrAnd>1</nrAnd>
+							<And>
+								<selectionCol>ects</selectionCol>
+								<aggFct>sum</aggFct>
+								<type>varint</type>
+								<operation>></operation>
+								<value>4</value>
+							</And>
+						</Having>
+					</inner>
+
+					<left>
+						<name>leftjoin_agg_courses_faculty_ects</name>
+						<nrHaving>1</nrHaving>
+						<Having>
+							<name>having_leftjoin_agg_courses_faculty_ects_cond1
+							</name>
+							<nrAnd>1</nrAnd>
+							<And>
+								<selectionCol>ects</selectionCol>
+								<aggFct>sum</aggFct>
+								<type>varint</type>
+								<operation>></operation>
+								<value>4</value>
+							</And>
+						</Having>
+					</left>
+				</c>
+
+
 			</leftAggColumns>
-			
+
 			<rightAggColumns>
-			    <nr>1</nr>
-			    
-			    <c>
-			        <name>age</name>
-			        <type>int</type>
-			        <index>2</index>
-			        <inner>innerjoin_agg_courses_faculty_age</inner>
-			        <right>false</right>
-			    </c>
-			    
-			    
+				<nr>1</nr>
+
+				<c>
+					<name>age</name>
+					<type>int</type>
+					<index>2</index>
+
+					<inner>
+						<name> innerjoin_agg_courses_faculty_age</name>
+						<nrHaving>0</nrHaving>
+						<Having>
+						</Having>
+					</inner>
+					<right>
+						<name>false</name>
+					</right>
+				</c>
+
+
 			</rightAggColumns>
-			
-				
-		</unit>	
+
+
+		</unit>
 	</mapping>
 </setup>

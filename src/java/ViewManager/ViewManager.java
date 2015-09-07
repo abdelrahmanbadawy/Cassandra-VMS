@@ -4167,7 +4167,7 @@ public class ViewManager {
 
 							if(!innerJoinAggTable.equals("false")) {
 								JoinAggregationHelper.insertStatement(Float.valueOf(sum), count, Float.valueOf(avg), Float.valueOf(min), Float.valueOf(max), joinKeyName, joinKeyValue, innerJoinAggTable, json);
-								stream.setInnerJoinAggNewRow(JoinAggregationHelper.selectStatement(joinKeyName, joinKeyValue, rightJoinAggTable, json));
+								stream.setInnerJoinAggNewRow(JoinAggregationHelper.selectStatement(joinKeyName, joinKeyValue, innerJoinAggTable, json));
 
 							}
 

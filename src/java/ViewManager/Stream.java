@@ -29,7 +29,7 @@ public class Stream {
 		resetJoinAggRows();
 	}
 
-	private void resetJoinAggRows() {
+	public void resetJoinAggRows() {
 
 		innerJoinAggOldRow = null;
 		innerJoinAggUpdatedOldRow = null;

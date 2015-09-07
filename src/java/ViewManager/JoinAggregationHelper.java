@@ -1,5 +1,6 @@
 package ViewManager;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -55,6 +56,47 @@ public class JoinAggregationHelper {
 		return true;
 
 	}
+	
+	
+	public static boolean insertStatement(JSONObject json, String joinAggTable,Row row){
+
+		
+		String aggKeyName = row.getColumnDefinitions().getName(0);
+		String aggKeyType = row.getColumnDefinitions().getType(0).toString();
+		String aggKeyValue = Utils.getColumnValueFromDeltaStream(row, aggKeyName, aggKeyType, "");
+		
+		float sum = row.getFloat("sum");
+		float avg = row.getFloat("average");
+		float min = row.getFloat("min");
+		float max = row.getFloat("max");
+		int count = row.getInt("count");
+		
+		
+		StringBuilder insertQueryAgg = new StringBuilder(
+				"INSERT INTO ");
+		insertQueryAgg.append((String) json.get("keyspace"))
+		.append(".").append(joinAggTable).append(" ( ")
+		.append(aggKeyName + ", ")
+		.append("sum, count, average, min, max")
+		.append(") VALUES (").append(aggKeyValue + ", ")
+		.append(sum).append(", ").append(count)
+		.append(", ").append(avg).append(", ").append(min)
+		.append(", ").append(max).append(");");
+
+		try {
+
+			Session session = currentCluster.connect();
+			session.execute(insertQueryAgg.toString());
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+
+		return true;
+
+	}
+	
 
 	public static Row selectStatement(String key, String keyValue, String joinAggTable, JSONObject json){
 		StringBuilder selectQuery1 = new StringBuilder(

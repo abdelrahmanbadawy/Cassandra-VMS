@@ -262,9 +262,9 @@ public class Client {
 		return  createSelectViewTable() && createDeltaViewTable() && createPreAggregationViewTable() 
 				&& createReverseJoinViewTable() && createLeftJoinViewTable() && createRightJoinViewTable()
 				&& createInnerJoinViewTable() && createJoinPreAggregationViewTable()
-				&& createHavingAggView() && createHavingJoinAggGroupByView();
+				&& createHavingAggView() && createHavingJoinAggGroupByView()
 				
-				//&& createHavingJoinAggView()
+				&& createHavingJoinAggView();
 	}
 
 
