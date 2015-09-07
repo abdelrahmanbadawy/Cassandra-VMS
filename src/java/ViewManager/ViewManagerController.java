@@ -449,7 +449,7 @@ public class ViewManagerController {
 									.getDeltaPreaggMapping()
 									.getString(s11 + ".selectionCol");
 
-							eval &= evaluateCondition(deltaUpdatedRow,
+							eval &= Utils.evaluateCondition(deltaUpdatedRow,
 									operation, value, type, colName + "_new");
 
 						}
@@ -469,39 +469,8 @@ public class ViewManagerController {
 						} else {
 							// cascade delete
 
-							String pkVAlue = "";
-
-							switch (baseTablePrimaryKeyType) {
-
-							case "int":
-								pkVAlue = Integer.toString(deltaUpdatedRow
-										.getInt(baseTablePrimaryKey));
-								break;
-
-							case "float":
-								pkVAlue = Float.toString(deltaUpdatedRow
-										.getFloat(baseTablePrimaryKey));
-								break;
-
-							case "varint":
-								pkVAlue = deltaUpdatedRow.getVarint(
-										baseTablePrimaryKey).toString();
-								break;
-
-							case "varchar":
-								pkVAlue = deltaUpdatedRow
-								.getString(baseTablePrimaryKey);
-								break;
-
-							case "text":
-								pkVAlue = deltaUpdatedRow
-								.getString(baseTablePrimaryKey);
-								break;
-							}
-
-							boolean eval_old = evaluateCondition(
-									deltaUpdatedRow, operation, value, type,
-									colName + "_old");
+							String pkVAlue = Utils.getColumnValueFromDeltaStream(deltaUpdatedRow, baseTablePrimaryKey, baseTablePrimaryKeyType, "");
+							boolean eval_old = Utils.evaluateCondition(deltaUpdatedRow, operation, value, type,colName + "_old");
 
 							if (eval_old) {
 
@@ -944,7 +913,7 @@ public class ViewManagerController {
 								.getDeltaReverseJoinMapping()
 								.getString(s11 + ".selectionCol");
 
-						eval &= evaluateCondition(deltaUpdatedRow, operation,
+						eval &= Utils.evaluateCondition(deltaUpdatedRow, operation,
 								value, type, colName + "_new");
 
 					}
@@ -962,37 +931,9 @@ public class ViewManagerController {
 								keyspace, joinKeyType, column);
 					} else {
 
-						String pkVAlue = "";
+						String pkVAlue = Utils.getColumnValueFromDeltaStream(deltaUpdatedRow, baseTablePrimaryKey, baseTablePrimaryKeyType, "");
 
-						switch (baseTablePrimaryKeyType) {
-
-						case "int":
-							pkVAlue = Integer.toString(deltaUpdatedRow
-									.getInt(baseTablePrimaryKey));
-							break;
-
-						case "float":
-							pkVAlue = Float.toString(deltaUpdatedRow
-									.getFloat(baseTablePrimaryKey));
-							break;
-
-						case "varint":
-							pkVAlue = deltaUpdatedRow.getVarint(
-									baseTablePrimaryKey).toString();
-							break;
-
-						case "varchar":
-							pkVAlue = deltaUpdatedRow
-							.getString(baseTablePrimaryKey);
-							break;
-
-						case "text":
-							pkVAlue = deltaUpdatedRow
-							.getString(baseTablePrimaryKey);
-							break;
-						}
-
-						boolean eval_old = evaluateCondition(deltaUpdatedRow,
+						boolean eval_old = Utils.evaluateCondition(deltaUpdatedRow,
 								operation, value, type, colName + "_old");
 
 						if (eval_old) {
@@ -2590,115 +2531,6 @@ public class ViewManagerController {
 		}
 	}
 
-	public boolean evaluateCondition(Row row, String operation, String value,
-			String type, String colName) {
-
-		boolean eval = true;
-
-		if (row.isNull(colName)) {
-			return false;
-		}
-
-		switch (type) {
-
-		case "text":
-
-			if (operation.equals("=")) {
-				if (row.getString(colName).equals(value)) {
-					eval &= true;
-				} else {
-					eval &= false;
-				}
-
-			} else if (operation.equals("!=")) {
-				if (!row.getString(colName).equals(value)) {
-					eval = true;
-				} else {
-					eval = false;
-				}
-
-			}
-
-			break;
-
-		case "varchar":
-
-			if (operation.equals("=")) {
-				if (row.getString(colName).equals(value)) {
-					eval &= true;
-				} else {
-					eval &= false;
-				}
-
-			} else if (operation.equals("!=")) {
-				if (!row.getString(colName).equals(value)) {
-					eval &= true;
-				} else {
-					eval &= false;
-				}
-
-			}
-
-			break;
-
-		case "int":
-
-			// for _new col
-			String s1 = Integer.toString(row.getInt(colName));
-			Integer valueInt = new Integer(s1);
-			int compareValue = valueInt.compareTo(new Integer(value));
-
-			if ((operation.equals(">") && (compareValue > 0))) {
-				eval &= true;
-			} else if ((operation.equals("<") && (compareValue < 0))) {
-				eval &= true;
-			} else if ((operation.equals("=") && (compareValue == 0))) {
-				eval &= true;
-			} else {
-				eval &= false;
-			}
-
-			break;
-
-		case "varint":
-
-			// for _new col
-			s1 = row.getVarint(colName).toString();
-			valueInt = new Integer(new BigInteger(s1).intValue());
-			compareValue = valueInt.compareTo(new Integer(value));
-
-			if ((operation.equals(">") && (compareValue > 0))) {
-				eval &= true;
-			} else if ((operation.equals("<") && (compareValue < 0))) {
-				eval &= true;
-			} else if ((operation.equals("=") && (compareValue == 0))) {
-				eval &= true;
-			} else {
-				eval &= false;
-			}
-
-			break;
-
-		case "float":
-
-			compareValue = Float.compare(row.getFloat(colName),
-					Float.valueOf(value));
-
-			if ((operation.equals(">") && (compareValue > 0))) {
-				eval &= true;
-			} else if ((operation.equals("<") && (compareValue < 0))) {
-				eval &= true;
-			} else if ((operation.equals("=") && (compareValue == 0))) {
-				eval &= true;
-			} else {
-				eval &= false;
-			}
-
-			break;
-		}
-
-		return eval;
-
-	}
+	
 
 }
