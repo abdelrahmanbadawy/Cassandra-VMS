@@ -4,6 +4,7 @@ import com.datastax.driver.core.Row;
 
 public class Stream {
 
+	//JoinAggGroupBy
 	private Row innerJoinAggGroupByOldRow;
 	private Row innerJoinAggGroupByUpdatedOldRow;
 	private Row innerJoinAggGroupByNewRow;
@@ -13,15 +14,32 @@ public class Stream {
 	private Row leftOrRightJoinAggGroupByNewRow;
 	private Row leftOrRightJoinAggGroupByDeleteRow;
 
+	//JoinAgg
+	private Row innerJoinAggGroupOldRow;
+	private Row innerJoinAggGroupUpdatedOldRow;
+	private Row innerJoinAggGroupNewRow;
+	private Row innerJoinAggGroupDeleteRow;
+	private Row leftOrRightJoinAggGroupOldRow;
+	private Row leftOrRightJoinAggGroupUpdatedOldRow;
+	private Row leftOrRightJoinAggGroupNewRow;
+	private Row leftOrRightJoinAggGroupDeleteRow;
+
 	public Stream() {
-		setInnerJoinAggGroupByOldRow(null);
-		setInnerJoinAggGroupByUpdatedOldRow(null);
-		setInnerJoinAggGroupByNewRow(null);
-		setLeftOrRightJoinAggGroupByNewRow(null);
-		setLeftOrRightJoinAggGroupByOldRow(null);
-		setLeftOrRightJoinAggGroupByUpdatedOldRow(null);
-		setInnerJoinAggGroupByDeleteOldRow(null);
-		setLeftOrRightJoinAggGroupByDeleteRow(null);
+		resetJoinAggGroupByUpRows();
+		resetJoinAggRows();
+	}
+
+	private void resetJoinAggRows() {
+
+		innerJoinAggGroupOldRow = null;
+		innerJoinAggGroupUpdatedOldRow = null;
+		innerJoinAggGroupNewRow = null;
+		innerJoinAggGroupDeleteRow = null;
+		leftOrRightJoinAggGroupOldRow = null;
+		leftOrRightJoinAggGroupUpdatedOldRow = null;
+		leftOrRightJoinAggGroupNewRow = null;
+		leftOrRightJoinAggGroupDeleteRow = null;
+
 	}
 
 	public Row getInnerJoinAggGroupByOldRow() {
@@ -103,6 +121,75 @@ public class Stream {
 	public void setLeftOrRightJoinAggGroupByDeleteRow(
 			Row leftOrRightJoinAggGroupByDeleteRow) {
 		this.leftOrRightJoinAggGroupByDeleteRow = leftOrRightJoinAggGroupByDeleteRow;
+	}
+
+	public Row getInnerJoinAggGroupOldRow() {
+		return innerJoinAggGroupOldRow;
+	}
+
+	public void setInnerJoinAggGroupOldRow(Row innerJoinAggGroupOldRow) {
+		this.innerJoinAggGroupOldRow = innerJoinAggGroupOldRow;
+	}
+
+	public Row getInnerJoinAggGroupUpdatedOldRow() {
+		return innerJoinAggGroupUpdatedOldRow;
+	}
+
+	public void setInnerJoinAggGroupUpdatedOldRow(
+			Row innerJoinAggGroupUpdatedOldRow) {
+		this.innerJoinAggGroupUpdatedOldRow = innerJoinAggGroupUpdatedOldRow;
+	}
+
+	public Row getInnerJoinAggGroupNewRow() {
+		return innerJoinAggGroupNewRow;
+	}
+
+	public void setInnerJoinAggGroupNewRow(Row innerJoinAggGroupNewRow) {
+		this.innerJoinAggGroupNewRow = innerJoinAggGroupNewRow;
+	}
+
+	public Row getInnerJoinAggGroupDeleteRow() {
+		return innerJoinAggGroupDeleteRow;
+	}
+
+	public void setInnerJoinAggGroupDeleteRow(Row innerJoinAggGroupDeleteRow) {
+		this.innerJoinAggGroupDeleteRow = innerJoinAggGroupDeleteRow;
+	}
+
+	public Row getLeftOrRightJoinAggGroupOldRow() {
+		return leftOrRightJoinAggGroupOldRow;
+	}
+
+	public void setLeftOrRightJoinAggGroupOldRow(
+			Row leftOrRightJoinAggGroupOldRow) {
+		this.leftOrRightJoinAggGroupOldRow = leftOrRightJoinAggGroupOldRow;
+	}
+
+	public Row getLeftOrRightJoinAggGroupUpdatedOldRow() {
+		return leftOrRightJoinAggGroupUpdatedOldRow;
+	}
+
+	public void setLeftOrRightJoinAggGroupUpdatedOldRow(
+			Row leftOrRightJoinAggGroupUpdatedOldRow) {
+		this.leftOrRightJoinAggGroupUpdatedOldRow = leftOrRightJoinAggGroupUpdatedOldRow;
+	}
+
+	public Row getLeftOrRightJoinAggGroupNewRow() {
+		return leftOrRightJoinAggGroupNewRow;
+	}
+
+	public void setLeftOrRightJoinAggGroupNewRow(
+			Row leftOrRightJoinAggGroupNewRow) {
+		this.leftOrRightJoinAggGroupNewRow = leftOrRightJoinAggGroupNewRow;
+	}
+
+	public Row getLeftOrRightJoinAggGroupDeleteRow() {
+		return leftOrRightJoinAggGroupDeleteRow;
+	}
+
+	public void setLeftOrRightJoinAggGroupDeleteRow(
+			Row leftOrRightJoinAggGroupDeleteRow) {
+		this.leftOrRightJoinAggGroupDeleteRow = leftOrRightJoinAggGroupDeleteRow;
 	}
 
 
