@@ -429,6 +429,8 @@ public class ViewManagerController {
 					+ " delta_" + (String) json.get("table") + " available");
 		}
 
+		stream.resetPreaggregationRows();
+		
 		// ===================================================================================================================
 		// 3. for the delta table updated, get update depending reverse join
 		// tables
@@ -544,7 +546,7 @@ public class ViewManagerController {
 						// by passing the whole delta Row, we have agg key
 						// value
 						// even if it is not in json
-						vm.updateReverseJoin(json, cursor, nrOfTables,
+						vm.updateReverseJoin(stream,json, cursor, nrOfTables,
 								joinTable, baseTables, joinKeyName, tableName,
 								keyspace, joinKeyType, column);
 					} else {
@@ -586,7 +588,7 @@ public class ViewManagerController {
 							// 2. set DeltaDeletedRow variable for streaming
 							vm.setDeltaDeletedRow(selectionResult.one());
 
-							cascadeDelete(json, false);
+							//cascadeDelete(json, false);
 						}
 
 						// continue
@@ -596,7 +598,7 @@ public class ViewManagerController {
 				} else {
 					// by passing the whole delta Row, we have agg key value
 					// even if it is not in json
-					vm.updateReverseJoin(json, cursor, nrOfTables, joinTable,
+					vm.updateReverseJoin(stream,json, cursor, nrOfTables, joinTable,
 							baseTables, joinKeyName, tableName, keyspace,
 							joinKeyType, column);
 				}

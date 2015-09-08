@@ -732,17 +732,15 @@ public class ViewManager {
 		return true;
 	}
 
-	public void updateReverseJoin(JSONObject json, int cursor, int nrOfTables,
+	public void updateReverseJoin(Stream stream,JSONObject json, int cursor, int nrOfTables,
 			String joinTable, List<String> baseTables, String joinKeyName,
 			String tableName, String keyspace, String joinKeyType, int column) {
 
 		setReverseJoinName(joinTable);
+		//TO BE REMOVED
 		setUpdatedPreaggRowDeleted(null);
 
-		StringBuilder selectQuery = new StringBuilder();
-
 		JSONObject data;
-
 		// insert
 		if (json.get("data") != null) {
 			data = (JSONObject) json.get("data");
@@ -751,34 +749,12 @@ public class ViewManager {
 			data = (JSONObject) json.get("set_data");
 		}
 
+		Row deltaUpdatedRow = stream.getDeltaUpdatedRow();
+
 		String joinKeyValue = Utils.getColumnValueFromDeltaStream(deltaUpdatedRow, joinKeyName, joinKeyType, "_new");
 		String oldJoinKeyValue = Utils.getColumnValueFromDeltaStream(deltaUpdatedRow, joinKeyName, joinKeyType, "_old");
 
-		selectQuery.append("SELECT * FROM ").append(keyspace).append(".")
-		.append(joinTable).append(" WHERE ").append(joinKeyName)
-		.append(" = ").append(joinKeyValue).append(";");
-
-		System.out.println(selectQuery);
-
-		Session session = null;
-		ResultSet queryResults = null;
-
-		try {
-
-			session = currentCluster.connect();
-			queryResults = session.execute(selectQuery.toString());
-
-		} catch (Exception e) {
-			e.printStackTrace();
-
-		}
-
-		Row theRow = queryResults.one();
-
-		StringBuilder insertQuery = new StringBuilder("INSERT INTO ")
-		.append(keyspace).append(".").append(joinTable).append(" (")
-		.append(joinKeyName).append(", ").append("list_item" + column)
-		.append(") VALUES (").append(joinKeyValue).append(", ?);");
+		Row theRow = Utils.selectAllStatement(keyspace, joinTable, joinKeyName, joinKeyValue);
 
 		ArrayList<String> myList = new ArrayList<String>();
 
@@ -846,23 +822,13 @@ public class ViewManager {
 				&& !oldJoinKeyValue.equals("'null'")
 				&& !joinKeyValue.equals(oldJoinKeyValue)) {
 
-			StringBuilder selectQuery1 = new StringBuilder();
-			selectQuery1.append("SELECT * FROM ").append(keyspace).append(".")
-			.append(joinTable).append(" WHERE ").append(joinKeyName)
-			.append(" = ").append(oldJoinKeyValue).append(";");
-
-			session = currentCluster.connect();
-			queryResults = session.execute(selectQuery1.toString());
-
 			// The row that contains the old join key value
-			Row row_old_join_value = queryResults.one();
+			Row row_old_join_value = Utils.selectAllStatement(keyspace, joinTable, joinKeyName, oldJoinKeyValue);
 
+			//TO BE REMOVED
 			setReverseJoinOldUpdateRow(row_old_join_value);
-			StringBuilder insertQuery2 = new StringBuilder("INSERT INTO ")
-			.append(keyspace).append(".").append(joinTable)
-			.append(" (").append(joinKeyName).append(", ")
-			.append("list_item" + column).append(") VALUES (")
-			.append(oldJoinKeyValue).append(", ?);");
+
+			stream.setReverseJoinUpadteOldRow(row_old_join_value);
 
 			Map<String, String> tempMapImmutable2 = row_old_join_value.getMap(
 					"list_item" + column, String.class, String.class);
@@ -870,28 +836,19 @@ public class ViewManager {
 			HashMap<String, String> myMap2 = new HashMap<String, String>();
 
 			myMap2.putAll(tempMapImmutable2);
-
 			// delete this from the other row
 			myMap2.remove(pk);
 
-			PreparedStatement statement = session.prepare(insertQuery2
-					.toString());
-			BoundStatement boundStatement = new BoundStatement(statement);
-			session.execute(boundStatement.bind(myMap2));
+			ReverseJoinHelper.insertStatement(joinTable, keyspace, joinKeyName, oldJoinKeyValue, column, myMap2);
 
 			// retrieve and set update old row
-			StringBuilder selectQuery2 = new StringBuilder();
-			selectQuery2.append("SELECT * FROM ").append(keyspace).append(".")
-			.append(joinTable).append(" WHERE ").append(joinKeyName)
-			.append(" = ").append(oldJoinKeyValue).append(";");
-
-			session = currentCluster.connect();
-			queryResults = session.execute(selectQuery2.toString());
+			Row row_after_change_join_value = Utils.selectAllStatement(keyspace, joinTable, joinKeyName, oldJoinKeyValue);
 
 			// The old row that contains the old join key value after being
 			// updated
-			Row row_after_change_join_value = queryResults.one();
+			stream.setReverseJoinUpdatedOldRow_changeJoinKey(row_after_change_join_value);
 
+			//TO BE REMOVED
 			setReverseJoinUpdatedOldRow_changeJoinKey(row_after_change_join_value);
 
 			// check if all maps are empty --> remove the row
@@ -912,80 +869,20 @@ public class ViewManager {
 
 			// all entries are nulls
 			if (allNull) {
-				StringBuilder deleteQuery = new StringBuilder("delete from ");
-				deleteQuery.append(keyspace).append(".").append(joinTable)
-				.append(" WHERE ").append(joinKeyName + " = ")
-				.append(oldJoinKeyValue).append(";");
-
-				System.out.println(deleteQuery);
-
-				session = currentCluster.connect();
-				session.execute(deleteQuery.toString());
+				Utils.deleteEntireRowWithPK(keyspace, joinTable, joinKeyName, oldJoinKeyValue);
 			}
-
-		}
-
-		else
+		}else{
 			setReverseJoinOldUpdateRow(theRow);
-
-		try {
-
-			session = currentCluster.connect();
-
-			System.out.println(insertQuery);
-			PreparedStatement statement = session.prepare(insertQuery
-					.toString());
-			BoundStatement boundStatement = new BoundStatement(statement);
-			session.execute(boundStatement.bind(myMap));
-
-		} catch (Exception e) {
-			e.printStackTrace();
-
+			stream.setReverseJoinUpadteOldRow(theRow);
 		}
-
+		
+		ReverseJoinHelper.insertStatement(joinTable, keyspace, joinKeyName, joinKeyValue, column, myMap);
+		
 		// Set the rj updated row for join updates
-		StringBuilder selectQuery1 = new StringBuilder();
-		selectQuery1.append("SELECT * FROM ").append(keyspace).append(".")
-		.append(joinTable).append(" WHERE ").append(joinKeyName)
-		.append(" = ").append(joinKeyValue).append(";");
-
-		System.out.println(selectQuery1);
-
-		session = null;
-
-		try {
-			session = currentCluster.connect();
-			setReverseJoinUpdatedNewRow(session
-					.execute(selectQuery1.toString()).one());
-
-		} catch (Exception e) {
-			e.printStackTrace();
-
-		}
-
-		// System.out.println("Old RJ Update Row: ");
-		// if(getReverseJoinUpdateOldRow()!=null){
-		// System.out.println("join key: "+getReverseJoinUpdateOldRow().getString(joinKeyName));
-		// System.out.println("listitem1: "+getReverseJoinUpdateOldRow().getMap(
-		// "list_item1", String.class, String.class).toString());
-		// System.out.println("listitem2: "+getReverseJoinUpdateOldRow().getMap(
-		// "list_item2", String.class, String.class).toString());
-		// }
-		// else
-		// System.out.println("null");
-		//
-		//
-		// System.out.println("New RJ Update Row: ");
-		// if(getrjUpdatedRow()!=null){
-		// System.out.println("join key: "+getrjUpdatedRow().getString(joinKeyName));
-		// System.out.println("listitem1: "+getrjUpdatedRow().getMap(
-		// "list_item1", String.class, String.class).toString());
-		// System.out.println("listitem2: "+getrjUpdatedRow().getMap(
-		// "list_item2", String.class, String.class).toString());
-		// }
-		// else
-		// System.out.println("null");
-		//
+		Row result = Utils.selectAllStatement(keyspace, joinTable, joinKeyName, joinKeyValue);
+		stream.setReverseJoinUpdateNewRow(result);
+		// TO BE REMOVED
+		setReverseJoinUpdatedNewRow(result);
 
 	}
 
@@ -3563,7 +3460,7 @@ public class ViewManager {
 					}
 
 					if (!innerJoinAggTable.equals("false")) {
-						stream.setInnerJoinAggDeleteRow(JoinAggregationHelper.selectStatement(joinKeyName, oldJoinKeyValue, rightJoinAggTable, json));
+						stream.setInnerJoinAggDeleteRow(JoinAggregationHelper.selectStatement(joinKeyName, oldJoinKeyValue, innerJoinAggTable, json));
 
 						Utils.deleteEntireRowWithPK((String) json.get("keyspace"), innerJoinAggTable, joinKeyName, oldJoinKeyValue);
 					}
@@ -4589,13 +4486,13 @@ public class ViewManager {
 
 		Map<String, String> map = new HashMap<String, String>();
 		map.putAll(temp);
-		
+
 		if(map.size()==1){
 			Utils.deleteEntireRowWithPK((String)json.get("keyspace"), havingTable, aggKey, aggKeyValue);
 		}else{
 
 			List<Definition> def = stream.getDeltaDeletedRow().getColumnDefinitions().asList();
-			
+
 			int aggColIndexInList = 0;
 
 			for (int i = 0; i < def.size(); i++) {

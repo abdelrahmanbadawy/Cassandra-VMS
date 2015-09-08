@@ -33,12 +33,29 @@ public class Stream {
 	private Row updatedPreaggRowDeleted;
 	private Row updatedPreaggRowChangeAK;
 
+	//Reverse Join
+	private Row reverseJoinUpdateNewRow;
+	private Row reverseJoinUpadteOldRow;
+	private Row reverseJoinUpdatedOldRow_changeJoinKey;
+	private Row reverseJoinDeleteNewRow;
+	private Row revereJoinDeleteOldRow;
+
+
 
 	public Stream() {
 		resetJoinAggGroupByUpRows();
 		resetJoinAggRows();
 		resetDeltaRows();
 		resetPreaggregationRows();
+		resetReverseJoinRows();
+	}
+
+	private void resetReverseJoinRows() {
+		reverseJoinUpdateNewRow = null;
+		reverseJoinUpadteOldRow = null;
+		reverseJoinUpdatedOldRow_changeJoinKey= null;
+		reverseJoinDeleteNewRow= null;
+		revereJoinDeleteOldRow = null;
 	}
 
 	public void resetPreaggregationRows() {
@@ -254,6 +271,47 @@ public class Stream {
 
 	public void setUpdatedPreaggRowChangeAK(Row updatedPreaggRowChangeAK) {
 		this.updatedPreaggRowChangeAK = updatedPreaggRowChangeAK;
+	}
+
+	public Row getReverseJoinUpdateNewRow() {
+		return reverseJoinUpdateNewRow;
+	}
+
+	public void setReverseJoinUpdateNewRow(Row reverseJoinUpdateNewRow) {
+		this.reverseJoinUpdateNewRow = reverseJoinUpdateNewRow;
+	}
+
+	public Row getReverseJoinUpadteOldRow() {
+		return reverseJoinUpadteOldRow;
+	}
+
+	public void setReverseJoinUpadteOldRow(Row reverseJoinUpadteOldRow) {
+		this.reverseJoinUpadteOldRow = reverseJoinUpadteOldRow;
+	}
+
+	public Row getReverseJoinUpdatedOldRow_changeJoinKey() {
+		return reverseJoinUpdatedOldRow_changeJoinKey;
+	}
+
+	public void setReverseJoinUpdatedOldRow_changeJoinKey(
+			Row reverseJoinUpdatedOldRow_changeJoinKey) {
+		this.reverseJoinUpdatedOldRow_changeJoinKey = reverseJoinUpdatedOldRow_changeJoinKey;
+	}
+
+	public Row getReverseJoinDeleteNewRow() {
+		return reverseJoinDeleteNewRow;
+	}
+
+	public void setReverseJoinDeleteNewRow(Row reverseJoinDeleteNewRow) {
+		this.reverseJoinDeleteNewRow = reverseJoinDeleteNewRow;
+	}
+
+	public Row getRevereJoinDeleteOldRow() {
+		return revereJoinDeleteOldRow;
+	}
+
+	public void setRevereJoinDeleteOldRow(Row revereJoinDeleteOldRow) {
+		this.revereJoinDeleteOldRow = revereJoinDeleteOldRow;
 	}
 
 
