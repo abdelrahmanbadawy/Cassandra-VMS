@@ -2832,9 +2832,9 @@ public class ViewManager {
 		String pkName = def.get(0).getName();
 		String pkType = def.get(0).getType().toString();
 		String pkVAlue = Utils.getColumnValueFromDeltaStream(preagRow, pkName, pkType, "");
-		
+
 		PreaggregationHelper.insertStatement(json, havingTable, pkName, pkVAlue, myMap, sum, count, min, max, average);
-		
+
 		return true;
 	}
 
@@ -3101,7 +3101,7 @@ public class ViewManager {
 		this.reverseJoinUpdatedOldRow_changeJoinKey = reverseJoinUpdatedOldRow_changeJoinKey;
 	}
 
-	public boolean deleteRowHaving(Row deltaUpdatedRow, String keyspace,
+	public boolean deleteRowHaving(String keyspace,
 			String havingTable, Row preagRow) {
 
 		List<Definition> def = preagRow.getColumnDefinitions().asList();
@@ -4575,6 +4575,61 @@ public class ViewManager {
 
 		return true;
 
+	}
+
+	public void deleteElementFromHaving(Stream stream, JSONObject json,
+			String havingTable, String aggKey, String aggKeyType, String pkVAlue,String aggCol, String aggColType) {
+
+		String aggKeyValue = Utils.getColumnValueFromDeltaStream(stream.getDeltaUpdatedRow(), aggKey, aggKeyType, "_old");
+		String aggColValue = Utils.getColumnValueFromDeltaStream(stream.getDeltaUpdatedRow(), aggCol, aggColType, "_old");
+
+		ResultSet rs = PreaggregationHelper.selectStatement(json, havingTable, aggKey, aggKeyValue);
+		Row row = rs.one();
+		Map<String, String> temp = row.getMap("list_item", String.class, String.class);
+
+		Map<String, String> map = new HashMap<String, String>();
+		map.putAll(temp);
+		
+		if(map.size()==1){
+			Utils.deleteEntireRowWithPK((String)json.get("keyspace"), havingTable, aggKey, aggKeyValue);
+		}else{
+
+			List<Definition> def = stream.getDeltaDeletedRow().getColumnDefinitions().asList();
+			
+			int aggColIndexInList = 0;
+
+			for (int i = 0; i < def.size(); i++) {
+				if (def.get(i).getName().contentEquals(aggCol + "_new")) {
+					break;
+				}
+				if (def.get(i).getName().contains("_new"))
+					aggColIndexInList++;
+			}
+
+			map.remove(pkVAlue);
+			float sum = row.getFloat("sum") - Float.valueOf(aggColValue);
+			int count =  row.getInt("count") - 1;
+			float average = sum/count;
+
+			float max = -Float.MAX_VALUE;
+			float min = Float.MAX_VALUE;
+
+			for (Map.Entry<String, String> entry : map.entrySet()) {
+				String list = entry.getValue().replaceAll("\\[", "")
+						.replaceAll("\\]", "");
+				String[] listArray = list.split(",");
+				if (Float.valueOf(listArray[aggColIndexInList - 1]) < min)
+					min = Float
+					.valueOf(listArray[aggColIndexInList - 1]);
+
+				if (Float.valueOf(listArray[aggColIndexInList - 1]) > max)
+					max = Float
+					.valueOf(listArray[aggColIndexInList - 1]);
+			}
+
+			PreaggregationHelper.insertStatement(json, havingTable, aggKey, aggKeyValue, map, sum, count, min, max, average);
+
+		}
 	}
 
 }
