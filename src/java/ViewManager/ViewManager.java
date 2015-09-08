@@ -2815,7 +2815,7 @@ public class ViewManager {
 		this.revereJoinDeleteOldRow = revereJoinDeletedOldRow;
 	}
 
-	public boolean updateHaving(Row deltaUpdatedRow, String keyspace,
+	public boolean updateHaving(Row deltaUpdatedRow, JSONObject json,
 			String havingTable, Row preagRow) {
 
 		Map<String, String> myMap = new HashMap<String, String>();
@@ -2831,54 +2831,10 @@ public class ViewManager {
 		List<Definition> def = preagRow.getColumnDefinitions().asList();
 		String pkName = def.get(0).getName();
 		String pkType = def.get(0).getType().toString();
-		String pkVAlue = "";
-
-		switch (pkType) {
-
-		case "int":
-			pkVAlue = Integer.toString(preagRow.getInt(pkName));
-			break;
-
-		case "float":
-			pkVAlue = Float.toString(preagRow.getFloat(pkName));
-			break;
-
-		case "varint":
-			pkVAlue = preagRow.getVarint(pkName).toString();
-			break;
-
-		case "varchar":
-			pkVAlue = preagRow.getString(pkName);
-			break;
-
-		case "text":
-			pkVAlue = preagRow.getString(pkName);
-			break;
-		}
-
-		try {
-			// 1. execute the insertion
-			StringBuilder insertQuery = new StringBuilder("INSERT INTO ");
-			insertQuery.append(keyspace).append(".").append(havingTable)
-			.append(" (").append(pkName + ", ").append("list_item, ")
-			.append("sum, ").append("count, average, min, max ")
-			.append(") VALUES (").append("?, ?, ?, ?, ?, ?, ?);");
-
-			System.out.println(insertQuery);
-
-			Session session1 = currentCluster.connect();
-
-			PreparedStatement statement1 = session1.prepare(insertQuery
-					.toString());
-			BoundStatement boundStatement = new BoundStatement(statement1);
-			session1.execute(boundStatement.bind(pkVAlue, myMap, sum,
-					(int) count, average, min, max));
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			return false;
-		}
-
+		String pkVAlue = Utils.getColumnValueFromDeltaStream(preagRow, pkName, pkType, "");
+		
+		PreaggregationHelper.insertStatement(json, havingTable, pkName, pkVAlue, myMap, sum, count, min, max, average);
+		
 		return true;
 	}
 
@@ -3151,47 +3107,9 @@ public class ViewManager {
 		List<Definition> def = preagRow.getColumnDefinitions().asList();
 		String pkName = def.get(0).getName();
 		String pkType = def.get(0).getType().toString();
-		String pkVAlue = "";
+		String pkVAlue = Utils.getColumnValueFromDeltaStream(preagRow, pkName, pkType, "");
 
-		switch (pkType) {
-
-		case "int":
-			pkVAlue = Integer.toString(preagRow.getInt(pkName));
-			break;
-
-		case "float":
-			pkVAlue = Float.toString(preagRow.getFloat(pkName));
-			break;
-
-		case "varint":
-			pkVAlue = preagRow.getVarint(pkName).toString();
-			break;
-
-		case "varchar":
-			pkVAlue = "'" + preagRow.getString(pkName) + "'";
-			break;
-
-		case "text":
-			pkVAlue = "'" + preagRow.getString(pkName) + "'";
-			break;
-		}
-
-		StringBuilder deleteQuery = new StringBuilder("delete from ");
-		deleteQuery.append(keyspace).append(".").append(havingTable)
-		.append(" WHERE ").append(pkName + " = ").append(pkVAlue)
-		.append(";");
-
-		System.out.println(deleteQuery);
-
-		try {
-
-			Session session = currentCluster.connect();
-			session.execute(deleteQuery.toString());
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			return false;
-		}
+		Utils.deleteEntireRowWithPK(keyspace, havingTable, pkName, pkVAlue);
 
 		return true;
 	}

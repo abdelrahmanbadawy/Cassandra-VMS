@@ -318,13 +318,12 @@ public class ViewManagerController {
 
 								// 1. retrieve the row to be deleted from delta
 								// table
-
 								Row row = Utils.selectAllStatement((String)json.get("keyspace"), "delta_" + json.get("table"), baseTablePrimaryKey, pkVAlue);
-								
+
 								// 2. set DeltaDeletedRow variable for streaming
 								//TO BE REMOVED
 								vm.setDeltaDeletedRow(row);
-								
+
 								stream.setDeltaDeletedRow(row);
 								cascadeDelete(json, false);
 
@@ -343,7 +342,6 @@ public class ViewManagerController {
 					}
 
 				}
-
 				// =========================================================================
 				// 2.1 update preaggregations with having clause
 
@@ -397,216 +395,41 @@ public class ViewManagerController {
 									.getHavingPreAggMapping()
 									.getString(s11 + ".selectionCol");
 
-							Row PreagRow = vm.getUpdatedPreaggRow();
-							Row PreagRowAK = vm.getUpdatedPreaggRowChangeAK();
+							Row PreagRow = stream.getUpdatedPreaggRow();
+							Row PreagRowAK = stream.getUpdatedPreaggRowChangeAK();
 
-							float min1 = PreagRow.getFloat("min");
-							float max1 = PreagRow.getFloat("max");
-							float average1 = PreagRow.getFloat("average");
-							float sum1 = PreagRow.getFloat("sum");
-							int count1 = PreagRow.getInt("count");
 
-							float min2 = 0;
-							float max2 = 0;
-							float average2 = 0;
-							float sum2 = 0;
-							int count2 = 0;
-
-							if (PreagRowAK != null) {
-								min2 = PreagRowAK.getFloat("min");
-								max2 = PreagRowAK.getFloat("max");
-								average2 = PreagRowAK.getFloat("average");
-								sum2 = PreagRowAK.getFloat("sum");
-								count2 = PreagRowAK.getInt("count");
-							}
-
-							if (aggFct.equals("sum")) {
-
-								int compareValue = new Float(sum1)
-								.compareTo(new Float(value));
-
-								if ((operation.equals(">") && (compareValue > 0))) {
-									eval1 &= true;
-								} else if ((operation.equals("<") && (compareValue < 0))) {
-									eval1 &= true;
-								} else if ((operation.equals("=") && (compareValue == 0))) {
-									eval1 &= true;
-								} else {
-									eval1 &= false;
-								}
-
-								if (PreagRowAK != null) {
-
-									compareValue = new Float(sum2)
-									.compareTo(new Float(value));
-
-									if ((operation.equals(">") && (compareValue > 0))) {
-										eval2 &= true;
-									} else if ((operation.equals("<") && (compareValue < 0))) {
-										eval2 &= true;
-									} else if ((operation.equals("=") && (compareValue == 0))) {
-										eval2 &= true;
-									} else {
-										eval2 &= false;
-									}
-								}
-
-							} else if (aggFct.equals("average")) {
-
-								int compareValue = Float.compare(average1,
-										Float.valueOf(value));
-
-								if ((operation.equals(">") && (compareValue > 0))) {
-									eval1 &= true;
-								} else if ((operation.equals("<") && (compareValue < 0))) {
-									eval1 &= true;
-								} else if ((operation.equals("=") && (compareValue == 0))) {
-									eval1 &= true;
-								} else {
-									eval1 &= false;
-								}
-
-								if (PreagRowAK != null) {
-
-									compareValue = Float.compare(average2,
-											Float.valueOf(value));
-
-									if ((operation.equals(">") && (compareValue > 0))) {
-										eval1 &= true;
-									} else if ((operation.equals("<") && (compareValue < 0))) {
-										eval1 &= true;
-									} else if ((operation.equals("=") && (compareValue == 0))) {
-										eval1 &= true;
-									} else {
-										eval1 &= false;
-									}
-								}
-
-							} else if (aggFct.equals("count")) {
-
-								int compareValue = new Integer(count1)
-								.compareTo(new Integer(value));
-
-								if ((operation.equals(">") && (compareValue > 0))) {
-									eval1 &= true;
-								} else if ((operation.equals("<") && (compareValue < 0))) {
-									eval1 &= true;
-								} else if ((operation.equals("=") && (compareValue == 0))) {
-									eval1 &= true;
-								} else {
-									eval1 &= false;
-								}
-
-								if (PreagRowAK != null) {
-
-									compareValue = new Integer(count2)
-									.compareTo(new Integer(value));
-
-									if ((operation.equals(">") && (compareValue > 0))) {
-										eval2 &= true;
-									} else if ((operation.equals("<") && (compareValue < 0))) {
-										eval2 &= true;
-									} else if ((operation.equals("=") && (compareValue == 0))) {
-										eval2 &= true;
-									} else {
-										eval2 &= false;
-									}
-								}
-
-							} else if (aggFct.equals("min")) {
-
-								int compareValue = Float.compare(min1,
-										Float.valueOf(value));
-
-								if ((operation.equals(">") && (compareValue > 0))) {
-									eval1 &= true;
-								} else if ((operation.equals("<") && (compareValue < 0))) {
-									eval1 &= true;
-								} else if ((operation.equals("=") && (compareValue == 0))) {
-									eval1 &= true;
-								} else {
-									eval1 &= false;
-								}
-
-								if (PreagRowAK != null) {
-
-									compareValue = Float.compare(min2,
-											Float.valueOf(value));
-
-									if ((operation.equals(">") && (compareValue > 0))) {
-										eval1 &= true;
-									} else if ((operation.equals("<") && (compareValue < 0))) {
-										eval1 &= true;
-									} else if ((operation.equals("=") && (compareValue == 0))) {
-										eval1 &= true;
-									} else {
-										eval1 &= false;
-									}
-								}
-
-							} else if (aggFct.equals("max")) {
-
-								int compareValue = Float.compare(max1,
-										Float.valueOf(value));
-
-								if ((operation.equals(">") && (compareValue > 0))) {
-									eval1 &= true;
-								} else if ((operation.equals("<") && (compareValue < 0))) {
-									eval1 &= true;
-								} else if ((operation.equals("=") && (compareValue == 0))) {
-									eval1 &= true;
-								} else {
-									eval1 &= false;
-								}
-
-								if (PreagRowAK != null) {
-
-									compareValue = Float.compare(max2,
-											Float.valueOf(value));
-
-									if ((operation.equals(">") && (compareValue > 0))) {
-										eval2 &= true;
-									} else if ((operation.equals("<") && (compareValue < 0))) {
-										eval2 &= true;
-									} else if ((operation.equals("=") && (compareValue == 0))) {
-										eval2 &= true;
-									} else {
-										eval2 &= false;
-									}
-								}
+							eval1&= Utils.evalueJoinAggConditions(PreagRow, aggFct, operation, value);
+							if(PreagRowAK!=null){
+								eval2&= Utils.evalueJoinAggConditions(PreagRowAK, aggFct, operation, value);
 							}
 
 							// if matching now & not matching before
 							// if condition matching now & matched before
 							if (eval1) {
-								vm.updateHaving(deltaUpdatedRow,
-										(String) json.get("keyspace"),
-										havingTable, PreagRow);
-
-								if (PreagRowAK != null && eval2) {
-									vm.updateHaving(deltaUpdatedRow,
-											(String) json.get("keyspace"),
-											havingTable, PreagRowAK);
-								}
-
+								vm.updateHaving(stream.getDeltaUpdatedRow(),
+										json,havingTable, PreagRow);
 								// if not matching now
 							} else if (!eval1) {
-								vm.deleteRowHaving(deltaUpdatedRow,
+								vm.deleteRowHaving(stream.getDeltaUpdatedRow(),
 										(String) json.get("keyspace"),
 										havingTable, PreagRow);
-
-								if (PreagRowAK != null && !eval2) {
-									vm.deleteRowHaving(deltaUpdatedRow,
-											(String) json.get("keyspace"),
-											havingTable, PreagRowAK);
-								}
-
 								// if not matching now & not before, ignore
 							}
 
-							Row deletedRow = vm.getUpdatedPreaggRowDeleted();
+							if (PreagRowAK != null && eval2) {
+								vm.updateHaving(stream.getDeltaUpdatedRow(),
+										json,havingTable, PreagRowAK);
+								
+							}else if (PreagRowAK != null && !eval2) {
+								vm.deleteRowHaving(stream.getDeltaUpdatedRow(),
+										(String) json.get("keyspace"),
+										havingTable, PreagRowAK);
+							}
+
+							Row deletedRow = stream.getUpdatedPreaggRowDeleted();
 							if (deletedRow != null) {
-								vm.deleteRowHaving(deltaUpdatedRow,
+								vm.deleteRowHaving(stream.getDeltaUpdatedRow(),
 										(String) json.get("keyspace"),
 										havingTable, deletedRow);
 							}
@@ -1703,7 +1526,7 @@ public class ViewManagerController {
 							if (DeletedPreagRow != null) {
 								if (eval1) {
 									vm.updateHaving(deltaDeletedRow,
-											(String) json.get("keyspace"),
+											json,
 											havingTable, DeletedPreagRow);
 								} else {
 									vm.deleteRowHaving(deltaDeletedRow,
