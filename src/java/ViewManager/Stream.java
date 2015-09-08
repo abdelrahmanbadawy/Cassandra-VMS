@@ -28,10 +28,24 @@ public class Stream {
 	private Row deltaUpdatedRow;
 	private Row deltaDeletedRow;
 
+	//Preaggregation
+	private Row updatedPreaggRow;
+	private Row updatedPreaggRowDeleted;
+	private Row updatedPreaggRowChangeAK;
+
+
 	public Stream() {
 		resetJoinAggGroupByUpRows();
 		resetJoinAggRows();
 		resetDeltaRows();
+		resetPreaggregationRows();
+	}
+
+	public void resetPreaggregationRows() {
+		updatedPreaggRow = null;
+		updatedPreaggRowDeleted = null;
+		updatedPreaggRowChangeAK = null;
+
 	}
 
 	private void resetDeltaRows() {
@@ -216,6 +230,30 @@ public class Stream {
 
 	public void setDeltaDeletedRow(Row deltaDeletedRow) {
 		this.deltaDeletedRow = deltaDeletedRow;
+	}
+
+	public Row getUpdatedPreaggRow() {
+		return updatedPreaggRow;
+	}
+
+	public void setUpdatedPreaggRow(Row updatedPreaggRow) {
+		this.updatedPreaggRow = updatedPreaggRow;
+	}
+
+	public Row getUpdatedPreaggRowDeleted() {
+		return updatedPreaggRowDeleted;
+	}
+
+	public void setUpdatedPreaggRowDeleted(Row updatedPreaggRowDeleted) {
+		this.updatedPreaggRowDeleted = updatedPreaggRowDeleted;
+	}
+
+	public Row getUpdatedPreaggRowChangeAK() {
+		return updatedPreaggRowChangeAK;
+	}
+
+	public void setUpdatedPreaggRowChangeAK(Row updatedPreaggRowChangeAK) {
+		this.updatedPreaggRowChangeAK = updatedPreaggRowChangeAK;
 	}
 
 

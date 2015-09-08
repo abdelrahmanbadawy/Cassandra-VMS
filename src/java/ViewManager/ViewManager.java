@@ -510,7 +510,7 @@ public class ViewManager {
 		return true;
 	}
 
-	public boolean updatePreaggregation(Row deltaUpdatedRow, String aggKey,
+	public boolean updatePreaggregation(Stream stream,String aggKey,
 			String aggKeyType, JSONObject json, String preaggTable,
 			String baseTablePrimaryKey, String aggCol, String aggColType,
 			boolean override, boolean mapSize1) {
@@ -520,7 +520,7 @@ public class ViewManager {
 		// sameKeyValue = true , if 1) aggkey hasnt been updated or 2) for first
 		// insertion where _old value is null
 		// 1.b save aggKeyValue in loop
-
+		float aggColValue_old = 0;
 		boolean sameKeyValue = false;
 		String aggKeyValue = "";
 		String aggKeyValue_old = "";
@@ -532,66 +532,19 @@ public class ViewManager {
 		float min = Float.MAX_VALUE;
 		float max = -Float.MAX_VALUE;
 
+		Row deltaUpdatedRow = stream.getDeltaUpdatedRow();
+
 		if (deltaUpdatedRow != null) {
 			colDef = deltaUpdatedRow.getColumnDefinitions();
 			int indexNew = colDef.getIndexOf(aggKey + "_new");
 			int indexOld = colDef.getIndexOf(aggKey + "_old");
 
-			switch (aggKeyType) {
+			aggKeyValue = Utils.getColumnValueFromDeltaStream(deltaUpdatedRow,aggKey,aggKeyType, "_new");
+			aggKeyValue_old = Utils.getColumnValueFromDeltaStream(deltaUpdatedRow,aggKey,aggKeyType, "_old");
 
-			case "text":
-				if (deltaUpdatedRow.getString(indexNew).equals(
-						deltaUpdatedRow.getString(indexOld))
-						|| deltaUpdatedRow.isNull(indexOld)) {
-					sameKeyValue = true;
-				}
-				aggKeyValue = "'" + deltaUpdatedRow.getString(indexNew) + "'";
-				aggKeyValue_old = "'" + deltaUpdatedRow.getString(indexOld)
-						+ "'";
-				break;
-
-			case "int":
-				if (deltaUpdatedRow.getInt(indexNew) == (deltaUpdatedRow
-						.getInt(indexOld)) || deltaUpdatedRow.isNull(indexOld)) {
-					sameKeyValue = true;
-				}
-				aggKeyValue = "" + deltaUpdatedRow.getInt(indexNew) + "";
-				aggKeyValue_old = "" + deltaUpdatedRow.getInt(indexOld) + "";
-				break;
-
-			case "varint":
-				if (deltaUpdatedRow.getVarint(indexNew) == (deltaUpdatedRow
-						.getVarint(indexOld))
-						|| deltaUpdatedRow.isNull(indexOld)) {
-					sameKeyValue = true;
-				}
-				aggKeyValue = "" + deltaUpdatedRow.getVarint(indexNew) + "";
-				aggKeyValue_old = "" + deltaUpdatedRow.getVarint(indexOld) + "";
-				break;
-
-			case "varchar":
-				if (deltaUpdatedRow.getString(indexNew).equals(
-						deltaUpdatedRow.getString(indexOld))
-						|| deltaUpdatedRow.isNull(indexOld)) {
-					sameKeyValue = true;
-				}
-				aggKeyValue = "'" + deltaUpdatedRow.getString(indexNew) + "'";
-				aggKeyValue_old = "'" + deltaUpdatedRow.getString(indexOld)
-						+ "'";
-				break;
-
-			case "float":
-				if (deltaUpdatedRow.getFloat(indexNew) == (deltaUpdatedRow
-						.getFloat(indexOld))
-						|| deltaUpdatedRow.isNull(indexOld)) {
-					sameKeyValue = true;
-				}
-				aggKeyValue = "" + deltaUpdatedRow.getFloat(indexNew) + "";
-				aggKeyValue_old = "" + deltaUpdatedRow.getFloat(indexOld) + "";
-
-				break;
+			if(aggKeyValue.equals(aggKeyValue_old)|| deltaUpdatedRow.isNull(indexOld)){
+				sameKeyValue = true;
 			}
-
 		}
 
 		// 1.b get all column values (_new) from delta table + including pk
@@ -648,199 +601,68 @@ public class ViewManager {
 		}
 
 		// 1.c Get the old and new aggCol value from delta table (_new), (_old)
-
-		int aggColIndexNew;
-		int aggColIndexOld;
-		float aggColValue_old = 0;
-
 		if (deltaUpdatedRow != null) {
-			colDef = deltaUpdatedRow.getColumnDefinitions();
-			aggColIndexNew = colDef.getIndexOf(aggCol + "_new");
-			aggColIndexOld = colDef.getIndexOf(aggCol + "_old");
 
-			switch (aggColType) {
+			String temp = Utils.getColumnValueFromDeltaStream(deltaUpdatedRow, aggCol, aggColType, "_new");
+			if(temp.equals("null"))
+				aggColValue = 0;
+			else
+				aggColValue = Float.valueOf(temp);
 
-			case "int":
-				aggColValue = deltaUpdatedRow.getInt(aggColIndexNew);
-				aggColValue_old = deltaUpdatedRow.getInt(aggColIndexOld);
-
-				break;
-
-			case "varint":
-				aggColValue = deltaUpdatedRow.getVarint(aggColIndexNew)
-				.floatValue();
-				BigInteger temp = deltaUpdatedRow.getVarint(aggColIndexOld);
-
-				if (temp != null) {
-					aggColValue_old = temp.floatValue();
-				} else {
-					aggColValue_old = 0;
-				}
-
-				break;
-
-			case "float":
-				aggColValue = deltaUpdatedRow.getFloat(aggColIndexNew);
-				aggColValue_old = deltaUpdatedRow.getFloat(aggColIndexOld);
-				break;
-			}
+			temp = Utils.getColumnValueFromDeltaStream(deltaUpdatedRow, aggCol, aggColType, "_old");
+			if(temp.equals("null"))
+				aggColValue_old = 0;
+			else
+				aggColValue_old = Float.valueOf(temp);
 		}
+
 
 		// 2. if AggKey hasnt been updated or first insertion
 		if (sameKeyValue || override) {
 
 			// 2.a select from preagg table row with AggKey as PK
 
-			StringBuilder selectPreaggQuery1 = new StringBuilder("SELECT ")
-			.append("list_item, ").append("sum, ").append("count, ")
-			.append("average, min, max ");
-			selectPreaggQuery1.append(" FROM ")
-			.append((String) json.get("keyspace")).append(".")
-			.append(preaggTable).append(" where ")
-			.append(aggKey + " = ").append(aggKeyValue).append(";");
-
-			System.out.println(selectPreaggQuery1);
-
-			// 2.b execute select statement
-			ResultSet PreAggMap;
-			try {
-
-				Session session = currentCluster.connect();
-				PreAggMap = session.execute(selectPreaggQuery1.toString());
-
-			} catch (Exception e) {
-				e.printStackTrace();
-				return false;
-			}
-
-			Row theRow1 = PreAggMap.one();
+			ResultSet rs = PreaggregationHelper.selectStatement(json, preaggTable, aggKey, aggKeyValue);
+			Row theRow1 = rs.one();
 
 			HashMap<String, String> myMap = new HashMap<>();
 			// 2.c If row retrieved is null, then this is the first insertion
 			// for this given Agg key
 			if (theRow1 == null) {
-
 				// 2.c.1 create a map, add pk and list with delta _new values
-				String pk = myList.get(0);
-				myList.remove(0);
-				myMap.put(pk, myList.toString());
-
 				// 2.c.2 set the agg col values
-				sum += aggColValue;
-				count = 1;
-				average = sum / count;
-				min = aggColValue;
-				max = aggColValue;
-
+				PreaggregationHelper.firstInsertion(myList,aggColValue,json,preaggTable,aggKey,aggKeyValue);
 			} else {
-
 				// 2.d If row is not null, then this is not the first insertion
 				// for this agg Key
-				Map<String, String> tempMapImmutable = theRow1.getMap(
-						"list_item", String.class, String.class);
-
-				System.out.println(tempMapImmutable);
-				myMap.putAll(tempMapImmutable);
-
-				int prev_count = myMap.keySet().size();
-
-				String pk = myList.get(0);
-				myList.remove(0);
-				myMap.put(pk, myList.toString());
-
-				// 2.e set agg col values
-
-				if (myMap.size() != 1) {
-					count = myMap.keySet().size();
-
-					if (count > prev_count)
-						sum = theRow1.getFloat("sum") + aggColValue;
-					else
-						sum = theRow1.getFloat("sum") - aggColValue_old
-						+ aggColValue;
-
-					average = sum / count;
-
-
-					max = -Float.MAX_VALUE;
-					min = Float.MAX_VALUE;
-
-					for (Map.Entry<String, String> entry : myMap.entrySet()) {
-						String list = entry.getValue().replaceAll("\\[", "")
-								.replaceAll("\\]", "");
-						String[] listArray = list.split(",");
-						if (Float.valueOf(listArray[aggColIndexInList - 1]) < min)
-							min = Float
-							.valueOf(listArray[aggColIndexInList - 1]);
-
-						if (Float.valueOf(listArray[aggColIndexInList - 1]) > max)
-							max = Float
-							.valueOf(listArray[aggColIndexInList - 1]);
-					}
-
-				} else {
-					// 2.c.2 set the agg col values
-					sum = aggColValue;
-					count = 1;
-					average = sum / count;
-					min = aggColValue;
-					max = aggColValue;
-				}
-
+				PreaggregationHelper.updateAggColValue(myList, aggColValue, aggColValue_old, theRow1, aggColIndexInList,json,preaggTable,aggKey,aggKeyValue);
 			}
-			try {
 
-				// 3. execute the insertion
-				StringBuilder insertQueryAgg = new StringBuilder("INSERT INTO ");
-				insertQueryAgg.append((String) json.get("keyspace"))
-				.append(".").append(preaggTable).append(" ( ")
-				.append(aggKey + ", ").append("list_item, ")
-				.append("sum, count, average, min, max")
-				.append(") VALUES (").append(aggKeyValue + ", ")
-				.append("?, ?, ?, ?, ?, ?);");
+			// =======================================
+			// 4.Retrieve row from preagg
 
-				Session session1 = currentCluster.connect();
+			rs = PreaggregationHelper.selectStatement(json, preaggTable, aggKey, aggKeyValue);
+			Row row = rs.one();
 
-				PreparedStatement statement1 = session1.prepare(insertQueryAgg
-						.toString());
-				BoundStatement boundStatement = new BoundStatement(statement1);
-				session1.execute(boundStatement.bind(myMap, sum, (int) count,
-						average, min, max));
-				System.out.println(boundStatement.toString());
-
-				// =======================================
-				// 4.Retrieve row from preagg
-
-				StringBuilder selectPreaggQuery2 = new StringBuilder("SELECT ")
-				.append(aggKey + ", ").append("list_item, sum, ")
-				.append("count, ").append("average, min, max ");
-				selectPreaggQuery2.append(" from ")
-				.append((String) json.get("keyspace")).append(".")
-				.append(preaggTable).append(" where ")
-				.append(aggKey + " = ").append(aggKeyValue).append(";");
-
-				System.out.println(selectPreaggQuery2);
-
-				try {
-					Session session = currentCluster.connect();
-					setUpdatedPreaggRow(session.execute(
-							selectPreaggQuery2.toString()).one());
-					if (!override) {
-						setUpdatedPreaggRowChangeAK(null);
-						setUpdatedPreaggRowDeleted(null);
-					}
-					if (!mapSize1) {
-						setUpdatedPreaggRowDeleted(null);
-					}
-				} catch (Exception e) {
-					e.printStackTrace();
-					return false;
-				}
-
-			} catch (Exception e) {
-				e.printStackTrace();
-				return false;
+			//TO BE REMOVED
+			setUpdatedPreaggRow(row);
+			if (!override) {
+				setUpdatedPreaggRowChangeAK(null);
+				setUpdatedPreaggRowDeleted(null);
 			}
+			if (!mapSize1) {
+				setUpdatedPreaggRowDeleted(null);
+			}
+
+			stream.setUpdatedPreaggRow(row);
+			if (!override) {
+				stream.setUpdatedPreaggRowChangeAK(null);
+				stream.setUpdatedPreaggRowDeleted(null);
+			}
+			if (!mapSize1) {
+				stream.setUpdatedPreaggRowDeleted(null);
+			}
+
 		} else if ((!sameKeyValue && !override)) {
 
 			// 1. retrieve old agg key value from delta stream to retrieve the
@@ -848,27 +670,7 @@ public class ViewManager {
 			// was retrieved above in aggKeyValue_old variable
 
 			// 2. select row with old aggkeyValue from delta stream
-			StringBuilder selectPreaggQuery1 = new StringBuilder("SELECT ")
-			.append("list_item, ").append("sum, ").append("count, ")
-			.append("average, min, max");
-			selectPreaggQuery1.append(" FROM ")
-			.append((String) json.get("keyspace")).append(".")
-			.append(preaggTable).append(" where ")
-			.append(aggKey + " = ").append(aggKeyValue_old).append(";");
-
-			System.out.println(selectPreaggQuery1);
-
-			// 2.b execute select statement
-			ResultSet PreAggMap;
-			try {
-
-				Session session = currentCluster.connect();
-				PreAggMap = session.execute(selectPreaggQuery1.toString());
-
-			} catch (Exception e) {
-				e.printStackTrace();
-				return false;
-			}
+			ResultSet PreAggMap = PreaggregationHelper.selectStatement(json, preaggTable, aggKey, aggKeyValue_old);
 
 			Row theRow = PreAggMap.one();
 			if (theRow != null) {
@@ -888,36 +690,16 @@ public class ViewManager {
 				if (myMap.size() == 1) {
 
 					// Selection to set PreaggRowDeleted
-
-					StringBuilder selectPreaggQuery2 = new StringBuilder(
-							"SELECT ").append(aggKey + ",")
-							.append("list_item, sum, ").append("count, ")
-							.append("average, min, max ");
-					selectPreaggQuery2.append(" FROM ")
-					.append((String) json.get("keyspace")).append(".")
-					.append(preaggTable).append(" where ")
-					.append(aggKey + " = ").append(aggKeyValue_old)
-					.append(";");
-
-					System.out.println(selectPreaggQuery2);
-
-					try {
-
-						Session session = currentCluster.connect();
-						setUpdatedPreaggRowDeleted((session
-								.execute(selectPreaggQuery2.toString()).one()));
-
-					} catch (Exception e) {
-						e.printStackTrace();
-						return false;
-					}
+					// TO BE REMOVED
+					setUpdatedPreaggRowDeleted(theRow);
+					stream.setUpdatedPreaggRowDeleted(theRow);
 
 					// 4. delete the whole row
-					deleteEntireRowWithPK((String) json.get("keyspace"),
+					Utils.deleteEntireRowWithPK((String) json.get("keyspace"),
 							preaggTable, aggKey, aggKeyValue_old);
 
 					// 4.a perform a new insertion with new values
-					updatePreaggregation(deltaUpdatedRow, aggKey, aggKeyType,
+					updatePreaggregation(stream, aggKey, aggKeyType,
 							json, preaggTable, baseTablePrimaryKey, aggCol,
 							aggColType, true, true);
 
@@ -925,89 +707,26 @@ public class ViewManager {
 
 					// 5. retrieve the pk value that has to be removed from the
 					// map
-					String pk = myList.get(0);
-					myList.remove(0);
-
 					// 5.a remove entry from map with that pk
-					myMap.remove(pk);
-
 					// 5.c adjust sum,count,average values
-					count = myMap.size();
-					sum = theRow.getFloat("sum") - aggColValue_old;
-					average = sum / count;
-
-					max = -Float.MAX_VALUE;
-					min = Float.MAX_VALUE;
-
-					for (Map.Entry<String, String> entry : myMap.entrySet()) {
-						String list = entry.getValue().replaceAll("\\[", "")
-								.replaceAll("\\]", "");
-						String[] listArray = list.split(",");
-						if (Float.valueOf(listArray[aggColIndexInList - 1]) < min)
-							min = Float
-							.valueOf(listArray[aggColIndexInList - 1]);
-
-						if (Float.valueOf(listArray[aggColIndexInList - 1]) > max)
-							max = Float
-							.valueOf(listArray[aggColIndexInList - 1]);
-					}
-
 					// 6. Execute insertion statement of the row with the
 					// aggKeyValue_old to refelect changes
+					PreaggregationHelper.subtractOldAggColValue(myList, aggColValue_old, myMap, theRow, aggColIndexInList, json, preaggTable, aggKey, aggKeyValue_old);
 
-					StringBuilder insertQueryAgg = new StringBuilder(
-							"INSERT INTO ");
-					insertQueryAgg.append((String) json.get("keyspace"))
-					.append(".").append(preaggTable).append(" ( ")
-					.append(aggKey + ", ").append("list_item, ")
-					.append("sum, count, average, min, max")
-					.append(") VALUES (")
-					.append(aggKeyValue_old + ", ")
-					.append("?, ?, ?, ?, ?, ?);");
-
-					Session session1 = currentCluster.connect();
-
-					PreparedStatement statement1 = session1
-							.prepare(insertQueryAgg.toString());
-					BoundStatement boundStatement = new BoundStatement(
-							statement1);
-					session1.execute(boundStatement.bind(myMap, sum,
-							(int) count, average, min, max));
-					System.out.println(boundStatement.toString());
 
 					// perform a new insertion for the new aggkey given in json
-					updatePreaggregation(deltaUpdatedRow, aggKey, aggKeyType,
+					updatePreaggregation(stream, aggKey, aggKeyType,
 							json, preaggTable, baseTablePrimaryKey, aggCol,
 							aggColType, true, false);
 
 					// Selection to set updatedRow
+					PreAggMap = PreaggregationHelper.selectStatement(json, preaggTable, aggKey, aggKeyValue_old);
+					stream.setUpdatedPreaggRowChangeAK(PreAggMap.one());
 
-					StringBuilder selectPreaggQuery2 = new StringBuilder(
-							"SELECT ").append(aggKey + ",")
-							.append("list_item, sum, ").append("count, ")
-							.append("average, min, max ");
-					selectPreaggQuery2.append(" FROM ")
-					.append((String) json.get("keyspace")).append(".")
-					.append(preaggTable).append(" where ")
-					.append(aggKey + " = ").append(aggKeyValue_old)
-					.append(";");
-
-					System.out.println(selectPreaggQuery2);
-
-					try {
-
-						Session session = currentCluster.connect();
-						setUpdatedPreaggRowChangeAK((session
-								.execute(selectPreaggQuery2.toString()).one()));
-
-					} catch (Exception e) {
-						e.printStackTrace();
-						return false;
-					}
+					// TO BE REMOVED
+					setUpdatedPreaggRowChangeAK(PreAggMap.one());
 				}
-
 			}
-
 		}
 
 		return true;

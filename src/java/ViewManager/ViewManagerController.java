@@ -304,7 +304,7 @@ public class ViewManagerController {
 							// by passing the whole delta Row, we have agg key
 							// value
 							// even if it is not in json
-							vm.updatePreaggregation(deltaUpdatedRow, AggKey,
+							vm.updatePreaggregation(stream, AggKey,
 									AggKeyType, json, preaggTable,
 									baseTablePrimaryKey, AggCol, AggColType,
 									false, false);
@@ -319,48 +319,24 @@ public class ViewManagerController {
 								// 1. retrieve the row to be deleted from delta
 								// table
 
-								StringBuilder selectQuery = new StringBuilder(
-										"SELECT *");
-								selectQuery.append(" FROM ")
-								.append(json.get("keyspace"))
-								.append(".")
-								.append("delta_" + json.get("table"))
-								.append(" WHERE ")
-								.append(baseTablePrimaryKey)
-								.append(" = ").append(pkVAlue)
-								.append(";");
-
-								System.out.println(selectQuery);
-
-								ResultSet selectionResult;
-
-								try {
-
-									Session session = currentCluster.connect();
-									selectionResult = session
-											.execute(selectQuery.toString());
-
-								} catch (Exception e) {
-									e.printStackTrace();
-									return;
-								}
-
+								Row row = Utils.selectAllStatement((String)json.get("keyspace"), "delta_" + json.get("table"), baseTablePrimaryKey, pkVAlue);
+								
 								// 2. set DeltaDeletedRow variable for streaming
-								vm.setDeltaDeletedRow(selectionResult.one());
-
+								//TO BE REMOVED
+								vm.setDeltaDeletedRow(row);
+								
+								stream.setDeltaDeletedRow(row);
 								cascadeDelete(json, false);
 
 							}
-
 							// continue
-
 							continue;
 						}
 
 					} else {
 						// by passing the whole delta Row, we have agg key value
 						// even if it is not in json
-						vm.updatePreaggregation(deltaUpdatedRow, AggKey,
+						vm.updatePreaggregation(stream, AggKey,
 								AggKeyType, json, preaggTable,
 								baseTablePrimaryKey, AggCol, AggColType, false,
 								false);
