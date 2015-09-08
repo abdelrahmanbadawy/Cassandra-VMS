@@ -649,7 +649,7 @@ public class ViewManagerController {
 						updateRight = true;
 					}
 
-					vm.updateJoinController(deltaUpdatedRow,
+					vm.updateJoinController(stream,
 							innerJoinTableName, leftJoinTableName,
 							rightJoinTableName, json, updateLeft, updateRight,
 							joinKeyType, joinKeyName, baseTablePrimaryKey);

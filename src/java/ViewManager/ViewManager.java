@@ -875,9 +875,9 @@ public class ViewManager {
 			setReverseJoinOldUpdateRow(theRow);
 			stream.setReverseJoinUpadteOldRow(theRow);
 		}
-		
+
 		ReverseJoinHelper.insertStatement(joinTable, keyspace, joinKeyName, joinKeyValue, column, myMap);
-		
+
 		// Set the rj updated row for join updates
 		Row result = Utils.selectAllStatement(keyspace, joinTable, joinKeyName, joinKeyValue);
 		stream.setReverseJoinUpdateNewRow(result);
@@ -886,13 +886,15 @@ public class ViewManager {
 
 	}
 
-	public boolean updateJoinController(Row deltaUpdatedRow, String innerJName,
+	public boolean updateJoinController(Stream stream, String innerJName,
 			String leftJName, String rightJName, JSONObject json,
 			Boolean updateLeft, Boolean updateRight, String joinKeyType,
 			String joinKeyName, String pkName) {
 
+		Row deltaUpdatedRow = stream.getDeltaUpdatedRow();
+
 		// 1. get row updated by reverse join
-		Row theRow = getrjUpdatedRow();
+		Row theRow = stream.getReverseJoinUpdateNewRow();
 
 		// 1.a get columns item_1, item_2
 		Map<String, String> tempMapImmutable1 = theRow.getMap("list_item1",
@@ -916,20 +918,25 @@ public class ViewManager {
 				&& !oldJoinKeyValue.equals("'null'")
 				&& !joinKeyValue.equals(oldJoinKeyValue);
 
+
+		Row reverseJoinUpadteOldRow = stream.getReverseJoinUpadteOldRow();
+
 		// Case 1 : update left join table
 		// !leftJName.equals(false) meaning : no left join wanted, only right
 		if (updateLeft && myMap2.size() == 0 && !leftJName.equals("false")) {
-			updateLeftJoinTable(leftJName, theRow, json);
+			JoinHelper.updateLeftJoinTable(stream,leftJName, theRow, json);
 
-			if (changeJoinKey && getReverseJoinUpdateOldRow() != null) {
-				removeLeftCrossRight(json, innerJName);
-				if (!rightJName.equals("false")
-						&& getReverseJoinUpdateOldRow().getMap("list_item2",
+			if (changeJoinKey && reverseJoinUpadteOldRow != null) {
+
+				JoinHelper.removeLeftCrossRight(stream,json, innerJName);
+				if (!rightJName.equals("false") && reverseJoinUpadteOldRow.getMap("list_item1",
+						String.class, String.class).size() == 1
+						&& reverseJoinUpadteOldRow.getMap("list_item2",
 								String.class, String.class).size() > 0) {
 
-					addAllToRightJoinTable(
+					JoinHelper.addAllToRightJoinTable(
 							rightJName,
-							getReverseJoinUpdateOldRow().getMap("list_item2",
+							reverseJoinUpadteOldRow.getMap("list_item2",
 									String.class, String.class), json);
 				}
 			}
@@ -940,17 +947,18 @@ public class ViewManager {
 		// Case 2: update right join table
 		// !rightName.equals(false) meaning : no right join wanted, only left
 		if (updateRight && myMap1.size() == 0 && !rightJName.equals("false")) {
-			updateRightJoinTable(rightJName, theRow, json);
+			JoinHelper.updateRightJoinTable(stream,rightJName, theRow, json);
 
-			if (changeJoinKey && getReverseJoinUpdateOldRow() != null) {
-				removeRightCrossLeft(json, innerJName);
-				if (!leftJName.equals("false")
-						&& getReverseJoinUpdateOldRow().getMap("list_item1",
+			if (changeJoinKey && reverseJoinUpadteOldRow != null) {
+				JoinHelper.removeRightCrossLeft(stream,json, innerJName);
+				if (!leftJName.equals("false") && reverseJoinUpadteOldRow.getMap("list_item2",
+						String.class, String.class).size() == 1
+						&& reverseJoinUpadteOldRow.getMap("list_item1",
 								String.class, String.class).size() > 0) {
 
-					addAllToLeftJoinTable(
+					JoinHelper.addAllToLeftJoinTable(
 							leftJName,
-							getReverseJoinUpdateOldRow().getMap("list_item1",
+							reverseJoinUpadteOldRow.getMap("list_item1",
 									String.class, String.class), json);
 				}
 			}
@@ -960,20 +968,19 @@ public class ViewManager {
 
 		// Case 6: change in join key value and update in left
 		if (changeJoinKey && updateLeft) {
-			removeLeftCrossRight(json, innerJName);
+			JoinHelper.removeLeftCrossRight(stream,json, innerJName);
 			if (!rightJName.equals("false")
-					&& getReverseJoinUpdateOldRow().getMap("list_item1",
+					&& reverseJoinUpadteOldRow.getMap("list_item1",
 							String.class, String.class).size() == 1
-							&& getReverseJoinUpdateOldRow().getMap("list_item2",
+							&& reverseJoinUpadteOldRow.getMap("list_item2",
 									String.class, String.class).size() > 0) {
 
-				addAllToRightJoinTable(rightJName, getReverseJoinUpdateOldRow()
-						.getMap("list_item2", String.class, String.class), json);
+				JoinHelper.addAllToRightJoinTable(rightJName, reverseJoinUpadteOldRow.getMap("list_item2", String.class, String.class), json);
 			}
 
 			// remove old from left join
 			if (!leftJName.equals("false")
-					&& getReverseJoinUpdateOldRow().getMap("list_item2",
+					&& reverseJoinUpadteOldRow.getMap("list_item2",
 							String.class, String.class).size() == 0
 							&& myMap2.size() > 0) {
 
@@ -996,7 +1003,7 @@ public class ViewManager {
 				String joinTablePk = VmXmlHandler.getInstance().getlJSchema()
 						.getString(temp + ".primaryKey.name");
 
-				deleteEntireRowWithPK(json.get("keyspace").toString(),
+				Utils.deleteEntireRowWithPK(json.get("keyspace").toString(),
 						leftJName, joinTablePk, pkValue);
 
 			}
@@ -1005,20 +1012,19 @@ public class ViewManager {
 
 		// Case 7: change in join key value and update in right
 		if (changeJoinKey && updateRight) {
-			removeRightCrossLeft(json, innerJName);
+			JoinHelper.removeRightCrossLeft(stream,json, innerJName);
 			if (!leftJName.equals("false")
-					&& getReverseJoinUpdateOldRow().getMap("list_item2",
+					&& reverseJoinUpadteOldRow.getMap("list_item2",
 							String.class, String.class).size() == 1
-							&& getReverseJoinUpdateOldRow().getMap("list_item1",
+							&& reverseJoinUpadteOldRow.getMap("list_item1",
 									String.class, String.class).size() > 0) {
 
-				addAllToLeftJoinTable(leftJName, getReverseJoinUpdateOldRow()
-						.getMap("list_item1", String.class, String.class), json);
+				JoinHelper.addAllToLeftJoinTable(leftJName, reverseJoinUpadteOldRow.getMap("list_item1", String.class, String.class), json);
 			}
 
 			// remove old from right join
 			if (!rightJName.equals("false")
-					&& getReverseJoinUpdateOldRow().getMap("list_item1",
+					&& reverseJoinUpadteOldRow.getMap("list_item1",
 							String.class, String.class).size() == 0
 							&& myMap1.size() > 0) {
 
@@ -1041,7 +1047,7 @@ public class ViewManager {
 				String joinTablePk = VmXmlHandler.getInstance().getrJSchema()
 						.getString(temp + ".primaryKey.name");
 
-				deleteEntireRowWithPK(json.get("keyspace").toString(),
+				Utils.deleteEntireRowWithPK(json.get("keyspace").toString(),
 						rightJName, joinTablePk, pkValue);
 
 			}
@@ -1215,414 +1221,6 @@ public class ViewManager {
 
 	}
 
-	private boolean updateRightJoinTable(String rightJName, Row theRow,
-			JSONObject json) {
-
-		int position = VmXmlHandler.getInstance().getrJSchema()
-				.getList("dbSchema.tableDefinition.name").indexOf(rightJName);
-
-		String colNames = "";
-		String joinTablePk = "";
-
-		if (position != -1) {
-
-			String temp = "dbSchema.tableDefinition(";
-			temp += Integer.toString(position);
-			temp += ")";
-
-			joinTablePk = VmXmlHandler.getInstance().getrJSchema()
-					.getString(temp + ".primaryKey.name");
-
-			List<String> colName = VmXmlHandler.getInstance().getrJSchema()
-					.getList(temp + ".column.name");
-			colNames = StringUtils.join(colName, ", ");
-
-			String rightPkName = temp + ".primaryKey.right";
-			rightPkName = VmXmlHandler.getInstance().getrJSchema()
-					.getString(rightPkName);
-
-			String rightPkType = temp + ".primaryKey.rightType";
-			rightPkType = VmXmlHandler.getInstance().getrJSchema()
-					.getString(rightPkType);
-
-			String rightPkValue = "";
-
-			//String rightPkValue = Utils.getColumnValueFromDeltaStream(deltaUpdatedRow, rightPkName, rightPkType, "");
-
-			// 3.a. get from delta row, the left pk value
-			switch (rightPkType) {
-
-			case "int":
-				rightPkValue = Integer.toString(deltaUpdatedRow
-						.getInt(rightPkName));
-				break;
-
-			case "float":
-				rightPkValue = Float.toString(deltaUpdatedRow
-						.getFloat(rightPkName));
-				break;
-
-			case "varint":
-				rightPkValue = deltaUpdatedRow.getVarint(rightPkName)
-				.toString();
-				break;
-
-			case "varchar":
-				rightPkValue = deltaUpdatedRow.getString(rightPkName);
-				break;
-
-			case "text":
-				rightPkValue = deltaUpdatedRow.getString(rightPkName);
-				break;
-			}
-
-			// 3.b. retrieve the left list values for inserton statement
-			Map<String, String> tempMapImmutable2 = theRow.getMap("list_item2",
-					String.class, String.class);
-			HashMap<String, String> myMap2 = new HashMap<String, String>();
-			myMap2.putAll(tempMapImmutable2);
-
-			String rightList = myMap2.get(rightPkValue);
-			rightList = rightList.replaceAll("\\[", "").replaceAll("\\]", "");
-
-			// insert null values if myMap2 has no entries yet
-
-			String tuple = "(" + 0 + "," + rightPkValue + ")";
-			int nrLeftCol = XmlHandler.getInstance().getLeftJoinViewConfig()
-					.getInt(temp + ".nrLeftCol");
-
-			StringBuilder insertQuery = new StringBuilder("INSERT INTO ");
-			insertQuery.append((String) json.get("keyspace")).append(".")
-			.append(rightJName).append(" (");
-			insertQuery.append(joinTablePk).append(", ");
-			insertQuery.append(colNames).append(") VALUES (");
-			insertQuery.append(tuple).append(", ");
-
-			for (int i = 0; i < nrLeftCol; i++) {
-				insertQuery.append("null").append(", ");
-			}
-
-			insertQuery.append(rightList).append(", ");
-
-			insertQuery.deleteCharAt(insertQuery.length() - 2);
-			insertQuery.append(");");
-
-			System.out.println(insertQuery);
-
-			try {
-
-				Session session = currentCluster.connect();
-				session.execute(insertQuery.toString());
-			} catch (Exception e) {
-				e.printStackTrace();
-				return false;
-			}
-		}
-
-		return true;
-	}
-
-	private boolean updateLeftJoinTable(String leftJName, Row theRow,
-			JSONObject json) {
-
-		// 3. Read Left Join xml, get leftPkName, leftPkType, get pk of join
-		// table & type
-		// rightPkName, rightPkType
-
-		int position = XmlHandler.getInstance().getLeftJoinViewConfig()
-				.getList("dbSchema.tableDefinition.name").indexOf(leftJName);
-
-		String colNames = "";
-		String joinTablePk = "";
-
-		if (position != -1) {
-
-			String temp = "dbSchema.tableDefinition(";
-			temp += Integer.toString(position);
-			temp += ")";
-
-			joinTablePk = VmXmlHandler.getInstance().getlJSchema()
-					.getString(temp + ".primaryKey.name");
-
-			List<String> colName = VmXmlHandler.getInstance().getlJSchema()
-					.getList(temp + ".column.name");
-			colNames = StringUtils.join(colName, ", ");
-
-			String leftPkName = temp + ".primaryKey.left";
-			leftPkName = VmXmlHandler.getInstance().getlJSchema()
-					.getString(leftPkName);
-
-			String leftPkType = temp + ".primaryKey.leftType";
-			leftPkType = VmXmlHandler.getInstance().getlJSchema()
-					.getString(leftPkType);
-
-			String leftPkValue = "";
-
-			String rightPkType = temp + ".primaryKey.righType";
-			rightPkType = VmXmlHandler.getInstance().getlJSchema()
-					.getString(rightPkType);
-
-			// 3.a. get from delta row, the left pk value
-			switch (leftPkType) {
-
-			case "int":
-				leftPkValue = Integer.toString(deltaUpdatedRow
-						.getInt(leftPkName));
-				break;
-
-			case "float":
-				leftPkValue = Float.toString(deltaUpdatedRow
-						.getFloat(leftPkName));
-				break;
-
-			case "varint":
-				leftPkValue = deltaUpdatedRow.getVarint(leftPkName).toString();
-				break;
-
-			case "varchar":
-				leftPkValue = deltaUpdatedRow.getString(leftPkName);
-				break;
-
-			case "text":
-				leftPkValue = deltaUpdatedRow.getString(leftPkName);
-				break;
-			}
-
-			// 3.b. retrieve the left list values for inserton statement
-			Map<String, String> tempMapImmutable1 = theRow.getMap("list_item1",
-					String.class, String.class);
-			HashMap<String, String> myMap1 = new HashMap<String, String>();
-			myMap1.putAll(tempMapImmutable1);
-
-			String leftList = myMap1.get(leftPkValue);
-			leftList = leftList.replaceAll("\\[", "").replaceAll("\\]", "");
-
-			// insert null values if myMap2 has no entries yet
-
-			String tuple = "(" + leftPkValue + "," + 0 + ")";
-			int nrRightCol = XmlHandler.getInstance().getLeftJoinViewConfig()
-					.getInt(temp + ".nrRightCol");
-
-			StringBuilder insertQuery = new StringBuilder("INSERT INTO ");
-			insertQuery.append((String) json.get("keyspace")).append(".")
-			.append(leftJName).append(" (");
-			insertQuery.append(joinTablePk).append(", ");
-			insertQuery.append(colNames).append(") VALUES (");
-			insertQuery.append(tuple).append(", ");
-			insertQuery.append(leftList).append(", ");
-
-			for (int i = 0; i < nrRightCol; i++) {
-				insertQuery.append("null").append(", ");
-			}
-
-			insertQuery.deleteCharAt(insertQuery.length() - 2);
-			insertQuery.append(");");
-
-			System.out.println(insertQuery);
-
-			try {
-
-				Session session = currentCluster.connect();
-				session.execute(insertQuery.toString());
-			} catch (Exception e) {
-				e.printStackTrace();
-				return false;
-			}
-		}
-
-		return true;
-	}
-
-	private boolean addAllToLeftJoinTable(String leftJName,
-			Map<String, String> myMap1, JSONObject json) {
-
-		int position = XmlHandler.getInstance().getLeftJoinViewConfig()
-				.getList("dbSchema.tableDefinition.name").indexOf(leftJName);
-
-		String colNames = "";
-		String joinTablePk = "";
-
-		if (position != -1) {
-
-			String temp = "dbSchema.tableDefinition(";
-			temp += Integer.toString(position);
-			temp += ")";
-
-			joinTablePk = VmXmlHandler.getInstance().getlJSchema()
-					.getString(temp + ".primaryKey.name");
-
-			List<String> colName = VmXmlHandler.getInstance().getlJSchema()
-					.getList(temp + ".column.name");
-			colNames = StringUtils.join(colName, ", ");
-
-			String leftPkName = temp + ".primaryKey.left";
-			leftPkName = VmXmlHandler.getInstance().getlJSchema()
-					.getString(leftPkName);
-
-			String leftPkType = temp + ".primaryKey.leftType";
-			leftPkType = VmXmlHandler.getInstance().getlJSchema()
-					.getString(leftPkType);
-
-			String leftPkValue = "";
-
-			String rightPkType = temp + ".primaryKey.righType";
-			rightPkType = VmXmlHandler.getInstance().getlJSchema()
-					.getString(rightPkType);
-
-			for (Map.Entry<String, String> entry : myMap1.entrySet()) {
-				switch (leftPkType) {
-
-				case "text":
-					leftPkValue = "'" + entry.getKey() + "'";
-					break;
-
-				case "varchar":
-					leftPkValue = "'" + entry.getKey() + "'";
-					break;
-
-				default:
-					leftPkValue = entry.getKey();
-					break;
-
-				}
-
-				String leftList = myMap1.get(leftPkValue);
-				leftList = leftList.replaceAll("\\[", "").replaceAll("\\]", "");
-
-				// insert null values if myMap2 has no entries yet
-
-				String tuple = "(" + leftPkValue + "," + 0 + ")";
-				int nrRightCol = XmlHandler.getInstance()
-						.getLeftJoinViewConfig().getInt(temp + ".nrRightCol");
-
-				StringBuilder insertQuery = new StringBuilder("INSERT INTO ");
-				insertQuery.append((String) json.get("keyspace")).append(".")
-				.append(leftJName).append(" (");
-				insertQuery.append(joinTablePk).append(", ");
-				insertQuery.append(colNames).append(") VALUES (");
-				insertQuery.append(tuple).append(", ");
-				insertQuery.append(leftList).append(", ");
-
-				for (int i = 0; i < nrRightCol; i++) {
-					insertQuery.append("null").append(", ");
-				}
-
-				insertQuery.deleteCharAt(insertQuery.length() - 2);
-				insertQuery.append(");");
-
-				System.out.println(insertQuery);
-
-				try {
-
-					Session session = currentCluster.connect();
-					session.execute(insertQuery.toString());
-				} catch (Exception e) {
-					e.printStackTrace();
-					return false;
-				}
-			}
-
-		}
-
-		return true;
-
-	}
-
-	private boolean addAllToRightJoinTable(String rightJName,
-			Map<String, String> myMap2, JSONObject json) {
-
-		int position = XmlHandler.getInstance().getRightJoinViewConfig()
-				.getList("dbSchema.tableDefinition.name").indexOf(rightJName);
-
-		String colNames = "";
-		String joinTablePk = "";
-
-		if (position != -1) {
-
-			String temp = "dbSchema.tableDefinition(";
-			temp += Integer.toString(position);
-			temp += ")";
-
-			joinTablePk = VmXmlHandler.getInstance().getlJSchema()
-					.getString(temp + ".primaryKey.name");
-
-			List<String> colName = VmXmlHandler.getInstance().getlJSchema()
-					.getList(temp + ".column.name");
-			colNames = StringUtils.join(colName, ", ");
-
-			String rightPkName = temp + ".primaryKey.right";
-			rightPkName = VmXmlHandler.getInstance().getlJSchema()
-					.getString(rightPkName);
-
-			String rightPkType = temp + ".primaryKey.righType";
-			rightPkType = VmXmlHandler.getInstance().getlJSchema()
-					.getString(rightPkType);
-
-			String rightPkValue = "";
-
-			String leftPkType = temp + ".primaryKey.leftType";
-			leftPkType = VmXmlHandler.getInstance().getlJSchema()
-					.getString(leftPkType);
-
-			for (Map.Entry<String, String> entry : myMap2.entrySet()) {
-				switch (rightPkValue) {
-
-				case "text":
-					rightPkValue = "'" + entry.getKey() + "'";
-					break;
-
-				case "varchar":
-					rightPkValue = "'" + entry.getKey() + "'";
-					break;
-
-				default:
-					rightPkValue = entry.getKey();
-					break;
-
-				}
-
-				String rightList = myMap2.get(rightPkValue);
-				rightList = rightList.replaceAll("\\[", "").replaceAll("\\]",
-						"");
-
-				// insert null values if myMap2 has no entries yet
-
-				String tuple = "(" + 0 + "," + rightPkValue + ")";
-				int nrLeftCol = XmlHandler.getInstance()
-						.getLeftJoinViewConfig().getInt(temp + ".nrLeftCol");
-
-				StringBuilder insertQuery = new StringBuilder("INSERT INTO ");
-				insertQuery.append((String) json.get("keyspace")).append(".")
-				.append(rightJName).append(" (");
-				insertQuery.append(joinTablePk).append(", ");
-				insertQuery.append(colNames).append(") VALUES (");
-				insertQuery.append(tuple).append(", ");
-
-				for (int i = 0; i < nrLeftCol; i++) {
-					insertQuery.append("null").append(", ");
-				}
-
-				insertQuery.append(rightList).append(", ");
-
-				insertQuery.deleteCharAt(insertQuery.length() - 2);
-				insertQuery.append(");");
-
-				System.out.println(insertQuery);
-
-				try {
-
-					Session session = currentCluster.connect();
-					session.execute(insertQuery.toString());
-				} catch (Exception e) {
-					e.printStackTrace();
-					return false;
-				}
-			}
-
-		}
-		return true;
-
-	}
 
 	public boolean updateSelection(Row row, String keyspace, String selecTable,
 			String selColName) {
@@ -1883,129 +1481,6 @@ public class ViewManager {
 		return true;
 	}
 
-	private boolean removeRightCrossLeft(JSONObject json, String innerJTableName) {
-
-		// 1. get row updated by reverse join
-		Row theRow = getReverseJoinUpdateOldRow();
-
-		// 1.a get columns item_1, item_2
-		Map<String, String> tempMapImmutable1 = theRow.getMap("list_item1",
-				String.class, String.class);
-
-		// 2. retrieve list_item1, list_item2
-		HashMap<String, String> myMap1 = new HashMap<String, String>();
-		myMap1.putAll(tempMapImmutable1);
-
-		if (myMap1.size() == 0) {
-			return true;
-		}
-
-		// 3. Read Left Join xml, get leftPkName, leftPkType, get pk of join
-		// table & type
-		// rightPkName, rightPkType
-
-		int position = VmXmlHandler.getInstance().getiJSchema()
-				.getList("dbSchema.tableDefinition.name")
-				.indexOf(innerJTableName);
-
-		String colNames = "";
-		String joinTablePk = "";
-
-		if (position != -1) {
-
-			String temp = "dbSchema.tableDefinition(";
-			temp += Integer.toString(position);
-			temp += ")";
-
-			joinTablePk = VmXmlHandler.getInstance().getiJSchema()
-					.getString(temp + ".primaryKey.name");
-
-			String rightPkName = temp + ".primaryKey.right";
-			rightPkName = VmXmlHandler.getInstance().getiJSchema()
-					.getString(rightPkName);
-
-			String rightPkType = temp + ".primaryKey.rightType";
-			rightPkType = VmXmlHandler.getInstance().getiJSchema()
-					.getString(rightPkType);
-
-			String rightPkValue = "";
-
-			String leftPkType = temp + ".primaryKey.leftType";
-			leftPkType = VmXmlHandler.getInstance().getiJSchema()
-					.getString(leftPkType);
-
-			// 3.a. get from delta row, the left pk value
-			switch (rightPkType) {
-
-			case "int":
-				rightPkValue = Integer.toString(deltaUpdatedRow
-						.getInt(rightPkName));
-				break;
-
-			case "float":
-				rightPkValue = Float.toString(deltaUpdatedRow
-						.getFloat(rightPkName));
-				break;
-
-			case "varint":
-				rightPkValue = deltaUpdatedRow.getVarint(rightPkName)
-				.toString();
-				break;
-
-			case "varchar":
-				rightPkValue = deltaUpdatedRow.getString(rightPkName);
-				break;
-
-			case "text":
-				rightPkValue = deltaUpdatedRow.getString(rightPkName);
-				break;
-			}
-
-			String leftPkValue = "";
-
-			// 4. for each entry in item_list2, create insert statement for each
-			// entry to add a new row
-			for (Map.Entry<String, String> entry : myMap1.entrySet()) {
-
-				switch (leftPkType) {
-
-				case "text":
-					leftPkValue = "'" + entry.getKey() + "'";
-					break;
-
-				case "varchar":
-					leftPkValue = "'" + entry.getKey() + "'";
-					break;
-
-				default:
-					leftPkValue = entry.getKey();
-					break;
-
-				}
-
-				String tuple = "(" + leftPkValue + "," + rightPkValue + ")";
-
-				StringBuilder deleteQuery = new StringBuilder("DELETE FROM ");
-				deleteQuery.append((String) json.get("keyspace")).append(".")
-				.append(innerJTableName).append(" WHERE ");
-				deleteQuery.append(joinTablePk).append(" = ");
-				deleteQuery.append(tuple).append(";");
-
-				System.out.println(deleteQuery);
-
-				try {
-
-					Session session = currentCluster.connect();
-					session.execute(deleteQuery.toString());
-				} catch (Exception e) {
-					e.printStackTrace();
-					return false;
-				}
-			}
-		}
-
-		return true;
-	}
 
 	private boolean leftCrossRight(JSONObject json, String innerJTableName) {
 
@@ -2145,127 +1620,7 @@ public class ViewManager {
 		return true;
 	}
 
-	private boolean removeLeftCrossRight(JSONObject json, String innerJTableName) {
-
-		// 1. get old row updated by reverse join
-		Row theRow = getReverseJoinUpdateOldRow();
-
-		// 1.a get columns item_2
-
-		Map<String, String> tempMapImmutable2 = theRow.getMap("list_item2",
-				String.class, String.class);
-
-		// 2. retrieve list_item2
-
-		HashMap<String, String> myMap2 = new HashMap<String, String>();
-		myMap2.putAll(tempMapImmutable2);
-
-		// 3. Read Left Join xml, get leftPkName, leftPkType, get pk of join
-		// table & type
-		// rightPkName, rightPkType
-
-		int position = VmXmlHandler.getInstance().getiJSchema()
-				.getList("dbSchema.tableDefinition.name")
-				.indexOf(innerJTableName);
-
-		String colNames = "";
-		String joinTablePk = "";
-
-		if (position != -1) {
-
-			String temp = "dbSchema.tableDefinition(";
-			temp += Integer.toString(position);
-			temp += ")";
-
-			joinTablePk = VmXmlHandler.getInstance().getiJSchema()
-					.getString(temp + ".primaryKey.name");
-
-			String leftPkName = temp + ".primaryKey.left";
-			leftPkName = VmXmlHandler.getInstance().getiJSchema()
-					.getString(leftPkName);
-
-			String leftPkType = temp + ".primaryKey.leftType";
-			leftPkType = VmXmlHandler.getInstance().getiJSchema()
-					.getString(leftPkType);
-
-			String leftPkValue = "";
-
-			String rightPkType = temp + ".primaryKey.rightType";
-			rightPkType = VmXmlHandler.getInstance().getiJSchema()
-					.getString(rightPkType);
-
-			// 3.a. get from delta row, the left pk value
-			switch (leftPkType) {
-
-			case "int":
-				leftPkValue = Integer.toString(deltaUpdatedRow
-						.getInt(leftPkName));
-				break;
-
-			case "float":
-				leftPkValue = Float.toString(deltaUpdatedRow
-						.getFloat(leftPkName));
-				break;
-
-			case "varint":
-				leftPkValue = deltaUpdatedRow.getVarint(leftPkName).toString();
-				break;
-
-			case "varchar":
-				leftPkValue = deltaUpdatedRow.getString(leftPkName);
-				break;
-
-			case "text":
-				leftPkValue = deltaUpdatedRow.getString(leftPkName);
-				break;
-			}
-
-			String rightPkValue = "";
-
-			// 4. for each entry in item_list2, create insert statement for each
-			// entry to add a new row
-			for (Map.Entry<String, String> entry : myMap2.entrySet()) {
-
-				switch (rightPkType) {
-
-				case "text":
-					rightPkValue = "'" + entry.getKey() + "'";
-					break;
-
-				case "varchar":
-					rightPkValue = "'" + entry.getKey() + "'";
-					break;
-
-				default:
-					rightPkValue = entry.getKey();
-					break;
-
-				}
-
-				String tuple = "(" + leftPkValue + "," + rightPkValue + ")";
-
-				StringBuilder deleteQuery = new StringBuilder("DELETE FROM ");
-				deleteQuery.append((String) json.get("keyspace")).append(".")
-				.append(innerJTableName).append(" WHERE ");
-				deleteQuery.append(joinTablePk).append(" = ");
-				deleteQuery.append(tuple).append(";");
-
-				System.out.println(deleteQuery);
-
-				try {
-
-					Session session = currentCluster.connect();
-					session.execute(deleteQuery.toString());
-				} catch (Exception e) {
-					e.printStackTrace();
-					return false;
-				}
-			}
-		}
-
-		return true;
-	}
-
+	
 	// JSONObject json, int cursor, int nrOfTables, String joinTable,
 	// List<String> baseTables, String joinKeyName,
 	// String tableName, String keyspace, String aggKeyType, int column
@@ -2529,7 +1884,7 @@ public class ViewManager {
 			// add all list_item2 to right join
 			if (newDeletedRow.getMap("list_item1", String.class, String.class)
 					.size() == 0) {
-				addAllToRightJoinTable(rightJName, newDeletedRow.getMap(
+				JoinHelper.addAllToRightJoinTable(rightJName, newDeletedRow.getMap(
 						"list_item2", String.class, String.class), json);
 			}
 
@@ -2546,7 +1901,7 @@ public class ViewManager {
 			// add all list_item1 to left join
 			if (newDeletedRow.getMap("list_item2", String.class, String.class)
 					.size() == 0) {
-				addAllToLeftJoinTable(leftJName, newDeletedRow.getMap(
+				JoinHelper.addAllToLeftJoinTable(leftJName, newDeletedRow.getMap(
 						"list_item1", String.class, String.class), json);
 			}
 
