@@ -211,7 +211,9 @@ public class JoinHelper {
 	public static boolean addAllToRightJoinTable(String rightJName,
 			Map<String, String> myMap2, JSONObject json) {
 
-		int position = VmXmlHandler.getInstance().getlJSchema()
+	
+		
+		int position = VmXmlHandler.getInstance().getrJSchema()
 				.getList("dbSchema.tableDefinition.name").indexOf(rightJName);
 
 		String colNames = "";
@@ -275,6 +277,9 @@ public class JoinHelper {
 				for (int i = 0; i < nrLeftCol; i++) {
 					insertQuery.append("null").append(", ");
 				}
+				
+				insertQuery.deleteCharAt(insertQuery.length() - 2);
+				
 
 				JoinHelper.insertStatementUpdateLeft(json, rightJName, joinTablePk, colNames, tuple,insertQuery.toString(),rightList);
 
