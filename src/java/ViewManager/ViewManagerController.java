@@ -386,7 +386,7 @@ public class ViewManagerController {
 								eval2&= Utils.evalueJoinAggConditions(PreagRowAK, aggFct, operation, value);
 							}
 						}
-						
+
 						Row PreagRow = stream.getUpdatedPreaggRow();
 						Row PreagRowAK = stream.getUpdatedPreaggRowChangeAK();
 
@@ -1461,7 +1461,7 @@ public class ViewManagerController {
 							eval1&= Utils.evalueJoinAggConditions(stream.getDeletePreaggRow(), aggFct, operation, value);
 
 						}
-						
+
 						Row DeletedPreagRowMapSize1 = stream.getDeletePreaggRowDeleted();
 
 						if (stream.getDeletePreaggRow() != null) {
@@ -2019,13 +2019,13 @@ public class ViewManagerController {
 
 				}
 
+				stream.resetReverseJoinRows();
 				cursor += nrOfTables;
 			}
 			// ==========================================================================================================================
 
+			stream.resetDeltaRows();
 		}
 	}
-
-
 
 }
