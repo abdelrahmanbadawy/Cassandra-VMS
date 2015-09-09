@@ -34,7 +34,7 @@ public class Stream {
 	private Row updatedPreaggRowChangeAK;
 	//Preaggregation delete
 	private Row deletePreaggRow;
-
+	private Row deletePreaggRowDeleted;
 
 	//Reverse Join
 	private Row reverseJoinUpdateNewRow;
@@ -66,6 +66,7 @@ public class Stream {
 		updatedPreaggRowDeleted = null;
 		updatedPreaggRowChangeAK = null;
 		deletePreaggRow = null;
+		deletePreaggRowDeleted = null;
 
 	}
 
@@ -325,6 +326,14 @@ public class Stream {
 
 	public void setDeletePreaggRow(Row deletePreaggRow) {
 		this.deletePreaggRow = deletePreaggRow;
+	}
+
+	public Row getDeletePreaggRowDeleted() {
+		return deletePreaggRowDeleted;
+	}
+
+	public void setDeletePreaggRowDeleted(Row deletePreaggRowDeleted) {
+		this.deletePreaggRowDeleted = deletePreaggRowDeleted;
 	}
 
 

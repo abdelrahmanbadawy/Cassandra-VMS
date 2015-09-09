@@ -313,8 +313,10 @@ public class ViewManager {
 			if (myMap.size() == 1) {
 				// 4. delete the whole row
 
-				
+				// TO BE REMOVED
 				setDeletePreaggRowDeleted(theRow);
+				
+				stream.setDeletePreaggRowDeleted(theRow);
 
 				deleteEntireRowWithPK((String) json.get("keyspace"),
 						preaggTable, aggKey, aggKeyValue);
