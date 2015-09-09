@@ -115,8 +115,7 @@ public class JoinAggGroupByHelper {
 
 		List<Float> myList = new ArrayList<Float>();
 
-		StringBuilder selectQuery1 = new StringBuilder("SELECT ").append("list_item")
-				.append(", sum, count,average, min, max ").append(" FROM ").append((String) json.get("keyspace")).append(".")
+		StringBuilder selectQuery1 = new StringBuilder("SELECT *").append(" FROM ").append((String) json.get("keyspace")).append(".")
 				.append(joinAggTable).append(" where ").append(aggKeyName + " = ").append(aggKeyValue).append(";");
 
 		Row theRow = null;
