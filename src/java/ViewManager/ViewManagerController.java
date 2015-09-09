@@ -167,6 +167,9 @@ public class ViewManagerController {
 				String nrAnd = VmXmlHandler.getInstance()
 						.getDeltaSelectionMapping().getString(s + ".nrAnd");
 
+				boolean myEval = true;
+				boolean myEval_old = true;
+
 				for (int j = 0; j < Integer.parseInt(nrAnd); j++) {
 
 					String s11 = s + ".And(";
@@ -187,31 +190,30 @@ public class ViewManagerController {
 							.getDeltaSelectionMapping()
 							.getString(s11 + ".selectionCol");
 
-					boolean myEval = true;
-					boolean myEval_old = true;
+
 					myEval &= Utils.evaluateCondition(stream.getDeltaUpdatedRow(), operation, value, type, selColName+"_new");
-					myEval_old &= Utils.evaluateCondition(stream.getDeltaUpdatedRow(), operation, value, type, selColName+"_old");
+					myEval_old &= Utils.evaluateCondition(stream.getDeltaUpdatedRow(), operation, value, type, selColName+"_old");		
+				}
 
-					// if condition matching now & matched before
-					if (myEval && myEval_old) {
-						vm.updateSelection(stream.getDeltaUpdatedRow(),
-								(String) json.get("keyspace"), selecTable,
-								baseTablePrimaryKey);
+				// if condition matching now & matched before
+				if (myEval && myEval_old) {
+					vm.updateSelection(stream.getDeltaUpdatedRow(),
+							(String) json.get("keyspace"), selecTable,
+							baseTablePrimaryKey);
 
-						// if matching now & not matching before
-					} else if (myEval && !myEval_old) {
-						vm.updateSelection(stream.getDeltaUpdatedRow(),
-								(String) json.get("keyspace"), selecTable,
-								baseTablePrimaryKey);
+					// if matching now & not matching before
+				} else if (myEval && !myEval_old) {
+					vm.updateSelection(stream.getDeltaUpdatedRow(),
+							(String) json.get("keyspace"), selecTable,
+							baseTablePrimaryKey);
 
-						// if not matching now & matching before
-					} else if (!myEval && myEval_old) {
-						vm.deleteRowSelection(stream.getDeltaUpdatedRow(),
-								(String) json.get("keyspace"), selecTable,
-								baseTablePrimaryKey, json);
+					// if not matching now & matching before
+				} else if (!myEval && myEval_old) {
+					vm.deleteRowSelection(stream.getDeltaUpdatedRow(),
+							(String) json.get("keyspace"), selecTable,
+							baseTablePrimaryKey, json);
 
-						// if not matching now & not before, ignore
-					}
+					// if not matching now & not before, ignore
 				}
 			}
 		}
@@ -1229,10 +1231,10 @@ public class ViewManagerController {
 				if(stream.getInnerJoinAggGroupByDeleteOldRow()!=null){
 					//boolean result = Utils.evalueJoinAggConditions(stream.getInnerJoinAggGroupByDeleteOldRow(), aggFct.get(j), operation.get(j), value.get(j));
 					//if(result){
-						String pkName = stream.getInnerJoinAggGroupByDeleteOldRow().getColumnDefinitions().getName(0);
-						String pkType = stream.getInnerJoinAggGroupByDeleteOldRow().getColumnDefinitions().getType(0).toString();
-						String pkValue = Utils.getColumnValueFromDeltaStream(stream.getInnerJoinAggGroupByDeleteOldRow(), pkName, pkType, "");
-						Utils.deleteEntireRowWithPK((String)json.get("keyspace"), innerHaving.get(j), pkName,pkValue);
+					String pkName = stream.getInnerJoinAggGroupByDeleteOldRow().getColumnDefinitions().getName(0);
+					String pkType = stream.getInnerJoinAggGroupByDeleteOldRow().getColumnDefinitions().getType(0).toString();
+					String pkValue = Utils.getColumnValueFromDeltaStream(stream.getInnerJoinAggGroupByDeleteOldRow(), pkName, pkType, "");
+					Utils.deleteEntireRowWithPK((String)json.get("keyspace"), innerHaving.get(j), pkName,pkValue);
 					//}
 				}
 
@@ -1296,10 +1298,10 @@ public class ViewManagerController {
 				if(stream.getLeftOrRightJoinAggGroupByDeleteRow()!=null){
 					//boolean result = Utils.evalueJoinAggConditions(stream.getLeftOrRightJoinAggGroupByDeleteRow(), aggFct.get(j), operation.get(j), value.get(j));
 					//if(result){
-						String pkName = stream.getLeftOrRightJoinAggGroupByDeleteRow().getColumnDefinitions().getName(0);
-						String pkType = stream.getLeftOrRightJoinAggGroupByDeleteRow().getColumnDefinitions().getType(0).toString();
-						String pkValue = Utils.getColumnValueFromDeltaStream(stream.getLeftOrRightJoinAggGroupByDeleteRow(), pkName, pkType, "");
-						Utils.deleteEntireRowWithPK((String)json.get("keyspace"), leftHaving.get(j), pkName,pkValue);
+					String pkName = stream.getLeftOrRightJoinAggGroupByDeleteRow().getColumnDefinitions().getName(0);
+					String pkType = stream.getLeftOrRightJoinAggGroupByDeleteRow().getColumnDefinitions().getType(0).toString();
+					String pkValue = Utils.getColumnValueFromDeltaStream(stream.getLeftOrRightJoinAggGroupByDeleteRow(), pkName, pkType, "");
+					Utils.deleteEntireRowWithPK((String)json.get("keyspace"), leftHaving.get(j), pkName,pkValue);
 					//}
 				}
 
@@ -1451,10 +1453,10 @@ public class ViewManagerController {
 							String value = VmXmlHandler.getInstance()
 									.getHavingPreAggMapping()
 									.getString(s11 + ".value");
-							
-							
+
+
 							eval1&= Utils.evalueJoinAggConditions(stream.getDeletePreaggRow(), aggFct, operation, value);
-						
+
 							Row DeletedPreagRowMapSize1 = stream.getDeletePreaggRowDeleted();
 
 							if (stream.getDeletePreaggRow() != null) {
@@ -1480,8 +1482,8 @@ public class ViewManagerController {
 					+ " delta_" + (String) json.get("table") + " available");
 		}
 
-			stream.resetPreaggregationRows();
-		
+		stream.resetPreaggregationRows();
+
 		// ===================================================================================
 		// 3. for the delta table updated, get the depending selection tables
 		// tables
@@ -1509,7 +1511,7 @@ public class ViewManagerController {
 				String nrAnd = VmXmlHandler.getInstance()
 						.getDeltaSelectionMapping().getString(s + ".nrAnd");
 
-				boolean eval = false;
+				boolean eval = true;
 
 				for (int j = 0; j < Integer.parseInt(nrAnd); j++) {
 
@@ -1531,100 +1533,15 @@ public class ViewManagerController {
 							.getDeltaSelectionMapping()
 							.getString(s11 + ".selectionCol");
 
-					switch (type) {
-
-					case "text":
-
-						if (operation.equals("=")) {
-							if (vm.getDeltaDeletedRow()
-									.getString(selColName + "_new")
-									.equals(value)) {
-								eval = true;
-							} else {
-								eval = false;
-							}
-						} else if (operation.equals("!=")) {
-							if (!vm.getDeltaDeletedRow()
-									.getString(selColName + "_new")
-									.equals(value)) {
-								eval = true;
-							} else {
-								eval = false;
-							}
-						}
-
-						break;
-
-					case "varchar":
-
-						if (operation.equals("=")) {
-							if (vm.getDeltaDeletedRow()
-									.getString(selColName + "_new")
-									.equals(value)) {
-								eval = true;
-							} else {
-								eval = false;
-							}
-						} else if (operation.equals("!=")) {
-							if (!vm.getDeltaDeletedRow()
-									.getString(selColName + "_new")
-									.equals(value)) {
-								eval = true;
-							} else {
-								eval = false;
-							}
-						}
-
-						break;
-
-					case "int":
-						String s1 = Integer.toString(vm.getDeltaDeletedRow()
-								.getInt(selColName + "_new"));
-						Integer valueInt = new Integer(s1);
-						int compareValue = valueInt
-								.compareTo(new Integer(value));
-
-						if ((operation.equals(">") && (compareValue < 0))) {
-							eval = false;
-						} else if ((operation.equals("<") && (compareValue > 0))) {
-							eval = false;
-						} else if ((operation.equals("=") && (compareValue != 0))) {
-							eval = false;
-						} else {
-							eval = true;
-						}
-
-						break;
-
-					case "varint":
-
-						s1 = vm.getDeltaDeletedRow()
-						.getVarint(selColName + "_new").toString();
-						valueInt = new Integer(new BigInteger(s1).intValue());
-						compareValue = valueInt.compareTo(new Integer(value));
-
-						if ((operation.equals(">") && (compareValue < 0))) {
-							eval = false;
-						} else if ((operation.equals("<") && (compareValue > 0))) {
-							eval = false;
-						} else if ((operation.equals("=") && (compareValue != 0))) {
-							eval = false;
-						} else {
-							eval = true;
-						}
-
-						break;
-
-					case "float":
-						break;
-					}
+					eval&= Utils.evaluateCondition(stream.getDeltaDeletedRow(), operation, value, type, selColName+"_new");
 
 				}
 
-				if (eval)
-					vm.deleteRowSelection(vm.getDeltaDeletedRow(),
+				if (eval){
+					vm.deleteRowSelection(stream.getDeltaDeletedRow(),
 							(String) json.get("keyspace"), selecTable,
 							baseTablePrimaryKey, json);
+				}
 			}
 
 		}

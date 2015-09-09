@@ -292,7 +292,7 @@ public class ViewManager {
 
 		// 1.b Retrieve row key from delta stream
 		String pk = Utils.getColumnValueFromDeltaStream(stream.getDeltaDeletedRow(),stream.getDeltaDeletedRow().getColumnDefinitions().asList().get(0).getName().toString(), stream.getDeltaDeletedRow().getColumnDefinitions().asList().get(0)
-				.getType().toString(), "_new");
+				.getType().toString(), "");
 
 		Row theRow = PreaggregationHelper.selectStatement(json, preaggTable, aggKey, aggKeyValue).one();
 
