@@ -3060,24 +3060,24 @@ public class ViewManager {
 			String aggKeyType, String aggKey, String aggColName,
 			String aggColType, String joinKeyName, String joinKeyType) {
 
-		String joinKeyValue = getColumnValueFromDeltaStream(deltaUpdatedRow,
+		String joinKeyValue = getColumnValueFromDeltaStream(stream.getDeltaUpdatedRow(),
 				joinKeyName, joinKeyType, "_new");
-		String oldJoinKeyValue = getColumnValueFromDeltaStream(deltaUpdatedRow,
+		String oldJoinKeyValue = getColumnValueFromDeltaStream(stream.getDeltaUpdatedRow(),
 				joinKeyName, joinKeyType, "_old");
 
-		String aggKeyValue = getColumnValueFromDeltaStream(deltaUpdatedRow,
+		String aggKeyValue = getColumnValueFromDeltaStream(stream.getDeltaUpdatedRow(),
 				aggKey, aggKeyType, "_new");
-		String oldAggKeyValue = getColumnValueFromDeltaStream(deltaUpdatedRow,
+		String oldAggKeyValue = getColumnValueFromDeltaStream(stream.getDeltaUpdatedRow(),
 				aggKey, aggKeyType, "_old");
 
-		String aggColValue = getColumnValueFromDeltaStream(deltaUpdatedRow,
+		String aggColValue = getColumnValueFromDeltaStream(stream.getDeltaUpdatedRow(),
 				aggColName, aggColType, "_new");
-		String oldAggColValue = getColumnValueFromDeltaStream(deltaUpdatedRow,
+		String oldAggColValue = getColumnValueFromDeltaStream(stream.getDeltaUpdatedRow(),
 				aggColName, aggColType, "_old");
 
-		Row newRJRow = getrjUpdatedRow();
-		Row oldRJRow = getReverseJoinUpdateOldRow();
-		Row changeAK = getReverseJoinUpdatedOldRow_changeJoinKey();
+		Row newRJRow = stream.getReverseJoinUpdateNewRow();
+		Row oldRJRow = stream.getReverseJoinUpadteOldRow();
+		Row changeAK = stream.getReverseJoinUpdatedOldRow_changeJoinKey();
 
 		// change in join key value or agg key value
 		if (!(oldJoinKeyValue.equals("'null'"))
@@ -3199,14 +3199,14 @@ public class ViewManager {
 			String aggColType, int index, String key, String keyType,
 			int aggKeyIndex) {
 
-		String joinKeyValue = getColumnValueFromDeltaStream(deltaUpdatedRow,
+		String joinKeyValue = getColumnValueFromDeltaStream(stream.getDeltaUpdatedRow(),
 				joinKey, joinKeyType, "_new");
-		String oldJoinKeyValue = getColumnValueFromDeltaStream(deltaUpdatedRow,
+		String oldJoinKeyValue = getColumnValueFromDeltaStream(stream.getDeltaUpdatedRow(),
 				joinKey, joinKeyType, "_old");
 
-		Row newRJRow = getrjUpdatedRow();
-		Row oldRJRow = getReverseJoinUpdateOldRow();
-		Row changeAK = getReverseJoinUpdatedOldRow_changeJoinKey();
+		Row newRJRow = stream.getReverseJoinUpdateNewRow();
+		Row oldRJRow = stream.getReverseJoinUpadteOldRow();
+		Row changeAK = stream.getReverseJoinUpdatedOldRow_changeJoinKey();
 
 		// change in join/agg Key
 
@@ -3235,7 +3235,7 @@ public class ViewManager {
 							&& !innerJoinAggTable.equals("false")) {
 
 				JoinAggGroupByHelper.addListItem1toInnerJoinGroupBy(stream,
-						deltaDeletedRow, aggColName, leftJoinAggTable,
+						stream.getDeltaUpdatedRow(), aggColName, leftJoinAggTable,
 						newRJRow, index, keyType, key, json, innerJoinAggTable,
 						aggKeyIndex);
 			}
@@ -3254,7 +3254,7 @@ public class ViewManager {
 				// otherwise u must loop on new.list_item2
 
 				JoinAggGroupByHelper.addListItem1toInnerJoinGroupBy(stream,
-						deltaUpdatedRow, aggColName, leftJoinAggTable,
+						stream.getDeltaUpdatedRow(), aggColName, leftJoinAggTable,
 						newRJRow, index, keyType, key, json, innerJoinAggTable,
 						aggKeyIndex);
 			}
@@ -3270,24 +3270,24 @@ public class ViewManager {
 			String aggColName, String aggColType, String joinKeyName,
 			String joinKeyType) {
 
-		String joinKeyValue = getColumnValueFromDeltaStream(deltaUpdatedRow,
+		String joinKeyValue = getColumnValueFromDeltaStream(stream.getDeltaUpdatedRow(),
 				joinKeyName, joinKeyType, "_new");
-		String oldJoinKeyValue = getColumnValueFromDeltaStream(deltaUpdatedRow,
+		String oldJoinKeyValue = getColumnValueFromDeltaStream(stream.getDeltaUpdatedRow(),
 				joinKeyName, joinKeyType, "_old");
 
-		String aggKeyValue = getColumnValueFromDeltaStream(deltaUpdatedRow,
+		String aggKeyValue = getColumnValueFromDeltaStream(stream.getDeltaUpdatedRow(),
 				aggKey, aggKeyType, "_new");
-		String oldAggKeyValue = getColumnValueFromDeltaStream(deltaUpdatedRow,
+		String oldAggKeyValue = getColumnValueFromDeltaStream(stream.getDeltaUpdatedRow(),
 				aggKey, aggKeyType, "_old");
 
-		String aggColValue = getColumnValueFromDeltaStream(deltaUpdatedRow,
+		String aggColValue = getColumnValueFromDeltaStream(stream.getDeltaUpdatedRow(),
 				aggColName, aggColType, "_new");
-		String oldAggColValue = getColumnValueFromDeltaStream(deltaUpdatedRow,
+		String oldAggColValue = getColumnValueFromDeltaStream(stream.getDeltaUpdatedRow(),
 				aggColName, aggColType, "_old");
 
-		Row newRJRow = getrjUpdatedRow();
-		Row oldRJRow = getReverseJoinUpdateOldRow();
-		Row changeAK = getReverseJoinUpdatedOldRow_changeJoinKey();
+		Row newRJRow = stream.getReverseJoinDeleteNewRow();
+		Row oldRJRow = stream.getReverseJoinUpadteOldRow();
+		Row changeAK = stream.getReverseJoinUpdatedOldRow_changeJoinKey();
 
 		// change in join key value or agg key value
 		if (!(oldJoinKeyValue.equals("'null'"))
@@ -3412,18 +3412,18 @@ public class ViewManager {
 			String aggColName, String aggColType, int index, String key,
 			String keyType, int aggKeyIndex) {
 
-		String joinKeyValue = getColumnValueFromDeltaStream(deltaUpdatedRow,
+		String joinKeyValue = getColumnValueFromDeltaStream(stream.getDeltaUpdatedRow(),
 				joinKeyName, joinKeyType, "_new");
-		String oldJoinKeyValue = getColumnValueFromDeltaStream(deltaUpdatedRow,
+		String oldJoinKeyValue = getColumnValueFromDeltaStream(stream.getDeltaUpdatedRow(),
 				joinKeyName, joinKeyType, "_old");
-		String aggColValue = getColumnValueFromDeltaStream(deltaUpdatedRow,
+		String aggColValue = getColumnValueFromDeltaStream(stream.getDeltaUpdatedRow(),
 				aggColName, aggColType, "_new");
-		String oldAggColValue = getColumnValueFromDeltaStream(deltaUpdatedRow,
+		String oldAggColValue = getColumnValueFromDeltaStream(stream.getDeltaUpdatedRow(),
 				aggColName, aggColType, "_old");
-
-		Row newRJRow = getrjUpdatedRow();
-		Row oldRJRow = getReverseJoinUpdateOldRow();
-		Row changeAK = getReverseJoinUpdatedOldRow_changeJoinKey();
+		
+		Row newRJRow = stream.getReverseJoinDeleteNewRow();
+		Row oldRJRow = stream.getReverseJoinUpadteOldRow();
+		Row changeAK = stream.getReverseJoinUpdatedOldRow_changeJoinKey();
 
 		if (!(oldJoinKeyValue.equals("'null'"))
 				&& !joinKeyValue.equals(oldJoinKeyValue)) {
@@ -3450,7 +3450,7 @@ public class ViewManager {
 							&& !innerJoinAggTable.equals("false")) {
 
 				JoinAggGroupByHelper.addListItem2toInnerJoinGroupBy(stream,
-						deltaUpdatedRow, aggColName, rightJoinAggTable,
+						stream.getDeltaUpdatedRow(), aggColName, rightJoinAggTable,
 						newRJRow, index, keyType, key, json, innerJoinAggTable,
 						aggKeyIndex);
 			}
@@ -3466,7 +3466,7 @@ public class ViewManager {
 				// u can get from the right join agg table if it exists
 				// otherwise u must loop on new.list_item2
 				JoinAggGroupByHelper.addListItem2toInnerJoinGroupBy(stream,
-						deltaUpdatedRow, aggColName, rightJoinAggTable,
+						stream.getDeltaUpdatedRow(), aggColName, rightJoinAggTable,
 						newRJRow, index, keyType, key, json, innerJoinAggTable,
 						aggKeyIndex);
 			}
@@ -3480,10 +3480,10 @@ public class ViewManager {
 			String joinKeyType, String joinKeyName, String aggColName,
 			String aggColType) {
 
-		String joinKeyValue = Utils.getColumnValueFromDeltaStream(deltaDeletedRow, joinKeyName, joinKeyType, "_new");
-		String aggColValue = Utils.getColumnValueFromDeltaStream(deltaDeletedRow, aggColName, aggColType, "_new");
+		String joinKeyValue = Utils.getColumnValueFromDeltaStream(stream.getDeltaDeletedRow(), joinKeyName, joinKeyType, "_new");
+		String aggColValue = Utils.getColumnValueFromDeltaStream(stream.getDeltaDeletedRow(), aggColName, aggColType, "_new");
 
-		Row newRJRow = getReverseJoinDeleteNewRow();
+		Row newRJRow = stream.getReverseJoinDeleteNewRow();
 
 		if (newRJRow.getMap("list_item2", String.class, String.class).isEmpty()) {
 
@@ -3533,10 +3533,10 @@ public class ViewManager {
 	public boolean deleteJoinAgg_DeleteRight_AggColRightSide(Stream stream, String innerJoinAggTable, String rightJoinAggTable,
 			JSONObject json, String joinKeyType, String joinKeyName,String aggColName, String aggColType) {
 
-		String joinKeyValue = Utils.getColumnValueFromDeltaStream(deltaDeletedRow, joinKeyName, joinKeyType, "_new");
-		String aggColValue =  Utils.getColumnValueFromDeltaStream(deltaDeletedRow, aggColName, aggColType, "_new");
+		String joinKeyValue = Utils.getColumnValueFromDeltaStream(stream.getDeltaDeletedRow(), joinKeyName, joinKeyType, "_new");
+		String aggColValue =  Utils.getColumnValueFromDeltaStream(stream.getDeltaDeletedRow(), aggColName, aggColType, "_new");
 
-		Row newRJRow = getReverseJoinDeleteNewRow();
+		Row newRJRow = stream.getReverseJoinDeleteNewRow();
 
 		if (newRJRow.getMap("list_item1", String.class, String.class).isEmpty()) {
 
@@ -3636,12 +3636,12 @@ public class ViewManager {
 			String aggKeyType, String aggkey, String aggColName,
 			String aggColType) {
 
-		String aggColValue = getColumnValueFromDeltaStream(deltaDeletedRow,
+		String aggColValue = getColumnValueFromDeltaStream(stream.getDeltaDeletedRow(),
 				aggColName, aggColType, "_new");
-		String aggKeyValue = getColumnValueFromDeltaStream(deltaDeletedRow,
+		String aggKeyValue = getColumnValueFromDeltaStream(stream.getDeltaDeletedRow(),
 				aggkey, aggKeyType, "_new");
 
-		Row newRJRow = getReverseJoinDeleteNewRow();
+		Row newRJRow = stream.getReverseJoinDeleteNewRow();
 
 		if (newRJRow.getMap("list_item2", String.class, String.class).isEmpty()) {
 
@@ -3679,12 +3679,12 @@ public class ViewManager {
 			JSONObject json, String aggKeyType, String aggKey,
 			String aggColName, String aggColType) {
 
-		String aggColValue = getColumnValueFromDeltaStream(deltaDeletedRow,
+		String aggColValue = getColumnValueFromDeltaStream(stream.getDeltaDeletedRow(),
 				aggColName, aggColType, "_new");
-		String aggKeyValue = getColumnValueFromDeltaStream(deltaDeletedRow,
+		String aggKeyValue = getColumnValueFromDeltaStream(stream.getDeltaDeletedRow(),
 				aggKey, aggKeyType, "_new");
 
-		Row newRJRow = getReverseJoinDeleteNewRow();
+		Row newRJRow = stream.getReverseJoinDeleteNewRow();
 
 		if (newRJRow.getMap("list_item1", String.class, String.class).isEmpty()) {
 
@@ -3722,7 +3722,7 @@ public class ViewManager {
 			String aggKeyType, String aggKey, String aggColName,
 			String aggColType, int aggKeyIndex, int index) {
 
-		Row newRJRow = getReverseJoinDeleteNewRow();
+		Row newRJRow = stream.getReverseJoinDeleteNewRow();
 
 		if (newRJRow.getMap("list_item1", String.class, String.class).isEmpty()
 				&& !newRJRow.getMap("list_item2", String.class, String.class)
@@ -3746,7 +3746,7 @@ public class ViewManager {
 			String aggKeyType, String aggKey, String aggColName,
 			String aggColType, int aggKeyIndex, int index) {
 
-		Row newRJRow = getReverseJoinDeleteNewRow();
+		Row newRJRow = stream.getReverseJoinDeleteNewRow();
 
 		if (newRJRow.getMap("list_item2", String.class, String.class).isEmpty()
 				&& !newRJRow.getMap("list_item1", String.class, String.class)
