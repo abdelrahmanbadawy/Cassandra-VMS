@@ -1581,7 +1581,7 @@ public class ViewManagerController {
 
 				String aggKeyType = rj_joinKeyTypes.get(j);
 
-				vm.deleteReverseJoin(json, cursor, nrOfTables, joinTable,
+				vm.deleteReverseJoin(stream,json, cursor, nrOfTables, joinTable,
 						baseTables, joinKeyName, tableName, keyspace,
 						aggKeyType, column);
 
@@ -1627,7 +1627,7 @@ public class ViewManagerController {
 							updateRight = true;
 						}
 
-						vm.deleteJoinController(deltaDeletedRow,
+						vm.deleteJoinController(stream,stream.getDeltaDeletedRow(),
 								innerJoinTableName, leftJoinTableName,
 								rightJoinTableName, json, updateLeft,
 								updateRight);

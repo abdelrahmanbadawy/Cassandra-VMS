@@ -315,7 +315,7 @@ public class ViewManager {
 
 				// TO BE REMOVED
 				setDeletePreaggRowDeleted(theRow);
-				
+
 				stream.setDeletePreaggRowDeleted(theRow);
 
 				deleteEntireRowWithPK((String) json.get("keyspace"),
@@ -368,11 +368,11 @@ public class ViewManager {
 				// Selection to set DeleteRowDelete variable
 				ResultSet rs = PreaggregationHelper.selectStatement(json, preaggTable, aggKey, aggKeyValue);
 				Row row = rs.one();
-				
+
 				//TO BE REMOVED
 				setDeletePreaggRow(row);
 				setDeletePreaggRowDeleted(null);
-				
+
 				stream.setDeletePreaggRow(row);
 			}
 		}
@@ -956,163 +956,13 @@ public class ViewManager {
 
 		// Case 4 : delete row from left join if no longer valid
 		if (updateLeft && myMap1.size() == 1)
-			deleteFromRightJoinTable(myMap2, rightJName, json, false);
+			DeleteJoinHelper.deleteFromRightJoinTable(myMap2, rightJName, json, false);
 
 		// Case 5: delete row from left join if no longer valid
 		if (updateRight && myMap2.size() == 1)
-			deleteFromLeftJoinTable(myMap1, leftJName, json, false);
+			DeleteJoinHelper.deleteFromLeftJoinTable(myMap1, leftJName, json, false);
 
 		return true;
-	}
-
-	private boolean deleteFromRightJoinTable(HashMap<String, String> myMap2,
-			String rightJName, JSONObject json, boolean fromDelete) {
-
-		int position = VmXmlHandler.getInstance().getrJSchema()
-				.getList("dbSchema.tableDefinition.name").indexOf(rightJName);
-
-		if (position != -1) {
-
-			String temp = "dbSchema.tableDefinition(";
-			temp += Integer.toString(position);
-			temp += ")";
-
-			String rightPkName = temp + ".primaryKey.right";
-			rightPkName = VmXmlHandler.getInstance().getrJSchema()
-					.getString(rightPkName);
-
-			String rightPkType = temp + ".primaryKey.rightType";
-			rightPkType = VmXmlHandler.getInstance().getrJSchema()
-					.getString(rightPkType);
-
-			String rightPkValue = "";
-
-			// 4. for each entry in item_list2, create insert statement for each
-			// entry to add a new row
-			for (Map.Entry<String, String> entry : myMap2.entrySet()) {
-
-				switch (rightPkType) {
-
-				case "text":
-					rightPkValue = "'" + entry.getKey() + "'";
-					break;
-
-				case "varchar":
-					rightPkValue = "'" + entry.getKey() + "'";
-					break;
-
-				default:
-					rightPkValue = entry.getKey();
-					break;
-
-				}
-
-				if (fromDelete) {
-					JSONObject condition = (JSONObject) json.get("condition");
-					Object[] hm = condition.keySet().toArray();
-
-					if (!rightPkValue.equals(condition.get(hm[0]))) {
-						myMap2.remove(entry.getKey());
-						continue;
-					}
-				}
-
-				String tuple = "(" + 0 + "," + rightPkValue + ")";
-
-				StringBuilder insertQuery = new StringBuilder("Delete from ");
-				insertQuery.append((String) json.get("keyspace")).append(".")
-				.append(rightJName).append(" WHERE ");
-				insertQuery.append(rightPkName).append(" = ");
-				insertQuery.append(tuple).append(";");
-
-				System.out.println(insertQuery);
-
-				try {
-
-					Session session = currentCluster.connect();
-					session.execute(insertQuery.toString());
-				} catch (Exception e) {
-					e.printStackTrace();
-					return false;
-				}
-			}
-		}
-
-		return true;
-
-	}
-
-	private boolean deleteFromLeftJoinTable(HashMap<String, String> myMap1,
-			String leftJName, JSONObject json, boolean fromDelete) {
-
-		int position = VmXmlHandler.getInstance().getlJSchema()
-				.getList("dbSchema.tableDefinition.name").indexOf(leftJName);
-
-		if (position != -1) {
-
-			String temp = "dbSchema.tableDefinition(";
-			temp += Integer.toString(position);
-			temp += ")";
-
-			String leftPkName = temp + ".primaryKey.left";
-			leftPkName = VmXmlHandler.getInstance().getlJSchema()
-					.getString(leftPkName);
-
-			String leftPkType = temp + ".primaryKey.leftType";
-			leftPkType = VmXmlHandler.getInstance().getlJSchema()
-					.getString(leftPkType);
-
-			String leftPkValue = "";
-
-			for (Map.Entry<String, String> entry : myMap1.entrySet()) {
-				switch (leftPkType) {
-
-				case "text":
-					leftPkValue = "'" + entry.getKey() + "'";
-					break;
-
-				case "varchar":
-					leftPkValue = "'" + entry.getKey() + "'";
-					break;
-
-				default:
-					leftPkValue = entry.getKey();
-					break;
-
-				}
-
-				if (fromDelete) {
-					JSONObject condition = (JSONObject) json.get("condition");
-					Object[] hm = condition.keySet().toArray();
-
-					if (!leftPkValue.equals(condition.get(hm[0]))) {
-						myMap1.remove(entry.getKey());
-						continue;
-					}
-				}
-
-				String tuple = "(" + leftPkValue + "," + 0 + ")";
-
-				StringBuilder insertQuery = new StringBuilder("Delete from ");
-				insertQuery.append((String) json.get("keyspace")).append(".")
-				.append(leftJName).append(" WHERE ");
-				insertQuery.append(leftPkName).append(" = ");
-				insertQuery.append(tuple).append(";");
-
-				System.out.println(insertQuery);
-
-				try {
-
-					Session session = currentCluster.connect();
-					session.execute(insertQuery.toString());
-				} catch (Exception e) {
-					e.printStackTrace();
-					return false;
-				}
-			}
-		}
-		return true;
-
 	}
 
 
@@ -1514,108 +1364,30 @@ public class ViewManager {
 		return true;
 	}
 
-	
+
 	// JSONObject json, int cursor, int nrOfTables, String joinTable,
 	// List<String> baseTables, String joinKeyName,
 	// String tableName, String keyspace, String aggKeyType, int column
-	public void deleteReverseJoin(JSONObject json, int cursor, int nrOfTables,
+	public void deleteReverseJoin(Stream stream, JSONObject json, int cursor, int nrOfTables,
 			String joinTable, List<String> baseTables, String joinKeyName,
 			String tableName, String keyspace, String joinKeyType, int column) {
 
 		setReverseJoinName(joinTable);
 
-		StringBuilder selectQuery = new StringBuilder();
+		String joinKeyValue = Utils.getColumnValueFromDeltaStream(stream.getDeltaDeletedRow(), joinKeyName, joinKeyType, "_new");
 
-		String joinKeyValue = null;
+		Row theRow  = Utils.selectAllStatement(keyspace, joinTable, joinKeyName, joinKeyValue);
 
-		switch (joinKeyType) {
-		case "text":
-
-			joinKeyValue = ("'"
-					+ deltaDeletedRow.getString(joinKeyName + "_new") + "'");
-
-			break;
-
-		case "int":
-
-			joinKeyValue = ("" + deltaDeletedRow.getInt(joinKeyName + "_new"));
-
-			break;
-
-		case "varint":
-
-			joinKeyValue = ("" + deltaDeletedRow
-					.getVarint(joinKeyName + "_new"));
-
-			break;
-
-		case "varchar":
-
-			joinKeyValue = ("" + deltaDeletedRow
-					.getString(joinKeyName + "_new"));
-
-			break;
-
-		case "float":
-
-			joinKeyValue = ("" + deltaDeletedRow.getFloat(joinKeyName + "_new"));
-
-			break;
-		}
-
-		selectQuery.append("SELECT * FROM ").append(keyspace).append(".")
-		.append(joinTable).append(" WHERE ").append(joinKeyName)
-		.append(" = ").append(joinKeyValue).append(";");
-
-		System.out.println(selectQuery);
-
-		Session session = null;
-		ResultSet queryResults = null;
-
-		try {
-
-			session = currentCluster.connect();
-			queryResults = session.execute(selectQuery.toString());
-
-		} catch (Exception e) {
-			e.printStackTrace();
-
-		}
-
-		Row theRow = queryResults.one();
-
+		//TO BE REMOVED
 		setRevereJoinDeleteOldRow(theRow);
-
-		StringBuilder insertQuery = new StringBuilder("INSERT INTO ")
-		.append(keyspace).append(".").append(joinTable).append(" (")
-		.append(joinKeyName).append(", ").append("list_item" + column)
-		.append(") VALUES (").append(joinKeyValue).append(", ?);");
+		stream.setRevereJoinDeleteOldRow(theRow);
 
 		HashMap<String, String> myMap = null;
-		String pk = "";
-		switch (deltaDeletedRow.getColumnDefinitions().asList().get(0)
-				.getType().toString()) {
 
-				case "text":
-					pk = deltaDeletedRow.getString(0);
-					break;
-
-				case "int":
-					pk = Integer.toString(deltaDeletedRow.getInt(0));
-					break;
-
-				case "varint":
-					pk = deltaDeletedRow.getVarint(0).toString();
-					break;
-
-				case "varchar":
-					pk = deltaDeletedRow.getString(0);
-					break;
-
-				case "float":
-					pk = Float.toString(deltaDeletedRow.getFloat(0));
-					break;
-		}
+		String pkType = stream.getDeltaDeletedRow().getColumnDefinitions().asList().get(0)
+				.getType().toString();
+		String pkName = stream.getDeltaDeletedRow().getColumnDefinitions().asList().get(0).getName();
+		String pk = Utils.getColumnValueFromDeltaStream(stream.getDeltaDeletedRow(), pkName, pkType, "");
 
 		// already exists
 		if (theRow != null) {
@@ -1631,21 +1403,8 @@ public class ViewManager {
 				myMap.remove(pk);
 			}
 
-			try {
+			ReverseJoinHelper.insertStatement(joinTable, keyspace, joinKeyName, joinKeyValue, column, myMap);
 
-				session = currentCluster.connect();
-
-				System.out.println(insertQuery);
-
-				PreparedStatement statement = session.prepare(insertQuery
-						.toString());
-				BoundStatement boundStatement = new BoundStatement(statement);
-				session.execute(boundStatement.bind(myMap));
-
-			} catch (Exception e) {
-				e.printStackTrace();
-
-			}
 
 			// checking if all list items are null --> delete the whole row
 			boolean allNull = true;
@@ -1665,63 +1424,17 @@ public class ViewManager {
 
 			// all entries are nulls
 			if (allNull) {
-				StringBuilder deleteQuery = new StringBuilder("delete from ");
-				deleteQuery.append(keyspace).append(".").append(joinTable)
-				.append(" WHERE ").append(joinKeyName + " = ")
-				.append(joinKeyValue).append(";");
-
-				System.out.println(deleteQuery);
-
-				session = currentCluster.connect();
-				session.execute(deleteQuery.toString());
+				Utils.deleteEntireRowWithPK(keyspace, joinTable, joinKeyName, joinKeyValue);
 			}
 
 		}
 
 		// get new deleted row from rj
-		StringBuilder selectQuery1 = new StringBuilder();
-		selectQuery1.append("SELECT * FROM ").append(keyspace).append(".")
-		.append(joinTable).append(" WHERE ").append(joinKeyName)
-		.append(" = ").append(joinKeyValue).append(";");
+		Row row = Utils.selectAllStatement(keyspace, joinTable, joinKeyName, joinKeyValue);
+		stream.setReverseJoinDeleteNewRow(row);
 
-		System.out.println(selectQuery1);
-
-		session = null;
-
-		try {
-			session = currentCluster.connect();
-			setReverseJoinDeleteNewRow(session.execute(selectQuery1.toString())
-					.one());
-
-		} catch (Exception e) {
-			e.printStackTrace();
-
-		}
-
-		// System.out.println("Old RJ delete Row: ");
-		// if(getRevereJoinDeleteOldRow()!=null){
-		// System.out.println("join key: "+getRevereJoinDeleteOldRow().getString(joinKeyName));
-		// System.out.println("listitem1: "+getRevereJoinDeleteOldRow().getMap(
-		// "list_item1", String.class, String.class).toString());
-		// System.out.println("listitem2: "+getRevereJoinDeleteOldRow().getMap(
-		// "list_item2", String.class, String.class).toString());
-		// }
-		// else
-		// System.out.println("null");
-		//
-		//
-		// System.out.println("New RJ delete Row: ");
-		// if(getReverseJoinDeleteNewRow()!=null){
-		// System.out.println("join key: "+getReverseJoinDeleteNewRow().getString(joinKeyName));
-		// System.out.println("listitem1: "+getReverseJoinDeleteNewRow().getMap(
-		// "list_item1", String.class, String.class).toString());
-		// System.out.println("listitem2: "+getReverseJoinDeleteNewRow().getMap(
-		// "list_item2", String.class, String.class).toString());
-		// }
-		// else
-		// System.out.println("null");
-		//
-
+		//TO BE REMOVED
+		setReverseJoinDeleteNewRow(row);
 	}
 
 	private void setReverseJoinOldUpdateRow(Row theRow) {
@@ -1732,12 +1445,12 @@ public class ViewManager {
 		return reverseJoinUpadteOldRow;
 	}
 
-	public boolean deleteJoinController(Row deltaDeletedRow, String innerJName,
+	public boolean deleteJoinController(Stream stream,Row deltaDeletedRow, String innerJName,
 			String leftJName, String rightJName, JSONObject json,
 			Boolean updateLeft, Boolean updateRight) {
 
 		// 1. get row updated by reverse join
-		Row theRow = getRevereJoinDeleteOldRow();
+		Row theRow = stream.getRevereJoinDeleteOldRow();
 
 		// 1.a get columns item_1, item_2
 		Map<String, String> tempMapImmutable1 = theRow.getMap("list_item1",
@@ -1755,24 +1468,24 @@ public class ViewManager {
 		// Case 1 : delete from left join table if item_list2 is empty
 		// !leftJName.equals(false) meaning : no left join wanted, only right
 		if (updateLeft && myMap2.size() == 0 && !leftJName.equals("false")) {
-			deleteFromLeftJoinTable(myMap1, leftJName, json, true);
+			DeleteJoinHelper.deleteFromLeftJoinTable(myMap1, leftJName, json, true);
 			return true;
 		}
 
 		// Case 2: delete from right join table if item_list1 is empty
 		// !rightName.equals(false) meaning : no right join wanted, only left
 		if (updateRight && myMap1.size() == 0 && !rightJName.equals("false")) {
-			deleteFromRightJoinTable(myMap2, rightJName, json, true);
+			DeleteJoinHelper.deleteFromRightJoinTable(myMap2, rightJName, json, true);
 			return true;
 		}
 
-		Row newDeletedRow = getReverseJoinDeleteNewRow();
+		Row newDeletedRow = stream.getReverseJoinDeleteNewRow();
 
 		// Case 3: delete happened from left and list_item1 is not empty
 		// remove cross product from innerjoin
 		if (updateLeft && myMap2.size() > 0) {
 
-			removeDeleteLeftCrossRight(json, innerJName, myMap2);
+			DeleteJoinHelper.removeDeleteLeftCrossRight(stream,json, innerJName, myMap2);
 
 			// delete happened in left and new list_item 1 is empty
 			// add all list_item2 to right join
@@ -1789,7 +1502,7 @@ public class ViewManager {
 		if (updateRight && myMap1.size() > 0) {
 
 			// removeRightCrossLeft(json, innerJName);
-			removeDeleteRightCrossLeft(json, innerJName, myMap1);
+			DeleteJoinHelper.removeDeleteRightCrossLeft(stream,json, innerJName, myMap1);
 
 			// delete happened in right and new list_item 2 is empty
 			// add all list_item1 to left join
@@ -1797,146 +1510,6 @@ public class ViewManager {
 					.size() == 0) {
 				JoinHelper.addAllToLeftJoinTable(leftJName, newDeletedRow.getMap(
 						"list_item1", String.class, String.class), json);
-			}
-
-		}
-
-		return true;
-
-	}
-
-	public boolean removeDeleteLeftCrossRight(JSONObject json,
-			String innerJName, Map<String, String> myMap2) {
-		String leftPkValue = "";
-		switch (deltaDeletedRow.getColumnDefinitions().asList().get(0)
-				.getType().toString()) {
-
-				case "text":
-					leftPkValue = deltaDeletedRow.getString(0);
-					break;
-
-				case "int":
-					leftPkValue = Integer.toString(deltaDeletedRow.getInt(0));
-					break;
-
-				case "varint":
-					leftPkValue = deltaDeletedRow.getVarint(0).toString();
-					break;
-
-				case "varchar":
-					leftPkValue = deltaDeletedRow.getString(0);
-					break;
-
-				case "float":
-					leftPkValue = Float.toString(deltaDeletedRow.getFloat(0));
-					break;
-		}
-
-		for (Map.Entry<String, String> entry : myMap2.entrySet()) {
-			String tuple = "(" + leftPkValue + "," + entry.getKey() + ")";
-
-			int position = VmXmlHandler.getInstance().getiJSchema()
-					.getList("dbSchema.tableDefinition.name")
-					.indexOf(innerJName);
-
-			String joinTablePk = "";
-
-			if (position != -1) {
-
-				String temp = "dbSchema.tableDefinition(";
-				temp += Integer.toString(position);
-				temp += ")";
-
-				joinTablePk = VmXmlHandler.getInstance().getrJSchema()
-						.getString(temp + ".primaryKey.name");
-
-			}
-
-			StringBuilder deleteQuery = new StringBuilder("delete from ");
-			deleteQuery.append(json.get("keyspace")).append(".")
-			.append(innerJName).append(" WHERE ")
-			.append(joinTablePk + " = ").append(tuple).append(";");
-
-			System.out.println(deleteQuery);
-
-			try {
-
-				Session session = currentCluster.connect();
-				session.execute(deleteQuery.toString());
-
-			} catch (Exception e) {
-				e.printStackTrace();
-				return false;
-			}
-
-		}
-
-		return true;
-
-	}
-
-	public boolean removeDeleteRightCrossLeft(JSONObject json,
-			String innerJName, Map<String, String> myMap1) {
-		String rigthPkValue = "";
-		switch (deltaDeletedRow.getColumnDefinitions().asList().get(0)
-				.getType().toString()) {
-
-				case "text":
-					rigthPkValue = deltaDeletedRow.getString(0);
-					break;
-
-				case "int":
-					rigthPkValue = Integer.toString(deltaDeletedRow.getInt(0));
-					break;
-
-				case "varint":
-					rigthPkValue = deltaDeletedRow.getVarint(0).toString();
-					break;
-
-				case "varchar":
-					rigthPkValue = deltaDeletedRow.getString(0);
-					break;
-
-				case "float":
-					rigthPkValue = Float.toString(deltaDeletedRow.getFloat(0));
-					break;
-		}
-
-		for (Map.Entry<String, String> entry : myMap1.entrySet()) {
-			String tuple = "(" + entry.getKey() + "," + rigthPkValue + ")";
-
-			int position = VmXmlHandler.getInstance().getiJSchema()
-					.getList("dbSchema.tableDefinition.name")
-					.indexOf(innerJName);
-
-			String joinTablePk = "";
-
-			if (position != -1) {
-
-				String temp = "dbSchema.tableDefinition(";
-				temp += Integer.toString(position);
-				temp += ")";
-
-				joinTablePk = VmXmlHandler.getInstance().getrJSchema()
-						.getString(temp + ".primaryKey.name");
-
-			}
-
-			StringBuilder deleteQuery = new StringBuilder("delete from ");
-			deleteQuery.append(json.get("keyspace")).append(".")
-			.append(innerJName).append(" WHERE ")
-			.append(joinTablePk + " = ").append(tuple).append(";");
-
-			System.out.println(deleteQuery);
-
-			try {
-
-				Session session = currentCluster.connect();
-				session.execute(deleteQuery.toString());
-
-			} catch (Exception e) {
-				e.printStackTrace();
-				return false;
 			}
 
 		}
@@ -2499,7 +2072,7 @@ public class ViewManager {
 			String joinKeyType, String joinKeyName, String aggColName,
 			String aggColType) {
 		// TODO Auto-generated method stub
-		
+
 		Row newRJRow = stream.getReverseJoinUpdateNewRow();
 		Row oldRJRow = stream.getReverseJoinUpadteOldRow();
 		Row changeAK = stream.getReverseJoinUpdatedOldRow_changeJoinKey();
@@ -3377,7 +2950,7 @@ public class ViewManager {
 				aggColName, aggColType, "_new");
 		String oldAggColValue = getColumnValueFromDeltaStream(stream.getDeltaUpdatedRow(),
 				aggColName, aggColType, "_old");
-		
+
 		Row newRJRow = stream.getReverseJoinDeleteNewRow();
 		Row oldRJRow = stream.getReverseJoinUpadteOldRow();
 		Row changeAK = stream.getReverseJoinUpdatedOldRow_changeJoinKey();
@@ -3554,7 +3127,7 @@ public class ViewManager {
 		String joinKeyValue = Utils.getColumnValueFromDeltaStream(stream.getDeltaDeletedRow(), joinKeyName, joinKeyType, "_new");
 
 		Row newRJRow = stream.getReverseJoinDeleteNewRow();
-				
+
 		if (newRJRow.getMap("list_item1", String.class, String.class).isEmpty() && !newRJRow.getMap("list_item2", String.class, String.class).isEmpty()) {
 
 			// remove from inner
