@@ -324,21 +324,7 @@ public class ViewManager {
 				myMap.remove(pk);
 
 				// 5.b retrieve aggCol value
-				switch (aggColType) {
-
-				case "int":
-					aggColValue = deltaDeletedRow.getInt(aggCol + "_new");
-					break;
-
-				case "varint":
-					aggColValue = deltaDeletedRow.getVarint(aggCol + "_new")
-					.floatValue();
-					break;
-
-				case "float":
-					aggColValue = deltaDeletedRow.getFloat(aggCol + "_new");
-					break;
-				}
+				aggColValue = Float.valueOf(Utils.getColumnValueFromDeltaStream(stream.getDeltaDeletedRow(), aggCol, aggColType, "_new"));
 
 				// 5.c adjust sum,count,average values
 				count = myMap.size();
@@ -348,7 +334,7 @@ public class ViewManager {
 				max = -Float.MAX_VALUE;
 				min = Float.MAX_VALUE;
 
-				List<Definition> def = deltaDeletedRow.getColumnDefinitions()
+				List<Definition> def = stream.getDeltaDeletedRow().getColumnDefinitions()
 						.asList();
 
 				int aggColIndexInList = 0;
@@ -375,48 +361,17 @@ public class ViewManager {
 
 				// 6. Execute insertion statement of the row with the
 				// aggKeyValue_old to refelect changes
-
-				StringBuilder insertQueryAgg = new StringBuilder("INSERT INTO ");
-				insertQueryAgg.append((String) json.get("keyspace"))
-				.append(".").append(preaggTable).append(" ( ")
-				.append(aggKey + ", ").append("list_item, ")
-				.append("sum, count, average, min, max")
-				.append(") VALUES (").append(aggKeyValue + ", ")
-				.append("?, ?, ?, ?, ?, ?);");
-
-				Session session1 = currentCluster.connect();
-
-				PreparedStatement statement1 = session1.prepare(insertQueryAgg
-						.toString());
-				BoundStatement boundStatement = new BoundStatement(statement1);
-				session1.execute(boundStatement.bind(myMap, sum, (int) count,
-						average, min, max));
-				System.out.println(boundStatement.toString());
+				PreaggregationHelper.insertStatement(json, preaggTable, aggKey, aggKeyValue, myMap, sum, count, min, max, average);
 
 				// Selection to set DeleteRowDelete variable
-
-				StringBuilder selectPreaggQuery2 = new StringBuilder("SELECT ")
-				.append(aggKey + ",").append("list_item, sum, ")
-				.append("count, ").append("average, min, max ");
-				selectPreaggQuery2.append(" FROM ")
-				.append((String) json.get("keyspace")).append(".")
-				.append(preaggTable).append(" where ")
-				.append(aggKey + " = ").append(aggKeyValue).append(";");
-
-				System.out.println(selectPreaggQuery2);
-
-				try {
-
-					Session session = currentCluster.connect();
-					setDeletePreaggRow((session.execute(selectPreaggQuery2
-							.toString()).one()));
-					setDeletePreaggRowDeleted(null);
-
-				} catch (Exception e) {
-					e.printStackTrace();
-					return false;
-				}
-
+				ResultSet rs = PreaggregationHelper.selectStatement(json, preaggTable, aggKey, aggKeyValue);
+				Row row = rs.one();
+				
+				//TO BE REMOVED
+				setDeletePreaggRow(row);
+				setDeletePreaggRowDeleted(null);
+				
+				stream.setDeletePreaggRow(row);
 			}
 		}
 

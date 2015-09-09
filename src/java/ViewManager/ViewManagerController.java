@@ -1365,10 +1365,10 @@ public class ViewManagerController {
 		// streams
 		if (deleteOperation) {
 			if (vm.deleteRowDelta(stream,json)) {
-				deltaDeletedRow = vm.getDeltaDeletedRow();
+				deltaDeletedRow = stream.getDeltaDeletedRow();
 			}
 		} else
-			deltaDeletedRow = vm.getDeltaDeletedRow();
+			deltaDeletedRow = stream.getDeltaDeletedRow();
 
 		// =================================================================================
 
@@ -1405,9 +1405,9 @@ public class ViewManagerController {
 
 				// by passing the whole delta Row, we have agg key value even if
 				// it is not in json
-				/*vm.deleteRowPreaggAgg(stream,deltaDeletedRow, baseTablePrimaryKey,
+				vm.deleteRowPreaggAgg(stream,deltaDeletedRow, baseTablePrimaryKey,
 						json, preaggTable, AggKey, AggKeyType, AggCol,
-						AggColType);*/
+						AggColType);
 
 				// update the corresponding preagg wih having clause
 
