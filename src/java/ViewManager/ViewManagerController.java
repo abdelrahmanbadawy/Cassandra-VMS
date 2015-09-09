@@ -385,33 +385,36 @@ public class ViewManagerController {
 							if(PreagRowAK!=null){
 								eval2&= Utils.evalueJoinAggConditions(PreagRowAK, aggFct, operation, value);
 							}
+						}
+						
+						Row PreagRow = stream.getUpdatedPreaggRow();
+						Row PreagRowAK = stream.getUpdatedPreaggRowChangeAK();
 
-							// if matching now & not matching before
-							// if condition matching now & matched before
-							if (eval1) {
-								vm.updateHaving(stream.getDeltaUpdatedRow(),
-										json,havingTable, PreagRow);
-								// if not matching now
-							} else if (!eval1) {
-								vm.deleteRowHaving((String) json.get("keyspace"),
-										havingTable, PreagRow);
-								// if not matching now & not before, ignore
-							}
+						// if matching now & not matching before
+						// if condition matching now & matched before
+						if (eval1) {
+							vm.updateHaving(stream.getDeltaUpdatedRow(),
+									json,havingTable, PreagRow);
+							// if not matching now
+						} else if (!eval1) {
+							vm.deleteRowHaving((String) json.get("keyspace"),
+									havingTable, PreagRow);
+							// if not matching now & not before, ignore
+						}
 
-							if (PreagRowAK != null && eval2) {
-								vm.updateHaving(stream.getDeltaUpdatedRow(),
-										json,havingTable, PreagRowAK);
+						if (PreagRowAK != null && eval2) {
+							vm.updateHaving(stream.getDeltaUpdatedRow(),
+									json,havingTable, PreagRowAK);
 
-							}else if (PreagRowAK != null && !eval2) {
-								vm.deleteRowHaving((String) json.get("keyspace"),
-										havingTable, PreagRowAK);
-							}
+						}else if (PreagRowAK != null && !eval2) {
+							vm.deleteRowHaving((String) json.get("keyspace"),
+									havingTable, PreagRowAK);
+						}
 
-							Row deletedRow = stream.getUpdatedPreaggRowDeleted();
-							if (deletedRow != null) {
-								vm.deleteRowHaving((String) json.get("keyspace"),
-										havingTable, deletedRow);
-							}
+						Row deletedRow = stream.getUpdatedPreaggRowDeleted();
+						if (deletedRow != null) {
+							vm.deleteRowHaving((String) json.get("keyspace"),
+									havingTable, deletedRow);
 						}
 					}
 				} else {
@@ -1457,20 +1460,21 @@ public class ViewManagerController {
 
 							eval1&= Utils.evalueJoinAggConditions(stream.getDeletePreaggRow(), aggFct, operation, value);
 
-							Row DeletedPreagRowMapSize1 = stream.getDeletePreaggRowDeleted();
+						}
+						
+						Row DeletedPreagRowMapSize1 = stream.getDeletePreaggRowDeleted();
 
-							if (stream.getDeletePreaggRow() != null) {
-								if (eval1) {
-									vm.updateHaving(stream.getDeltaDeletedRow(),
-											json,havingTable, stream.getDeletePreaggRow());
-								} else {
-									vm.deleteRowHaving((String) json.get("keyspace"),
-											havingTable, stream.getDeletePreaggRow());
-								}
-							} else if (DeletedPreagRowMapSize1 != null) {
+						if (stream.getDeletePreaggRow() != null) {
+							if (eval1) {
+								vm.updateHaving(stream.getDeltaDeletedRow(),
+										json,havingTable, stream.getDeletePreaggRow());
+							} else {
 								vm.deleteRowHaving((String) json.get("keyspace"),
-										havingTable, DeletedPreagRowMapSize1);
+										havingTable, stream.getDeletePreaggRow());
 							}
+						} else if (DeletedPreagRowMapSize1 != null) {
+							vm.deleteRowHaving((String) json.get("keyspace"),
+									havingTable, DeletedPreagRowMapSize1);
 						}
 					}
 				}
