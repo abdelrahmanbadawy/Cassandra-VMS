@@ -1405,7 +1405,7 @@ public class ViewManagerController {
 
 				// by passing the whole delta Row, we have agg key value even if
 				// it is not in json
-				vm.deleteRowPreaggAgg(stream,deltaDeletedRow, baseTablePrimaryKey,
+				vm.deleteRowPreaggAgg(stream, baseTablePrimaryKey,
 						json, preaggTable, AggKey, AggKeyType, AggCol,
 						AggColType);
 
