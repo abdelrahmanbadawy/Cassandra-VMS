@@ -275,7 +275,7 @@ public class ViewManager {
 		return deltaDeletedRow;
 	}
 
-	public boolean deleteRowPreaggAgg(Row deltaDeletedRow,
+	public boolean deleteRowPreaggAgg(Stream stream,
 			String baseTablePrimaryKey, JSONObject json, String preaggTable,
 			String aggKey, String aggKeyType, String aggCol, String aggColType) {
 
@@ -287,79 +287,15 @@ public class ViewManager {
 
 		// 1. retrieve agg key value from delta stream to retrieve the correct
 		// row from preagg
-		String aggKeyValue = "";
+		String aggKeyValue = Utils.getColumnValueFromDeltaStream(stream.getDeltaDeletedRow(), aggKey, aggKeyType, "_new");
 		float aggColValue = 0;
 
-		switch (aggKeyType) {
-
-		case "text":
-			aggKeyValue = "'" + deltaDeletedRow.getString(aggKey + "_new")
-			+ "'";
-			break;
-
-		case "int":
-			aggKeyValue = "" + deltaDeletedRow.getInt(aggKey + "_new") + "";
-			break;
-
-		case "varint":
-			aggKeyValue = "" + deltaDeletedRow.getVarint(aggKey + "_new") + "";
-			break;
-
-		case "float":
-			aggKeyValue = "" + deltaDeletedRow.getFloat(aggKey + "_new") + "";
-			break;
-		}
-
 		// 1.b Retrieve row key from delta stream
-		String pk = "";
-		switch (deltaDeletedRow.getColumnDefinitions().asList().get(0)
-				.getType().toString()) {
+		String pk = Utils.getColumnValueFromDeltaStream(stream.getDeltaDeletedRow(),stream.getDeltaDeletedRow().getColumnDefinitions().asList().get(0).getName().toString(), stream.getDeltaDeletedRow().getColumnDefinitions().asList().get(0)
+				.getType().toString(), "_new");
 
-				case "text":
-					pk = deltaDeletedRow.getString(0);
-					break;
+		Row theRow = PreaggregationHelper.selectStatement(json, preaggTable, aggKey, aggKeyValue).one();
 
-				case "int":
-					pk = Integer.toString(deltaDeletedRow.getInt(0));
-					break;
-
-				case "varint":
-					pk = deltaDeletedRow.getVarint(0).toString();
-					break;
-
-				case "varchar":
-					pk = deltaDeletedRow.getString(0);
-					break;
-
-				case "float":
-					pk = Float.toString(deltaDeletedRow.getFloat(0));
-					break;
-		}
-
-		// 2. select row with aggkeyValue from delta stream
-		StringBuilder selectPreaggQuery1 = new StringBuilder("SELECT ")
-		.append(aggKey + ", list_item, ").append("sum, ")
-		.append("count, ").append("average, min, max ");
-		selectPreaggQuery1.append(" FROM ")
-		.append((String) json.get("keyspace")).append(".")
-		.append(preaggTable).append(" where ").append(aggKey + " = ")
-		.append(aggKeyValue).append(";");
-
-		System.out.println(selectPreaggQuery1);
-
-		// 2.b execute select statement
-		ResultSet PreAggMap;
-		try {
-
-			Session session = currentCluster.connect();
-			PreAggMap = session.execute(selectPreaggQuery1.toString());
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			return false;
-		}
-
-		Row theRow = PreAggMap.one();
 		if (theRow != null) {
 
 			// 3.check size of map for given agg key
@@ -377,6 +313,7 @@ public class ViewManager {
 			if (myMap.size() == 1) {
 				// 4. delete the whole row
 
+				
 				setDeletePreaggRowDeleted(theRow);
 
 				deleteEntireRowWithPK((String) json.get("keyspace"),
