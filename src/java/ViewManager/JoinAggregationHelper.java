@@ -124,7 +124,7 @@ public class JoinAggregationHelper {
 
 	}
 
-	public static void UpdateOldRowBySubtracting(Stream stream,String listItem,Row deltaUpdatedRow, JSONObject json,String joinAggTable, String joinKey,String joinKeyValue, String aggColName, String aggColValue, Row changedKeyReverseRow){
+	public static void UpdateOldRowBySubtracting(Stream stream,String listItem,Row deltaRow, JSONObject json,String joinAggTable, String joinKey,String joinKeyValue, String aggColName, String aggColValue, Row changedKeyReverseRow){
 
 
 		Row theRow = selectStatement(joinKey, joinKeyValue, joinAggTable, json);
@@ -148,7 +148,7 @@ public class JoinAggregationHelper {
 
 				min = Float.MAX_VALUE;
 
-				List<Definition> def = deltaUpdatedRow.getColumnDefinitions().asList();
+				List<Definition> def = deltaRow.getColumnDefinitions().asList();
 
 				int aggColIndexInList = 0;
 
@@ -180,7 +180,7 @@ public class JoinAggregationHelper {
 
 			max = Float.MIN_VALUE;
 
-			List<Definition> def = deltaUpdatedRow.getColumnDefinitions().asList();
+			List<Definition> def = deltaRow.getColumnDefinitions().asList();
 
 			int aggColIndexInList = 0;
 
@@ -289,7 +289,7 @@ public class JoinAggregationHelper {
 			stream.setLeftOrRightJoinAggNewRow(selectStatement(joinKeyName, joinKeyValue, joinAggTable, json));
 	}
 
-	public static void updateAggColValueOfNewRow(Stream stream, String listItem,Row deltaUpdatedRow, Row newRJRow, JSONObject json, String joinKeyName, String joinKeyValue,String joinAggTable, String aggColName, String aggColValue, String oldAggColValue, Row oldRJRow){
+	public static void updateAggColValueOfNewRow(Stream stream, String listItem, Row newRJRow, JSONObject json, String joinKeyName, String joinKeyValue,String joinAggTable, String aggColName, String aggColValue, String oldAggColValue, Row oldRJRow){
 
 		
 		Row theRow = selectStatement(joinKeyName, joinKeyValue, joinAggTable, json);
@@ -343,7 +343,7 @@ public class JoinAggregationHelper {
 
 			min = Float.MAX_VALUE;
 
-			List<Definition> def = deltaUpdatedRow.getColumnDefinitions().asList();
+			List<Definition> def = stream.getDeltaUpdatedRow().getColumnDefinitions().asList();
 
 			int aggColIndexInList = 0;
 
@@ -386,7 +386,7 @@ public class JoinAggregationHelper {
 
 			max = Float.MIN_VALUE;
 
-			List<Definition> def = deltaUpdatedRow.getColumnDefinitions().asList();
+			List<Definition> def = stream.getDeltaUpdatedRow().getColumnDefinitions().asList();
 
 			int aggColIndexInList = 0;
 
@@ -440,7 +440,7 @@ public class JoinAggregationHelper {
 		}
 	}
 		
-	public static void addRowsToInnerJoinAgg(Stream stream,String listItem,Row deltaUpdatedRow,Row newRJRow,int aggColIndexInList,String innerJoinAggTable,JSONObject json,String joinKey,String joinKeyValue){
+	public static void addRowsToInnerJoinAgg(Stream stream,String listItem,Row newRJRow,int aggColIndexInList,String innerJoinAggTable,JSONObject json,String joinKey,String joinKeyValue){
 		
 		Float sum = 0.0f;
 		Float avg = 0.0f;
@@ -448,7 +448,7 @@ public class JoinAggregationHelper {
 		Float min = Float.MAX_VALUE;
 		Float max = Float.MIN_VALUE;
 
-		List<Definition> def = deltaUpdatedRow.getColumnDefinitions().asList();
+		List<Definition> def = stream.getDeltaUpdatedRow().getColumnDefinitions().asList();
 
 		Map<String, String> map1 = newRJRow.getMap(listItem,String.class, String.class);
 
