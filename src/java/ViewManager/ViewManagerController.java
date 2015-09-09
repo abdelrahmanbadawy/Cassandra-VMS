@@ -659,7 +659,7 @@ public class ViewManagerController {
 				System.out.println("No join table for this reverse join table "
 						+ updatedReverseJoin + " available");
 			}
-
+			
 			// UPDATE join agg
 
 			int positionAgg = reverseTablesNames_AggJoin.indexOf(joinTable);
@@ -1026,10 +1026,12 @@ public class ViewManagerController {
 			}
 
 			// END OF UPDATE JoinPreag
-
+			stream.resetReverseJoinRows();
+			
 			cursor += nrOfTables;
 		}
-
+		
+		stream.resetDeltaRows();
 	}
 
 	private void cascadeDeleteHavingTables(JSONObject json,String preaggTable,String aggKey, String aggKeyType, String pkVAlue, String aggCol, String aggColType) {
