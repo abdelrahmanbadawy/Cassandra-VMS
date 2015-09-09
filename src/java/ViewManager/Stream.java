@@ -54,7 +54,7 @@ public class Stream {
 		resetReverseJoinRows();
 	}
 
-	private void resetReverseJoinRows() {
+	public void resetReverseJoinRows() {
 		reverseJoinUpdateNewRow = null;
 		reverseJoinUpadteOldRow = null;
 		reverseJoinUpdatedOldRow_changeJoinKey= null;
@@ -69,7 +69,7 @@ public class Stream {
 
 	}
 
-	private void resetDeltaRows() {
+	public void resetDeltaRows() {
 		deltaUpdatedRow = null;
 		deltaDeletedRow = null;
 	}

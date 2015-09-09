@@ -375,7 +375,7 @@ public class ViewManagerController {
 							String value = VmXmlHandler.getInstance()
 									.getHavingPreAggMapping()
 									.getString(s11 + ".value");
-						
+
 							Row PreagRow = stream.getUpdatedPreaggRow();
 							Row PreagRowAK = stream.getUpdatedPreaggRowChangeAK();
 
@@ -430,7 +430,7 @@ public class ViewManagerController {
 		}
 
 		stream.resetPreaggregationRows();
-		
+
 		// ===================================================================================================================
 		// 3. for the delta table updated, get update depending reverse join
 		// tables
@@ -659,7 +659,7 @@ public class ViewManagerController {
 				System.out.println("No join table for this reverse join table "
 						+ updatedReverseJoin + " available");
 			}
-			
+
 			// UPDATE join agg
 
 			int positionAgg = reverseTablesNames_AggJoin.indexOf(joinTable);
@@ -1027,10 +1027,10 @@ public class ViewManagerController {
 
 			// END OF UPDATE JoinPreag
 			stream.resetReverseJoinRows();
-			
+
 			cursor += nrOfTables;
 		}
-		
+
 		stream.resetDeltaRows();
 	}
 
@@ -1071,7 +1071,7 @@ public class ViewManagerController {
 
 		if(nrHaving!=0){
 
-			List<String> innerHaving =  VmXmlHandler.getInstance()
+			List<String> havingTableName =  VmXmlHandler.getInstance()
 					.getRJAggJoinMapping().getList(temp + "." +aggColPosition+".c(" + e
 							+ ")."+leftOrRight+".Having.name");
 
@@ -1079,7 +1079,7 @@ public class ViewManagerController {
 					.getRJAggJoinMapping().getList(temp + "." +aggColPosition+".c(" + e
 							+ ")."+leftOrRight+".Having.And.aggFct");
 
-			List<String> innerHavingType =  VmXmlHandler.getInstance()
+			List<String> havingType =  VmXmlHandler.getInstance()
 					.getRJAggJoinMapping().getList(temp + "." +aggColPosition+".c(" + e
 							+ ")."+leftOrRight+".Having.And.type");
 			List<String> operation =  VmXmlHandler.getInstance()
@@ -1092,27 +1092,37 @@ public class ViewManagerController {
 			for(int j=0;j<nrHaving;j++){
 
 				if(stream.getLeftOrRightJoinAggDeleteRow()!=null){
-					boolean result = Utils.evalueJoinAggConditions(stream.getLeftOrRightJoinAggDeleteRow(), aggFct.get(j), operation.get(j), value.get(j));
-					if(result){
-						String pkName = stream.getLeftOrRightJoinAggDeleteRow().getColumnDefinitions().getName(0);
-						String pkType = stream.getLeftOrRightJoinAggDeleteRow().getColumnDefinitions().getType(0).toString();
-						String pkValue = Utils.getColumnValueFromDeltaStream(stream.getLeftOrRightJoinAggDeleteRow(), pkName, pkType, "");
-						Utils.deleteEntireRowWithPK((String)json.get("keyspace"), innerHaving.get(j), pkName,pkValue);
-					}
+					//boolean result = Utils.evalueJoinAggConditions(stream.getLeftOrRightJoinAggDeleteRow(), aggFct.get(j), operation.get(j), value.get(j));
+					//if(result){
+					String pkName = stream.getLeftOrRightJoinAggDeleteRow().getColumnDefinitions().getName(0);
+					String pkType = stream.getLeftOrRightJoinAggDeleteRow().getColumnDefinitions().getType(0).toString();
+					String pkValue = Utils.getColumnValueFromDeltaStream(stream.getLeftOrRightJoinAggDeleteRow(), pkName, pkType, "");
+					Utils.deleteEntireRowWithPK((String)json.get("keyspace"), havingTableName.get(j), pkName,pkValue);
+					//}
 				}
 
 				if(stream.getLeftOrRightJoinAggUpdatedOldRow()!=null){
 					boolean result = Utils.evalueJoinAggConditions(stream.getLeftOrRightJoinAggUpdatedOldRow(), aggFct.get(j), operation.get(j), value.get(j));
 					if(result){
-						JoinAggregationHelper.insertStatement(json, innerHaving.get(j), stream.getLeftOrRightJoinAggUpdatedOldRow());
+						JoinAggregationHelper.insertStatement(json, havingTableName.get(j), stream.getLeftOrRightJoinAggUpdatedOldRow());
 
+					}else{
+						String pkName = stream.getLeftOrRightJoinAggUpdatedOldRow().getColumnDefinitions().getName(0);
+						String pkType = stream.getLeftOrRightJoinAggUpdatedOldRow().getColumnDefinitions().getType(0).toString();
+						String pkValue = Utils.getColumnValueFromDeltaStream(stream.getLeftOrRightJoinAggUpdatedOldRow(), pkName, pkType, "");
+						Utils.deleteEntireRowWithPK((String)json.get("keyspace"), havingTableName.get(j), pkName,pkValue);
 					}
 				}
 
 				if(stream.getLeftOrRightJoinAggNewRow()!=null){
 					boolean result = Utils.evalueJoinAggConditions(stream.getLeftOrRightJoinAggNewRow(), aggFct.get(j), operation.get(j), value.get(j));
 					if(result){
-						JoinAggregationHelper.insertStatement(json, innerHaving.get(j), stream.getLeftOrRightJoinAggNewRow());
+						JoinAggregationHelper.insertStatement(json, havingTableName.get(j), stream.getLeftOrRightJoinAggNewRow());
+					}else{
+						String pkName = stream.getLeftOrRightJoinAggNewRow().getColumnDefinitions().getName(0);
+						String pkType = stream.getLeftOrRightJoinAggNewRow().getColumnDefinitions().getType(0).toString();
+						String pkValue = Utils.getColumnValueFromDeltaStream(stream.getLeftOrRightJoinAggNewRow(), pkName, pkType, "");
+						Utils.deleteEntireRowWithPK((String)json.get("keyspace"), havingTableName.get(j), pkName,pkValue);
 					}
 				}
 			}
@@ -1150,19 +1160,24 @@ public class ViewManagerController {
 			for(int j=0;j<nrHaving;j++){
 
 				if(stream.getInnerJoinAggDeleteRow()!=null){
-					boolean result = Utils.evalueJoinAggConditions(stream.getInnerJoinAggDeleteRow(), aggFct.get(j), operation.get(j), value.get(j));
-					if(result){
-						String pkName = stream.getInnerJoinAggDeleteRow().getColumnDefinitions().getName(0);
-						String pkType = stream.getInnerJoinAggDeleteRow().getColumnDefinitions().getType(0).toString();
-						String pkValue = Utils.getColumnValueFromDeltaStream(stream.getInnerJoinAggDeleteRow(), pkName, pkType, "");
-						Utils.deleteEntireRowWithPK((String)json.get("keyspace"), innerHaving.get(j), pkName,pkValue);
-					}
+					//boolean result = Utils.evalueJoinAggConditions(stream.getInnerJoinAggDeleteRow(), aggFct.get(j), operation.get(j), value.get(j));
+					//if(result){
+					String pkName = stream.getInnerJoinAggDeleteRow().getColumnDefinitions().getName(0);
+					String pkType = stream.getInnerJoinAggDeleteRow().getColumnDefinitions().getType(0).toString();
+					String pkValue = Utils.getColumnValueFromDeltaStream(stream.getInnerJoinAggDeleteRow(), pkName, pkType, "");
+					Utils.deleteEntireRowWithPK((String)json.get("keyspace"), innerHaving.get(j), pkName,pkValue);
+					//}
 				}
 
 				if(stream.getInnerJoinAggUpdatedOldRow()!=null){
 					boolean result = Utils.evalueJoinAggConditions(stream.getInnerJoinAggUpdatedOldRow(), aggFct.get(j), operation.get(j), value.get(j));
 					if(result){
 						JoinAggregationHelper.insertStatement(json, innerHaving.get(j), stream.getInnerJoinAggUpdatedOldRow());
+					}else{
+						String pkName = stream.getInnerJoinAggUpdatedOldRow().getColumnDefinitions().getName(0);
+						String pkType = stream.getInnerJoinAggUpdatedOldRow().getColumnDefinitions().getType(0).toString();
+						String pkValue = Utils.getColumnValueFromDeltaStream(stream.getInnerJoinAggUpdatedOldRow(), pkName, pkType, "");
+						Utils.deleteEntireRowWithPK((String)json.get("keyspace"), innerHaving.get(j), pkName,pkValue);
 					}
 				}
 
@@ -1170,12 +1185,16 @@ public class ViewManagerController {
 					boolean result = Utils.evalueJoinAggConditions(stream.getInnerJoinAggNewRow(), aggFct.get(j), operation.get(j), value.get(j));
 					if(result){
 						JoinAggregationHelper.insertStatement(json, innerHaving.get(j), stream.getInnerJoinAggNewRow());
+					}else{
+						String pkName = stream.getInnerJoinAggNewRow().getColumnDefinitions().getName(0);
+						String pkType = stream.getInnerJoinAggNewRow().getColumnDefinitions().getType(0).toString();
+						String pkValue = Utils.getColumnValueFromDeltaStream(stream.getInnerJoinAggNewRow(), pkName, pkType, "");
+						Utils.deleteEntireRowWithPK((String)json.get("keyspace"), innerHaving.get(j), pkName,pkValue);
 					}
 				}
 			}
 
 		}
-
 	}
 
 
