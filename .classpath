@@ -108,5 +108,6 @@
 	<classpathentry kind="lib" path="build/classes/thrift"/>
 	<classpathentry kind="lib" path="test/conf"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="build/lib/jars/jsqlparser.jar"/>
 	<classpathentry kind="output" path="build/classes/main"/>
 </classpath>
