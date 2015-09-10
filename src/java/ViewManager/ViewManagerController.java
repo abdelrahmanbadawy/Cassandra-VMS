@@ -1887,7 +1887,7 @@ public class ViewManagerController {
 								vm.deleteJoinAgg_DeleteLeft_AggColLeftSide_GroupBy(stream,
 										innerJoinAggTable, leftJoinAggTable,
 										json, aggKeyType, aggKey, aggColName,
-										aggColType);
+										aggColType,index);
 							} else {
 								vm.deleteJoinAgg_DeleteRight_AggColLeftSide_GroupBy(stream,
 										innerJoinAggTable, leftJoinAggTable,
@@ -1985,7 +1985,7 @@ public class ViewManagerController {
 								vm.deleteJoinAgg_DeleteRight_AggColRightSide_GroupBy(stream,
 										innerJoinAggTable, rightJoinAggTable,
 										json, aggKeyType, aggKey, aggColName,
-										aggColType);
+										aggColType,index);
 							}
 
 							//evalute Left Having

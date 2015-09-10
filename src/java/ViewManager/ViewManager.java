@@ -3213,7 +3213,7 @@ public class ViewManager {
 	public Boolean deleteJoinAgg_DeleteLeft_AggColLeftSide_GroupBy(Stream stream,
 			String innerJoinAggTable, String leftJoinAggTable, JSONObject json,
 			String aggKeyType, String aggkey, String aggColName,
-			String aggColType) {
+			String aggColType, int index) {
 
 		String aggColValue = getColumnValueFromDeltaStream(stream.getDeltaDeletedRow(),
 				aggColName, aggColType, "_new");
@@ -3243,9 +3243,9 @@ public class ViewManager {
 
 			// remove from left: if count == 1, then delete entire row, else
 			// substract & update row
-			if (!leftJoinAggTable.equals("false")) {
+			if (!innerJoinAggTable.equals("false")) { //
 				JoinAggGroupByHelper.searchAndDeleteRowFromJoinAggGroupBy(stream,json,
-						leftJoinAggTable, aggkey, aggKeyValue, aggColValue);
+						innerJoinAggTable, aggkey, aggKeyValue, aggColValue);
 			}
 
 		} else {
@@ -3266,6 +3266,17 @@ public class ViewManager {
 			}
 		}
 
+		if(!newRJRow.getMap("list_item1", String.class, String.class).isEmpty() && !newRJRow.getMap("list_item2", String.class, String.class)
+				.isEmpty()){
+
+			if (!leftJoinAggTable.equals("false")) {
+				JoinAggGroupByHelper.deleteElementFromRow(stream, json, leftJoinAggTable, aggkey, aggKeyValue, aggColValue);
+			}
+			if (!innerJoinAggTable.equals("false")) {
+				JoinAggGroupByHelper.deleteElementFromRow(stream, json, innerJoinAggTable, aggkey, aggKeyValue, aggColValue);
+			}
+		}
+
 		return true;
 	}
 
@@ -3273,7 +3284,7 @@ public class ViewManager {
 	public Boolean deleteJoinAgg_DeleteRight_AggColRightSide_GroupBy(Stream stream,
 			String innerJoinAggTable, String rightJoinAggTable,
 			JSONObject json, String aggKeyType, String aggKey,
-			String aggColName, String aggColType) {
+			String aggColName, String aggColType, int index) {
 
 		String aggColValue = getColumnValueFromDeltaStream(stream.getDeltaDeletedRow(),
 				aggColName, aggColType, "_new");
@@ -3302,9 +3313,9 @@ public class ViewManager {
 
 			// remove from left: if count == 1, then delete entire row, else
 			// substract & update row
-			if (!rightJoinAggTable.equals("false")) {
+			if (!innerJoinAggTable.equals("false")) {
 				JoinAggGroupByHelper.searchAndDeleteRowFromJoinAggGroupBy(stream,json,
-						rightJoinAggTable, aggKey, aggKeyValue, aggColValue);
+						innerJoinAggTable, aggKey, aggKeyValue, aggColValue);
 			}
 
 		} else {
@@ -3322,6 +3333,17 @@ public class ViewManager {
 							json, innerJoinAggTable, aggKey, aggKeyValue,
 							aggColValue);
 				}
+			}
+		}
+
+		if(!newRJRow.getMap("list_item1", String.class, String.class).isEmpty() && !newRJRow.getMap("list_item2", String.class, String.class)
+				.isEmpty()){
+
+			if (!rightJoinAggTable.equals("false")) {
+				JoinAggGroupByHelper.deleteElementFromRow(stream, json, rightJoinAggTable, aggKey, aggKeyValue, aggColValue);
+			}
+			if (!innerJoinAggTable.equals("false")) {
+				JoinAggGroupByHelper.deleteElementFromRow(stream, json, innerJoinAggTable, aggKey, aggKeyValue, aggColValue);
 			}
 		}
 
