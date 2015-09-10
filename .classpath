@@ -108,5 +108,10 @@
 	<classpathentry kind="lib" path="build/classes/thrift"/>
 	<classpathentry kind="lib" path="test/conf"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="/home/sara/Downloads/JSqlParser-master/target/jsqlparser-0.9.4-SNAPSHOT.jar"/>
+	<classpathentry kind="lib" path="/home/sara/Downloads/JSqlParser-master/target/jsqlparser-0.9.4-SNAPSHOT-javadoc.jar"/>
+	<classpathentry kind="lib" path="/home/sara/Downloads/JSqlParser-master/target/jsqlparser-0.9.4-SNAPSHOT-sources.jar"/>
+	<classpathentry kind="lib" path="/home/sara/Downloads/JSqlParser-master/target/classes/net"/>
+	<classpathentry kind="lib" path="build/classes/net"/>
 	<classpathentry kind="output" path="build/classes/main"/>
 </classpath>
