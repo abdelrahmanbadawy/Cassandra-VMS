@@ -1,115 +1,31 @@
 package ViewManager;
 
-import java.math.BigInteger;
-import java.sql.Blob;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.cassandra.config.ColumnDefinition;
-import org.apache.cassandra.db.marshal.TupleType;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang.StringUtils;
 import org.json.simple.JSONObject;
-
-import ch.qos.logback.core.joran.action.NewRuleAction;
-import client.client.Client;
-import client.client.XmlHandler;
 
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.ColumnDefinitions;
 import com.datastax.driver.core.ColumnDefinitions.Definition;
-import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
-import com.datastax.driver.core.policies.DCAwareRoundRobinPolicy;
-import com.datastax.driver.core.policies.DefaultRetryPolicy;
-import com.datastax.driver.core.policies.TokenAwarePolicy;
 
 public class ViewManager {
 
 	Cluster currentCluster = null;
-	private Row deltaUpdatedRow;
-	private Row deltaDeletedRow;
-
 	private String reverseJoinTableName;
-
-	private Row deletePreaggRowDeleted;
-	private Row deletePreaggRow;
-
-	private Row updatedPreaggRow;
-	private Row updatedPreaggRowDeleted;
-	private Row updatedPreaggRowChangeAK;
-
-	private Row reverseJoinUpdateNewRow;
-	private Row reverseJoinUpadteOldRow;
-
-	private Row reverseJoinUpdatedOldRow_changeJoinKey;
-
-	private Row reverseJoinDeleteNewRow;
-	private Row revereJoinDeleteOldRow;
-
-	private Row joinAggRow;
-	private Row joinAggRowChangeAK;
-	private Row joinAggDeletedRow;
-
-	private Row deleteRowJoinAggDeleted;
-	private Row deleteRowJoinAgg;
-
+	
 	public ViewManager(Cluster currenCluster) {
 		this.currentCluster = currenCluster;
-	}
-
-	public Row getDeltaUpdatedRow() {
-		return deltaUpdatedRow;
-	}
-
-	private void setDeltaUpdatedRow(Row row) {
-		deltaUpdatedRow = row;
-	}
-
-	public Row getrjUpdatedRow() {
-		return reverseJoinUpdateNewRow;
-	}
-
-	private void setReverseJoinName(String s) {
-		reverseJoinTableName = s;
-	}
-
-	public String getReverseJoinName() {
-		return reverseJoinTableName;
-	}
-
-	private void setReverseJoinUpdatedNewRow(Row row) {
-		reverseJoinUpdateNewRow = row;
-	}
-
-	public Row getReverseJoinUpdatedNewRow() {
-		return reverseJoinUpdateNewRow;
-	}
-
-	public Row getUpdatedPreaggRow() {
-		return updatedPreaggRow;
-	}
-
-	private void setUpdatedPreaggRow(Row row) {
-		updatedPreaggRow = row;
-	}
-
-	public Row getUpdatedPreaggRowChangeAK() {
-		return updatedPreaggRowChangeAK;
-	}
-
-	private void setUpdatedPreaggRowChangeAK(Row row) {
-		updatedPreaggRowChangeAK = row;
 	}
 
 	public boolean updateDelta(Stream stream,JSONObject json, int indexBaseTableName,
@@ -239,9 +155,6 @@ public class ViewManager {
 		Row row = Utils.selectAllStatement(keyspace, "delta_"+table, baseTablePrimaryKey, data.get(baseTablePrimaryKey).toString());
 		stream.setDeltaUpdatedRow(row);
 
-		//TO BE REMOVED
-		setDeltaUpdatedRow(row);
-
 		return true;
 	}
 
@@ -255,9 +168,7 @@ public class ViewManager {
 
 		// 2. set DeltaDeletedRow variable for streaming
 		stream.setDeltaDeletedRow(row);
-		//TO BE REMOVED
-		setDeltaDeletedRow(row);
-
+		
 		// 3. delete row from delta
 		Utils.deleteEntireRowWithPK((String)json.get("keyspace"), "delta_" + json.get("table"),  hm[0].toString(), condition.get(hm[0]).toString());
 
@@ -265,14 +176,6 @@ public class ViewManager {
 
 		return true;
 
-	}
-
-	public void setDeltaDeletedRow(Row one) {
-		deltaDeletedRow = one;
-	}
-
-	public Row getDeltaDeletedRow() {
-		return deltaDeletedRow;
 	}
 
 	public boolean deleteRowPreaggAgg(Stream stream,
@@ -312,9 +215,6 @@ public class ViewManager {
 
 			if (myMap.size() == 1) {
 				// 4. delete the whole row
-
-				// TO BE REMOVED
-				setDeletePreaggRowDeleted(theRow);
 
 				stream.setDeletePreaggRowDeleted(theRow);
 
@@ -368,10 +268,6 @@ public class ViewManager {
 				// Selection to set DeleteRowDelete variable
 				ResultSet rs = PreaggregationHelper.selectStatement(json, preaggTable, aggKey, aggKeyValue);
 				Row row = rs.one();
-
-				//TO BE REMOVED
-				setDeletePreaggRow(row);
-				setDeletePreaggRowDeleted(null);
 
 				stream.setDeletePreaggRow(row);
 			}
@@ -538,16 +434,6 @@ public class ViewManager {
 			rs = PreaggregationHelper.selectStatement(json, preaggTable, aggKey, aggKeyValue);
 			Row row = rs.one();
 
-			//TO BE REMOVED
-			setUpdatedPreaggRow(row);
-			if (!override) {
-				setUpdatedPreaggRowChangeAK(null);
-				setUpdatedPreaggRowDeleted(null);
-			}
-			if (!mapSize1) {
-				setUpdatedPreaggRowDeleted(null);
-			}
-
 			stream.setUpdatedPreaggRow(row);
 			if (!override) {
 				stream.setUpdatedPreaggRowChangeAK(null);
@@ -584,8 +470,6 @@ public class ViewManager {
 				if (myMap.size() == 1) {
 
 					// Selection to set PreaggRowDeleted
-					// TO BE REMOVED
-					setUpdatedPreaggRowDeleted(theRow);
 					stream.setUpdatedPreaggRowDeleted(theRow);
 
 					// 4. delete the whole row
@@ -616,9 +500,6 @@ public class ViewManager {
 					// Selection to set updatedRow
 					PreAggMap = PreaggregationHelper.selectStatement(json, preaggTable, aggKey, aggKeyValue_old);
 					stream.setUpdatedPreaggRowChangeAK(PreAggMap.one());
-
-					// TO BE REMOVED
-					setUpdatedPreaggRowChangeAK(PreAggMap.one());
 				}
 			}
 		}
@@ -630,9 +511,8 @@ public class ViewManager {
 			String joinTable, List<String> baseTables, String joinKeyName,
 			String tableName, String keyspace, String joinKeyType, int column) {
 
-		setReverseJoinName(joinTable);
-		//TO BE REMOVED
-		setUpdatedPreaggRowDeleted(null);
+		setReverseJoinTableName(joinTable);
+		
 
 		JSONObject data;
 		// insert
@@ -719,9 +599,6 @@ public class ViewManager {
 			// The row that contains the old join key value
 			Row row_old_join_value = Utils.selectAllStatement(keyspace, joinTable, joinKeyName, oldJoinKeyValue);
 
-			//TO BE REMOVED
-			setReverseJoinOldUpdateRow(row_old_join_value);
-
 			stream.setReverseJoinUpadteOldRow(row_old_join_value);
 
 			Map<String, String> tempMapImmutable2 = row_old_join_value.getMap(
@@ -741,9 +618,6 @@ public class ViewManager {
 			// The old row that contains the old join key value after being
 			// updated
 			stream.setReverseJoinUpdatedOldRow_changeJoinKey(row_after_change_join_value);
-
-			//TO BE REMOVED
-			setReverseJoinUpdatedOldRow_changeJoinKey(row_after_change_join_value);
 
 			// check if all maps are empty --> remove the row
 			boolean allNull = true;
@@ -766,7 +640,6 @@ public class ViewManager {
 				Utils.deleteEntireRowWithPK(keyspace, joinTable, joinKeyName, oldJoinKeyValue);
 			}
 		}else{
-			setReverseJoinOldUpdateRow(theRow);
 			stream.setReverseJoinUpadteOldRow(theRow);
 		}
 
@@ -775,8 +648,6 @@ public class ViewManager {
 		// Set the rj updated row for join updates
 		Row result = Utils.selectAllStatement(keyspace, joinTable, joinKeyName, joinKeyValue);
 		stream.setReverseJoinUpdateNewRow(result);
-		// TO BE REMOVED
-		setReverseJoinUpdatedNewRow(result);
 
 	}
 
@@ -949,10 +820,10 @@ public class ViewManager {
 
 		// Case 3: create cross product & save in inner join table
 		if (updateLeft && myMap2.size() != 0)
-			leftCrossRight(json, innerJName);
+			leftCrossRight(stream,json, innerJName);
 
 		if (updateRight && myMap1.size() != 0)
-			rightCrossLeft(json, innerJName);
+			rightCrossLeft(stream,json, innerJName);
 
 		// Case 4 : delete row from left join if no longer valid
 		if (updateLeft && myMap1.size() == 1)
@@ -1081,10 +952,10 @@ public class ViewManager {
 
 	}
 
-	private boolean rightCrossLeft(JSONObject json, String innerJTableName) {
+	private boolean rightCrossLeft(Stream stream, JSONObject json, String innerJTableName) {
 
 		// 1. get row updated by reverse join
-		Row theRow = getrjUpdatedRow();
+		Row theRow = stream.getReverseJoinUpdateNewRow();
 
 		// 1.a get columns item_1, item_2
 		Map<String, String> tempMapImmutable1 = theRow.getMap("list_item1",
@@ -1135,39 +1006,14 @@ public class ViewManager {
 			rightPkType = VmXmlHandler.getInstance().getiJSchema()
 					.getString(rightPkType);
 
-			String rightPkValue = "";
-
 			String leftPkType = temp + ".primaryKey.leftType";
 			leftPkType = VmXmlHandler.getInstance().getiJSchema()
 					.getString(leftPkType);
 
 			// 3.a. get from delta row, the left pk value
-			switch (rightPkType) {
-
-			case "int":
-				rightPkValue = Integer.toString(deltaUpdatedRow
-						.getInt(rightPkName));
-				break;
-
-			case "float":
-				rightPkValue = Float.toString(deltaUpdatedRow
-						.getFloat(rightPkName));
-				break;
-
-			case "varint":
-				rightPkValue = deltaUpdatedRow.getVarint(rightPkName)
-				.toString();
-				break;
-
-			case "varchar":
-				rightPkValue = deltaUpdatedRow.getString(rightPkName);
-				break;
-
-			case "text":
-				rightPkValue = deltaUpdatedRow.getString(rightPkName);
-				break;
-			}
-
+			
+			String rightPkValue = Utils.getColumnValueFromDeltaStream(stream.getDeltaUpdatedRow(), rightPkName, rightPkType, "");
+			
 			// 3.b. retrieve the left list values for inserton statement
 			String rightList = myMap2.get(rightPkValue);
 			rightList = rightList.replaceAll("\\[", "").replaceAll("\\]", "");
@@ -1226,10 +1072,10 @@ public class ViewManager {
 	}
 
 
-	private boolean leftCrossRight(JSONObject json, String innerJTableName) {
+	private boolean leftCrossRight(Stream stream, JSONObject json, String innerJTableName) {
 
 		// 1. get row updated by reverse join
-		Row theRow = getrjUpdatedRow();
+		Row theRow = stream.getReverseJoinUpdateNewRow();
 
 		// 1.a get columns item_1, item_2
 		Map<String, String> tempMapImmutable1 = theRow.getMap("list_item1",
@@ -1276,37 +1122,13 @@ public class ViewManager {
 			leftPkType = VmXmlHandler.getInstance().getiJSchema()
 					.getString(leftPkType);
 
-			String leftPkValue = "";
 
 			String rightPkType = temp + ".primaryKey.rightType";
 			rightPkType = VmXmlHandler.getInstance().getiJSchema()
 					.getString(rightPkType);
 
 			// 3.a. get from delta row, the left pk value
-			switch (leftPkType) {
-
-			case "int":
-				leftPkValue = Integer.toString(deltaUpdatedRow
-						.getInt(leftPkName));
-				break;
-
-			case "float":
-				leftPkValue = Float.toString(deltaUpdatedRow
-						.getFloat(leftPkName));
-				break;
-
-			case "varint":
-				leftPkValue = deltaUpdatedRow.getVarint(leftPkName).toString();
-				break;
-
-			case "varchar":
-				leftPkValue = deltaUpdatedRow.getString(leftPkName);
-				break;
-
-			case "text":
-				leftPkValue = deltaUpdatedRow.getString(leftPkName);
-				break;
-			}
+			String leftPkValue = Utils.getColumnValueFromDeltaStream(stream.getDeltaUpdatedRow(), leftPkName, leftPkType, "");
 
 			// 3.b. retrieve the left list values for inserton statement
 			String leftList = myMap1.get(leftPkValue);
@@ -1372,14 +1194,12 @@ public class ViewManager {
 			String joinTable, List<String> baseTables, String joinKeyName,
 			String tableName, String keyspace, String joinKeyType, int column) {
 
-		setReverseJoinName(joinTable);
+		setReverseJoinTableName(joinTable);
 
 		String joinKeyValue = Utils.getColumnValueFromDeltaStream(stream.getDeltaDeletedRow(), joinKeyName, joinKeyType, "_new");
 
 		Row theRow  = Utils.selectAllStatement(keyspace, joinTable, joinKeyName, joinKeyValue);
 
-		//TO BE REMOVED
-		setRevereJoinDeleteOldRow(theRow);
 		stream.setRevereJoinDeleteOldRow(theRow);
 
 		HashMap<String, String> myMap = null;
@@ -1433,18 +1253,9 @@ public class ViewManager {
 		Row row = Utils.selectAllStatement(keyspace, joinTable, joinKeyName, joinKeyValue);
 		stream.setReverseJoinDeleteNewRow(row);
 
-		//TO BE REMOVED
-		setReverseJoinDeleteNewRow(row);
 	}
 
-	private void setReverseJoinOldUpdateRow(Row theRow) {
-		reverseJoinUpadteOldRow = theRow;
-	}
-
-	public Row getReverseJoinUpdateOldRow() {
-		return reverseJoinUpadteOldRow;
-	}
-
+	
 	public boolean deleteJoinController(Stream stream,Row deltaDeletedRow, String innerJName,
 			String leftJName, String rightJName, JSONObject json,
 			Boolean updateLeft, Boolean updateRight) {
@@ -1515,25 +1326,9 @@ public class ViewManager {
 		}
 
 		return true;
-
 	}
 
-	public Row getReverseJoinDeleteNewRow() {
-		return reverseJoinDeleteNewRow;
-	}
-
-	public void setReverseJoinDeleteNewRow(Row reverseJoinDeletedNewRow) {
-		this.reverseJoinDeleteNewRow = reverseJoinDeletedNewRow;
-	}
-
-	public Row getRevereJoinDeleteOldRow() {
-		return revereJoinDeleteOldRow;
-	}
-
-	public void setRevereJoinDeleteOldRow(Row revereJoinDeletedOldRow) {
-		this.revereJoinDeleteOldRow = revereJoinDeletedOldRow;
-	}
-
+	
 	public boolean updateHaving(Row deltaUpdatedRow, JSONObject json,
 			String havingTable, Row preagRow) {
 
@@ -1620,205 +1415,6 @@ public class ViewManager {
 		return true;
 	}
 
-	public boolean deleteFromJoinAgg(Row deltaDeletedRow, JSONObject json,
-			String joinAggTableName, String aggKey, String aggKeyType,
-			String aggCol, String aggColType, Row oldReverseRow,
-			Row newReverseRow, Boolean leftTable) {
-
-		float count = 0;
-		float sum = 0;
-		float average = 0;
-		float min = 9999999;
-		float max = -9999999;
-
-		// 1. retrieve agg key value from delta stream to retrieve the correct
-		// row from preagg
-		String aggKeyValue = "";
-		float aggColValue = 0;
-
-		switch (aggKeyType) {
-
-		case "text":
-			aggKeyValue = "'" + deltaDeletedRow.getString(aggKey + "_new")
-			+ "'";
-			break;
-
-		case "int":
-			aggKeyValue = "" + deltaDeletedRow.getInt(aggKey + "_new") + "";
-			break;
-
-		case "varint":
-			aggKeyValue = "" + deltaDeletedRow.getVarint(aggKey + "_new") + "";
-			break;
-
-		case "float":
-			aggKeyValue = "" + deltaDeletedRow.getFloat(aggKey + "_new") + "";
-			break;
-		}
-
-		// 2. select row with aggkeyValue from delta stream
-		StringBuilder selectPreaggQuery1 = new StringBuilder("SELECT ")
-		.append(aggKey).append(", sum, ").append("count, ")
-		.append("average, min, max ");
-		selectPreaggQuery1.append(" FROM ")
-		.append((String) json.get("keyspace")).append(".")
-		.append(joinAggTableName).append(" where ")
-		.append(aggKey + " = ").append(aggKeyValue).append(";");
-
-		System.out.println(selectPreaggQuery1);
-
-		// 2.b execute select statement
-		ResultSet PreAggMap;
-		try {
-
-			Session session = currentCluster.connect();
-			PreAggMap = session.execute(selectPreaggQuery1.toString());
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			return false;
-		}
-
-		Row theRow = PreAggMap.one();
-		if (theRow != null) {
-
-			// 3.check size of map for given agg key
-			// if map.size is 1 then whole row can be deleted
-			// if map.size is larger than 1 then iterate over map & delete
-			// desired entry with the correct pk as key
-
-			count = theRow.getInt("count");
-
-			if (count == 1) {
-
-				setDeleteRowJoinAggDeleted(theRow);
-
-				// 4. delete the whole row
-				deleteEntireRowWithPK((String) json.get("keyspace"),
-						joinAggTableName, aggKey, aggKeyValue);
-			} else {
-
-				// 5.b retrieve aggCol value
-				switch (aggColType) {
-
-				case "int":
-					aggColValue = deltaDeletedRow.getInt(aggCol + "_new");
-					break;
-
-				case "varint":
-					aggColValue = deltaDeletedRow.getVarint(aggCol + "_new")
-					.floatValue();
-					break;
-
-				case "float":
-					aggColValue = deltaDeletedRow.getFloat(aggCol + "_new");
-					break;
-				}
-
-				// 5.c adjust sum,count,average values
-				count = count - 1;
-				sum = theRow.getInt("sum") - aggColValue;
-				average = sum / count;
-
-				max = -99999999;
-				min = 999999999;
-
-				List<Definition> def = theRow.getColumnDefinitions().asList();
-
-				int aggColIndexInList = 0;
-
-				for (int i = 0; i < def.size(); i++) {
-					if (def.get(i).getName().contentEquals(aggCol + "_new")) {
-						aggColIndexInList = i;
-						break;
-					}
-				}
-
-				Map<String, String> myMap = new HashMap<String, String>();
-
-				if (leftTable) {
-					myMap.putAll(newReverseRow.getMap("list_item1",
-							String.class, String.class));
-
-				} else {
-					myMap.putAll(newReverseRow.getMap("list_item2",
-							String.class, String.class));
-				}
-
-				for (Map.Entry<String, String> entry : myMap.entrySet()) {
-					String list = entry.getValue().replaceAll("\\[", "")
-							.replaceAll("\\]", "");
-					String[] listArray = list.split(",");
-
-					if (Float.valueOf(listArray[aggColIndexInList]) < min)
-						min = Float.valueOf(listArray[aggColIndexInList]);
-
-					if (Float.valueOf(listArray[aggColIndexInList]) > max)
-						max = Float.valueOf(listArray[aggColIndexInList]);
-				}
-
-				// 6. Execute insertion statement of the row with the
-				// aggKeyValue_old to refelect changes
-
-				StringBuilder insertQueryAgg = new StringBuilder("INSERT INTO ");
-				insertQueryAgg.append((String) json.get("keyspace"))
-				.append(".").append(joinAggTableName).append(" ( ")
-				.append(aggKey + ", ")
-				.append("sum, count, average, min, max")
-				.append(") VALUES (").append(aggKeyValue + ", ")
-				.append("?, ?, ?, ?, ?);");
-
-				Session session1 = currentCluster.connect();
-
-				PreparedStatement statement1 = session1.prepare(insertQueryAgg
-						.toString());
-				BoundStatement boundStatement = new BoundStatement(statement1);
-				session1.execute(boundStatement.bind((int) sum, (int) count,
-						average, min, max));
-				System.out.println(boundStatement.toString());
-
-				// Selection to set DeleteRowDelete variable
-
-				StringBuilder selectPreaggQuery2 = new StringBuilder("SELECT ")
-				.append(aggKey).append(", sum, ").append("count, ")
-				.append("average, min, max ");
-
-				selectPreaggQuery2.append(" FROM ")
-				.append((String) json.get("keyspace")).append(".")
-				.append(joinAggTableName).append(" where ")
-				.append(aggKey + " = ").append(aggKeyValue).append(";");
-
-				System.out.println(selectPreaggQuery2);
-
-				try {
-
-					Session session = currentCluster.connect();
-					setDeleteRowJoinAgg((session.execute(selectPreaggQuery2
-							.toString()).one()));
-					setDeleteRowJoinAggDeleted(null);
-
-				} catch (Exception e) {
-					e.printStackTrace();
-					return false;
-				}
-
-			}
-
-		}
-
-		System.out.println("Done deleting from aggregation Table of join");
-
-		return true;
-	}
-
-	public Row getReverseJoinUpdatedOldRow_changeJoinKey() {
-		return reverseJoinUpdatedOldRow_changeJoinKey;
-	}
-
-	public void setReverseJoinUpdatedOldRow_changeJoinKey(
-			Row reverseJoinUpdatedOldRow_changeJoinKey) {
-		this.reverseJoinUpdatedOldRow_changeJoinKey = reverseJoinUpdatedOldRow_changeJoinKey;
-	}
 
 	public boolean deleteRowHaving(String keyspace,
 			String havingTable, Row preagRow) {
@@ -1883,70 +1479,6 @@ public class ViewManager {
 		}
 
 		return true;
-	}
-
-	public Row getUpdatedPreaggRowDeleted() {
-		return updatedPreaggRowDeleted;
-	}
-
-	public void setUpdatedPreaggRowDeleted(Row updatedPreaggRowDeleted) {
-		this.updatedPreaggRowDeleted = updatedPreaggRowDeleted;
-	}
-
-	public Row getDeletePreaggRowDeleted() {
-		return deletePreaggRowDeleted;
-	}
-
-	public void setDeletePreaggRowDeleted(Row deletePreaggRowDeleted) {
-		this.deletePreaggRowDeleted = deletePreaggRowDeleted;
-	}
-
-	public Row getDeletePreaggRow() {
-		return deletePreaggRow;
-	}
-
-	public void setDeletePreaggRow(Row deletePreaggRow) {
-		this.deletePreaggRow = deletePreaggRow;
-	}
-
-	public Row getJoinAggRowChangeAK() {
-		return joinAggRowChangeAK;
-	}
-
-	public void setJoinAggRowChangeAK(Row joinAggRowChangeAK) {
-		this.joinAggRowChangeAK = joinAggRowChangeAK;
-	}
-
-	public Row getJoinAggRow() {
-		return joinAggRow;
-	}
-
-	public void setJoinAggRow(Row joinAggRow) {
-		this.joinAggRow = joinAggRow;
-	}
-
-	public Row getJoinAggDeletedRow() {
-		return joinAggDeletedRow;
-	}
-
-	public void setJoinAggDeletedRow(Row joinAggDeletedRow) {
-		this.joinAggDeletedRow = joinAggDeletedRow;
-	}
-
-	public Row getDeleteRowJoinAggDeleted() {
-		return deleteRowJoinAggDeleted;
-	}
-
-	public void setDeleteRowJoinAggDeleted(Row deleteRowJoinAggDeleted) {
-		this.deleteRowJoinAggDeleted = deleteRowJoinAggDeleted;
-	}
-
-	public Row getDeleteRowJoinAgg() {
-		return deleteRowJoinAgg;
-	}
-
-	public void setDeleteRowJoinAgg(Row deleteRowJoinAgg) {
-		this.deleteRowJoinAgg = deleteRowJoinAgg;
 	}
 
 	public boolean updateInnerJoinAgg(Row deltaUpdatedRow, JSONObject json,
@@ -2077,10 +1609,10 @@ public class ViewManager {
 		Row oldRJRow = stream.getReverseJoinUpadteOldRow();
 		Row changeAK = stream.getReverseJoinUpdatedOldRow_changeJoinKey();
 
-		String joinKeyValue = Utils.getColumnValueFromDeltaStream(deltaUpdatedRow, joinKeyName, joinKeyType, "_new");
-		String oldJoinKeyValue = Utils.getColumnValueFromDeltaStream(deltaUpdatedRow, joinKeyName, joinKeyType, "_old");
-		String aggColValue = Utils.getColumnValueFromDeltaStream(deltaUpdatedRow, aggColName, aggColType, "_new");
-		String oldAggColValue = Utils.getColumnValueFromDeltaStream(deltaUpdatedRow, aggColName, aggColType, "_old");
+		String joinKeyValue = Utils.getColumnValueFromDeltaStream(stream.getDeltaUpdatedRow(), joinKeyName, joinKeyType, "_new");
+		String oldJoinKeyValue = Utils.getColumnValueFromDeltaStream(stream.getDeltaUpdatedRow(), joinKeyName, joinKeyType, "_old");
+		String aggColValue = Utils.getColumnValueFromDeltaStream(stream.getDeltaUpdatedRow(), aggColName, aggColType, "_new");
+		String oldAggColValue = Utils.getColumnValueFromDeltaStream(stream.getDeltaUpdatedRow(), aggColName, aggColType, "_old");
 
 		// change in join key value
 		if (!oldJoinKeyValue.equals("null")
@@ -2249,10 +1781,10 @@ public class ViewManager {
 			String aggColType) {
 
 
-		String joinKeyValue = Utils.getColumnValueFromDeltaStream(deltaUpdatedRow, joinKeyName, joinKeyType, "_new");
-		String oldJoinKeyValue = Utils.getColumnValueFromDeltaStream(deltaUpdatedRow, joinKeyName, joinKeyType, "_old");
-		String aggColValue = Utils.getColumnValueFromDeltaStream(deltaUpdatedRow, aggColName, aggColType, "_new");
-		String oldAggColValue = Utils.getColumnValueFromDeltaStream(deltaUpdatedRow, aggColName, aggColType, "_old");
+		String joinKeyValue = Utils.getColumnValueFromDeltaStream(stream.getDeltaUpdatedRow(), joinKeyName, joinKeyType, "_new");
+		String oldJoinKeyValue = Utils.getColumnValueFromDeltaStream(stream.getDeltaUpdatedRow(), joinKeyName, joinKeyType, "_old");
+		String aggColValue = Utils.getColumnValueFromDeltaStream(stream.getDeltaUpdatedRow(), aggColName, aggColType, "_new");
+		String oldAggColValue = Utils.getColumnValueFromDeltaStream(stream.getDeltaUpdatedRow(), aggColName, aggColType, "_old");
 
 
 		Row newRJRow = stream.getReverseJoinUpdateNewRow();
@@ -2422,8 +1954,8 @@ public class ViewManager {
 			String aggColName, String aggColType, int aggColIndexInList) {
 
 
-		String joinKeyValue = getColumnValueFromDeltaStream(deltaUpdatedRow, joinKeyName, joinKeyType, "_new");
-		String oldJoinKeyValue = getColumnValueFromDeltaStream(deltaUpdatedRow, joinKeyName, joinKeyType, "_old");
+		String joinKeyValue = getColumnValueFromDeltaStream(stream.getDeltaUpdatedRow(), joinKeyName, joinKeyType, "_new");
+		String oldJoinKeyValue = getColumnValueFromDeltaStream(stream.getDeltaUpdatedRow(), joinKeyName, joinKeyType, "_old");
 
 		Row newRJRow = stream.getReverseJoinUpdateNewRow();
 		Row oldRJRow = stream.getReverseJoinUpadteOldRow();
@@ -2489,8 +2021,8 @@ public class ViewManager {
 			String aggColName, String aggColType, int aggColIndexInList) {
 
 
-		String oldJoinKeyValue = Utils.getColumnValueFromDeltaStream(deltaUpdatedRow, joinKeyName, joinKeyType, "_old");
-		String joinKeyValue = Utils.getColumnValueFromDeltaStream(deltaUpdatedRow, joinKeyName, joinKeyType, "_new");
+		String oldJoinKeyValue = Utils.getColumnValueFromDeltaStream(stream.getDeltaUpdatedRow(), joinKeyName, joinKeyType, "_old");
+		String joinKeyValue = Utils.getColumnValueFromDeltaStream(stream.getDeltaUpdatedRow(), joinKeyName, joinKeyType, "_new");
 
 		Row newRJRow = stream.getReverseJoinUpdateNewRow();
 		Row oldRJRow = stream.getReverseJoinUpadteOldRow();
@@ -3479,6 +3011,14 @@ public class ViewManager {
 			PreaggregationHelper.insertStatement(json, havingTable, aggKey, aggKeyValue, map, sum, count, min, max, average);
 
 		}
+	}
+
+	public String getReverseJoinTableName() {
+		return reverseJoinTableName;
+	}
+
+	public void setReverseJoinTableName(String reverseJoinTableName) {
+		this.reverseJoinTableName = reverseJoinTableName;
 	}
 
 }
