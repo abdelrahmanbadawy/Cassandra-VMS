@@ -3024,7 +3024,7 @@ public class ViewManager {
 				Utils.deleteEntireRowWithPK(json.get("keyspace").toString(), innerJoinAggTable,joinKeyName, joinKeyValue);
 			}
 			return true;
-			
+
 		}else{
 			newRJRow = stream.getReverseJoinDeleteNewRow();
 		}
@@ -3092,7 +3092,7 @@ public class ViewManager {
 				Utils.deleteEntireRowWithPK(json.get("keyspace").toString(), innerJoinAggTable,joinKeyName, joinKeyValue);
 			}
 			return true;
-			
+
 		}else{
 			newRJRow = stream.getReverseJoinDeleteNewRow();
 		}
@@ -3162,7 +3162,7 @@ public class ViewManager {
 				Utils.deleteEntireRowWithPK(json.get("keyspace").toString(), rightJoinAggTable,joinKeyName, joinKeyValue);
 			}
 			return true;
-			
+
 		}else{
 			newRJRow = stream.getReverseJoinDeleteNewRow();
 		}
@@ -3185,7 +3185,7 @@ public class ViewManager {
 			String joinKeyName, String aggColName, String aggColType) {
 
 		String joinKeyValue = Utils.getColumnValueFromDeltaStream(stream.getDeltaDeletedRow(), joinKeyName, joinKeyType, "_new");
-		
+
 		Row newRJRow = null;
 		if(stream.getReverseJoinDeleteNewRow()==null){
 			if (!leftJoinAggTable.equals("false")){
@@ -3193,7 +3193,7 @@ public class ViewManager {
 				Utils.deleteEntireRowWithPK(json.get("keyspace").toString(), leftJoinAggTable,joinKeyName, joinKeyValue);
 			}
 			return true;
-			
+
 		}else{
 			newRJRow = stream.getReverseJoinDeleteNewRow();
 		}
@@ -3220,7 +3220,24 @@ public class ViewManager {
 		String aggKeyValue = getColumnValueFromDeltaStream(stream.getDeltaDeletedRow(),
 				aggkey, aggKeyType, "_new");
 
-		Row newRJRow = stream.getReverseJoinDeleteNewRow();
+		Row newRJRow = null;
+
+		if(stream.getReverseJoinDeleteNewRow()==null){
+			if (!leftJoinAggTable.equals("false")){
+				stream.setLeftOrRightJoinAggGroupByDeleteRow(JoinAggGroupByHelper.selectStatement(leftJoinAggTable, aggkey, aggKeyValue, json));
+				Utils.deleteEntireRowWithPK(json.get("keyspace").toString(), leftJoinAggTable,aggkey, aggKeyValue);
+			}
+
+			if (!innerJoinAggTable.equals("false")){
+				stream.setInnerJoinAggGroupByDeleteOldRow(JoinAggGroupByHelper.selectStatement(innerJoinAggTable, aggkey, aggKeyValue, json));
+				Utils.deleteEntireRowWithPK(json.get("keyspace").toString(), innerJoinAggTable,aggkey, aggKeyValue);
+			}
+			return true;
+
+
+		}else{
+			newRJRow = stream.getReverseJoinDeleteNewRow();
+		}
 
 		if (newRJRow.getMap("list_item2", String.class, String.class).isEmpty()) {
 
@@ -3263,7 +3280,23 @@ public class ViewManager {
 		String aggKeyValue = getColumnValueFromDeltaStream(stream.getDeltaDeletedRow(),
 				aggKey, aggKeyType, "_new");
 
-		Row newRJRow = stream.getReverseJoinDeleteNewRow();
+		Row newRJRow = null;
+
+		if(stream.getReverseJoinDeleteNewRow()==null){
+			if (!rightJoinAggTable.equals("false")){
+				stream.setLeftOrRightJoinAggGroupByDeleteRow(JoinAggGroupByHelper.selectStatement(rightJoinAggTable, aggKey, aggKeyValue, json));
+				Utils.deleteEntireRowWithPK(json.get("keyspace").toString(), rightJoinAggTable,aggKey, aggKeyValue);
+			}
+
+			if (!innerJoinAggTable.equals("false")){
+				stream.setInnerJoinAggGroupByDeleteOldRow(JoinAggGroupByHelper.selectStatement(innerJoinAggTable, aggKey, aggKeyValue, json));
+				Utils.deleteEntireRowWithPK(json.get("keyspace").toString(), innerJoinAggTable,aggKey, aggKeyValue);
+			}
+			return true;
+
+		}else{
+			newRJRow = stream.getReverseJoinDeleteNewRow();
+		}
 
 		if (newRJRow.getMap("list_item1", String.class, String.class).isEmpty()) {
 
@@ -3297,11 +3330,25 @@ public class ViewManager {
 
 
 	public Boolean deleteJoinAgg_DeleteLeft_AggColRightSide_GroupBy(Stream stream,
-			String innerJoinAggTable, String leftJoinAggTable, JSONObject json,
+			String innerJoinAggTable, String rightJoinAggTable, JSONObject json,
 			String aggKeyType, String aggKey, String aggColName,
 			String aggColType, int aggKeyIndex, int index) {
 
-		Row newRJRow = stream.getReverseJoinDeleteNewRow();
+		Row newRJRow = null;
+		String aggKeyValue = getColumnValueFromDeltaStream(stream.getDeltaDeletedRow(),
+				aggKey, aggKeyType, "_new");
+
+		if(stream.getReverseJoinDeleteNewRow()==null){
+			if (!rightJoinAggTable.equals("false")){
+				stream.setLeftOrRightJoinAggGroupByDeleteRow(JoinAggGroupByHelper.selectStatement(rightJoinAggTable, aggKey, aggKeyValue, json));
+				Utils.deleteEntireRowWithPK(json.get("keyspace").toString(), rightJoinAggTable,aggKey, aggKeyValue);
+			}
+			return true;
+
+		}else{
+			newRJRow = stream.getReverseJoinDeleteNewRow();
+		}
+
 
 		if (newRJRow.getMap("list_item1", String.class, String.class).isEmpty()
 				&& !newRJRow.getMap("list_item2", String.class, String.class)
@@ -3325,7 +3372,20 @@ public class ViewManager {
 			String aggKeyType, String aggKey, String aggColName,
 			String aggColType, int aggKeyIndex, int index) {
 
-		Row newRJRow = stream.getReverseJoinDeleteNewRow();
+		Row newRJRow = null;
+		String aggKeyValue = getColumnValueFromDeltaStream(stream.getDeltaDeletedRow(),
+				aggKey, aggKeyType, "_new");
+
+		if(stream.getReverseJoinDeleteNewRow()==null){
+			if (!leftJoinAggTable.equals("false")){
+				stream.setLeftOrRightJoinAggGroupByDeleteRow(JoinAggGroupByHelper.selectStatement(leftJoinAggTable, aggKey, aggKeyValue, json));
+				Utils.deleteEntireRowWithPK(json.get("keyspace").toString(), leftJoinAggTable,aggKey, aggKeyValue);
+			}
+			return true;
+
+		}else{
+			newRJRow = stream.getReverseJoinDeleteNewRow();
+		}
 
 		if (newRJRow.getMap("list_item2", String.class, String.class).isEmpty()
 				&& !newRJRow.getMap("list_item1", String.class, String.class)

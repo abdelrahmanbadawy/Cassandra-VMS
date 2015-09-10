@@ -1830,20 +1830,17 @@ public class ViewManagerController {
 								.getInstance()
 								.getRJAggJoinGroupByMapping()
 								.getString(
-										temp + ".leftAggColumns.c(" + e
-										+ ").name");
+										temp + ".leftAggColumns.c(" + e + ").name");
 						String aggColType = VmXmlHandler
 								.getInstance()
 								.getRJAggJoinGroupByMapping()
 								.getString(
-										temp + ".leftAggColumns.c(" + e
-										+ ").type");
+										temp + ".leftAggColumns.c(" + e + ").type");
 
 						int nrAgg = VmXmlHandler
 								.getInstance()
 								.getRJAggJoinGroupByMapping()
-								.getInt(temp + ".leftAggColumns.c(" + e
-										+ ").nrAgg");
+								.getInt(temp + ".leftAggColumns.c(" + e + ").nrAgg");
 
 						for (int i = 0; i < nrAgg; i++) {
 
@@ -1852,13 +1849,13 @@ public class ViewManagerController {
 									.getRJAggJoinGroupByMapping()
 									.getString(
 											temp + ".leftAggColumns.c(" + e
-											+ ").Agg(" + i + ").inner");
+											+ ").Agg(" + i + ").inner.name");
 							String leftJoinAggTable = VmXmlHandler
 									.getInstance()
 									.getRJAggJoinGroupByMapping()
 									.getString(
 											temp + ".leftAggColumns.c(" + e
-											+ ").Agg(" + i + ").left");
+											+ ").Agg(" + i + ").left.name");
 
 							String aggKey = VmXmlHandler
 									.getInstance()
@@ -1866,13 +1863,12 @@ public class ViewManagerController {
 									.getString(
 											temp + ".leftAggColumns.c(" + e
 											+ ").Agg(" + i + ").Key");
-							aggKeyType = VmXmlHandler
+							 aggKeyType = VmXmlHandler
 									.getInstance()
 									.getRJAggJoinGroupByMapping()
 									.getString(
 											temp + ".leftAggColumns.c(" + e
-											+ ").Agg(" + i
-											+ ").KeyType");
+											+ ").Agg(" + i + ").KeyType");
 
 							int index = VmXmlHandler
 									.getInstance()
@@ -1925,14 +1921,12 @@ public class ViewManagerController {
 								.getInstance()
 								.getRJAggJoinGroupByMapping()
 								.getString(
-										temp + ".rightAggColumns.c(" + e
-										+ ").name");
+										temp + ".rightAggColumns.c(" + e + ").name");
 						String aggColType = VmXmlHandler
 								.getInstance()
 								.getRJAggJoinGroupByMapping()
 								.getString(
-										temp + ".rightAggColumns.c(" + e
-										+ ").type");
+										temp + ".rightAggColumns.c(" + e + ").type");
 
 						int nrAgg = VmXmlHandler
 								.getInstance()
@@ -1948,13 +1942,12 @@ public class ViewManagerController {
 									.getString(
 											temp + ".rightAggColumns.c(" + e
 											+ ").Agg(" + i + ").Key");
-							aggKeyType = VmXmlHandler
+							 aggKeyType = VmXmlHandler
 									.getInstance()
 									.getRJAggJoinGroupByMapping()
 									.getString(
 											temp + ".rightAggColumns.c(" + e
-											+ ").Agg(" + i
-											+ ").KeyType");
+											+ ").Agg(" + i + ").KeyType");
 
 							int index = VmXmlHandler
 									.getInstance()
