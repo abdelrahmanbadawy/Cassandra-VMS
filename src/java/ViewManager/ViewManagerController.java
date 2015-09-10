@@ -1680,33 +1680,28 @@ public class ViewManagerController {
 								.getInstance()
 								.getRJAggJoinMapping()
 								.getString(
-										temp + ".leftAggColumns.c(" + e
-										+ ").name");
+										temp + ".leftAggColumns.c(" + e + ").name");
 						String aggColType = VmXmlHandler
 								.getInstance()
 								.getRJAggJoinMapping()
 								.getString(
-										temp + ".leftAggColumns.c(" + e
-										+ ").type");
+										temp + ".leftAggColumns.c(" + e + ").type");
 						String innerJoinAggTable = VmXmlHandler
 								.getInstance()
 								.getRJAggJoinMapping()
 								.getString(
-										temp + ".leftAggColumns.c(" + e
-										+ ").inner");
+										temp + ".leftAggColumns.c(" + e + ").inner.name");
 						String leftJoinAggTable = VmXmlHandler
 								.getInstance()
 								.getRJAggJoinMapping()
 								.getString(
-										temp + ".leftAggColumns.c(" + e
-										+ ").left");
+										temp + ".leftAggColumns.c(" + e + ").left.name");
 
 						int index = VmXmlHandler
 								.getInstance()
 								.getRJAggJoinMapping()
-								.getInt(temp + ".leftAggColumns.c(" + e
-										+ ").index");
-
+								.getInt(temp + ".leftAggColumns.c(" + e + ").index");
+						
 						if (updateLeft) {
 
 							vm.deleteJoinAgg_DeleteLeft_AggColLeftSide(stream,
@@ -1716,7 +1711,7 @@ public class ViewManagerController {
 						} else {
 
 
-							vm.deleteJoinAgg_DeleteRight_AggColLeftSide(stream,
+							vm.deleteJoinAgg_DeleteRight_AggColLeftSide(stream,leftJoinAggTable,
 									innerJoinAggTable, json, joinKeyType,
 									joinKeyName, aggColName, aggColType);
 						}
@@ -1743,26 +1738,24 @@ public class ViewManagerController {
 								.getInstance()
 								.getRJAggJoinMapping()
 								.getString(
-										temp + ".rightAggColumns.c(" + e
-										+ ").name");
+										temp + ".rightAggColumns.c(" + e + ").name");
 						String aggColType = VmXmlHandler
 								.getInstance()
 								.getRJAggJoinMapping()
 								.getString(
-										temp + ".rightAggColumns.c(" + e
-										+ ").type");
+										temp + ".rightAggColumns.c(" + e + ").type");
 						String innerJoinAggTable = VmXmlHandler
 								.getInstance()
 								.getRJAggJoinMapping()
 								.getString(
 										temp + ".rightAggColumns.c(" + e
-										+ ").inner");
+										+ ").inner.name");
 						String rightJoinAggTable = VmXmlHandler
 								.getInstance()
 								.getRJAggJoinMapping()
 								.getString(
 										temp + ".rightAggColumns.c(" + e
-										+ ").right");
+										+ ").right.name");
 
 						int index = VmXmlHandler
 								.getInstance()
@@ -1772,7 +1765,7 @@ public class ViewManagerController {
 
 						if (updateLeft) {
 
-							vm.deleteJoinAgg_DeleteLeft_AggColRightSide(stream,
+							vm.deleteJoinAgg_DeleteLeft_AggColRightSide(stream,rightJoinAggTable,
 									innerJoinAggTable, json, joinKeyType,
 									joinKeyName, aggColName, aggColType);
 

@@ -3013,7 +3013,21 @@ public class ViewManager {
 		String joinKeyValue = Utils.getColumnValueFromDeltaStream(stream.getDeltaDeletedRow(), joinKeyName, joinKeyType, "_new");
 		String aggColValue = Utils.getColumnValueFromDeltaStream(stream.getDeltaDeletedRow(), aggColName, aggColType, "_new");
 
-		Row newRJRow = stream.getReverseJoinDeleteNewRow();
+		Row newRJRow = null;
+		if(stream.getReverseJoinDeleteNewRow()==null){
+			if (!leftJoinAggTable.equals("false")){
+				stream.setLeftOrRightJoinAggDeleteRow(JoinAggregationHelper.selectStatement(joinKeyName, joinKeyValue, leftJoinAggTable, json));
+				Utils.deleteEntireRowWithPK(json.get("keyspace").toString(), leftJoinAggTable,joinKeyName, joinKeyValue);
+			}
+			if (!innerJoinAggTable.equals("false")){
+				stream.setInnerJoinAggDeleteRow(JoinAggregationHelper.selectStatement(joinKeyName, joinKeyValue, innerJoinAggTable, json));
+				Utils.deleteEntireRowWithPK(json.get("keyspace").toString(), innerJoinAggTable,joinKeyName, joinKeyValue);
+			}
+			return true;
+			
+		}else{
+			newRJRow = stream.getReverseJoinDeleteNewRow();
+		}
 
 		if (newRJRow.getMap("list_item2", String.class, String.class).isEmpty()) {
 
@@ -3035,10 +3049,11 @@ public class ViewManager {
 				// remove from left and inner
 				if (!leftJoinAggTable.equals("false")){
 					stream.setLeftOrRightJoinAggDeleteRow(JoinAggregationHelper.selectStatement(joinKeyName, joinKeyValue, leftJoinAggTable, json));
+					Utils.deleteEntireRowWithPK(json.get("keyspace").toString(), leftJoinAggTable,joinKeyName, joinKeyValue);
 				}
 
 				if (!innerJoinAggTable.equals("false")){
-					stream.setLeftOrRightJoinAggDeleteRow(JoinAggregationHelper.selectStatement(joinKeyName, joinKeyValue, innerJoinAggTable, json));
+					stream.setInnerJoinAggDeleteRow(JoinAggregationHelper.selectStatement(joinKeyName, joinKeyValue, innerJoinAggTable, json));
 					Utils.deleteEntireRowWithPK(json.get("keyspace").toString(), innerJoinAggTable,joinKeyName, joinKeyValue);
 				}
 			} else {
@@ -3066,7 +3081,21 @@ public class ViewManager {
 		String joinKeyValue = Utils.getColumnValueFromDeltaStream(stream.getDeltaDeletedRow(), joinKeyName, joinKeyType, "_new");
 		String aggColValue =  Utils.getColumnValueFromDeltaStream(stream.getDeltaDeletedRow(), aggColName, aggColType, "_new");
 
-		Row newRJRow = stream.getReverseJoinDeleteNewRow();
+		Row newRJRow = null;
+		if(stream.getReverseJoinDeleteNewRow()==null){
+			if (!rightJoinAggTable.equals("false")){
+				stream.setLeftOrRightJoinAggDeleteRow(JoinAggregationHelper.selectStatement(joinKeyName, joinKeyValue, rightJoinAggTable, json));
+				Utils.deleteEntireRowWithPK(json.get("keyspace").toString(), rightJoinAggTable,joinKeyName, joinKeyValue);
+			}
+			if (!innerJoinAggTable.equals("false")){
+				stream.setInnerJoinAggDeleteRow(JoinAggregationHelper.selectStatement(joinKeyName, joinKeyValue, innerJoinAggTable, json));
+				Utils.deleteEntireRowWithPK(json.get("keyspace").toString(), innerJoinAggTable,joinKeyName, joinKeyValue);
+			}
+			return true;
+			
+		}else{
+			newRJRow = stream.getReverseJoinDeleteNewRow();
+		}
 
 		if (newRJRow.getMap("list_item1", String.class, String.class).isEmpty()) {
 
@@ -3121,12 +3150,22 @@ public class ViewManager {
 	}
 
 
-	public boolean deleteJoinAgg_DeleteLeft_AggColRightSide(Stream stream, String innerJoinAggTable, JSONObject json, String joinKeyType,
+	public boolean deleteJoinAgg_DeleteLeft_AggColRightSide(Stream stream, String rightJoinAggTable, String innerJoinAggTable, JSONObject json, String joinKeyType,
 			String joinKeyName, String aggColName, String aggColType) {
 
 		String joinKeyValue = Utils.getColumnValueFromDeltaStream(stream.getDeltaDeletedRow(), joinKeyName, joinKeyType, "_new");
 
-		Row newRJRow = stream.getReverseJoinDeleteNewRow();
+		Row newRJRow = null;
+		if(stream.getReverseJoinDeleteNewRow()==null){
+			if (!rightJoinAggTable.equals("false")){
+				stream.setLeftOrRightJoinAggDeleteRow(JoinAggregationHelper.selectStatement(joinKeyName, joinKeyValue, rightJoinAggTable, json));
+				Utils.deleteEntireRowWithPK(json.get("keyspace").toString(), rightJoinAggTable,joinKeyName, joinKeyValue);
+			}
+			return true;
+			
+		}else{
+			newRJRow = stream.getReverseJoinDeleteNewRow();
+		}
 
 		if (newRJRow.getMap("list_item1", String.class, String.class).isEmpty() && !newRJRow.getMap("list_item2", String.class, String.class).isEmpty()) {
 
@@ -3142,12 +3181,22 @@ public class ViewManager {
 
 
 	public boolean deleteJoinAgg_DeleteRight_AggColLeftSide(Stream stream,
-			String innerJoinAggTable, JSONObject json, String joinKeyType,
+			String leftJoinAggTable, String innerJoinAggTable, JSONObject json, String joinKeyType,
 			String joinKeyName, String aggColName, String aggColType) {
 
 		String joinKeyValue = Utils.getColumnValueFromDeltaStream(stream.getDeltaDeletedRow(), joinKeyName, joinKeyType, "_new");
-
-		Row newRJRow = stream.getReverseJoinDeleteNewRow();
+		
+		Row newRJRow = null;
+		if(stream.getReverseJoinDeleteNewRow()==null){
+			if (!leftJoinAggTable.equals("false")){
+				stream.setLeftOrRightJoinAggDeleteRow(JoinAggregationHelper.selectStatement(joinKeyName, joinKeyValue, leftJoinAggTable, json));
+				Utils.deleteEntireRowWithPK(json.get("keyspace").toString(), leftJoinAggTable,joinKeyName, joinKeyValue);
+			}
+			return true;
+			
+		}else{
+			newRJRow = stream.getReverseJoinDeleteNewRow();
+		}
 
 		if (newRJRow.getMap("list_item2", String.class, String.class).isEmpty() && !newRJRow.getMap("list_item1", String.class, String.class).isEmpty()) {
 			// remove from inner
