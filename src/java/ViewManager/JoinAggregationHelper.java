@@ -110,7 +110,7 @@ public class JoinAggregationHelper {
 		.append(key + " = ")
 		.append(keyValue).append(";");
 
-
+System.out.println(selectQuery1);
 		Row theRow = null;
 		try {
 			Session session = currentCluster.connect();
