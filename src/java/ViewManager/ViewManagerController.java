@@ -136,7 +136,7 @@ public class ViewManagerController {
 		// as streams
 
 		if (vm.updateDelta(stream,json, indexBaseTableName, baseTablePrimaryKey)) {
-			deltaUpdatedRow = vm.getDeltaUpdatedRow();
+			deltaUpdatedRow = stream.getDeltaUpdatedRow();
 		}
 
 		// ===================================================================================
@@ -591,7 +591,7 @@ public class ViewManagerController {
 							}
 
 							// 2. set DeltaDeletedRow variable for streaming
-							vm.setDeltaDeletedRow(selectionResult.one());
+							//vm.setDeltaDeletedRow(selectionResult.one());
 
 							//cascadeDelete(json, false);
 						}
@@ -615,7 +615,7 @@ public class ViewManagerController {
 			// ===================================================================================================================
 			// 4. update Join tables
 
-			String updatedReverseJoin = vm.getReverseJoinName();
+			String updatedReverseJoin = vm.getReverseJoinTableName();
 
 			position = reverseTablesNames_Join.indexOf(updatedReverseJoin);
 
@@ -1587,7 +1587,7 @@ public class ViewManagerController {
 
 				// HERE DELETE FROM JOIN TABLES
 
-				String updatedReverseJoin = vm.getReverseJoinName();
+				String updatedReverseJoin = vm.getReverseJoinTableName();
 
 				position = reverseTablesNames_Join.indexOf(updatedReverseJoin);
 
