@@ -97,6 +97,37 @@ public class JoinAggregationHelper {
 
 	}
 	
+	public static boolean updateStatement(Float sum, int count, Float avg, Float min, Float max, String key, String keyValue,
+			String joinAggTable, JSONObject json, Float oldSum){
+		
+		StringBuilder updateQuery = new StringBuilder("UPDATE ");
+		updateQuery.append((String) json.get("keyspace"))
+		.append(".").append(joinAggTable).append(" SET sum = ").append(sum)
+		.append(", count = ").append(count).append(", average = ").append(avg).append(", min = ")
+		.append(min).append(", max = ").append(max).append(" WHERE ").append(key).append(" = ").append(keyValue)
+		.append(" IF sum = ").append(oldSum).append(";");
+		
+		
+		System.out.println(updateQuery);
+		
+		Row updated ;
+		try {
+
+			Session session = currentCluster.connect();
+			updated = session.execute(updateQuery.toString()).one();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+		
+		if(updated.getBool("[applied]"))
+		return true;
+		else
+		return false;
+		
+		
+	}
 
 	public static Row selectStatement(String key, String keyValue, String joinAggTable, JSONObject json){
 		StringBuilder selectQuery1 = new StringBuilder(
@@ -124,7 +155,7 @@ System.out.println(selectQuery1);
 
 	}
 
-	public static void UpdateOldRowBySubtracting(Stream stream,String listItem,Row deltaRow, JSONObject json,String joinAggTable, String joinKey,String joinKeyValue, String aggColName, String aggColValue, Row changedKeyReverseRow){
+	public static boolean UpdateOldRowBySubtracting(Stream stream,String listItem,Row deltaRow, JSONObject json,String joinAggTable, String joinKey,String joinKeyValue, String aggColName, String aggColValue, Row changedKeyReverseRow){
 
 
 		Row theRow = selectStatement(joinKey, joinKeyValue, joinAggTable, json);
@@ -204,6 +235,7 @@ System.out.println(selectQuery1);
 
 			}
 
+			/*
 			StringBuilder insertQueryAgg = new StringBuilder(
 					"INSERT INTO ");
 			insertQueryAgg.append((String) json.get("keyspace"))
@@ -215,8 +247,8 @@ System.out.println(selectQuery1);
 			.append(", ").append(count).append(", ")
 			.append(avg).append(", ").append(min).append(", ")
 			.append(max).append(");");
-
-			System.out.println(insertQueryAgg);
+			
+			
 
 			try {
 				Session session = currentCluster.connect();
@@ -224,6 +256,12 @@ System.out.println(selectQuery1);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+			
+			*/
+			
+			if(!updateStatement(sum, count, avg, min, max, joinKey , joinKeyValue, joinAggTable, json, theRow.getFloat("sum")))
+				return false;
+			
 
 		}
 		
@@ -231,10 +269,12 @@ System.out.println(selectQuery1);
 			stream.setInnerJoinAggUpdatedOldRow(selectStatement(joinKey, joinKeyValue, joinAggTable, json));
 		else
 			stream.setLeftOrRightJoinAggUpdatedOldRow(selectStatement(joinKey, joinKeyValue, joinAggTable, json));
+		
+		return true;
 
 	}
 
-	public static void updateNewRowByAddingNewElement(Stream stream,String joinKeyName,String joinKeyValue, JSONObject json,String joinAggTable,String aggColValue){
+	public static boolean updateNewRowByAddingNewElement(Stream stream,String joinKeyName,String joinKeyValue, JSONObject json,String joinAggTable,String aggColValue){
 
 		Row theRow = selectStatement(joinKeyName, joinKeyValue, joinAggTable, json);
 
@@ -263,7 +303,7 @@ System.out.println(selectQuery1);
 			max = Float.parseFloat(aggColValue);
 		}
 
-
+/*
 		StringBuilder insertQueryAgg = new StringBuilder("INSERT INTO ");
 		insertQueryAgg.append((String) json.get("keyspace"))
 		.append(".").append(joinAggTable).append(" ( ")
@@ -283,18 +323,25 @@ System.out.println(selectQuery1);
 			e.printStackTrace();
 		}
 		
+		*/
+		
+		if(!updateStatement(sum, count, avg, min, max, joinKeyName , joinKeyValue, joinAggTable, json, theRow.getFloat("sum")))
+			return false;
+		
 		if(joinAggTable.contains("inner"))
 			stream.setInnerJoinAggNewRow(selectStatement(joinKeyName, joinKeyValue, joinAggTable, json));
 		else
 			stream.setLeftOrRightJoinAggNewRow(selectStatement(joinKeyName, joinKeyValue, joinAggTable, json));
+		
+		return true;
 	}
 
-	public static void updateAggColValueOfNewRow(Stream stream, String listItem, Row newRJRow, JSONObject json, String joinKeyName, String joinKeyValue,String joinAggTable, String aggColName, String aggColValue, String oldAggColValue, Row oldRJRow){
+	public static boolean updateAggColValueOfNewRow(Stream stream, String listItem, Row newRJRow, JSONObject json, String joinKeyName, String joinKeyValue,String joinAggTable, String aggColName, String aggColValue, String oldAggColValue, Row oldRJRow){
 
 		
 		Row theRow = selectStatement(joinKeyName, joinKeyValue, joinAggTable, json);
 
-		Map<String, String> mapNew = newRJRow.getMap(listItem, String.class,String.class);
+/*		Map<String, String> mapNew = newRJRow.getMap(listItem, String.class,String.class);
 		Map<String, String> mapOld = oldRJRow.getMap(listItem, String.class,String.class);
 		
 		Float sum = theRow.getFloat("sum");
@@ -307,36 +354,36 @@ System.out.println(selectQuery1);
 		}else if(mapNew.size()==mapOld.size()){
 			sum += Float.parseFloat(aggColValue)-Float.parseFloat(oldAggColValue);
 		}
-
-		/*Float sum = theRow.getFloat("sum");
-		if (aggColValue != null && !aggColValue.equals("null") && !aggColValue.equals("'null'"))
+*/
+		Float sum = theRow.getFloat("sum");
+		if (!aggColValue.equals("null"))
 			sum += Float.parseFloat(aggColValue);
 
-		if (oldAggColValue != null && !oldAggColValue.equals("null") && !oldAggColValue.equals("'null'"))
+		if (!oldAggColValue.equals("null"))
 			sum -= Float.parseFloat(oldAggColValue);
 
 		int count = theRow.getInt("count");
 
 		// old = null and new != null
-		if ((oldAggColValue == null || oldAggColValue.equals("null") || oldAggColValue.equals("'null'"))
-				&& (aggColValue != null || !aggColValue.equals("null") || !aggColValue.equals("'null'")))
+		if (oldAggColValue.equals("null")
+				&& !aggColValue.equals("null"))
 			count++;
 
 		else // new = null and old != null
-			if ((oldAggColValue != null || !oldAggColValue.equals("null") || !oldAggColValue.equals("'null'"))
-					&& (aggColValue == null || aggColValue.equals("null") || aggColValue.equals("'null'")))
-				count--;*/
+			if (!oldAggColValue.equals("null") 
+					&& aggColValue.equals("null"))
+				count--;
 
 		Float avg = sum / (float) count;
 
 		Float min = theRow.getFloat("min");
 
 		// if newAggCol != null and newAggCol < min
-		if (aggColValue != null && !aggColValue.equals("null") && !aggColValue.equals("'null'") && Float.parseFloat(aggColValue) < min)
+		if (!aggColValue.equals("null") && Float.parseFloat(aggColValue) < min)
 			min = Float.parseFloat(aggColValue);
 
 		// if(oldAggCol == min)
-		else if (oldAggColValue != null	&& !oldAggColValue.equals("null") && !oldAggColValue.equals("'null'") && Float.parseFloat(oldAggColValue) == min) {
+		else if (!oldAggColValue.equals("null") && Float.parseFloat(oldAggColValue) == min) {
 			// loop on list_item1 to get the new minimum
 
 			Map<String, String> map1 = newRJRow.getMap(listItem, String.class,String.class);
@@ -372,13 +419,13 @@ System.out.println(selectQuery1);
 		Float max = theRow.getFloat("max");
 
 		// if newAggCol != null and newAggCol < min
-		if (aggColValue != null && !aggColValue.equals("null") && !aggColValue.equals("'null'")
+		if (!aggColValue.equals("null")
 				&& Float.parseFloat(aggColValue) > max)
 
 			max = Float.parseFloat(aggColValue);
 
 		// if(oldAggCol == min)
-		else if (oldAggColValue != null && !oldAggColValue.equals("null")&& !oldAggColValue.equals("'null'")
+		else if (!oldAggColValue.equals("null")
 				&& Float.parseFloat(oldAggColValue) == max) {
 			// loop on list_item1 to get the new minimum
 
@@ -413,12 +460,17 @@ System.out.println(selectQuery1);
 
 		}
 
-		insertStatement(sum, count, avg, min, max, joinKeyName, joinKeyValue, joinAggTable, json);
+		//insertStatement(sum, count, avg, min, max, joinKeyName, joinKeyValue, joinAggTable, json);
+		
+		if(!updateStatement(sum, count, avg, min, max, joinKeyName, joinKeyValue, joinAggTable, json, theRow.getFloat("sum")))
+		return false;
 
 		if(joinAggTable.contains("inner"))
 			stream.setInnerJoinAggUpdatedOldRow(selectStatement(joinKeyName, joinKeyValue, joinAggTable, json));
 		else
 			stream.setLeftOrRightJoinAggUpdatedOldRow(selectStatement(joinKeyName, joinKeyValue, joinAggTable, json));
+		
+		return true;
 		
 	}
 
