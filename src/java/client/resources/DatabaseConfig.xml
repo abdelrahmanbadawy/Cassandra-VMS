@@ -11,10 +11,8 @@
 				<name>id</name>
 			</primaryKey>
 			<clusteringKey>
-				<componentNumber>3</componentNumber>
-				<name>bonus</name>
-				<name>salary</name>
-				<name>deptId</name>
+				<componentNumber>0</componentNumber>
+				
 			</clusteringKey>
 			<column>
 				<family>colfam1</family>
@@ -52,9 +50,7 @@
 				<name>id</name>
 			</primaryKey>
 			<clusteringKey>
-				<componentNumber>2</componentNumber>
-				<name>gpa</name>
-				<name>age</name>
+				<componentNumber>0</componentNumber>
 			</clusteringKey>
 			<column>
 				<family>colfam2</family>
@@ -86,10 +82,7 @@
 				<name>id</name>
 			</primaryKey>
 			<clusteringKey>
-				<componentNumber>3</componentNumber>
-				<name>faculty</name>
-				<name>name</name>
-				<name>ects</name>
+				<componentNumber>0</componentNumber>
 			</clusteringKey>
 			<column>
 				<family>colfam3</family>
