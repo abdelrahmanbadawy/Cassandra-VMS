@@ -2175,17 +2175,17 @@ public class ViewManager {
 				if (oldRJRow.getMap("list_item1", String.class, String.class)
 						.size() == 1) {
 					if (!innerJoinAggTable.equals("false")) {
-						JoinAggGroupByHelper
+						while(!JoinAggGroupByHelper
 						.searchAndDeleteRowFromJoinAggGroupBy(stream,json,
 								innerJoinAggTable, aggKey,
-								oldAggKeyValue, oldAggColValue);
+								oldAggKeyValue, oldAggColValue));
 
 						if (!newRJRow.getMap("list_item2", String.class,
 								String.class).isEmpty()) {
-							JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(stream,
+							while(!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(stream,
 									json, innerJoinAggTable, aggKey,
 									aggKeyValue, aggColValue, oldAggColValue,
-									oldAggKeyValue);
+									oldAggKeyValue));
 						}
 					}
 				}
@@ -2196,23 +2196,23 @@ public class ViewManager {
 					&& !aggKeyValue.equals(oldAggKeyValue)) {
 
 				if (!leftJoinAggTable.equals("false")) {
-					JoinAggGroupByHelper.searchAndDeleteRowFromJoinAggGroupBy(stream,
+					while(!JoinAggGroupByHelper.searchAndDeleteRowFromJoinAggGroupBy(stream,
 							json, leftJoinAggTable, aggKey, oldAggKeyValue,
-							oldAggColValue);
-					JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(stream,json,
+							oldAggColValue));
+					while(!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(stream,json,
 							leftJoinAggTable, aggKey, aggKeyValue, aggColValue,
-							oldAggColValue, oldAggKeyValue);
+							oldAggColValue, oldAggKeyValue));
 				}
 				if (!innerJoinAggTable.equals("false")) {
-					JoinAggGroupByHelper.searchAndDeleteRowFromJoinAggGroupBy(stream,
+					while(!JoinAggGroupByHelper.searchAndDeleteRowFromJoinAggGroupBy(stream,
 							json, innerJoinAggTable, aggKey, oldAggKeyValue,
-							oldAggColValue);
+							oldAggColValue));
 
 					if (!newRJRow.getMap("list_item2", String.class,
 							String.class).isEmpty()) {
-						JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(stream,json,
+						while(!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(stream,json,
 								innerJoinAggTable, aggKey, aggKeyValue,
-								aggColValue, oldAggColValue, oldAggKeyValue);
+								aggColValue, oldAggColValue, oldAggKeyValue));
 					}
 				}
 			}
@@ -2222,23 +2222,23 @@ public class ViewManager {
 					&& !aggKeyValue.equals(oldAggKeyValue)) {
 
 				if (!leftJoinAggTable.equals("false")) {
-					JoinAggGroupByHelper.searchAndDeleteRowFromJoinAggGroupBy(stream,
+					while(!JoinAggGroupByHelper.searchAndDeleteRowFromJoinAggGroupBy(stream,
 							json, leftJoinAggTable, aggKey, oldAggKeyValue,
-							oldAggColValue);
-					JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(stream,json,
+							oldAggColValue));
+					while(!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(stream,json,
 							leftJoinAggTable, aggKey, aggKeyValue, aggColValue,
-							oldAggColValue, oldAggKeyValue);
+							oldAggColValue, oldAggKeyValue));
 				}
 				if (!innerJoinAggTable.equals("false")) {
-					JoinAggGroupByHelper.searchAndDeleteRowFromJoinAggGroupBy(stream,
+					while(!JoinAggGroupByHelper.searchAndDeleteRowFromJoinAggGroupBy(stream,
 							json, innerJoinAggTable, aggKey, oldAggKeyValue,
-							oldAggColValue);
+							oldAggColValue));
 
 					if (!newRJRow.getMap("list_item2", String.class,
 							String.class).isEmpty()) {
-						JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(stream,json,
+						while(!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(stream,json,
 								innerJoinAggTable, aggKey, aggKeyValue,
-								aggColValue, oldAggColValue, oldAggKeyValue);
+								aggColValue, oldAggColValue, oldAggKeyValue));
 					}
 				}
 			}
@@ -2253,23 +2253,23 @@ public class ViewManager {
 				if (newRJRow.getMap("list_item2", String.class, String.class)
 						.isEmpty()) {
 					if (!leftJoinAggTable.equals("false")) {
-						JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(stream,json,
+						while(!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(stream,json,
 								leftJoinAggTable, aggKey, aggKeyValue,
-								aggColValue, oldAggColValue, oldAggKeyValue);
+								aggColValue, oldAggColValue, oldAggKeyValue));
 					}
 
 				}
 				if (!newRJRow.getMap("list_item2", String.class, String.class)
 						.isEmpty()) {
 					if (!innerJoinAggTable.equals("false")) {
-						JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(stream,json,
+						while(!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(stream,json,
 								innerJoinAggTable, aggKey, aggKeyValue,
-								aggColValue, oldAggColValue, oldAggKeyValue);
+								aggColValue, oldAggColValue, oldAggKeyValue));
 					}
 					if (!leftJoinAggTable.equals("false")) {
-						JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(stream,json,
+						while(!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(stream,json,
 								leftJoinAggTable, aggKey, aggKeyValue,
-								aggColValue, oldAggColValue, oldAggKeyValue);
+								aggColValue, oldAggColValue, oldAggKeyValue));
 					}
 				}
 
@@ -2385,17 +2385,17 @@ public class ViewManager {
 				if (oldRJRow.getMap("list_item2", String.class, String.class)
 						.size() == 1) {
 					if (!innerJoinAggTable.equals("false")) {
-						JoinAggGroupByHelper
+						while(!JoinAggGroupByHelper
 						.searchAndDeleteRowFromJoinAggGroupBy(stream,json,
 								innerJoinAggTable, aggKey,
-								oldAggKeyValue, oldAggColValue);
+								oldAggKeyValue, oldAggColValue));
 
 						if (!newRJRow.getMap("list_item2", String.class,
 								String.class).isEmpty()) {
-							JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(stream,
+							while(!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(stream,
 									json, innerJoinAggTable, aggKey,
 									aggKeyValue, aggColValue, oldAggColValue,
-									oldAggKeyValue);
+									oldAggKeyValue));
 						}
 					}
 				}
@@ -2406,23 +2406,24 @@ public class ViewManager {
 					&& !aggKeyValue.equals(oldAggKeyValue)) {
 
 				if (!rightJoinAggTable.equals("false")) {
-					JoinAggGroupByHelper.searchAndDeleteRowFromJoinAggGroupBy(stream,
+					
+					while(!JoinAggGroupByHelper.searchAndDeleteRowFromJoinAggGroupBy(stream,
 							json, rightJoinAggTable, aggKey, oldAggKeyValue,
-							oldAggColValue);
-					JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(stream,json,
+							oldAggColValue));
+					while(!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(stream,json,
 							rightJoinAggTable, aggKey, aggKeyValue,
-							aggColValue, oldAggColValue, oldAggKeyValue);
+							aggColValue, oldAggColValue, oldAggKeyValue));
 				}
 				if (!innerJoinAggTable.equals("false")) {
-					JoinAggGroupByHelper.searchAndDeleteRowFromJoinAggGroupBy(stream,
+					while(!JoinAggGroupByHelper.searchAndDeleteRowFromJoinAggGroupBy(stream,
 							json, innerJoinAggTable, aggKey, oldAggKeyValue,
-							oldAggColValue);
+							oldAggColValue));
 
 					if (!newRJRow.getMap("list_item1", String.class,
 							String.class).isEmpty()) {
-						JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(stream,json,
+						while(!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(stream,json,
 								innerJoinAggTable, aggKey, aggKeyValue,
-								aggColValue, oldAggColValue, oldAggKeyValue);
+								aggColValue, oldAggColValue, oldAggKeyValue));
 					}
 				}
 			}
@@ -2432,23 +2433,23 @@ public class ViewManager {
 					&& !aggKeyValue.equals(oldAggKeyValue)) {
 
 				if (!rightJoinAggTable.equals("false")) {
-					JoinAggGroupByHelper.searchAndDeleteRowFromJoinAggGroupBy(stream,
+					while(!JoinAggGroupByHelper.searchAndDeleteRowFromJoinAggGroupBy(stream,
 							json, rightJoinAggTable, aggKey, oldAggKeyValue,
-							oldAggColValue);
-					JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(stream,json,
+							oldAggColValue));
+					while(!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(stream,json,
 							rightJoinAggTable, aggKey, aggKeyValue,
-							aggColValue, oldAggColValue, oldAggKeyValue);
+							aggColValue, oldAggColValue, oldAggKeyValue));
 				}
 				if (!innerJoinAggTable.equals("false")) {
-					JoinAggGroupByHelper.searchAndDeleteRowFromJoinAggGroupBy(stream,
+					while(!JoinAggGroupByHelper.searchAndDeleteRowFromJoinAggGroupBy(stream,
 							json, innerJoinAggTable, aggKey, oldAggKeyValue,
-							oldAggColValue);
+							oldAggColValue));
 
 					if (!newRJRow.getMap("list_item1", String.class,
 							String.class).isEmpty()) {
-						JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(stream,json,
+						while(!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(stream,json,
 								innerJoinAggTable, aggKey, aggKeyValue,
-								aggColValue, oldAggColValue, oldAggKeyValue);
+								aggColValue, oldAggColValue, oldAggKeyValue));
 					}
 				}
 			}
@@ -2463,24 +2464,24 @@ public class ViewManager {
 				if (newRJRow.getMap("list_item1", String.class, String.class)
 						.isEmpty()) {
 					if (!rightJoinAggTable.equals("false")) {
-						JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(stream,json,
+						while(!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(stream,json,
 								rightJoinAggTable, aggKey, aggKeyValue,
-								aggColValue, oldAggColValue, oldAggKeyValue);
+								aggColValue, oldAggColValue, oldAggKeyValue));
 					}
 
 					if (!newRJRow.getMap("list_item2", String.class,
 							String.class).isEmpty()) {
 						if (!rightJoinAggTable.equals("false")) {
-							JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(stream,
+							while(!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(stream,
 									json, rightJoinAggTable, aggKey,
 									aggKeyValue, aggColValue, oldAggColValue,
-									oldAggKeyValue);
+									oldAggKeyValue));
 						}
 						if (!innerJoinAggTable.equals("false")) {
-							JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(stream,
+							while(!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(stream,
 									json, innerJoinAggTable, aggKey,
 									aggKeyValue, aggColValue, oldAggColValue,
-									oldAggKeyValue);
+									oldAggKeyValue));
 						}
 					}
 				}
@@ -2805,8 +2806,8 @@ public class ViewManager {
 			// remove from left: if count == 1, then delete entire row, else
 			// substract & update row
 			if (!innerJoinAggTable.equals("false")) { //
-				JoinAggGroupByHelper.searchAndDeleteRowFromJoinAggGroupBy(stream,json,
-						innerJoinAggTable, aggkey, aggKeyValue, aggColValue);
+				while(!JoinAggGroupByHelper.searchAndDeleteRowFromJoinAggGroupBy(stream,json,
+						innerJoinAggTable, aggkey, aggKeyValue, aggColValue));
 			}
 
 		} else {
@@ -2815,14 +2816,14 @@ public class ViewManager {
 					.isEmpty()) {
 				// remove from left and inner
 				if (!leftJoinAggTable.equals("false")) {
-					JoinAggGroupByHelper.searchAndDeleteRowFromJoinAggGroupBy(stream,
+					while(!JoinAggGroupByHelper.searchAndDeleteRowFromJoinAggGroupBy(stream,
 							json, leftJoinAggTable, aggkey, aggKeyValue,
-							aggColValue);
+							aggColValue));
 				}
 				if (!innerJoinAggTable.equals("false")) {
-					JoinAggGroupByHelper.searchAndDeleteRowFromJoinAggGroupBy(stream,
+					while(!JoinAggGroupByHelper.searchAndDeleteRowFromJoinAggGroupBy(stream,
 							json, innerJoinAggTable, aggkey, aggKeyValue,
-							aggColValue);
+							aggColValue));
 				}
 			}
 		}
@@ -2831,10 +2832,10 @@ public class ViewManager {
 				.isEmpty()){
 
 			if (!leftJoinAggTable.equals("false")) {
-				JoinAggGroupByHelper.deleteElementFromRow(stream, json, leftJoinAggTable, aggkey, aggKeyValue, aggColValue);
+				while(!JoinAggGroupByHelper.deleteElementFromRow(stream, json, leftJoinAggTable, aggkey, aggKeyValue, aggColValue));
 			}
 			if (!innerJoinAggTable.equals("false")) {
-				JoinAggGroupByHelper.deleteElementFromRow(stream, json, innerJoinAggTable, aggkey, aggKeyValue, aggColValue);
+				while(!JoinAggGroupByHelper.deleteElementFromRow(stream, json, innerJoinAggTable, aggkey, aggKeyValue, aggColValue));
 			}
 		}
 
@@ -2875,8 +2876,8 @@ public class ViewManager {
 			// remove from left: if count == 1, then delete entire row, else
 			// substract & update row
 			if (!innerJoinAggTable.equals("false")) {
-				JoinAggGroupByHelper.searchAndDeleteRowFromJoinAggGroupBy(stream,json,
-						innerJoinAggTable, aggKey, aggKeyValue, aggColValue);
+				while(!JoinAggGroupByHelper.searchAndDeleteRowFromJoinAggGroupBy(stream,json,
+						innerJoinAggTable, aggKey, aggKeyValue, aggColValue));
 			}
 
 		} else {
@@ -2885,14 +2886,14 @@ public class ViewManager {
 					.isEmpty()) {
 				// remove from left and inner
 				if (!rightJoinAggTable.equals("false")) {
-					JoinAggGroupByHelper.searchAndDeleteRowFromJoinAggGroupBy(stream,
+					while(!JoinAggGroupByHelper.searchAndDeleteRowFromJoinAggGroupBy(stream,
 							json, rightJoinAggTable, aggKey, aggKeyValue,
-							aggColValue);
+							aggColValue));
 				}
 				if (!innerJoinAggTable.equals("false")) {
-					JoinAggGroupByHelper.searchAndDeleteRowFromJoinAggGroupBy(stream,
+					while(!JoinAggGroupByHelper.searchAndDeleteRowFromJoinAggGroupBy(stream,
 							json, innerJoinAggTable, aggKey, aggKeyValue,
-							aggColValue);
+							aggColValue));
 				}
 			}
 		}
@@ -2901,10 +2902,10 @@ public class ViewManager {
 				.isEmpty()){
 
 			if (!rightJoinAggTable.equals("false")) {
-				JoinAggGroupByHelper.deleteElementFromRow(stream, json, rightJoinAggTable, aggKey, aggKeyValue, aggColValue);
+				while(!JoinAggGroupByHelper.deleteElementFromRow(stream, json, rightJoinAggTable, aggKey, aggKeyValue, aggColValue));
 			}
 			if (!innerJoinAggTable.equals("false")) {
-				JoinAggGroupByHelper.deleteElementFromRow(stream, json, innerJoinAggTable, aggKey, aggKeyValue, aggColValue);
+				while(!JoinAggGroupByHelper.deleteElementFromRow(stream, json, innerJoinAggTable, aggKey, aggKeyValue, aggColValue));
 			}
 		}
 
