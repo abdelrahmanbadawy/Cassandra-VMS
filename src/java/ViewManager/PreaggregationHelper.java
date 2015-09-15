@@ -104,7 +104,42 @@ public class PreaggregationHelper {
 		}
 	}
 	
-	public static void updateAggColValue(ArrayList<String> myList,float aggColValue,float aggColValue_old,Row theRow, int aggColIndexInList,JSONObject json, String preaggTable,String aggKey,String aggKeyValue ){
+	public static boolean updateStatement(Float sum, int count, Float avg, Float min, Float max, Map<String, String> myMap, String key, String keyValue,
+			String preaggTable, JSONObject json, Float oldSum){
+		
+		StringBuilder updateQuery = new StringBuilder("UPDATE ");
+		updateQuery.append((String) json.get("keyspace"))
+		.append(".").append(preaggTable).append(" SET list_item = ?, sum = ").append(sum)
+		.append(", count = ").append(count).append(", average = ").append(avg).append(", min = ")
+		.append(min).append(", max = ").append(max).append(" WHERE ").append(key).append(" = ").append(keyValue)
+		.append(" IF sum = ").append(oldSum).append(";");
+		
+		
+		System.out.println(updateQuery);
+		
+		Row updated ;
+		try {
+
+			Session session = currentCluster.connect();
+			PreparedStatement statement1 = session.prepare(updateQuery
+					.toString());
+			BoundStatement boundStatement = new BoundStatement(statement1);
+			updated = session.execute(boundStatement.bind(myMap)).one();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+		
+		if(updated.getBool("[applied]"))
+		return true;
+		else
+		return false;
+		
+		
+	}
+	
+	public static boolean updateAggColValue(ArrayList<String> myList,float aggColValue,float aggColValue_old,Row theRow, int aggColIndexInList,JSONObject json, String preaggTable,String aggKey,String aggKeyValue ){
 		
 		float sum = 0;
 		int count = 0;
@@ -161,12 +196,16 @@ public class PreaggregationHelper {
 			 max = aggColValue;
 		}
 		
-		insertStatement(json, preaggTable, aggKey, aggKeyValue, myMap, sum, count, min, max, average);
+		//insertStatement(json, preaggTable, aggKey, aggKeyValue, myMap, sum, count, min, max, average);
+		if(updateStatement(sum, count, average, min, max, myMap, aggKey, aggKeyValue, preaggTable, json, theRow.getFloat("sum")))
+				return true;
+		else
+			return false;
 
 		
 	}
 
-	public static void subtractOldAggColValue(ArrayList<String> myList, float aggColValue_old,Map<String, String> myMap,Row theRow, int aggColIndexInList,JSONObject json, String preaggTable,String aggKey,String aggKeyValue ){
+	public static boolean subtractOldAggColValue(ArrayList<String> myList, float aggColValue_old,Map<String, String> myMap,Row theRow, int aggColIndexInList,JSONObject json, String preaggTable,String aggKey,String aggKeyValue ){
 		
 		String pk = myList.get(0);
 		myList.remove(0);
@@ -175,7 +214,7 @@ public class PreaggregationHelper {
 		myMap.remove(pk);
 
 		// 5.c adjust sum,count,average values
-		float count = myMap.size();
+		int count = myMap.size();
 		float sum = theRow.getFloat("sum") - aggColValue_old;
 		float average = sum / count;
 
@@ -195,7 +234,11 @@ public class PreaggregationHelper {
 				.valueOf(listArray[aggColIndexInList - 1]);
 		}
 		
-		insertStatement(json, preaggTable, aggKey, aggKeyValue, myMap, sum, count, min, max, average);
+		//insertStatement(json, preaggTable, aggKey, aggKeyValue, myMap, sum, count, min, max, average);
+		if(updateStatement(sum, count, average, min, max, myMap, aggKey, aggKeyValue, preaggTable, json, theRow.getFloat("sum")))
+				return true;
+		else
+			return false;
 
 
 	}

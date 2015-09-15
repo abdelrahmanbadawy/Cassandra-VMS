@@ -425,8 +425,12 @@ public class ViewManager {
 			} else {
 				// 2.d If row is not null, then this is not the first insertion
 				// for this agg Key
-				PreaggregationHelper.updateAggColValue(myList, aggColValue, aggColValue_old, theRow1, aggColIndexInList,json,preaggTable,aggKey,aggKeyValue);
-			}
+				
+				while(!PreaggregationHelper.updateAggColValue(myList, aggColValue, aggColValue_old, theRow1, aggColIndexInList,json,preaggTable,aggKey,aggKeyValue)){
+					 rs = PreaggregationHelper.selectStatement(json, preaggTable, aggKey, aggKeyValue);
+					 theRow1 = rs.one();		 	
+				}
+					}
 
 			// =======================================
 			// 4.Retrieve row from preagg
@@ -489,7 +493,13 @@ public class ViewManager {
 					// 5.c adjust sum,count,average values
 					// 6. Execute insertion statement of the row with the
 					// aggKeyValue_old to refelect changes
-					PreaggregationHelper.subtractOldAggColValue(myList, aggColValue_old, myMap, theRow, aggColIndexInList, json, preaggTable, aggKey, aggKeyValue_old);
+					
+					while(!PreaggregationHelper.subtractOldAggColValue(myList, aggColValue_old, myMap, theRow, aggColIndexInList, json, preaggTable, aggKey, aggKeyValue_old)){
+						 PreAggMap = PreaggregationHelper.selectStatement(json, preaggTable, aggKey, aggKeyValue_old);
+						 theRow = PreAggMap.one();
+						
+					}
+						
 
 
 					// perform a new insertion for the new aggkey given in json
@@ -1645,13 +1655,13 @@ public class ViewManager {
 			} else {
 
 				if (!leftJoinAggTable.equals("false")) {
-					while(!JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item1",stream.getDeltaUpdatedRow(), json, leftJoinAggTable, joinKeyName, oldJoinKeyValue, aggColName, oldAggColValue, changeAK))
-					JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item1",stream.getDeltaUpdatedRow(), json, leftJoinAggTable, joinKeyName, oldJoinKeyValue, aggColName, oldAggColValue, changeAK);
+					while(!JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item1",stream.getDeltaUpdatedRow(), json, leftJoinAggTable, joinKeyName, oldJoinKeyValue, aggColName, oldAggColValue, changeAK));
+					//JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item1",stream.getDeltaUpdatedRow(), json, leftJoinAggTable, joinKeyName, oldJoinKeyValue, aggColName, oldAggColValue, changeAK);
 				}
 
 				if (!innerJoinAggTable.equals("false") && !oldRJRow.getMap("list_item2", String.class, String.class).isEmpty()){
-					while(!JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item1",stream.getDeltaUpdatedRow(), json, innerJoinAggTable, joinKeyName, oldJoinKeyValue, aggColName, oldAggColValue, changeAK))
-					JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item1",stream.getDeltaUpdatedRow(), json, innerJoinAggTable, joinKeyName, oldJoinKeyValue, aggColName, oldAggColValue, changeAK);
+					while(!JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item1",stream.getDeltaUpdatedRow(), json, innerJoinAggTable, joinKeyName, oldJoinKeyValue, aggColName, oldAggColValue, changeAK));
+				//	JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item1",stream.getDeltaUpdatedRow(), json, innerJoinAggTable, joinKeyName, oldJoinKeyValue, aggColName, oldAggColValue, changeAK);
 				}
 			}
 
@@ -1686,14 +1696,14 @@ public class ViewManager {
 			} else {
 
 				if (!leftJoinAggTable.equals("false")) {
-					while(!	JoinAggregationHelper.updateNewRowByAddingNewElement(stream,joinKeyName, joinKeyValue, json, leftJoinAggTable, aggColValue))
-					JoinAggregationHelper.updateNewRowByAddingNewElement(stream,joinKeyName, joinKeyValue, json, leftJoinAggTable, aggColValue);
+					while(!	JoinAggregationHelper.updateNewRowByAddingNewElement(stream,joinKeyName, joinKeyValue, json, leftJoinAggTable, aggColValue));
+					//JoinAggregationHelper.updateNewRowByAddingNewElement(stream,joinKeyName, joinKeyValue, json, leftJoinAggTable, aggColValue);
 				}
 
 				if (!newRJRow.getMap("list_item2", String.class, String.class)
 						.isEmpty() && !innerJoinAggTable.equals("false")) {
-					while(!JoinAggregationHelper.updateNewRowByAddingNewElement(stream,joinKeyName, joinKeyValue, json, innerJoinAggTable, aggColValue))
-					JoinAggregationHelper.updateNewRowByAddingNewElement(stream,joinKeyName, joinKeyValue, json, innerJoinAggTable, aggColValue);
+					while(!JoinAggregationHelper.updateNewRowByAddingNewElement(stream,joinKeyName, joinKeyValue, json, innerJoinAggTable, aggColValue));
+				//	JoinAggregationHelper.updateNewRowByAddingNewElement(stream,joinKeyName, joinKeyValue, json, innerJoinAggTable, aggColValue);
 				}
 
 			}
@@ -1725,8 +1735,8 @@ public class ViewManager {
 						else {
 
 							if (!leftJoinAggTable.equals("false")) {
-								while(!JoinAggregationHelper.updateAggColValueOfNewRow(stream,"list_item1", newRJRow, json, joinKeyName, joinKeyValue, leftJoinAggTable, aggColName, aggColValue, oldAggColValue,oldRJRow))
-								JoinAggregationHelper.updateAggColValueOfNewRow(stream,"list_item1", newRJRow, json, joinKeyName, joinKeyValue, leftJoinAggTable, aggColName, aggColValue, oldAggColValue,oldRJRow);
+								while(!JoinAggregationHelper.updateAggColValueOfNewRow(stream,"list_item1", newRJRow, json, joinKeyName, joinKeyValue, leftJoinAggTable, aggColName, aggColValue, oldAggColValue,oldRJRow));
+								//JoinAggregationHelper.updateAggColValueOfNewRow(stream,"list_item1", newRJRow, json, joinKeyName, joinKeyValue, leftJoinAggTable, aggColName, aggColValue, oldAggColValue,oldRJRow);
 							}
 						}
 					}
@@ -1764,13 +1774,13 @@ public class ViewManager {
 						else {
 
 							if (!leftJoinAggTable.equals("false")) {
-								while(!JoinAggregationHelper.updateAggColValueOfNewRow(stream,"list_item1", newRJRow, json, joinKeyName, joinKeyValue, leftJoinAggTable, aggColName, aggColValue, oldAggColValue,oldRJRow))
-								JoinAggregationHelper.updateAggColValueOfNewRow(stream,"list_item1", newRJRow, json, joinKeyName, joinKeyValue, leftJoinAggTable, aggColName, aggColValue, oldAggColValue,oldRJRow);
+								while(!JoinAggregationHelper.updateAggColValueOfNewRow(stream,"list_item1", newRJRow, json, joinKeyName, joinKeyValue, leftJoinAggTable, aggColName, aggColValue, oldAggColValue,oldRJRow));
+								//JoinAggregationHelper.updateAggColValueOfNewRow(stream,"list_item1", newRJRow, json, joinKeyName, joinKeyValue, leftJoinAggTable, aggColName, aggColValue, oldAggColValue,oldRJRow);
 							}
 
 							if (!innerJoinAggTable.equals("false")) {
-								while(!JoinAggregationHelper.updateAggColValueOfNewRow(stream,"list_item1", newRJRow, json, joinKeyName, joinKeyValue, innerJoinAggTable, aggColName, aggColValue, oldAggColValue,oldRJRow))
-								JoinAggregationHelper.updateAggColValueOfNewRow(stream,"list_item1", newRJRow, json, joinKeyName, joinKeyValue, innerJoinAggTable, aggColName, aggColValue, oldAggColValue,oldRJRow);
+								while(!JoinAggregationHelper.updateAggColValueOfNewRow(stream,"list_item1", newRJRow, json, joinKeyName, joinKeyValue, innerJoinAggTable, aggColName, aggColValue, oldAggColValue,oldRJRow));
+								//JoinAggregationHelper.updateAggColValueOfNewRow(stream,"list_item1", newRJRow, json, joinKeyName, joinKeyValue, innerJoinAggTable, aggColName, aggColValue, oldAggColValue,oldRJRow);
 							}
 
 						}
@@ -1829,13 +1839,13 @@ public class ViewManager {
 			} else {
 
 				if (!rightJoinAggTable.equals("false")) {
-					while(!JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item2", stream.getDeltaUpdatedRow(), json, rightJoinAggTable, joinKeyName, oldJoinKeyValue, aggColName, oldAggColValue, changeAK))
-					JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item2", stream.getDeltaUpdatedRow(), json, rightJoinAggTable, joinKeyName, oldJoinKeyValue, aggColName, oldAggColValue, changeAK);
+					while(!JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item2", stream.getDeltaUpdatedRow(), json, rightJoinAggTable, joinKeyName, oldJoinKeyValue, aggColName, oldAggColValue, changeAK));
+					//JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item2", stream.getDeltaUpdatedRow(), json, rightJoinAggTable, joinKeyName, oldJoinKeyValue, aggColName, oldAggColValue, changeAK);
 				}
 
 				if (!oldRJRow.getMap("list_item1", String.class, String.class).isEmpty() && !innerJoinAggTable.equals("false")) {
-					while(!JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item2", stream.getDeltaUpdatedRow(), json, innerJoinAggTable, joinKeyName, oldJoinKeyValue, aggColName, oldAggColValue, changeAK))
-					JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item2", stream.getDeltaUpdatedRow(), json, innerJoinAggTable, joinKeyName, oldJoinKeyValue, aggColName, oldAggColValue, changeAK);
+					while(!JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item2", stream.getDeltaUpdatedRow(), json, innerJoinAggTable, joinKeyName, oldJoinKeyValue, aggColName, oldAggColValue, changeAK));
+					//JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item2", stream.getDeltaUpdatedRow(), json, innerJoinAggTable, joinKeyName, oldJoinKeyValue, aggColName, oldAggColValue, changeAK);
 				}
 			}
 
@@ -1870,14 +1880,14 @@ public class ViewManager {
 
 
 				if (!rightJoinAggTable.equals("false") && aggColValue != null && !aggColValue.equals("null") && !aggColValue.equals("'null'")) {
-					while(!JoinAggregationHelper.updateNewRowByAddingNewElement(stream,joinKeyName, joinKeyValue, json, rightJoinAggTable, aggColValue))
-					JoinAggregationHelper.updateNewRowByAddingNewElement(stream,joinKeyName, joinKeyValue, json, rightJoinAggTable, aggColValue);
+					while(!JoinAggregationHelper.updateNewRowByAddingNewElement(stream,joinKeyName, joinKeyValue, json, rightJoinAggTable, aggColValue));
+					//JoinAggregationHelper.updateNewRowByAddingNewElement(stream,joinKeyName, joinKeyValue, json, rightJoinAggTable, aggColValue);
 				}
 
 				// add this key to inner table if exist [one item only]
 				if (!newRJRow.getMap("list_item1", String.class, String.class).isEmpty() && !innerJoinAggTable.equals("false")) {
-					while(!JoinAggregationHelper.updateNewRowByAddingNewElement(stream,joinKeyName, joinKeyValue, json, innerJoinAggTable, aggColValue))
-					JoinAggregationHelper.updateNewRowByAddingNewElement(stream,joinKeyName, joinKeyValue, json, innerJoinAggTable, aggColValue);
+					while(!JoinAggregationHelper.updateNewRowByAddingNewElement(stream,joinKeyName, joinKeyValue, json, innerJoinAggTable, aggColValue));
+					//JoinAggregationHelper.updateNewRowByAddingNewElement(stream,joinKeyName, joinKeyValue, json, innerJoinAggTable, aggColValue);
 				}
 			}
 
@@ -1907,8 +1917,8 @@ public class ViewManager {
 						}
 						// more than one item --> update
 						else {
-							while(!JoinAggregationHelper.updateAggColValueOfNewRow(stream,"list_item2", newRJRow, json, joinKeyName, joinKeyValue, rightJoinAggTable, aggColName, aggColValue, oldAggColValue,oldRJRow))
-							JoinAggregationHelper.updateAggColValueOfNewRow(stream,"list_item2", newRJRow, json, joinKeyName, joinKeyValue, rightJoinAggTable, aggColName, aggColValue, oldAggColValue,oldRJRow);
+							while(!JoinAggregationHelper.updateAggColValueOfNewRow(stream,"list_item2", newRJRow, json, joinKeyName, joinKeyValue, rightJoinAggTable, aggColName, aggColValue, oldAggColValue,oldRJRow));
+							//JoinAggregationHelper.updateAggColValueOfNewRow(stream,"list_item2", newRJRow, json, joinKeyName, joinKeyValue, rightJoinAggTable, aggColName, aggColValue, oldAggColValue,oldRJRow);
 						}
 					}
 				}
@@ -1943,13 +1953,13 @@ public class ViewManager {
 
 						}else { 
 							if (!rightJoinAggTable.equals("false")) {
-								while(!JoinAggregationHelper.updateAggColValueOfNewRow(stream,"list_item2", newRJRow, json, joinKeyName, joinKeyValue, rightJoinAggTable, aggColName, aggColValue, oldAggColValue,oldRJRow))
-								JoinAggregationHelper.updateAggColValueOfNewRow(stream,"list_item2", newRJRow, json, joinKeyName, joinKeyValue, rightJoinAggTable, aggColName, aggColValue, oldAggColValue,oldRJRow);
+								while(!JoinAggregationHelper.updateAggColValueOfNewRow(stream,"list_item2", newRJRow, json, joinKeyName, joinKeyValue, rightJoinAggTable, aggColName, aggColValue, oldAggColValue,oldRJRow));
+								//JoinAggregationHelper.updateAggColValueOfNewRow(stream,"list_item2", newRJRow, json, joinKeyName, joinKeyValue, rightJoinAggTable, aggColName, aggColValue, oldAggColValue,oldRJRow);
 							}
 
 							if (!innerJoinAggTable.equals("false")) {
-								while(!JoinAggregationHelper.updateAggColValueOfNewRow(stream,"list_item2", newRJRow, json, joinKeyName, joinKeyValue, innerJoinAggTable, aggColName, aggColValue, oldAggColValue,oldRJRow))
-								JoinAggregationHelper.updateAggColValueOfNewRow(stream,"list_item2", newRJRow, json, joinKeyName, joinKeyValue, innerJoinAggTable, aggColName, aggColValue, oldAggColValue,oldRJRow);
+								while(!JoinAggregationHelper.updateAggColValueOfNewRow(stream,"list_item2", newRJRow, json, joinKeyName, joinKeyValue, innerJoinAggTable, aggColName, aggColValue, oldAggColValue,oldRJRow));
+								//JoinAggregationHelper.updateAggColValueOfNewRow(stream,"list_item2", newRJRow, json, joinKeyName, joinKeyValue, innerJoinAggTable, aggColName, aggColValue, oldAggColValue,oldRJRow);
 							}
 						}
 					}
@@ -2584,8 +2594,8 @@ public class ViewManager {
 			} else {
 				// update left by subtracting
 				if (!leftJoinAggTable.equals("false") && aggColValue != null && !aggColValue.equals("null") && !aggColValue.equals("'null'")) {
-					while(!JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item1", stream.getDeltaDeletedRow(), json, leftJoinAggTable, joinKeyName, joinKeyValue, aggColName, aggColValue, newRJRow))
-					JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item1", stream.getDeltaDeletedRow(), json, leftJoinAggTable, joinKeyName, joinKeyValue, aggColName, aggColValue, newRJRow);
+					while(!JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item1", stream.getDeltaDeletedRow(), json, leftJoinAggTable, joinKeyName, joinKeyValue, aggColName, aggColValue, newRJRow));
+					//JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item1", stream.getDeltaDeletedRow(), json, leftJoinAggTable, joinKeyName, joinKeyValue, aggColName, aggColValue, newRJRow);
 				}
 			}
 
@@ -2608,13 +2618,13 @@ public class ViewManager {
 						&& aggColValue != null && !aggColValue.equals("null") && !aggColValue.equals("'null'")) {
 
 					if (!leftJoinAggTable.equals("false")) {
-						while(!JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item1", stream.getDeltaDeletedRow(), json, leftJoinAggTable, joinKeyName, joinKeyValue, aggColName, aggColValue, newRJRow))
-						JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item1", stream.getDeltaDeletedRow(), json, leftJoinAggTable, joinKeyName, joinKeyValue, aggColName, aggColValue, newRJRow);
+						while(!JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item1", stream.getDeltaDeletedRow(), json, leftJoinAggTable, joinKeyName, joinKeyValue, aggColName, aggColValue, newRJRow));
+						//JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item1", stream.getDeltaDeletedRow(), json, leftJoinAggTable, joinKeyName, joinKeyValue, aggColName, aggColValue, newRJRow);
 					}
 
 					if (!innerJoinAggTable.equals("false")) {
-						while(!JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item1", stream.getDeltaDeletedRow(), json, innerJoinAggTable, joinKeyName, joinKeyValue, aggColName, aggColValue, newRJRow))
-						JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item1", stream.getDeltaDeletedRow(), json, innerJoinAggTable, joinKeyName, joinKeyValue, aggColName, aggColValue, newRJRow);
+						while(!JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item1", stream.getDeltaDeletedRow(), json, innerJoinAggTable, joinKeyName, joinKeyValue, aggColName, aggColValue, newRJRow));
+						//JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item1", stream.getDeltaDeletedRow(), json, innerJoinAggTable, joinKeyName, joinKeyValue, aggColName, aggColValue, newRJRow);
 					}
 
 				}
@@ -2656,8 +2666,8 @@ public class ViewManager {
 			} else {
 				// update right by subtracting
 				if (!rightJoinAggTable.equals("false") && aggColValue != null && !aggColValue.equals("null") && !aggColValue.equals("'null'")) {
-					while(!JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item2", stream.getDeltaDeletedRow(), json, rightJoinAggTable, joinKeyName, joinKeyValue, aggColName, aggColValue, newRJRow))
-					JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item2", stream.getDeltaDeletedRow(), json, rightJoinAggTable, joinKeyName, joinKeyValue, aggColName, aggColValue, newRJRow);
+					while(!JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item2", stream.getDeltaDeletedRow(), json, rightJoinAggTable, joinKeyName, joinKeyValue, aggColName, aggColValue, newRJRow));
+					//JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item2", stream.getDeltaDeletedRow(), json, rightJoinAggTable, joinKeyName, joinKeyValue, aggColName, aggColValue, newRJRow);
 				}
 			}
 
@@ -2684,13 +2694,13 @@ public class ViewManager {
 						&& !aggColValue.equals("'null'")) {
 
 					if (!rightJoinAggTable.equals("false")) {
-						while(!JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item2", stream.getDeltaDeletedRow(), json, rightJoinAggTable, joinKeyName, joinKeyValue, aggColName, aggColValue, newRJRow))
-						JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item2", stream.getDeltaDeletedRow(), json, rightJoinAggTable, joinKeyName, joinKeyValue, aggColName, aggColValue, newRJRow);
+						while(!JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item2", stream.getDeltaDeletedRow(), json, rightJoinAggTable, joinKeyName, joinKeyValue, aggColName, aggColValue, newRJRow));
+						//JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item2", stream.getDeltaDeletedRow(), json, rightJoinAggTable, joinKeyName, joinKeyValue, aggColName, aggColValue, newRJRow);
 					}
 
 					if (!innerJoinAggTable.equals("false")) {
-						while(!JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item2", stream.getDeltaDeletedRow(), json, innerJoinAggTable, joinKeyName, joinKeyValue, aggColName, aggColValue, newRJRow))
-						JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item2", stream.getDeltaDeletedRow(), json, innerJoinAggTable, joinKeyName, joinKeyValue, aggColName, aggColValue, newRJRow);
+						while(!JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item2", stream.getDeltaDeletedRow(), json, innerJoinAggTable, joinKeyName, joinKeyValue, aggColName, aggColValue, newRJRow));
+						//JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item2", stream.getDeltaDeletedRow(), json, innerJoinAggTable, joinKeyName, joinKeyValue, aggColName, aggColValue, newRJRow);
 					}
 				}
 			}
