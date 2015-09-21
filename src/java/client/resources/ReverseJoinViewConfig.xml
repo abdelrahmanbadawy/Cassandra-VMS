@@ -6,7 +6,7 @@
 		<tableDefinition>
 			<baseTable>delta_courses</baseTable>
 
-			<columnNumber>2</columnNumber>
+			<columnNumber>3</columnNumber>
 			<keyspace>test</keyspace>
 			<name>RJ_courses_student_faculty_faculty</name>
 
@@ -25,6 +25,11 @@
 				<type>map&lt;text,text&gt;</type>
 				<name>list_item2</name>
 			</column>
+			<column>
+				<family>colfam1</family>
+				<type>varint</type>
+				<name>seq</name>
+			</column>
 			
 			
 
@@ -33,7 +38,7 @@
 		<tableDefinition>
 			<baseTable>delta_courses</baseTable>
 
-			<columnNumber>2</columnNumber>
+			<columnNumber>3</columnNumber>
 			<keyspace>test</keyspace>
 			<name>RJ_courses_student_faculty_faculty_left_ectsEQ4</name>
 
@@ -51,6 +56,11 @@
 				<family>colfam1</family>
 				<type>map&lt;text,text&gt;</type>
 				<name>list_item2</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>varint</type>
+				<name>seq</name>
 			</column>
 			
 			
