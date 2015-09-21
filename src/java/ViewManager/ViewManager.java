@@ -1,5 +1,6 @@
 package ViewManager;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -23,7 +24,7 @@ public class ViewManager {
 
 	Cluster currentCluster = null;
 	private String reverseJoinTableName;
-	
+
 	public ViewManager(Cluster currenCluster) {
 		this.currentCluster = currenCluster;
 	}
@@ -32,6 +33,7 @@ public class ViewManager {
 			String baseTablePrimaryKey) {
 
 		// retrieve values from json
+		ResultSet setRow = null;
 		String table = (String) json.get("table");
 		String keyspace = (String) json.get("keyspace");
 		JSONObject data = (JSONObject) json.get("data");
@@ -168,7 +170,7 @@ public class ViewManager {
 
 		// 2. set DeltaDeletedRow variable for streaming
 		stream.setDeltaDeletedRow(row);
-		
+
 		// 3. delete row from delta
 		Utils.deleteEntireRowWithPK((String)json.get("keyspace"), "delta_" + json.get("table"),  hm[0].toString(), condition.get(hm[0]).toString());
 
@@ -311,16 +313,11 @@ public class ViewManager {
 		// insertion where _old value is null
 		// 1.b save aggKeyValue in loop
 		float aggColValue_old = 0;
+		float aggColValue = 0;
 		boolean sameKeyValue = false;
 		String aggKeyValue = "";
 		String aggKeyValue_old = "";
 		ColumnDefinitions colDef = null;
-		float average = 0;
-		float sum = 0;
-		float count = 0;
-		float aggColValue = 0;
-		float min = Float.MAX_VALUE;
-		float max = -Float.MAX_VALUE;
 
 		Row deltaUpdatedRow = stream.getDeltaUpdatedRow();
 
@@ -412,30 +409,46 @@ public class ViewManager {
 
 			// 2.a select from preagg table row with AggKey as PK
 
-			ResultSet rs = PreaggregationHelper.selectStatement(json, preaggTable, aggKey, aggKeyValue);
-			Row theRow1 = rs.one();
+			boolean loop = false;
+			BigInteger seq = new BigInteger("0");	
 
-			HashMap<String, String> myMap = new HashMap<>();
-			// 2.c If row retrieved is null, then this is the first insertion
-			// for this given Agg key
-			if (theRow1 == null) {
-				// 2.c.1 create a map, add pk and list with delta _new values
-				// 2.c.2 set the agg col values
-				PreaggregationHelper.firstInsertion(myList,aggColValue,json,preaggTable,aggKey,aggKeyValue);
-			} else {
-				// 2.d If row is not null, then this is not the first insertion
-				// for this agg Key
-				
-				while(!PreaggregationHelper.updateAggColValue(myList, aggColValue, aggColValue_old, theRow1, aggColIndexInList,json,preaggTable,aggKey,aggKeyValue)){
-					 rs = PreaggregationHelper.selectStatement(json, preaggTable, aggKey, aggKeyValue);
-					 theRow1 = rs.one();		 	
-				}
+			do{
+
+				ResultSet rs = PreaggregationHelper.selectStatement(json, preaggTable, aggKey, aggKeyValue);
+				Row theRow1 = rs.one();
+				HashMap<String, String> myMap = new HashMap<>();
+
+				// 2.c If row retrieved is null, then this is the first insertion
+				// for this given Agg key
+				if (theRow1 == null) {
+					// 2.c.1 create a map, add pk and list with delta _new values
+					// 2.c.2 set the agg col values
+					if(PreaggregationHelper.firstInsertion(myList,aggColValue,json,preaggTable,aggKey,aggKeyValue,seq)) {
+						loop = false;
+					}else{
+						loop = true;
 					}
+
+				} else {
+					// 2.d If row is not null, then this is not the first insertion
+					// for this agg Key
+
+					seq = theRow1.getVarint("seq");
+
+					if(PreaggregationHelper.updateAggColValue(myList, aggColValue, aggColValue_old, theRow1, aggColIndexInList,json,preaggTable,aggKey,aggKeyValue,seq)){
+						loop = false;
+					}else{
+						loop = true;
+					}
+				}
+
+			}while(loop);
+
 
 			// =======================================
 			// 4.Retrieve row from preagg
 
-			rs = PreaggregationHelper.selectStatement(json, preaggTable, aggKey, aggKeyValue);
+			ResultSet rs = PreaggregationHelper.selectStatement(json, preaggTable, aggKey, aggKeyValue);
 			Row row = rs.one();
 
 			stream.setUpdatedPreaggRow(row);
@@ -493,13 +506,13 @@ public class ViewManager {
 					// 5.c adjust sum,count,average values
 					// 6. Execute insertion statement of the row with the
 					// aggKeyValue_old to refelect changes
-					
-					while(!PreaggregationHelper.subtractOldAggColValue(myList, aggColValue_old, myMap, theRow, aggColIndexInList, json, preaggTable, aggKey, aggKeyValue_old)){
-						 PreAggMap = PreaggregationHelper.selectStatement(json, preaggTable, aggKey, aggKeyValue_old);
-						 theRow = PreAggMap.one();
-						
+
+					BigInteger seq = theRow.getVarint("seq");
+					while(!PreaggregationHelper.subtractOldAggColValue(myList, aggColValue_old, myMap, theRow, aggColIndexInList, json, preaggTable, aggKey, aggKeyValue_old,seq)){
+						PreAggMap = PreaggregationHelper.selectStatement(json, preaggTable, aggKey, aggKeyValue_old);
+						theRow = PreAggMap.one();
+						seq = theRow.getVarint("seq");
 					}
-						
 
 
 					// perform a new insertion for the new aggkey given in json
@@ -522,7 +535,7 @@ public class ViewManager {
 			String tableName, String keyspace, String joinKeyType, int column) {
 
 		setReverseJoinTableName(joinTable);
-		
+
 
 		JSONObject data;
 		// insert
@@ -1021,9 +1034,9 @@ public class ViewManager {
 					.getString(leftPkType);
 
 			// 3.a. get from delta row, the left pk value
-			
+
 			String rightPkValue = Utils.getColumnValueFromDeltaStream(stream.getDeltaUpdatedRow(), rightPkName, rightPkType, "");
-			
+
 			// 3.b. retrieve the left list values for inserton statement
 			String rightList = myMap2.get(rightPkValue);
 			rightList = rightList.replaceAll("\\[", "").replaceAll("\\]", "");
@@ -1265,7 +1278,7 @@ public class ViewManager {
 
 	}
 
-	
+
 	public boolean deleteJoinController(Stream stream,Row deltaDeletedRow, String innerJName,
 			String leftJName, String rightJName, JSONObject json,
 			Boolean updateLeft, Boolean updateRight) {
@@ -1338,7 +1351,7 @@ public class ViewManager {
 		return true;
 	}
 
-	
+
 	public boolean updateHaving(Row deltaUpdatedRow, JSONObject json,
 			String havingTable, Row preagRow) {
 
@@ -1661,7 +1674,7 @@ public class ViewManager {
 
 				if (!innerJoinAggTable.equals("false") && !oldRJRow.getMap("list_item2", String.class, String.class).isEmpty()){
 					while(!JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item1",stream.getDeltaUpdatedRow(), json, innerJoinAggTable, joinKeyName, oldJoinKeyValue, aggColName, oldAggColValue, changeAK));
-				//	JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item1",stream.getDeltaUpdatedRow(), json, innerJoinAggTable, joinKeyName, oldJoinKeyValue, aggColName, oldAggColValue, changeAK);
+					//	JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item1",stream.getDeltaUpdatedRow(), json, innerJoinAggTable, joinKeyName, oldJoinKeyValue, aggColName, oldAggColValue, changeAK);
 				}
 			}
 
@@ -1703,7 +1716,7 @@ public class ViewManager {
 				if (!newRJRow.getMap("list_item2", String.class, String.class)
 						.isEmpty() && !innerJoinAggTable.equals("false")) {
 					while(!JoinAggregationHelper.updateNewRowByAddingNewElement(stream,joinKeyName, joinKeyValue, json, innerJoinAggTable, aggColValue));
-				//	JoinAggregationHelper.updateNewRowByAddingNewElement(stream,joinKeyName, joinKeyValue, json, innerJoinAggTable, aggColValue);
+					//	JoinAggregationHelper.updateNewRowByAddingNewElement(stream,joinKeyName, joinKeyValue, json, innerJoinAggTable, aggColValue);
 				}
 
 			}
@@ -2176,9 +2189,9 @@ public class ViewManager {
 						.size() == 1) {
 					if (!innerJoinAggTable.equals("false")) {
 						while(!JoinAggGroupByHelper
-						.searchAndDeleteRowFromJoinAggGroupBy(stream,json,
-								innerJoinAggTable, aggKey,
-								oldAggKeyValue, oldAggColValue));
+								.searchAndDeleteRowFromJoinAggGroupBy(stream,json,
+										innerJoinAggTable, aggKey,
+										oldAggKeyValue, oldAggColValue));
 
 						if (!newRJRow.getMap("list_item2", String.class,
 								String.class).isEmpty()) {
@@ -2386,9 +2399,9 @@ public class ViewManager {
 						.size() == 1) {
 					if (!innerJoinAggTable.equals("false")) {
 						while(!JoinAggGroupByHelper
-						.searchAndDeleteRowFromJoinAggGroupBy(stream,json,
-								innerJoinAggTable, aggKey,
-								oldAggKeyValue, oldAggColValue));
+								.searchAndDeleteRowFromJoinAggGroupBy(stream,json,
+										innerJoinAggTable, aggKey,
+										oldAggKeyValue, oldAggColValue));
 
 						if (!newRJRow.getMap("list_item2", String.class,
 								String.class).isEmpty()) {
@@ -2406,7 +2419,7 @@ public class ViewManager {
 					&& !aggKeyValue.equals(oldAggKeyValue)) {
 
 				if (!rightJoinAggTable.equals("false")) {
-					
+
 					while(!JoinAggGroupByHelper.searchAndDeleteRowFromJoinAggGroupBy(stream,
 							json, rightJoinAggTable, aggKey, oldAggKeyValue,
 							oldAggColValue));
