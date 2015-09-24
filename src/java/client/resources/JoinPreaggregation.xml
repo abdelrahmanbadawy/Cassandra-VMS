@@ -161,6 +161,11 @@
 				<name>max</name>
 			</column>
 
+			<column>
+				<family>colfam1</family>
+				<type>varint</type>
+				<name>seq</name>
+			</column>
 			<aggCol>
 				<type>varint</type>
 				<name>ects</name>
@@ -171,7 +176,7 @@
 		<tableDefinition>
 			<baseTable>RJ_courses_student_faculty_faculty</baseTable>
 
-			<columnNumber>5</columnNumber>
+			<columnNumber>6</columnNumber>
 			<keyspace>test</keyspace>
 			<name>innerjoin_agg_courses_faculty_ects</name>
 
@@ -207,6 +212,11 @@
 				<type>float</type>
 				<name>max</name>
 			</column>
+			<column>
+				<family>colfam1</family>
+				<type>varint</type>
+				<name>seq</name>
+			</column>
 
 			<aggCol>
 				<type>varint</type>
@@ -218,7 +228,7 @@
 		<tableDefinition>
 			<baseTable>RJ_courses_student_faculty_faculty</baseTable>
 
-			<columnNumber>5</columnNumber>
+			<columnNumber>6</columnNumber>
 			<keyspace>test</keyspace>
 			<name>rightjoin_agg_courses_faculty_ects</name>
 
@@ -254,6 +264,11 @@
 				<type>float</type>
 				<name>max</name>
 			</column>
+			<column>
+				<family>colfam1</family>
+				<type>varint</type>
+				<name>seq</name>
+			</column>
 
 			<aggCol>
 				<type>varint</type>
@@ -266,7 +281,7 @@
 		<tableDefinition>
 			<baseTable>RJ_courses_student_faculty_faculty</baseTable>
 
-			<columnNumber>5</columnNumber>
+			<columnNumber>6</columnNumber>
 			<keyspace>test</keyspace>
 			<name>innerjoin_agg_courses_name_ects</name>
 
@@ -302,6 +317,11 @@
 				<type>float</type>
 				<name>max</name>
 			</column>
+			<column>
+				<family>colfam1</family>
+				<type>varint</type>
+				<name>seq</name>
+			</column>
 
 			<aggCol>
 				<type>int</type>
@@ -313,7 +333,7 @@
 		<tableDefinition>
 			<baseTable>RJ_courses_student_faculty_faculty</baseTable>
 
-			<columnNumber>5</columnNumber>
+			<columnNumber>6</columnNumber>
 			<keyspace>test</keyspace>
 			<name>innerjoin_agg_courses_faculty_age</name>
 
@@ -348,6 +368,11 @@
 				<family>colfam1</family>
 				<type>float</type>
 				<name>max</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>varint</type>
+				<name>seq</name>
 			</column>
 
 			<aggCol>

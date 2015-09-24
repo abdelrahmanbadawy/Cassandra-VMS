@@ -104,12 +104,16 @@ public class Utils {
 
 		System.out.println(insertQueryAgg);
 		
+		
+		
 		try {
 			Session session = currentCluster.connect();
 			session.execute(insertQueryAgg.toString());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		
+	
 	}
 	
 	
