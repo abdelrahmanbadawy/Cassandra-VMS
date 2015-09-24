@@ -6,7 +6,7 @@
 		<tableDefinition>
 			<baseTable>delta_courses</baseTable>
 
-			<columnNumber>6</columnNumber>
+			<columnNumber>7</columnNumber>
 			<keyspace>test</keyspace>
 			<name>preagg_agg_courses_faculty_ects</name>
 
@@ -47,6 +47,11 @@
 				<type>float</type>
 				<name>max</name>
 			</column>
+			<column>
+			    <family>colfam1</family>
+				<type>blob</type>
+				<name>stream</name>
+			</column>
 
 			<aggCol>
 				<type>varint</type>
@@ -58,7 +63,7 @@
 		<tableDefinition>
 			<baseTable>delta_courses</baseTable>
 
-			<columnNumber>6</columnNumber>
+			<columnNumber>7</columnNumber>
 			<keyspace>test</keyspace>
 			<name>preagg_agg_courses_faculty_ects_ectsEQ4</name>
 
@@ -99,6 +104,11 @@
 				<type>float</type>
 				<name>max</name>
 			</column>
+			<column>
+			    <family>colfam1</family>
+				<type>blob</type>
+				<name>stream</name>
+			</column>
 
 			<aggCol>
 				<type>varint</type>
@@ -110,7 +120,7 @@
 		<tableDefinition>
 			<baseTable>delta_courses</baseTable>
 
-			<columnNumber>6</columnNumber>
+			<columnNumber>7</columnNumber>
 			<keyspace>test</keyspace>
 			<name>preagg_agg_courses_faculty_ects_ectsEQ4</name>
 
@@ -150,6 +160,11 @@
 				<family>colfam1</family>
 				<type>float</type>
 				<name>max</name>
+			</column>
+			<column>
+			    <family>colfam1</family>
+				<type>blob</type>
+				<name>stream</name>
 			</column>
 
 			<aggCol>
