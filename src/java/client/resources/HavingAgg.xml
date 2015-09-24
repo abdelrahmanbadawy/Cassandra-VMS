@@ -7,7 +7,7 @@
 			<baseTable>delta_courses</baseTable>
 			<preaggTable>preagg_agg_courses_faculty_ects</preaggTable>
 
-			<columnNumber>7</columnNumber>
+			<columnNumber>6</columnNumber>
 			<keyspace>test</keyspace>
 			<name>having_preagg_agg_courses_faculty_ects_cond1</name>
 
@@ -48,11 +48,7 @@
 				<type>float</type>
 				<name>max</name>
 			</column>
-			<column>
-				<family>colfam1</family>
-				<type>varint</type>
-				<name>seq</name>
-			</column>
+			
 
 			<aggCol>
 				<type>varint</type>
@@ -65,7 +61,7 @@
 			<baseTable>delta_courses</baseTable>
 			<preaggTable>preagg_agg_courses_faculty_ects</preaggTable>
 
-			<columnNumber>7</columnNumber>
+			<columnNumber>6</columnNumber>
 			<keyspace>test</keyspace>
 			<name>having_preagg_agg_courses_faculty_ects_cond2</name>
 
@@ -107,12 +103,7 @@
 				<name>max</name>
 			</column>
 			
-			<column>
-				<family>colfam1</family>
-				<type>varint</type>
-				<name>seq</name>
-			</column>
-
+			
 			<aggCol>
 				<type>varint</type>
 				<name>ects</name>

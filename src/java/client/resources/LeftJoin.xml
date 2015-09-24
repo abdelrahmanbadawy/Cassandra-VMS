@@ -6,7 +6,7 @@
 		<tableDefinition>
 			<baseTable>RJ_courses_student_faculty_faculty</baseTable>
 
-			<columnNumber>8</columnNumber>
+			<columnNumber>7</columnNumber>
 			<keyspace>test</keyspace>
 			<name>left_join_courses_student_faculty_faculty</name>
 			
@@ -51,11 +51,7 @@
 				<type>text</type>
 				<name>student_name</name>
 			</column>
-			<column>
-				<family>colfam1</family>
-				<type>varint</type>
-				<name>seq</name>
-			</column>
+			
 			
 		</tableDefinition>
 
