@@ -56,22 +56,22 @@ public class JoinAggregationHelper {
 		return true;
 
 	}
-	
-	
-	public static boolean insertStatement(JSONObject json, String joinAggTable,Row row){
 
-		
-		String aggKeyName = row.getColumnDefinitions().getName(0);
-		String aggKeyType = row.getColumnDefinitions().getType(0).toString();
+
+	public static boolean insertStatement(JSONObject json, String joinAggTable,CustomizedRow row){
+
+
+		String aggKeyName = row.getName(0);
+		String aggKeyType = row.getType(0);
 		String aggKeyValue = Utils.getColumnValueFromDeltaStream(row, aggKeyName, aggKeyType, "");
-		
+
 		float sum = row.getFloat("sum");
 		float avg = row.getFloat("average");
 		float min = row.getFloat("min");
 		float max = row.getFloat("max");
 		int count = row.getInt("count");
-		
-		
+
+
 		StringBuilder insertQueryAgg = new StringBuilder(
 				"INSERT INTO ");
 		insertQueryAgg.append((String) json.get("keyspace"))
@@ -96,20 +96,20 @@ public class JoinAggregationHelper {
 		return true;
 
 	}
-	
+
 	public static boolean updateStatement(Float sum, int count, Float avg, Float min, Float max, String key, String keyValue,
 			String joinAggTable, JSONObject json, Float oldSum){
-		
+
 		StringBuilder updateQuery = new StringBuilder("UPDATE ");
 		updateQuery.append((String) json.get("keyspace"))
 		.append(".").append(joinAggTable).append(" SET sum = ").append(sum)
 		.append(", count = ").append(count).append(", average = ").append(avg).append(", min = ")
 		.append(min).append(", max = ").append(max).append(" WHERE ").append(key).append(" = ").append(keyValue)
 		.append(" IF sum = ").append(oldSum).append(";");
-		
-		
+
+
 		System.out.println(updateQuery);
-		
+
 		Row updated ;
 		try {
 
@@ -120,13 +120,13 @@ public class JoinAggregationHelper {
 			e.printStackTrace();
 			return false;
 		}
-		
+
 		if(updated.getBool("[applied]"))
-		return true;
+			return true;
 		else
-		return false;
-		
-		
+			return false;
+
+
 	}
 
 	public static Row selectStatement(String key, String keyValue, String joinAggTable, JSONObject json){
@@ -141,7 +141,7 @@ public class JoinAggregationHelper {
 		.append(key + " = ")
 		.append(keyValue).append(";");
 
-System.out.println(selectQuery1);
+		System.out.println(selectQuery1);
 		Row theRow = null;
 		try {
 			Session session = currentCluster.connect();
@@ -155,7 +155,7 @@ System.out.println(selectQuery1);
 
 	}
 
-	public static boolean UpdateOldRowBySubtracting(Stream stream,String listItem,Row deltaRow, JSONObject json,String joinAggTable, String joinKey,String joinKeyValue, String aggColName, String aggColValue, Row changedKeyReverseRow){
+	public static boolean UpdateOldRowBySubtracting(Stream stream,String listItem,CustomizedRow deltaRow, JSONObject json,String joinAggTable, String joinKey,String joinKeyValue, String aggColName, String aggColValue, CustomizedRow changedKeyReverseRow){
 
 
 		Row theRow = selectStatement(joinKey, joinKeyValue, joinAggTable, json);
@@ -175,20 +175,19 @@ System.out.println(selectQuery1);
 			if (min == Float.parseFloat(aggColValue)) {
 				// loop on list_item1 to get the new minimum
 
-				Map<String, String> map1 = changedKeyReverseRow.getMap(listItem,String.class, String.class);
+				Map<String, String> map1 = changedKeyReverseRow.getMap(listItem);
 
 				min = Float.MAX_VALUE;
 
-				List<Definition> def = deltaRow.getColumnDefinitions().asList();
 
 				int aggColIndexInList = 0;
 
-				for (int i = 0; i < def.size(); i++) {
-					if (def.get(i).getName()
+				for (int i = 0; i < deltaRow.colDefSize; i++) {
+					if (deltaRow.getName(i)
 							.contentEquals(aggColName + "_new")) {
 						break;
 					}
-					if (def.get(i).getName().contains("_new"))
+					if (deltaRow.getName(i).contains("_new"))
 						aggColIndexInList++;
 				}
 
@@ -207,19 +206,18 @@ System.out.println(selectQuery1);
 
 			Float max = theRow.getFloat("max");
 
-			Map<String, String> map1 = changedKeyReverseRow.getMap(listItem,String.class, String.class);
+			Map<String, String> map1 = changedKeyReverseRow.getMap(listItem);
 
 			max = Float.MIN_VALUE;
 
-			List<Definition> def = deltaRow.getColumnDefinitions().asList();
 
 			int aggColIndexInList = 0;
 
-			for (int i = 0; i < def.size(); i++) {
-				if (def.get(i).getName().contentEquals(aggColName + "_new")) {
+			for (int i = 0; i < deltaRow.colDefSize; i++) {
+				if (deltaRow.getName(i).contentEquals(aggColName + "_new")) {
 					break;
 				}
-				if (def.get(i).getName().contains("_new"))
+				if (deltaRow.getName(i).contains("_new"))
 					aggColIndexInList++;
 			}
 
@@ -247,8 +245,8 @@ System.out.println(selectQuery1);
 			.append(", ").append(count).append(", ")
 			.append(avg).append(", ").append(min).append(", ")
 			.append(max).append(");");
-			
-			
+
+
 
 			try {
 				Session session = currentCluster.connect();
@@ -256,20 +254,23 @@ System.out.println(selectQuery1);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			
-			*/
-			
+
+			 */
+
 			if(!updateStatement(sum, count, avg, min, max, joinKey , joinKeyValue, joinAggTable, json, theRow.getFloat("sum")))
 				return false;
-			
+
 
 		}
-		
-		if(joinAggTable.contains("inner"))
-			stream.setInnerJoinAggUpdatedOldRow(selectStatement(joinKey, joinKeyValue, joinAggTable, json));
-		else
-			stream.setLeftOrRightJoinAggUpdatedOldRow(selectStatement(joinKey, joinKeyValue, joinAggTable, json));
-		
+
+		if(joinAggTable.contains("inner")){
+			CustomizedRow crow = new CustomizedRow(selectStatement(joinKey, joinKeyValue, joinAggTable, json));
+			stream.setInnerJoinAggUpdatedOldRow(crow);
+		}else{
+			CustomizedRow crow = new CustomizedRow(selectStatement(joinKey, joinKeyValue, joinAggTable, json));
+			stream.setLeftOrRightJoinAggUpdatedOldRow(crow);		
+		}
+
 		return true;
 
 	}
@@ -303,7 +304,7 @@ System.out.println(selectQuery1);
 			max = Float.parseFloat(aggColValue);
 		}
 
-/*
+		/*
 		StringBuilder insertQueryAgg = new StringBuilder("INSERT INTO ");
 		insertQueryAgg.append((String) json.get("keyspace"))
 		.append(".").append(joinAggTable).append(" ( ")
@@ -322,31 +323,33 @@ System.out.println(selectQuery1);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
-		*/
-		
+
+		 */
+
 		if(!updateStatement(sum, count, avg, min, max, joinKeyName , joinKeyValue, joinAggTable, json, theRow.getFloat("sum")))
 			return false;
-		
-		if(joinAggTable.contains("inner"))
-			stream.setInnerJoinAggNewRow(selectStatement(joinKeyName, joinKeyValue, joinAggTable, json));
-		else
-			stream.setLeftOrRightJoinAggNewRow(selectStatement(joinKeyName, joinKeyValue, joinAggTable, json));
-		
+
+		if(joinAggTable.contains("inner")){
+			CustomizedRow crow = new CustomizedRow(selectStatement(joinKeyName, joinKeyValue, joinAggTable, json));
+			stream.setInnerJoinAggNewRow(crow);
+		}else{
+			CustomizedRow crow = new CustomizedRow(selectStatement(joinKeyName, joinKeyValue, joinAggTable, json));
+			stream.setLeftOrRightJoinAggNewRow(crow);
+		}
 		return true;
 	}
 
-	public static boolean updateAggColValueOfNewRow(Stream stream, String listItem, Row newRJRow, JSONObject json, String joinKeyName, String joinKeyValue,String joinAggTable, String aggColName, String aggColValue, String oldAggColValue, Row oldRJRow){
+	public static boolean updateAggColValueOfNewRow(Stream stream, String listItem, CustomizedRow newRJRow, JSONObject json, String joinKeyName, String joinKeyValue,String joinAggTable, String aggColName, String aggColValue, String oldAggColValue, CustomizedRow oldRJRow){
 
-		
+
 		Row theRow = selectStatement(joinKeyName, joinKeyValue, joinAggTable, json);
 
-/*		Map<String, String> mapNew = newRJRow.getMap(listItem, String.class,String.class);
+		/*		Map<String, String> mapNew = newRJRow.getMap(listItem, String.class,String.class);
 		Map<String, String> mapOld = oldRJRow.getMap(listItem, String.class,String.class);
-		
+
 		Float sum = theRow.getFloat("sum");
 		int count = theRow.getInt("count");
-		
+
 		//havent taken into account the case where aggcolnew is null, shouldnt reach this case aslan
 		if(mapNew.size()>mapOld.size()){
 			sum += Float.parseFloat(aggColValue);
@@ -354,7 +357,7 @@ System.out.println(selectQuery1);
 		}else if(mapNew.size()==mapOld.size()){
 			sum += Float.parseFloat(aggColValue)-Float.parseFloat(oldAggColValue);
 		}
-*/
+		 */
 		Float sum = theRow.getFloat("sum");
 		if (!aggColValue.equals("null"))
 			sum += Float.parseFloat(aggColValue);
@@ -386,19 +389,17 @@ System.out.println(selectQuery1);
 		else if (!oldAggColValue.equals("null") && Float.parseFloat(oldAggColValue) == min) {
 			// loop on list_item1 to get the new minimum
 
-			Map<String, String> map1 = newRJRow.getMap(listItem, String.class,String.class);
+			Map<String, String> map1 = newRJRow.getMap(listItem);
 
 			min = Float.MAX_VALUE;
 
-			List<Definition> def = stream.getDeltaUpdatedRow().getColumnDefinitions().asList();
-
 			int aggColIndexInList = 0;
 
-			for (int i = 0; i < def.size(); i++) {
-				if (def.get(i).getName().contentEquals(aggColName + "_new")) {
+			for (int i = 0; i < stream.getDeltaUpdatedRow().colDefSize; i++) {
+				if (stream.getDeltaUpdatedRow().getName(i).contentEquals(aggColName + "_new")) {
 					break;
 				}
-				if (def.get(i).getName().contains("_new"))
+				if (stream.getDeltaUpdatedRow().getName(i).contains("_new"))
 					aggColIndexInList++;
 			}
 
@@ -429,20 +430,19 @@ System.out.println(selectQuery1);
 				&& Float.parseFloat(oldAggColValue) == max) {
 			// loop on list_item1 to get the new minimum
 
-			Map<String, String> map1 = newRJRow.getMap(listItem, String.class,String.class);
+			Map<String, String> map1 = newRJRow.getMap(listItem);
 
 			max = Float.MIN_VALUE;
 
-			List<Definition> def = stream.getDeltaUpdatedRow().getColumnDefinitions().asList();
 
 			int aggColIndexInList = 0;
 
-			for (int i = 0; i < def.size(); i++) {
-				if (def.get(i).getName()
+			for (int i = 0; i < stream.getDeltaUpdatedRow().colDefSize; i++) {
+				if (stream.getDeltaUpdatedRow().getName(i)
 						.contentEquals(aggColName + "_new")) {
 					break;
 				}
-				if (def.get(i).getName().contains("_new"))
+				if (stream.getDeltaUpdatedRow().getName(i).contains("_new"))
 					aggColIndexInList++;
 			}
 
@@ -461,25 +461,27 @@ System.out.println(selectQuery1);
 		}
 
 		//insertStatement(sum, count, avg, min, max, joinKeyName, joinKeyValue, joinAggTable, json);
-		
-		if(!updateStatement(sum, count, avg, min, max, joinKeyName, joinKeyValue, joinAggTable, json, theRow.getFloat("sum")))
-		return false;
 
-		if(joinAggTable.contains("inner"))
-			stream.setInnerJoinAggUpdatedOldRow(selectStatement(joinKeyName, joinKeyValue, joinAggTable, json));
-		else
-			stream.setLeftOrRightJoinAggUpdatedOldRow(selectStatement(joinKeyName, joinKeyValue, joinAggTable, json));
-		
+		if(!updateStatement(sum, count, avg, min, max, joinKeyName, joinKeyValue, joinAggTable, json, theRow.getFloat("sum")))
+			return false;
+
+		if(joinAggTable.contains("inner")) {
+			CustomizedRow crow = new CustomizedRow(selectStatement(joinKeyName, joinKeyValue, joinAggTable, json));
+			stream.setInnerJoinAggUpdatedOldRow(crow);
+		}else {
+			CustomizedRow crow = new CustomizedRow(selectStatement(joinKeyName, joinKeyValue, joinAggTable, json));
+			stream.setLeftOrRightJoinAggUpdatedOldRow(crow);
+		}
 		return true;
-		
+
 	}
 
 	public static void moveRowsToInnerJoinAgg(Stream stream,String joinAggTable,String innerJoinAggTable,String joinKeyName,String joinKeyValue,JSONObject json){
-		
+
 		if (!joinAggTable.equals("false")) {
-			
+
 			Row theRow = selectStatement(joinKeyName, joinKeyValue, joinAggTable, json);
-			
+
 			Float sum = theRow.getFloat("sum");
 			int count = theRow.getInt("count");
 			Float avg = sum / (float) count;
@@ -487,22 +489,21 @@ System.out.println(selectQuery1);
 			Float max = theRow.getFloat("max");
 
 			insertStatement(sum, count, avg, min, max, joinKeyName, joinKeyValue, innerJoinAggTable, json);
-			stream.setInnerJoinAggNewRow(selectStatement(joinKeyName, joinKeyValue, innerJoinAggTable, json));
-			
+			CustomizedRow crow = new CustomizedRow(selectStatement(joinKeyName, joinKeyValue, innerJoinAggTable, json));
+			stream.setInnerJoinAggNewRow(crow);
 		}
 	}
-		
-	public static void addRowsToInnerJoinAgg(Stream stream,String listItem,Row newRJRow,int aggColIndexInList,String innerJoinAggTable,JSONObject json,String joinKey,String joinKeyValue){
-		
+
+	public static void addRowsToInnerJoinAgg(Stream stream,String listItem,CustomizedRow newRJRow,int aggColIndexInList,String innerJoinAggTable,JSONObject json,String joinKey,String joinKeyValue){
+
 		Float sum = 0.0f;
 		Float avg = 0.0f;
 		int count = 0;
 		Float min = Float.MAX_VALUE;
 		Float max = Float.MIN_VALUE;
 
-		List<Definition> def = stream.getDeltaUpdatedRow().getColumnDefinitions().asList();
 
-		Map<String, String> map1 = newRJRow.getMap(listItem,String.class, String.class);
+		Map<String, String> map1 = newRJRow.getMap(listItem);
 
 		for (Map.Entry<String, String> entry : map1.entrySet()) {
 
@@ -525,12 +526,12 @@ System.out.println(selectQuery1);
 			sum += x;
 
 		}
-		
-		avg = sum/count;
-		
-		insertStatement(sum, count, avg, min, max, joinKey, joinKeyValue,innerJoinAggTable,json);
-		stream.setInnerJoinAggNewRow(selectStatement(joinKey, joinKeyValue, innerJoinAggTable, json));
 
+		avg = sum/count;
+
+		insertStatement(sum, count, avg, min, max, joinKey, joinKeyValue,innerJoinAggTable,json);
+		CustomizedRow crow = new CustomizedRow(selectStatement(joinKey, joinKeyValue, innerJoinAggTable, json));
+		stream.setInnerJoinAggNewRow(crow);
 	}
 
 

@@ -118,14 +118,14 @@ public class Utils {
 	
 	
 	//evaluates a condition
-	public static boolean evaluateCondition(Row row, String operation, String value,
+	public static boolean evaluateCondition(CustomizedRow row, String operation, String value,
 			String type, String colName) {
 
 		boolean eval = true;
 
-		if (row.isNull(colName)) {
+		/*if (row.isNull(colName)) {
 			return false;
-		}
+		}*/
 
 		switch (type) {
 
@@ -254,7 +254,7 @@ public class Utils {
 
 	}
 
-	public static String getColumnValueFromDeltaStream(Row stream, String name,String type, String suffix){
+	public static String getColumnValueFromDeltaStream(CustomizedRow stream, String name,String type, String suffix){
 
 		String value = "";
 
@@ -306,7 +306,7 @@ public class Utils {
 
 	}
 
-	public static boolean evalueJoinAggConditions(Row row, String aggFct, String operation, String value){
+	public static boolean evalueJoinAggConditions(CustomizedRow row, String aggFct, String operation, String value){
 
 		boolean eval = true;
 		float min1 = 0;

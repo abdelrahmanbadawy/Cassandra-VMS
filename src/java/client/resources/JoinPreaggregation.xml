@@ -18,7 +18,7 @@
 			<column>
 				<family>colfam1</family>
 				<type>list&lt;float&gt;</type>
-				<name>list_item</name>
+				<name>agg_list</name>
 			</column>
 
 			<column>
@@ -76,7 +76,7 @@
 			<column>
 				<family>colfam1</family>
 				<type>list&lt;float&gt;</type>
-				<name>list_item</name>
+				<name>agg_list</name>
 			</column>
 
 			<column>

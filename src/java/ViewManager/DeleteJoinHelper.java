@@ -149,9 +149,8 @@ public class DeleteJoinHelper {
 	public static boolean removeDeleteLeftCrossRight(Stream stream,JSONObject json,
 			String innerJName, Map<String, String> myMap2) {
 
-		String type = stream.getDeltaDeletedRow().getColumnDefinitions().asList().get(0)
-				.getType().toString();
-		String name =  stream.getDeltaDeletedRow().getColumnDefinitions().asList().get(0).getName();
+		String type = stream.getDeltaDeletedRow().getType(0);
+		String name =  stream.getDeltaDeletedRow().getName(0);
 		String leftPkValue = Utils.getColumnValueFromDeltaStream(stream.getDeltaDeletedRow(), name, type, "");
 
 		for (Map.Entry<String, String> entry : myMap2.entrySet()) {
@@ -184,9 +183,8 @@ public class DeleteJoinHelper {
 	public static boolean removeDeleteRightCrossLeft(Stream stream,JSONObject json,
 			String innerJName, Map<String, String> myMap1) {
 		
-		String type = stream.getDeltaDeletedRow().getColumnDefinitions().asList().get(0)
-				.getType().toString();
-		String name =  stream.getDeltaDeletedRow().getColumnDefinitions().asList().get(0).getName();
+		String type = stream.getDeltaDeletedRow().getType(0);
+		String name =  stream.getDeltaDeletedRow().getName(0);
 		String rigthPkValue = Utils.getColumnValueFromDeltaStream(stream.getDeltaDeletedRow(), name, type, "");
 
 

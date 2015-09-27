@@ -1,47 +1,53 @@
 package ViewManager;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+
 import com.datastax.driver.core.Row;
 
 public class Stream {
 
 	//JoinAggGroupBy
-	private Row innerJoinAggGroupByOldRow;
-	private Row innerJoinAggGroupByUpdatedOldRow;
-	private Row innerJoinAggGroupByNewRow;
-	private Row innerJoinAggGroupByDeleteRow;
-	private Row leftOrRightJoinAggGroupByOldRow;
-	private Row leftOrRightJoinAggGroupByUpdatedOldRow;
-	private Row leftOrRightJoinAggGroupByNewRow;
-	private Row leftOrRightJoinAggGroupByDeleteRow;
+	private CustomizedRow innerJoinAggGroupByOldRow;
+	private CustomizedRow innerJoinAggGroupByUpdatedOldRow;
+	private CustomizedRow innerJoinAggGroupByNewRow;
+	private CustomizedRow innerJoinAggGroupByDeleteRow;
+	private CustomizedRow leftOrRightJoinAggGroupByOldRow;
+	private CustomizedRow leftOrRightJoinAggGroupByUpdatedOldRow;
+	private CustomizedRow leftOrRightJoinAggGroupByNewRow;
+	private CustomizedRow leftOrRightJoinAggGroupByDeleteRow;
 
 	//JoinAgg
-	private Row innerJoinAggOldRow;
-	private Row innerJoinAggUpdatedOldRow;
-	private Row innerJoinAggNewRow;
-	private Row innerJoinAggDeleteRow;
-	private Row leftOrRightJoinAggOldRow;
-	private Row leftOrRightJoinAggUpdatedOldRow;
-	private Row leftOrRightJoinAggNewRow;
-	private Row leftOrRightJoinAggDeleteRow;
+	private CustomizedRow innerJoinAggOldRow;
+	private CustomizedRow innerJoinAggUpdatedOldRow;
+	private CustomizedRow innerJoinAggNewRow;
+	private CustomizedRow innerJoinAggDeleteRow;
+	private CustomizedRow leftOrRightJoinAggOldRow;
+	private CustomizedRow leftOrRightJoinAggUpdatedOldRow;
+	private CustomizedRow leftOrRightJoinAggNewRow;
+	private CustomizedRow leftOrRightJoinAggDeleteRow;
 
 	//Delta
-	private Row deltaUpdatedRow;
-	private Row deltaDeletedRow;
+	private CustomizedRow deltaUpdatedRow;
+	private CustomizedRow deltaDeletedRow;
 
 	//Preaggregation
-	private Row updatedPreaggRow;
-	private Row updatedPreaggRowDeleted;
-	private Row updatedPreaggRowChangeAK;
+	private CustomizedRow updatedPreaggRow;
+	private CustomizedRow updatedPreaggRowDeleted;
+	private CustomizedRow updatedPreaggRowChangeAK;
 	//Preaggregation delete
-	private Row deletePreaggRow;
-	private Row deletePreaggRowDeleted;
+	private CustomizedRow deletePreaggRow;
+	private CustomizedRow deletePreaggRowDeleted;
 
 	//Reverse Join
-	private Row reverseJoinUpdateNewRow;
-	private Row reverseJoinUpadteOldRow;
-	private Row reverseJoinUpdatedOldRow_changeJoinKey;
-	private Row reverseJoinDeleteNewRow;
-	private Row revereJoinDeleteOldRow;
+	private CustomizedRow reverseJoinUpdateNewRow;
+	private CustomizedRow reverseJoinUpadteOldRow;
+	private CustomizedRow reverseJoinUpdatedOldRow_changeJoinKey;
+	private CustomizedRow reverseJoinDeleteNewRow;
+	private CustomizedRow revereJoinDeleteOldRow;
 
 
 
@@ -88,55 +94,55 @@ public class Stream {
 
 	}
 
-	public Row getInnerJoinAggGroupByOldRow() {
+	public CustomizedRow getInnerJoinAggGroupByOldRow() {
 		return innerJoinAggGroupByOldRow;
 	}
 
-	public void setInnerJoinAggGroupByOldRow(Row joinAggGroupByOldRow) {
+	public void setInnerJoinAggGroupByOldRow(CustomizedRow joinAggGroupByOldRow) {
 		this.innerJoinAggGroupByOldRow = joinAggGroupByOldRow;
 	}
 
-	public Row getInnerJoinAggGroupByUpdatedOldRow() {
+	public CustomizedRow getInnerJoinAggGroupByUpdatedOldRow() {
 		return innerJoinAggGroupByUpdatedOldRow;
 	}
 
 	public void setInnerJoinAggGroupByUpdatedOldRow(
-			Row joinAggGroupByUpdatedOldRow) {
+			CustomizedRow joinAggGroupByUpdatedOldRow) {
 		this.innerJoinAggGroupByUpdatedOldRow = joinAggGroupByUpdatedOldRow;
 	}
 
-	public Row getInnerJoinAggGroupByNewRow() {
+	public CustomizedRow getInnerJoinAggGroupByNewRow() {
 		return innerJoinAggGroupByNewRow;
 	}
 
-	public void setInnerJoinAggGroupByNewRow(Row joinAggGroupByNewRow) {
+	public void setInnerJoinAggGroupByNewRow(CustomizedRow joinAggGroupByNewRow) {
 		this.innerJoinAggGroupByNewRow = joinAggGroupByNewRow;
 	}
 
-	public Row getLeftOrRightJoinAggGroupByOldRow() {
+	public CustomizedRow getLeftOrRightJoinAggGroupByOldRow() {
 		return leftOrRightJoinAggGroupByOldRow;
 	}
 
 	public void setLeftOrRightJoinAggGroupByOldRow(
-			Row leftOrRightJoinAggGroupByOldRow) {
+			CustomizedRow leftOrRightJoinAggGroupByOldRow) {
 		this.leftOrRightJoinAggGroupByOldRow = leftOrRightJoinAggGroupByOldRow;
 	}
 
-	public Row getLeftOrRightJoinAggGroupByNewRow() {
+	public CustomizedRow getLeftOrRightJoinAggGroupByNewRow() {
 		return leftOrRightJoinAggGroupByNewRow;
 	}
 
 	public void setLeftOrRightJoinAggGroupByNewRow(
-			Row leftOrRightJoinAggGroupByNewRow) {
+			CustomizedRow leftOrRightJoinAggGroupByNewRow) {
 		this.leftOrRightJoinAggGroupByNewRow = leftOrRightJoinAggGroupByNewRow;
 	}
 
-	public Row getLeftOrRightJoinAggGroupByUpdatedOldRow() {
+	public CustomizedRow getLeftOrRightJoinAggGroupByUpdatedOldRow() {
 		return leftOrRightJoinAggGroupByUpdatedOldRow;
 	}
 
 	public void setLeftOrRightJoinAggGroupByUpdatedOldRow(
-			Row leftOrRightJoinAggGroupByUpdatedOldRow) {
+			CustomizedRow leftOrRightJoinAggGroupByUpdatedOldRow) {
 		this.leftOrRightJoinAggGroupByUpdatedOldRow = leftOrRightJoinAggGroupByUpdatedOldRow;
 	}
 
@@ -151,190 +157,190 @@ public class Stream {
 		setLeftOrRightJoinAggGroupByDeleteRow(null);
 	}
 
-	public Row getInnerJoinAggGroupByDeleteOldRow() {
+	public CustomizedRow getInnerJoinAggGroupByDeleteOldRow() {
 		return innerJoinAggGroupByDeleteRow;
 	}
 
 	public void setInnerJoinAggGroupByDeleteOldRow(
-			Row innerJoinAggGroupByDeleteRow) {
+			CustomizedRow innerJoinAggGroupByDeleteRow) {
 		this.innerJoinAggGroupByDeleteRow = innerJoinAggGroupByDeleteRow;
 	}
 
-	public Row getLeftOrRightJoinAggGroupByDeleteRow() {
+	public CustomizedRow getLeftOrRightJoinAggGroupByDeleteRow() {
 		return leftOrRightJoinAggGroupByDeleteRow;
 	}
 
 	public void setLeftOrRightJoinAggGroupByDeleteRow(
-			Row leftOrRightJoinAggGroupByDeleteRow) {
+			CustomizedRow leftOrRightJoinAggGroupByDeleteRow) {
 		this.leftOrRightJoinAggGroupByDeleteRow = leftOrRightJoinAggGroupByDeleteRow;
 	}
 
-	public Row getInnerJoinAggOldRow() {
+	public CustomizedRow getInnerJoinAggOldRow() {
 		return innerJoinAggOldRow;
 	}
 
-	public void setInnerJoinAggOldRow(Row innerJoinAggGroupOldRow) {
+	public void setInnerJoinAggOldRow(CustomizedRow innerJoinAggGroupOldRow) {
 		this.innerJoinAggOldRow = innerJoinAggGroupOldRow;
 	}
 
-	public Row getInnerJoinAggUpdatedOldRow() {
+	public CustomizedRow getInnerJoinAggUpdatedOldRow() {
 		return innerJoinAggUpdatedOldRow;
 	}
 
 	public void setInnerJoinAggUpdatedOldRow(
-			Row innerJoinAggGroupUpdatedOldRow) {
+			CustomizedRow innerJoinAggGroupUpdatedOldRow) {
 		this.innerJoinAggUpdatedOldRow = innerJoinAggGroupUpdatedOldRow;
 	}
 
-	public Row getInnerJoinAggNewRow() {
+	public CustomizedRow getInnerJoinAggNewRow() {
 		return innerJoinAggNewRow;
 	}
 
-	public void setInnerJoinAggNewRow(Row innerJoinAggGroupNewRow) {
+	public void setInnerJoinAggNewRow(CustomizedRow innerJoinAggGroupNewRow) {
 		this.innerJoinAggNewRow = innerJoinAggGroupNewRow;
 	}
 
-	public Row getInnerJoinAggDeleteRow() {
+	public CustomizedRow getInnerJoinAggDeleteRow() {
 		return innerJoinAggDeleteRow;
 	}
 
-	public void setInnerJoinAggDeleteRow(Row innerJoinAggGroupDeleteRow) {
+	public void setInnerJoinAggDeleteRow(CustomizedRow innerJoinAggGroupDeleteRow) {
 		this.innerJoinAggDeleteRow = innerJoinAggGroupDeleteRow;
 	}
 
-	public Row getLeftOrRightJoinAggOldRow() {
+	public CustomizedRow getLeftOrRightJoinAggOldRow() {
 		return leftOrRightJoinAggOldRow;
 	}
 
 	public void setLeftOrRightJoinAggOldRow(
-			Row leftOrRightJoinAggGroupOldRow) {
+			CustomizedRow leftOrRightJoinAggGroupOldRow) {
 		this.leftOrRightJoinAggOldRow = leftOrRightJoinAggGroupOldRow;
 	}
 
-	public Row getLeftOrRightJoinAggUpdatedOldRow() {
+	public CustomizedRow getLeftOrRightJoinAggUpdatedOldRow() {
 		return leftOrRightJoinAggUpdatedOldRow;
 	}
 
 	public void setLeftOrRightJoinAggUpdatedOldRow(
-			Row leftOrRightJoinAggGroupUpdatedOldRow) {
+			CustomizedRow leftOrRightJoinAggGroupUpdatedOldRow) {
 		this.leftOrRightJoinAggUpdatedOldRow = leftOrRightJoinAggGroupUpdatedOldRow;
 	}
 
-	public Row getLeftOrRightJoinAggNewRow() {
+	public CustomizedRow getLeftOrRightJoinAggNewRow() {
 		return leftOrRightJoinAggNewRow;
 	}
 
 	public void setLeftOrRightJoinAggNewRow(
-			Row leftOrRightJoinAggGroupNewRow) {
+			CustomizedRow leftOrRightJoinAggGroupNewRow) {
 		this.leftOrRightJoinAggNewRow = leftOrRightJoinAggGroupNewRow;
 	}
 
-	public Row getLeftOrRightJoinAggDeleteRow() {
+	public CustomizedRow getLeftOrRightJoinAggDeleteRow() {
 		return leftOrRightJoinAggDeleteRow;
 	}
 
 	public void setLeftOrRightJoinAggDeleteRow(
-			Row leftOrRightJoinAggGroupDeleteRow) {
+			CustomizedRow leftOrRightJoinAggGroupDeleteRow) {
 		this.leftOrRightJoinAggDeleteRow = leftOrRightJoinAggGroupDeleteRow;
 	}
 
-	public Row getDeltaUpdatedRow() {
+	public CustomizedRow getDeltaUpdatedRow() {
 		return deltaUpdatedRow;
 	}
 
-	public void setDeltaUpdatedRow(Row deltaUpdatedRow) {
+	public void setDeltaUpdatedRow(CustomizedRow deltaUpdatedRow) {
 		this.deltaUpdatedRow = deltaUpdatedRow;
 	}
 
-	public Row getDeltaDeletedRow() {
+	public CustomizedRow getDeltaDeletedRow() {
 		return deltaDeletedRow;
 	}
 
-	public void setDeltaDeletedRow(Row deltaDeletedRow) {
+	public void setDeltaDeletedRow(CustomizedRow deltaDeletedRow) {
 		this.deltaDeletedRow = deltaDeletedRow;
 	}
 
-	public Row getUpdatedPreaggRow() {
+	public CustomizedRow getUpdatedPreaggRow() {
 		return updatedPreaggRow;
 	}
 
-	public void setUpdatedPreaggRow(Row updatedPreaggRow) {
+	public void setUpdatedPreaggRow(CustomizedRow updatedPreaggRow) {
 		this.updatedPreaggRow = updatedPreaggRow;
 	}
 
-	public Row getUpdatedPreaggRowDeleted() {
+	public CustomizedRow getUpdatedPreaggRowDeleted() {
 		return updatedPreaggRowDeleted;
 	}
 
-	public void setUpdatedPreaggRowDeleted(Row updatedPreaggRowDeleted) {
+	public void setUpdatedPreaggRowDeleted(CustomizedRow updatedPreaggRowDeleted) {
 		this.updatedPreaggRowDeleted = updatedPreaggRowDeleted;
 	}
 
-	public Row getUpdatedPreaggRowChangeAK() {
+	public CustomizedRow getUpdatedPreaggRowChangeAK() {
 		return updatedPreaggRowChangeAK;
 	}
 
-	public void setUpdatedPreaggRowChangeAK(Row updatedPreaggRowChangeAK) {
+	public void setUpdatedPreaggRowChangeAK(CustomizedRow updatedPreaggRowChangeAK) {
 		this.updatedPreaggRowChangeAK = updatedPreaggRowChangeAK;
 	}
 
-	public Row getReverseJoinUpdateNewRow() {
+	public CustomizedRow getReverseJoinUpdateNewRow() {
 		return reverseJoinUpdateNewRow;
 	}
 
-	public void setReverseJoinUpdateNewRow(Row reverseJoinUpdateNewRow) {
+	public void setReverseJoinUpdateNewRow(CustomizedRow reverseJoinUpdateNewRow) {
 		this.reverseJoinUpdateNewRow = reverseJoinUpdateNewRow;
 	}
 
-	public Row getReverseJoinUpadteOldRow() {
+	public CustomizedRow getReverseJoinUpadteOldRow() {
 		return reverseJoinUpadteOldRow;
 	}
 
-	public void setReverseJoinUpadteOldRow(Row reverseJoinUpadteOldRow) {
+	public void setReverseJoinUpadteOldRow(CustomizedRow reverseJoinUpadteOldRow) {
 		this.reverseJoinUpadteOldRow = reverseJoinUpadteOldRow;
 	}
 
-	public Row getReverseJoinUpdatedOldRow_changeJoinKey() {
+	public CustomizedRow getReverseJoinUpdatedOldRow_changeJoinKey() {
 		return reverseJoinUpdatedOldRow_changeJoinKey;
 	}
 
 	public void setReverseJoinUpdatedOldRow_changeJoinKey(
-			Row reverseJoinUpdatedOldRow_changeJoinKey) {
+			CustomizedRow reverseJoinUpdatedOldRow_changeJoinKey) {
 		this.reverseJoinUpdatedOldRow_changeJoinKey = reverseJoinUpdatedOldRow_changeJoinKey;
 	}
 
-	public Row getReverseJoinDeleteNewRow() {
+	public CustomizedRow getReverseJoinDeleteNewRow() {
 		return reverseJoinDeleteNewRow;
 	}
 
-	public void setReverseJoinDeleteNewRow(Row reverseJoinDeleteNewRow) {
+	public void setReverseJoinDeleteNewRow(CustomizedRow reverseJoinDeleteNewRow) {
 		this.reverseJoinDeleteNewRow = reverseJoinDeleteNewRow;
 	}
 
-	public Row getRevereJoinDeleteOldRow() {
+	public CustomizedRow getRevereJoinDeleteOldRow() {
 		return revereJoinDeleteOldRow;
 	}
 
-	public void setRevereJoinDeleteOldRow(Row revereJoinDeleteOldRow) {
+	public void setRevereJoinDeleteOldRow(CustomizedRow revereJoinDeleteOldRow) {
 		this.revereJoinDeleteOldRow = revereJoinDeleteOldRow;
 	}
 
 
-	public Row getDeletePreaggRow() {
+	public CustomizedRow getDeletePreaggRow() {
 		return deletePreaggRow;
 	}
 
-	public void setDeletePreaggRow(Row deletePreaggRow) {
+	public void setDeletePreaggRow(CustomizedRow deletePreaggRow) {
 		this.deletePreaggRow = deletePreaggRow;
 	}
 
-	public Row getDeletePreaggRowDeleted() {
+	public CustomizedRow getDeletePreaggRowDeleted() {
 		return deletePreaggRowDeleted;
 	}
 
-	public void setDeletePreaggRowDeleted(Row deletePreaggRowDeleted) {
+	public void setDeletePreaggRowDeleted(CustomizedRow deletePreaggRowDeleted) {
 		this.deletePreaggRowDeleted = deletePreaggRowDeleted;
 	}
 
-
+	
 }

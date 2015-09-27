@@ -1,6 +1,7 @@
 package ViewManager;
 
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -35,7 +36,7 @@ public class PreaggregationHelper {
 
 		StringBuilder selectPreaggQuery1 = new StringBuilder("SELECT ")
 		.append(aggKey + ", ").append("list_item, ").append("sum, ").append("count, ")
-		.append("average, min, max, seq ");
+		.append("average, min, max, stream ");
 		selectPreaggQuery1.append(" FROM ")
 		.append((String) json.get("keyspace")).append(".")
 		.append(preaggTable).append(" where ")
@@ -57,7 +58,7 @@ public class PreaggregationHelper {
 		return PreAggMap;
 	}
 
-	public static boolean firstInsertion(ArrayList<String> colValues, float aggColValue, JSONObject json, String preaggTable, String aggKey, String aggKeyValue, BigInteger seq){
+	public static boolean firstInsertion(ArrayList<String> colValues, float aggColValue, JSONObject json, String preaggTable, String aggKey, String aggKeyValue, ByteBuffer blob){
 
 		// 2.c.1 create a map, add pk and list with delta _new values
 		// 2.c.2 set the agg col values
@@ -81,7 +82,7 @@ public class PreaggregationHelper {
 		insertQueryAgg.append((String) json.get("keyspace"))
 		.append(".").append(preaggTable).append(" ( ")
 		.append(aggKey + ", ").append("list_item, ")
-		.append("sum, count, average, min, max,seq")
+		.append("sum, count, average, min, max,stream")
 		.append(") VALUES (").append(aggKeyValue + ", ")
 		.append("?, ?, ?, ?, ?, ?,?) IF NOT EXISTS ;");
 
@@ -92,7 +93,7 @@ public class PreaggregationHelper {
 					.toString());
 			BoundStatement boundStatement = new BoundStatement(statement1);
 			rs = session1.execute(boundStatement.bind(myMap, sum, (int) count,
-					average, min, max,seq));
+					average, min, max,blob));
 
 			System.out.println(boundStatement.toString());
 
@@ -136,14 +137,14 @@ public class PreaggregationHelper {
 	}
 
 	public static boolean updateStatement(Float sum, int count, Float avg, Float min, Float max, Map<String, String> myMap, String key, String keyValue,
-			String preaggTable, JSONObject json, BigInteger seq){
+			String preaggTable, JSONObject json, byte[] blob){
 
 		StringBuilder updateQuery = new StringBuilder("UPDATE ");
 		updateQuery.append((String) json.get("keyspace"))
 		.append(".").append(preaggTable).append(" SET list_item = ?, sum = ").append(sum)
 		.append(", count = ").append(count).append(", average = ").append(avg).append(", min = ")
-		.append(min).append(", max = ").append(max).append(", seq = ").append(seq.add(BigInteger.ONE)).append(" WHERE ").append(key).append(" = ").append(keyValue)
-		.append(" IF seq = ").append(seq).append(";");
+		.append(min).append(", max = ").append(max).append(", blob = ").append(blob).append(" WHERE ").append(key).append(" = ").append(keyValue)
+		.append(" IF seq = ").append(blob).append(";");
 
 
 		System.out.println(updateQuery);
@@ -170,7 +171,7 @@ public class PreaggregationHelper {
 
 	}
 
-	public static boolean updateAggColValue(ArrayList<String> myList,float aggColValue,float aggColValue_old,Row theRow, int aggColIndexInList,JSONObject json, String preaggTable,String aggKey,String aggKeyValue, BigInteger seq ){
+	public static boolean updateAggColValue(ArrayList<String> myList,float aggColValue,float aggColValue_old,Row theRow, int aggColIndexInList,JSONObject json, String preaggTable,String aggKey,String aggKeyValue, byte[] bs ){
 
 		float sum = 0;
 		int count = 0;
@@ -228,7 +229,7 @@ public class PreaggregationHelper {
 		}
 
 		//insertStatement(json, preaggTable, aggKey, aggKeyValue, myMap, sum, count, min, max, average);
-		if(updateStatement(sum, count, average, min, max, myMap, aggKey, aggKeyValue, preaggTable, json, seq))
+		if(updateStatement(sum, count, average, min, max, myMap, aggKey, aggKeyValue, preaggTable, json, bs))
 			return true;
 		else
 			return false;
@@ -236,7 +237,7 @@ public class PreaggregationHelper {
 
 	}
 
-	public static boolean subtractOldAggColValue(ArrayList<String> myList, float aggColValue_old,Map<String, String> myMap,Row theRow, int aggColIndexInList,JSONObject json, String preaggTable,String aggKey,String aggKeyValue, BigInteger seq ){
+	public static boolean subtractOldAggColValue(ArrayList<String> myList, float aggColValue_old,Map<String, String> myMap,Row theRow, int aggColIndexInList,JSONObject json, String preaggTable,String aggKey,String aggKeyValue, byte[] blob ){
 
 		String pk = myList.get(0);
 		myList.remove(0);
@@ -266,7 +267,7 @@ public class PreaggregationHelper {
 		}
 
 		//insertStatement(json, preaggTable, aggKey, aggKeyValue, myMap, sum, count, min, max, average);
-		if(updateStatement(sum, count, average, min, max, myMap, aggKey, aggKeyValue, preaggTable, json, seq))
+		if(updateStatement(sum, count, average, min, max, myMap, aggKey, aggKeyValue, preaggTable, json, blob))
 			return true;
 		else
 			return false;

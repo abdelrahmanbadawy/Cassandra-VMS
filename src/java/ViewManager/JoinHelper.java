@@ -52,7 +52,7 @@ public class JoinHelper {
 		}
 	}
 
-	public static boolean updateLeftJoinTable(Stream stream,String leftJName, Row theRow,
+	public static boolean updateLeftJoinTable(Stream stream,String leftJName, CustomizedRow theRow,
 			JSONObject json) {
 
 		// 3. Read Left Join xml, get leftPkName, leftPkType, get pk of join
@@ -96,8 +96,7 @@ public class JoinHelper {
 			leftPkValue = Utils.getColumnValueFromDeltaStream(stream.getDeltaUpdatedRow(), leftPkName, leftPkType, "");
 
 			// 3.b. retrieve the left list values for inserton statement
-			Map<String, String> tempMapImmutable1 = theRow.getMap("list_item1",
-					String.class, String.class);
+			Map<String, String> tempMapImmutable1 = theRow.getMap("list_item1");
 			HashMap<String, String> myMap1 = new HashMap<String, String>();
 			myMap1.putAll(tempMapImmutable1);
 
@@ -127,12 +126,11 @@ public class JoinHelper {
 	public static boolean removeLeftCrossRight(Stream stream, JSONObject json, String innerJTableName) {
 
 		// 1. get old row updated by reverse join
-		Row theRow = stream.getReverseJoinUpadteOldRow();
+		CustomizedRow theRow = stream.getReverseJoinUpadteOldRow();
 
 		// 1.a get columns item_2
 
-		Map<String, String> tempMapImmutable2 = theRow.getMap("list_item2",
-				String.class, String.class);
+		Map<String, String> tempMapImmutable2 = theRow.getMap("list_item2");
 
 		// 2. retrieve list_item2
 
@@ -289,7 +287,7 @@ public class JoinHelper {
 		return true;
 	}
 
-	public static boolean updateRightJoinTable(Stream stream,String rightJName, Row theRow,
+	public static boolean updateRightJoinTable(Stream stream,String rightJName, CustomizedRow theRow,
 			JSONObject json) {
 
 		int position = VmXmlHandler.getInstance().getrJSchema()
@@ -325,8 +323,7 @@ public class JoinHelper {
 			rightPkValue = Utils.getColumnValueFromDeltaStream(stream.getDeltaUpdatedRow(), rightPkName, rightPkType, "");
 			
 			// 3.b. retrieve the left list values for inserton statement
-			Map<String, String> tempMapImmutable2 = theRow.getMap("list_item2",
-					String.class, String.class);
+			Map<String, String> tempMapImmutable2 = theRow.getMap("list_item2");
 			HashMap<String, String> myMap2 = new HashMap<String, String>();
 			myMap2.putAll(tempMapImmutable2);
 
@@ -373,11 +370,10 @@ public class JoinHelper {
 	public static boolean removeRightCrossLeft(Stream stream,JSONObject json, String innerJTableName) {
 
 		// 1. get row updated by reverse join
-		Row theRow = stream.getReverseJoinUpadteOldRow();
+		CustomizedRow theRow = stream.getReverseJoinUpadteOldRow();
 
 		// 1.a get columns item_1, item_2
-		Map<String, String> tempMapImmutable1 = theRow.getMap("list_item1",
-				String.class, String.class);
+		Map<String, String> tempMapImmutable1 = theRow.getMap("list_item1");
 
 		// 2. retrieve list_item1, list_item2
 		HashMap<String, String> myMap1 = new HashMap<String, String>();
