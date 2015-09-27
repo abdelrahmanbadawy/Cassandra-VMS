@@ -114,7 +114,7 @@ public class CustomizedRow implements Serializable{
 		return (float)colValues.get(i);
 	}
 
-	public float getInt(int i) {	
+	public int getInt(int i) {	
 		return (int)colValues.get(i);
 	}
 
