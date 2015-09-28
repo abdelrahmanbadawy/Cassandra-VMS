@@ -23,7 +23,7 @@ public class CommitLogReader {
 		try {
 			br = new BufferedReader(new FileReader("logs//output.log"));
 			vmc = new ViewManagerController();
-
+			
 		} catch (FileNotFoundException e) {
 
 			e.printStackTrace();
@@ -47,17 +47,26 @@ public class CommitLogReader {
 				.parse(jsonString);
 
 				String type = json.get("type").toString();
+				String table = json.get("table").toString();
 
-				if (type.equals("insert")) {
-					vmc.update(json);
-				}
+				if(table.contains("preagg_agg")){
+					
+					if(type.equalsIgnoreCase("insert"))
+						vmc.propagatePreaggUpdate(json);
+		
+				}else{
 
-				if (type.equals("update")) {
-					vmc.update(json);
-				}
+					if (type.equals("insert")) {
+						vmc.update(json);
+					}
 
-				if (type.equals("delete-row")) {
-					vmc.cascadeDelete(json, true);
+					if (type.equals("update")) {
+						vmc.update(json);
+					}
+
+					if (type.equals("delete-row")) {
+						vmc.cascadeDelete(json, true);
+					}
 				}
 
 				raw = br.readLine();
@@ -67,7 +76,7 @@ public class CommitLogReader {
 
 		} catch (IOException e) {
 			e.printStackTrace();
-			
+
 		} catch (ParseException e) {
 			e.printStackTrace();
 		}
