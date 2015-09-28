@@ -5,10 +5,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 
 import com.datastax.driver.core.Row;
 
-public class Stream {
+public class Stream implements Serializable {
 
 	//JoinAggGroupBy
 	private CustomizedRow innerJoinAggGroupByOldRow;
