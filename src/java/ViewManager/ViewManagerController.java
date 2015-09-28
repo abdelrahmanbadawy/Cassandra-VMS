@@ -1,6 +1,7 @@
 package ViewManager;
 
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -50,7 +51,7 @@ public class ViewManagerController {
 		stream = new Stream();
 
 		vm = new ViewManager(currentCluster);
-
+		
 	}
 
 	private void retrieveLoadXmlHandlers() {
@@ -332,96 +333,6 @@ public class ViewManagerController {
 					}
 				}
 				// =========================================================================
-				// 2.1 update preaggregations with having clause
-
-				// check if preagg has some having clauses or not
-				position1 = preaggTableNames.indexOf(preaggTable);
-
-				if (position1 != -1) {
-
-					String temp4 = "mapping.unit(";
-					temp4 += Integer.toString(position1);
-					temp4 += ")";
-
-					int nrConditions = VmXmlHandler.getInstance()
-							.getHavingPreAggMapping().getInt(temp4 + ".nrCond");
-
-					for (int m = 0; m < nrConditions; m++) {
-
-						String s1 = temp4 + ".Cond(" + Integer.toString(m)
-								+ ")";
-						String havingTable = VmXmlHandler.getInstance()
-								.getHavingPreAggMapping()
-								.getString(s1 + ".name");
-
-						String nrAnd = VmXmlHandler.getInstance()
-								.getHavingPreAggMapping()
-								.getString(s1 + ".nrAnd");
-
-						boolean eval1 = true;
-						boolean eval2 = true;
-
-						for (int n = 0; n < Integer.parseInt(nrAnd); n++) {
-
-							String s11 = s1 + ".And(";
-							s11 += Integer.toString(n);
-							s11 += ")";
-
-							String aggFct = VmXmlHandler.getInstance()
-									.getHavingPreAggMapping()
-									.getString(s11 + ".aggFct");
-							String operation = VmXmlHandler.getInstance()
-									.getHavingPreAggMapping()
-									.getString(s11 + ".operation");
-							String value = VmXmlHandler.getInstance()
-									.getHavingPreAggMapping()
-									.getString(s11 + ".value");
-
-							CustomizedRow PreagRow = stream.getUpdatedPreaggRow();
-							CustomizedRow PreagRowAK = stream.getUpdatedPreaggRowChangeAK();
-
-							eval1&= Utils.evalueJoinAggConditions(PreagRow, aggFct, operation, value);
-							if(PreagRowAK!=null){
-								eval2&= Utils.evalueJoinAggConditions(PreagRowAK, aggFct, operation, value);
-							}
-						}
-
-						CustomizedRow PreagRow = stream.getUpdatedPreaggRow();
-						CustomizedRow PreagRowAK = stream.getUpdatedPreaggRowChangeAK();
-
-						// if matching now & not matching before
-						// if condition matching now & matched before
-						if (eval1) {
-							vm.updateHaving(stream.getDeltaUpdatedRow(),
-									json,havingTable, PreagRow);
-							// if not matching now
-						} else if (!eval1) {
-							vm.deleteRowHaving((String) json.get("keyspace"),
-									havingTable, PreagRow);
-							// if not matching now & not before, ignore
-						}
-
-						if (PreagRowAK != null && eval2) {
-							vm.updateHaving(stream.getDeltaUpdatedRow(),
-									json,havingTable, PreagRowAK);
-
-						}else if (PreagRowAK != null && !eval2) {
-							vm.deleteRowHaving((String) json.get("keyspace"),
-									havingTable, PreagRowAK);
-						}
-
-						CustomizedRow deletedRow = stream.getUpdatedPreaggRowDeleted();
-						if (deletedRow != null) {
-							vm.deleteRowHaving((String) json.get("keyspace"),
-									havingTable, deletedRow);
-						}
-					}
-				} else {
-					System.out
-					.println("No Having table for this joinpreaggregation Table "
-							+ preaggTable + " available");
-				}
-
 			}
 
 		}
@@ -2470,6 +2381,106 @@ public class ViewManagerController {
 
 
 		return true;
+	}
+
+	
+	public void propagatePreaggUpdate(JSONObject json) {
+		
+		JSONObject data = (JSONObject) json.get("data");
+		byte[] buffer = data.get("stream").toString().getBytes();
+		Stream stream = Serialize.deserializeStream(buffer);
+		String preaggTable = json.get("table").toString();
+		
+		// 2.1 update preaggregations with having clause
+		// check if preagg has some having clauses or not
+		int position1 = preaggTableNames.indexOf(preaggTable);
+
+		if (position1 != -1) {
+
+			String temp4 = "mapping.unit(";
+			temp4 += Integer.toString(position1);
+			temp4 += ")";
+
+			int nrConditions = VmXmlHandler.getInstance()
+					.getHavingPreAggMapping().getInt(temp4 + ".nrCond");
+
+			for (int m = 0; m < nrConditions; m++) {
+
+				String s1 = temp4 + ".Cond(" + Integer.toString(m)
+						+ ")";
+				String havingTable = VmXmlHandler.getInstance()
+						.getHavingPreAggMapping()
+						.getString(s1 + ".name");
+
+				String nrAnd = VmXmlHandler.getInstance()
+						.getHavingPreAggMapping()
+						.getString(s1 + ".nrAnd");
+
+				boolean eval1 = true;
+				boolean eval2 = true;
+
+				for (int n = 0; n < Integer.parseInt(nrAnd); n++) {
+
+					String s11 = s1 + ".And(";
+					s11 += Integer.toString(n);
+					s11 += ")";
+
+					String aggFct = VmXmlHandler.getInstance()
+							.getHavingPreAggMapping()
+							.getString(s11 + ".aggFct");
+					String operation = VmXmlHandler.getInstance()
+							.getHavingPreAggMapping()
+							.getString(s11 + ".operation");
+					String value = VmXmlHandler.getInstance()
+							.getHavingPreAggMapping()
+							.getString(s11 + ".value");
+
+					CustomizedRow PreagRow = stream.getUpdatedPreaggRow();
+					CustomizedRow PreagRowAK = stream.getUpdatedPreaggRowChangeAK();
+
+					eval1&= Utils.evalueJoinAggConditions(PreagRow, aggFct, operation, value);
+					if(PreagRowAK!=null){
+						eval2&= Utils.evalueJoinAggConditions(PreagRowAK, aggFct, operation, value);
+					}
+				}
+
+				CustomizedRow PreagRow = stream.getUpdatedPreaggRow();
+				CustomizedRow PreagRowAK = stream.getUpdatedPreaggRowChangeAK();
+
+				// if matching now & not matching before
+				// if condition matching now & matched before
+				if (eval1) {
+					vm.updateHaving(stream.getDeltaUpdatedRow(),
+							json,havingTable, PreagRow);
+					// if not matching now
+				} else if (!eval1) {
+					vm.deleteRowHaving((String) json.get("keyspace"),
+							havingTable, PreagRow);
+					// if not matching now & not before, ignore
+				}
+
+				if (PreagRowAK != null && eval2) {
+					vm.updateHaving(stream.getDeltaUpdatedRow(),
+							json,havingTable, PreagRowAK);
+
+				}else if (PreagRowAK != null && !eval2) {
+					vm.deleteRowHaving((String) json.get("keyspace"),
+							havingTable, PreagRowAK);
+				}
+
+				CustomizedRow deletedRow = stream.getUpdatedPreaggRowDeleted();
+				if (deletedRow != null) {
+					vm.deleteRowHaving((String) json.get("keyspace"),
+							havingTable, deletedRow);
+				}
+			}
+		} else {
+			System.out
+			.println("No Having table for this joinpreaggregation Table "
+					+ preaggTable + " available");
+		}
+
+		
 	}
 
 }
