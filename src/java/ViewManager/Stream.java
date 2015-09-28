@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.ArrayList;
 
 import com.datastax.driver.core.Row;
 
@@ -343,5 +344,4 @@ public class Stream implements Serializable {
 		this.deletePreaggRowDeleted = deletePreaggRowDeleted;
 	}
 
-	
 }

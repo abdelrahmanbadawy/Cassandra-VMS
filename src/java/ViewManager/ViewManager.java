@@ -468,7 +468,7 @@ public class ViewManager{
 					// 2.d If row is not null, then this is not the first insertion
 					// for this agg Key
 
-					ByteBuffer blob_old = theRow1.getBytes("blob");
+					ByteBuffer blob_old = theRow1.getBytes("stream");
 
 					if(PreaggregationHelper.updateAggColValue(stream,myList, aggColValue, aggColValue_old, theRow1, aggColIndexInList,json,preaggTable,aggKey,aggKeyValue,blob_old)){
 						loop = false;

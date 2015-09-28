@@ -19,7 +19,11 @@ public class CustomizedRow implements Serializable{
 
 	private static final long serialVersionUID = 1L;
 
-	public CustomizedRow(){}
+	public CustomizedRow(){
+		colNames = new ArrayList<String>();
+		colTypes = new ArrayList<String>();
+		colValues = new ArrayList<Object>();
+	}
 
 	public CustomizedRow(Row row){
 
@@ -141,6 +145,7 @@ public class CustomizedRow implements Serializable{
 	}
 
 	public void setColNames(List<String> names){
+		
 		this.colNames.addAll(names);
 	}
 
