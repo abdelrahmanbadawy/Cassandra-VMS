@@ -427,8 +427,6 @@ public class ViewManager{
 			// 2.a select from preagg table row with AggKey as PK
 
 			boolean loop = false;
-			//BigInteger seq = new BigInteger("0");	
-
 
 			do{
 
@@ -442,8 +440,16 @@ public class ViewManager{
 					// 2.c.1 create a map, add pk and list with delta _new values
 					// 2.c.2 set the agg col values
 
-					ByteBuffer blob = null;
-
+					float sum = aggColValue;
+					int count = 1;
+					float average = sum / count;
+					float min = aggColValue;
+					float max = aggColValue;
+					
+					CustomizedRow constructedRow = CustomizedRow.constructUpdatedPreaggRow(aggKey,aggKeyValue,myList,sum,count,average,min,max);
+					stream.setUpdatedPreaggRow(constructedRow);
+					ByteBuffer blob = Serialize.serializeStream(stream);
+					
 					if(PreaggregationHelper.firstInsertion(myList,aggColValue,json,preaggTable,aggKey,aggKeyValue,blob)) {
 						loop = false;
 					}else{
@@ -454,13 +460,14 @@ public class ViewManager{
 					// 2.d If row is not null, then this is not the first insertion
 					// for this agg Key
 
-					//ByteBuffer blob = theRow1.getBytes("blob");
+					ByteBuffer blob_old = theRow1.getBytes("blob");
+					ByteBuffer blob_new = Serialize.serializeStream(stream);
 
-					/*if(PreaggregationHelper.updateAggColValue(myList, aggColValue, aggColValue_old, theRow1, aggColIndexInList,json,preaggTable,aggKey,aggKeyValue,stream.serializeStream())){
+					if(PreaggregationHelper.updateAggColValue(myList, aggColValue, aggColValue_old, theRow1, aggColIndexInList,json,preaggTable,aggKey,aggKeyValue,blob_old,blob_new)){
 						loop = false;
 					}else{
 						loop = true;
-					}*/
+					}
 				}
 
 			}while(loop);
@@ -499,29 +506,11 @@ public class ViewManager{
 				// if map.size is larger than 1 then iterate over map & delete
 				// desired entry with the correct pk as key
 
-				Map<String, String> tempMapImmutable = theRow.getMap(
-						"list_item", String.class, String.class);
+				Map<String, String> tempMapImmutable = theRow.getMap("list_item", String.class, String.class);
 
 				System.out.println(tempMapImmutable);
 				Map<String, String> myMap = new HashMap<String, String>();
 				myMap.putAll(tempMapImmutable);
-
-
-				//JUST TO TEST
-				/*ByteBuffer sara = theRow.getBytes("stream");
-				System.out.println(sara);
-				byte[] blobBytes = sara.
-				System.out.println(blobBytes);
-
-				String s = String.
-				System.out.println(s);*/
-
-
-				/*CustomizedRow cr = new CustomizedRow(theRow);
-				MockStream ms = new MockStream();
-				ms.setUpdatePreag(cr);
-				byte[] blobBytes = stream.serializeStream(ms);
-				ByteBuffer blob = ByteBuffer.wrap(blobBytes);*/
 
 
 				if (myMap.size() == 1) {
@@ -549,12 +538,14 @@ public class ViewManager{
 					// 6. Execute insertion statement of the row with the
 					// aggKeyValue_old to refelect changes
 
-					BigInteger seq = theRow.getVarint("seq");
-					/*while(!PreaggregationHelper.subtractOldAggColValue(myList, aggColValue_old, myMap, theRow, aggColIndexInList, json, preaggTable, aggKey, aggKeyValue_old,seq)){
+					ByteBuffer blob_old = theRow.getBytes("blob");
+					ByteBuffer blob_new = Serialize.serializeStream(stream);
+
+					while(!PreaggregationHelper.subtractOldAggColValue(myList, aggColValue_old, myMap, theRow, aggColIndexInList, json, preaggTable, aggKey, aggKeyValue_old,blob_old,blob_new)){
 						PreAggMap = PreaggregationHelper.selectStatement(json, preaggTable, aggKey, aggKeyValue_old);
 						theRow = PreAggMap.one();
-						seq = theRow.getVarint("seq");
-					}*/
+						blob_old = theRow.getBytes("blob");
+					}
 
 
 					// perform a new insertion for the new aggkey given in json
@@ -568,6 +559,11 @@ public class ViewManager{
 					stream.setUpdatedPreaggRowChangeAK(crow);
 				}
 			}
+
+			// perform a new insertion for the new aggkey given in json
+			updatePreaggregation(stream, aggKey, aggKeyType,
+					json, preaggTable, baseTablePrimaryKey, aggCol,
+					aggColType, true, false);
 		}
 
 		return true;
