@@ -2,6 +2,7 @@ package ViewManager;
 
 import java.io.Serializable;
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -155,15 +156,15 @@ public class CustomizedRow implements Serializable{
 		this.colDefSize = value;
 	}
 
-	public static CustomizedRow constructUpdatedPreaggRow(String aggKey, String aggKeyValue, ArrayList<String> myList, float sum, int count, float average, float min, float max){
+	public static CustomizedRow constructUpdatedPreaggRow(String aggKey, String aggKeyValue, ArrayList<String> myList, float sum, int count, float average, float min, float max,ByteBuffer blob){
 		CustomizedRow crow = new CustomizedRow();
-		List<String> names = new ArrayList<String>(Arrays.asList(aggKey,"list_item","sum","average","min","max","count"));
+		List<String> names = new ArrayList<String>(Arrays.asList(aggKey,"list_item","sum","average","min","max","count","stream"));
 		crow.setColNames(names);
 
-		List<String> types = new ArrayList<String>(Arrays.asList("text","List.class","float","float","float","float","int"));
+		List<String> types = new ArrayList<String>(Arrays.asList("text","List.class","float","float","float","float","int","blob"));
 		crow.setColTypes(types);
 
-		List<Object> values = new ArrayList<Object>(Arrays.asList(aggKeyValue,myList,sum,average,min,max,count));
+		List<Object> values = new ArrayList<Object>(Arrays.asList(aggKeyValue,myList,sum,average,min,max,count,blob));
 		crow.setColValues(values);
 
 		crow.setColDefSize(values.size());
