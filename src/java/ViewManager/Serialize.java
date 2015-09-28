@@ -20,17 +20,17 @@ public class Serialize {
 			e.printStackTrace();
 		}
 
-		
+
 		return ByteBuffer.wrap(b.toByteArray());
-		
+
 	}
 
 	public static Stream deserializeStream(ByteBuffer buffer){
 
 		Stream stream = null;
-		
-	    byte[] bytes = new byte[buffer.remaining()];
-	    buffer.get(bytes, 0, bytes.length);
+
+		byte[] bytes = new byte[buffer.remaining()];
+		buffer.get(bytes, 0, bytes.length);
 
 		ByteArrayInputStream b = new ByteArrayInputStream(bytes);
 		ObjectInputStream o;
@@ -45,5 +45,24 @@ public class Serialize {
 		return stream;
 
 	}
+
+	public static Stream deserializeStream(byte[] bytes){
+
+		Stream stream = null;
+
+		ByteArrayInputStream b = new ByteArrayInputStream(bytes);
+		ObjectInputStream o;
+		try {
+			o = new ObjectInputStream(b);
+			stream = (Stream) o.readObject();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		return stream;
+
+	}
+
 
 }
