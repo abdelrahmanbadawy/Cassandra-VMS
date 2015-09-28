@@ -430,6 +430,14 @@ public class ViewManager{
 
 			do{
 
+				if (!override) {
+					stream.setUpdatedPreaggRowChangeAK(null);
+					stream.setUpdatedPreaggRowDeleted(null);
+				}
+				if (!mapSize1) {
+					stream.setUpdatedPreaggRowDeleted(null);
+				}
+
 				ResultSet rs = PreaggregationHelper.selectStatement(json, preaggTable, aggKey, aggKeyValue);
 				Row theRow1 = rs.one();
 				HashMap<String, String> myMap = new HashMap<>();
@@ -445,11 +453,11 @@ public class ViewManager{
 					float average = sum / count;
 					float min = aggColValue;
 					float max = aggColValue;
-					
-					CustomizedRow constructedRow = CustomizedRow.constructUpdatedPreaggRow(aggKey,aggKeyValue,myList,sum,count,average,min,max);
+
+					CustomizedRow constructedRow = CustomizedRow.constructUpdatedPreaggRow(aggKey,aggKeyValue,myList,sum,count,average,min,max, Serialize.serializeStream(stream));
 					stream.setUpdatedPreaggRow(constructedRow);
 					ByteBuffer blob = Serialize.serializeStream(stream);
-					
+
 					if(PreaggregationHelper.firstInsertion(myList,aggColValue,json,preaggTable,aggKey,aggKeyValue,blob)) {
 						loop = false;
 					}else{
@@ -461,9 +469,8 @@ public class ViewManager{
 					// for this agg Key
 
 					ByteBuffer blob_old = theRow1.getBytes("blob");
-					ByteBuffer blob_new = Serialize.serializeStream(stream);
 
-					if(PreaggregationHelper.updateAggColValue(myList, aggColValue, aggColValue_old, theRow1, aggColIndexInList,json,preaggTable,aggKey,aggKeyValue,blob_old,blob_new)){
+					if(PreaggregationHelper.updateAggColValue(stream,myList, aggColValue, aggColValue_old, theRow1, aggColIndexInList,json,preaggTable,aggKey,aggKeyValue,blob_old)){
 						loop = false;
 					}else{
 						loop = true;
@@ -471,23 +478,6 @@ public class ViewManager{
 				}
 
 			}while(loop);
-
-
-			// =======================================
-			// 4.Retrieve row from preagg
-
-			ResultSet rs = PreaggregationHelper.selectStatement(json, preaggTable, aggKey, aggKeyValue);
-			Row row = rs.one();
-			CustomizedRow crow = new CustomizedRow(row);
-
-			stream.setUpdatedPreaggRow(crow);
-			if (!override) {
-				stream.setUpdatedPreaggRowChangeAK(null);
-				stream.setUpdatedPreaggRowDeleted(null);
-			}
-			if (!mapSize1) {
-				stream.setUpdatedPreaggRowDeleted(null);
-			}
 
 		} else if ((!sameKeyValue && !override)) {
 
@@ -546,17 +536,14 @@ public class ViewManager{
 						theRow = PreAggMap.one();
 						blob_old = theRow.getBytes("blob");
 					}
-
+					// Selection to set updatedRow
+					CustomizedRow crow = new CustomizedRow(PreAggMap.one());
+					stream.setUpdatedPreaggRowChangeAK(crow);
 
 					// perform a new insertion for the new aggkey given in json
 					updatePreaggregation(stream, aggKey, aggKeyType,
 							json, preaggTable, baseTablePrimaryKey, aggCol,
 							aggColType, true, false);
-
-					// Selection to set updatedRow
-					PreAggMap = PreaggregationHelper.selectStatement(json, preaggTable, aggKey, aggKeyValue_old);
-					CustomizedRow crow = new CustomizedRow(PreAggMap.one());
-					stream.setUpdatedPreaggRowChangeAK(crow);
 				}
 			}
 
