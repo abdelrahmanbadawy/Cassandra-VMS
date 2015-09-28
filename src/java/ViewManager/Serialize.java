@@ -9,7 +9,7 @@ import java.nio.ByteBuffer;
 
 public class Serialize {
 
-	public ByteBuffer serializeStream(Stream ms){
+	public static ByteBuffer serializeStream(Stream ms){
 
 		ByteArrayOutputStream b = new ByteArrayOutputStream();
 		ObjectOutputStream o;
@@ -25,7 +25,7 @@ public class Serialize {
 		
 	}
 
-	public Stream deserializeStream(ByteBuffer buffer){
+	public static Stream deserializeStream(ByteBuffer buffer){
 
 		Stream stream = null;
 		
