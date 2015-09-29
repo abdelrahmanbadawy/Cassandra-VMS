@@ -7,6 +7,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.ByteBuffer;
 
+import com.datastax.driver.core.utils.Bytes;
+
 public class Serialize {
 
 	public static ByteBuffer serializeStream(Stream ms){
@@ -22,6 +24,22 @@ public class Serialize {
 
 
 		return ByteBuffer.wrap(b.toByteArray());
+
+	}
+	
+	public static String serializeStream2(Stream ms){
+
+		ByteArrayOutputStream b = new ByteArrayOutputStream();
+		ObjectOutputStream o;
+		try {
+			o = new ObjectOutputStream(b);
+			o.writeObject(ms);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+
+		return Bytes.toHexString(b.toByteArray());
 
 	}
 
