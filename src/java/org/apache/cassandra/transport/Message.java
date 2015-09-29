@@ -416,7 +416,7 @@ public abstract class Message {
 
 				if (response.toString().equals("EMPTY RESULT")
 						&& ! request.toString().toLowerCase().contains("selection")
-						&& ! request.toString().toLowerCase().contains("rj_")
+						//&& ! request.toString().toLowerCase().contains("rj_")
 						&& ! request.toString().toLowerCase().contains("delta_")
 						&& ! request.toString().toLowerCase().contains("inner_")
 						&& ! request.toString().toLowerCase().contains("left_")
