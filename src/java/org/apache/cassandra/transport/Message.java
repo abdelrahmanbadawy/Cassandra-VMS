@@ -414,10 +414,8 @@ public abstract class Message {
 				response.attach(connection);
 				connection.applyStateTransition(request.type, response.type);
 
-			
-				if (response.toString().equals("EMPTY RESULT")
-						&& ! request.toString().toLowerCase().contains("selection")
-						//&& ! request.toString().toLowerCase().contains("rj_")
+
+				if ( ! request.toString().toLowerCase().contains("selection")
 						&& ! request.toString().toLowerCase().contains("delta_")
 						&& ! request.toString().toLowerCase().contains("inner_")
 						&& ! request.toString().toLowerCase().contains("having_")
