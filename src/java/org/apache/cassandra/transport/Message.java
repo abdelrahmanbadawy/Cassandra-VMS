@@ -17,6 +17,7 @@
  */
 package org.apache.cassandra.transport;
 
+import java.io.PrintWriter;
 import java.io.StringReader;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -61,7 +62,7 @@ public abstract class Message {
 	static Logger commitLogger = LoggerFactory.getLogger("commitLogger");
 
 	static long transactionId = 0;
-	
+
 	/**
 	 * When we encounter an unexpected IOException we look for these
 	 * {@link Throwable#getMessage() messages} (because we have no better way to
@@ -412,13 +413,13 @@ public abstract class Message {
 				response.setStreamId(request.getStreamId());
 				response.attach(connection);
 				connection.applyStateTransition(request.type, response.type);
-				
-				
-					
 
 				if ( ! request.toString().toLowerCase().contains("selection")
 						&& ! request.toString().toLowerCase().contains("delta_")
 						&& ! request.toString().toLowerCase().contains("inner_")
+						&& ! request.toString().toLowerCase().contains("having_")
+						&& ! request.toString().toLowerCase().contains("leftjoin_")
+						&& ! request.toString().toLowerCase().contains("rightjoin_")
 						&& ! request.toString().toLowerCase().contains("left_")
 						&& ! request.toString().toLowerCase().contains("right_")
 						&& ! request.toString().toLowerCase().contains("join_agg")
@@ -427,9 +428,8 @@ public abstract class Message {
 										.contains("update") || (request
 								.toString().toLowerCase().contains("delete")))) {
 
-					
 					this.parseInputForViewMaintenance(request.toString() + '\n');
-					
+
 				}
 
 			} catch (Throwable t) {
@@ -448,7 +448,7 @@ public abstract class Message {
 		}
 
 		private void parseInputForViewMaintenance(String rawInput) {
-			
+
 			transactionId++;
 
 			String queryType = rawInput.split(" ")[1].toLowerCase();
@@ -523,13 +523,10 @@ public abstract class Message {
 							.replace("(", "").replace(")", "").split(", ");
 
 					if (!tableName.contains("SelectView") && !tableName.contains("delta") )
-						
-						
 						commitLogger.info(convertInsertToJSON(queryType,
 								keySpaceName, tableName, columns, values,
 								transactionId).toJSONString());
-					
-				
+
 				}
 				// delete
 				else {
