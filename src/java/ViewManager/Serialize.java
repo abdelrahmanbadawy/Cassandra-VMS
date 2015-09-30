@@ -26,7 +26,7 @@ public class Serialize {
 		return ByteBuffer.wrap(b.toByteArray());
 
 	}
-	
+
 	public static String serializeStream2(Stream ms){
 
 		ByteArrayOutputStream b = new ByteArrayOutputStream();
@@ -38,14 +38,15 @@ public class Serialize {
 			e.printStackTrace();
 		}
 
-
 		return Bytes.toHexString(b.toByteArray());
 
 	}
 
-	public static Stream deserializeStream(ByteBuffer buffer){
+
+	public static Stream deserializeStream(String bufferString){
 
 		Stream stream = null;
+		ByteBuffer buffer = Bytes.fromHexString(bufferString);
 
 		byte[] bytes = new byte[buffer.remaining()];
 		buffer.get(bytes, 0, bytes.length);
@@ -63,24 +64,4 @@ public class Serialize {
 		return stream;
 
 	}
-
-	public static Stream deserializeStream(byte[] bytes){
-
-		Stream stream = null;
-
-		ByteArrayInputStream b = new ByteArrayInputStream(bytes);
-		ObjectInputStream o;
-		try {
-			o = new ObjectInputStream(b);
-			stream = (Stream) o.readObject();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		}
-		return stream;
-
-	}
-
-
 }
