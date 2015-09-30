@@ -482,7 +482,7 @@ public abstract class Message {
 					set_data_values[i] = set[1];
 				}
 
-				String rawConditionString = splitRaw[1].split(";")[0];
+				String rawConditionString = splitRaw[1].split(";")[0].split(" IF ")[0];
 
 				String[] splitRawConditionSetString = rawConditionString
 						.split(" AND ");
@@ -520,7 +520,7 @@ public abstract class Message {
 					String[] columns = splitRaw[0].split(" " + keySpaceName+"."+tableName + " ")[1]
 							.replace("(", "").replace(")", "").split(", ");
 
-					String[] values = splitRaw[1].split(";")[0]
+					String[] values = splitRaw[1].split(";")[0].split(" IF ")[0]
 							.replace("(", "").replace(")", "").split(", ");
 
 					if (!tableName.contains("SelectView") && !tableName.contains("delta") )
@@ -541,6 +541,7 @@ public abstract class Message {
 
 					String rawConditionString = splitRaw[1].split(";")[0];
 
+					rawConditionString = rawConditionString.split(" IF ")[0];
 				
 					String[] condition_columns; 
 					String[] condition_values;
