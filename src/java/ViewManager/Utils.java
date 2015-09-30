@@ -94,29 +94,29 @@ public class Utils {
 		return result;
 	}
 
-	
-	
+
+
 	public static void insertStatement(String keyspace,String table, String colNames, String colValues){
-		
+
 		StringBuilder insertQueryAgg = new StringBuilder("INSERT INTO ");
 		insertQueryAgg.append(keyspace).append(".")
 		.append(table).append(" ( ").append(colNames).append(") VALUES (").append(colValues).append(" );");
 
 		System.out.println(insertQueryAgg);
-		
-		
-		
+
+
+
 		try {
 			Session session = currentCluster.connect();
 			session.execute(insertQueryAgg.toString());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
-	
+
+
 	}
-	
-	
+
+
 	//evaluates a condition
 	public static boolean evaluateCondition(CustomizedRow row, String operation, String value,
 			String type, String colName) {
@@ -132,7 +132,7 @@ public class Utils {
 		case "text":
 
 			if (operation.equals("=")) {
-				
+
 				if(row.isNull(colName)){
 					eval = false;
 				}else if (row.getString(colName).equals(value)) {
@@ -142,7 +142,7 @@ public class Utils {
 				}
 
 			} else if (operation.equals("!=")) {
-				
+
 				if(row.isNull(colName)){
 					eval = false;
 				}else if (!row.getString(colName).equals(value)) {
@@ -158,7 +158,7 @@ public class Utils {
 		case "varchar":
 
 			if (operation.equals("=")) {
-				
+
 				if(row.isNull(colName)){
 					eval = false;
 				}else if (row.getString(colName).equals(value)) {
@@ -181,12 +181,12 @@ public class Utils {
 		case "int":
 
 			// for _new col
-			
+
 			if(row.isNull(colName)){
 				eval = false;
 				return eval;
 			}
-			
+
 			String s1 = Integer.toString(row.getInt(colName));
 			Integer valueInt = new Integer(s1);
 			int compareValue = valueInt.compareTo(new Integer(value));
@@ -209,7 +209,7 @@ public class Utils {
 				eval = false;
 				return eval;
 			}
-			
+
 			// for _new col
 			s1 = row.getVarint(colName).toString();
 			valueInt = new Integer(new BigInteger(s1).intValue());
@@ -228,7 +228,7 @@ public class Utils {
 			break;
 
 		case "float":
-			
+
 			if(row.isNull(colName)){
 				eval = false;
 				return eval;
@@ -264,7 +264,10 @@ public class Utils {
 			if(stream.isNull(name + suffix)){
 				value = "null";
 			}else{
-				value = ("'"+ stream.getString(name + suffix) + "'");
+				if(stream.getString(name + suffix).startsWith("'") && stream.getString(name + suffix).endsWith("'"))
+					value = stream.getString(name + suffix);
+				else
+					value = ("'"+ stream.getString(name + suffix) + "'");
 			}	
 			break;
 
@@ -288,7 +291,10 @@ public class Utils {
 			if(stream.isNull(name + suffix)){
 				value = "null";
 			}else{
-				value = ("'"+ stream.getString(name + suffix) + "'");
+				if(stream.getString(name + suffix).startsWith("'") && stream.getString(name + suffix).endsWith("'"))
+					value = stream.getString(name + suffix);
+				else
+					value = ("'"+ stream.getString(name + suffix) + "'");
 			}
 			break;
 
