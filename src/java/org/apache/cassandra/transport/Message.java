@@ -415,7 +415,15 @@ public abstract class Message {
 				connection.applyStateTransition(request.type, response.type);
 
 
-				if ( ! request.toString().toLowerCase().contains("selection")
+				boolean applied = true;
+				
+				
+				if(response.toString().contains("[applied]") && response.toString().split("\n")[1].split(" ")[2].equals("false")){
+					applied = false;
+				}
+				
+				
+				if (applied && ! request.toString().toLowerCase().contains("selection")
 						&& ! request.toString().toLowerCase().contains("delta_")
 						&& ! request.toString().toLowerCase().contains("inner_")
 						&& ! request.toString().toLowerCase().contains("having_")
@@ -432,6 +440,7 @@ public abstract class Message {
 					this.parseInputForViewMaintenance(request.toString() + '\n');
 
 				}
+				
 
 			} catch (Throwable t) {
 				JVMStabilityInspector.inspectThrowable(t);
