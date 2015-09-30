@@ -186,6 +186,7 @@ public class ViewManager{
 		// 2. set DeltaDeletedRow variable for streaming
 		CustomizedRow crow = new CustomizedRow(row);
 		stream.setDeltaDeletedRow(crow);
+		stream.setDeleteOperation(true);
 
 		// 3. delete row from delta
 		Utils.deleteEntireRowWithPK((String)json.get("keyspace"), "delta_" + json.get("table"),  hm[0].toString(), condition.get(hm[0]).toString());

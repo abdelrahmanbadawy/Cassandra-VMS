@@ -57,6 +57,7 @@ public class Stream implements Serializable {
 
 
 	public Stream() {
+		isDeleteOperation = false;
 		resetJoinAggGroupByUpRows();
 		resetJoinAggRows();
 		resetDeltaRows();

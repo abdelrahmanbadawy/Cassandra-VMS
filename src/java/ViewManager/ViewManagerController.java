@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.cassandra.cql3.UpdateParameters;
 import org.apache.cassandra.db.marshal.ColumnToCollectionType;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
@@ -132,9 +133,9 @@ public class ViewManagerController {
 		int indexBaseTableName = baseTableName.indexOf((String) json.get("table"));
 		String baseTablePrimaryKey = pkName.get(indexBaseTableName);
 		String baseTablePrimaryKeyType = pkType.get(indexBaseTableName);
-		
+
 		stream = new Stream();
-		
+
 		stream.setBaseTable((String) json.get("table"));
 
 		CustomizedRow deltaUpdatedRow = null;
@@ -534,7 +535,7 @@ public class ViewManagerController {
 				}
 
 			}
-/*
+			/*
 			// HERE UPDATE JOIN TABLES
 
 			// ===================================================================================================================
@@ -954,7 +955,7 @@ public class ViewManagerController {
 				}
 
 			}
-*/
+			 */
 			// END OF UPDATE JoinPreag
 			stream.resetReverseJoinRows();
 
@@ -1286,14 +1287,14 @@ public class ViewManagerController {
 		String baseTablePrimaryKey = pkName.get(indexBaseTableName);
 		stream = new Stream();
 		stream.setBaseTable((String) json.get("table"));
-		
+
 		CustomizedRow deltaDeletedRow = null;
 
 		// 1. delete from Delta Table
 		// 1.a If successful, retrieve entire delta Row from Delta to pass on as
 		// streams
 		if (deleteOperation) {
-			if (vm.deleteRowDelta(stream,json)) {
+			if (vm.deleteRowDelta(stream,json)) {			
 				deltaDeletedRow = stream.getDeltaDeletedRow();
 			}
 		} else
@@ -2394,14 +2395,9 @@ public class ViewManagerController {
 	}
 
 
-	public void propagatePreaggUpdate(JSONObject json) {
+	public void propagatePreaggUpdate(Stream stream1, JSONObject json) {
 
-		JSONObject data = (JSONObject) json.get("data");
-		String bufferString = data.get("stream").toString();
-
-		 stream = null;
-
-		stream = Serialize.deserializeStream(bufferString);
+		stream = stream1;
 
 		String preaggTable = json.get("table").toString();
 
@@ -2496,21 +2492,21 @@ public class ViewManagerController {
 
 
 	}
-	
-public boolean propagateRJ(JSONObject json) {
 
-	
-		
+	public boolean propagateRJ(JSONObject json) {
+
+
+
 		JSONObject data = (JSONObject) json.get("data");
-		
+
 		String bufferString = data.get("stream").toString();
-		
-		
-		
-	     stream = Serialize.deserializeStream(bufferString);
-	     
-	     System.out.println("++++++++     "+stream.getBaseTable());
-		
+
+
+
+		stream = Serialize.deserializeStream(bufferString);
+
+		System.out.println("++++++++     "+stream.getBaseTable());
+
 		String tableName = stream.getBaseTable();
 		int indexBaseTableName = baseTableName.indexOf(stream.getBaseTable());
 		String baseTablePrimaryKey = pkName.get(indexBaseTableName);
@@ -2562,7 +2558,7 @@ public boolean propagateRJ(JSONObject json) {
 				String rightJoinTable = VmXmlHandler.getInstance()
 						.getRjJoinMapping().getString(s + ".RightTable");
 
-				 
+
 
 				Boolean updateLeft = false;
 				Boolean updateRight = false;
@@ -2602,7 +2598,7 @@ public boolean propagateRJ(JSONObject json) {
 			String rightJoinTable = VmXmlHandler.getInstance()
 					.getRJAggJoinMapping().getString(temp + ".RightTable");
 
-			
+
 
 			if (tableName.equals(leftJoinTable)) {
 				updateLeft = true;
@@ -2626,7 +2622,7 @@ public boolean propagateRJ(JSONObject json) {
 						.getRJAggJoinMapping()
 						.getString(
 								temp + ".leftAggColumns.c(" + e
-										+ ").inner.name");
+								+ ").inner.name");
 				String leftJoinAggTable = VmXmlHandler
 						.getInstance()
 						.getRJAggJoinMapping()
@@ -2676,13 +2672,13 @@ public boolean propagateRJ(JSONObject json) {
 						.getRJAggJoinMapping()
 						.getString(
 								temp + ".rightAggColumns.c(" + e
-										+ ").inner.name");
+								+ ").inner.name");
 				String rightJoinAggTable = VmXmlHandler
 						.getInstance()
 						.getRJAggJoinMapping()
 						.getString(
 								temp + ".rightAggColumns.c(" + e
-										+ ").right.name");
+								+ ").right.name");
 
 				int index = VmXmlHandler.getInstance().getRJAggJoinMapping()
 						.getInt(temp + ".rightAggColumns.c(" + e + ").index");
@@ -2714,5 +2710,28 @@ public boolean propagateRJ(JSONObject json) {
 		}
 		return true;
 	}
+
+	public void decidePreagg(JSONObject json) {
+
+		JSONObject data = (JSONObject) json.get("data");
+		String bufferString = data.get("stream").toString();
+
+		stream = null;
+		stream = Serialize.deserializeStream(bufferString);
+
+		if(!stream.isDeleteOperation()){
+			propagatePreaggUpdate(stream,json);
+		}else{
+			propagatePreaggDelete(stream,json);
+		}
+		
+
+	}
+
+	private void propagatePreaggDelete(Stream stream2, JSONObject json) {
+		// TODO Auto-generated method stub
+		
+	}
+
 
 }

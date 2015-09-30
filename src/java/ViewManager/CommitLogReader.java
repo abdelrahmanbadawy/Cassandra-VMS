@@ -44,15 +44,15 @@ public class CommitLogReader {
 				String jsonString = splitRaw[1];
 
 				JSONObject json = (JSONObject) new JSONParser()
-						.parse(jsonString);
+				.parse(jsonString);
 
 				String type = json.get("type").toString();
 				String table = json.get("table").toString();
 
-				if (table.contains("preagg_agg")) {
 
+				if (table.contains("preagg_agg")) {
 					if (type.equalsIgnoreCase("insert"))
-						vmc.propagatePreaggUpdate(json);
+						vmc.decidePreagg(json);
 
 				} else {
 

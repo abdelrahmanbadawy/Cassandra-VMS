@@ -16,7 +16,7 @@ public class CustomizedRow implements Serializable{
 	private List<String> colTypes;
 	private List<Object> colValues;
 	int colDefSize;
-
+	
 	private static final long serialVersionUID = 1L;
 
 	public CustomizedRow(){
@@ -176,4 +176,5 @@ public class CustomizedRow implements Serializable{
 
 		return crow;
 	}
+
 }
