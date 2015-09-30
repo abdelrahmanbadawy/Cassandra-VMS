@@ -154,7 +154,7 @@ public class CustomizedRow implements Serializable{
 	}
 
 	public void setColValues(List<Object> values){
-		this.colValues.addAll(colValues);
+		this.colValues.addAll(values);
 	}
 
 	public void setColDefSize(int value){
