@@ -7,6 +7,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.apache.cassandra.db.marshal.ColumnToCollectionType;
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.json.simple.JSONObject;
@@ -21,6 +23,7 @@ import com.datastax.driver.core.Session;
 import com.datastax.driver.core.policies.DCAwareRoundRobinPolicy;
 import com.datastax.driver.core.policies.DefaultRetryPolicy;
 import com.datastax.driver.core.policies.TokenAwarePolicy;
+import com.datastax.driver.core.utils.Bytes;
 
 public class ViewManagerController {
 
@@ -51,7 +54,7 @@ public class ViewManagerController {
 		stream = new Stream();
 
 		vm = new ViewManager(currentCluster);
-		
+
 	}
 
 	private void retrieveLoadXmlHandlers() {
@@ -2383,14 +2386,18 @@ public class ViewManagerController {
 		return true;
 	}
 
-	
+
 	public void propagatePreaggUpdate(JSONObject json) {
-		
+
 		JSONObject data = (JSONObject) json.get("data");
-		byte[] buffer = data.get("stream").toString().getBytes();
-		Stream stream = Serialize.deserializeStream(buffer);
+		String bufferString = data.get("stream").toString();
+
+		Stream stream = null;
+
+		stream = Serialize.deserializeStream(bufferString);
+
 		String preaggTable = json.get("table").toString();
-		
+
 		// 2.1 update preaggregations with having clause
 		// check if preagg has some having clauses or not
 		int position1 = preaggTableNames.indexOf(preaggTable);
@@ -2480,7 +2487,7 @@ public class ViewManagerController {
 					+ preaggTable + " available");
 		}
 
-		
+
 	}
 
 }

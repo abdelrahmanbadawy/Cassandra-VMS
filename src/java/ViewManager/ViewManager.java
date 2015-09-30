@@ -30,8 +30,8 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 
-
-
+import flexjson.JSONDeserializer;
+import flexjson.JSONSerializer;
 
 
 public class ViewManager{
@@ -337,7 +337,7 @@ public class ViewManager{
 
 
 		CustomizedRow deltaUpdatedRow = stream.getDeltaUpdatedRow();
-
+		
 		if (deltaUpdatedRow != null) {
 
 			int indexNew = deltaUpdatedRow.getIndexOf(aggKey + "_new");
@@ -447,17 +447,7 @@ public class ViewManager{
 					// 2.c.1 create a map, add pk and list with delta _new values
 					// 2.c.2 set the agg col values
 
-					float sum = aggColValue;
-					int count = 1;
-					float average = sum / count;
-					float min = aggColValue;
-					float max = aggColValue;
-
-					CustomizedRow constructedRow = CustomizedRow.constructUpdatedPreaggRow(aggKey,aggKeyValue,myList,sum,count,average,min,max, Serialize.serializeStream(stream));
-					stream.setUpdatedPreaggRow(constructedRow);
-					ByteBuffer blob = Serialize.serializeStream(stream);
-
-					if(PreaggregationHelper.firstInsertion(myList,aggColValue,json,preaggTable,aggKey,aggKeyValue,blob)) {
+					if(PreaggregationHelper.firstInsertion(stream,myList,aggColValue,json,preaggTable,aggKey,aggKeyValue)) {
 						loop = false;
 					}else{
 						loop = true;
@@ -528,7 +518,7 @@ public class ViewManager{
 					// aggKeyValue_old to refelect changes
 
 					ByteBuffer blob_old = theRow.getBytes("blob");
-					ByteBuffer blob_new = Serialize.serializeStream(stream);
+					String blob_new = Serialize.serializeStream2(stream);
 
 					while(!PreaggregationHelper.subtractOldAggColValue(myList, aggColValue_old, myMap, theRow, aggColIndexInList, json, preaggTable, aggKey, aggKeyValue_old,blob_old,blob_new)){
 						PreAggMap = PreaggregationHelper.selectStatement(json, preaggTable, aggKey, aggKeyValue_old);
