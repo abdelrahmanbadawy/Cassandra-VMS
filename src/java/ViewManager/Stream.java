@@ -50,7 +50,10 @@ public class Stream implements Serializable {
 	private CustomizedRow reverseJoinUpdatedOldRow_changeJoinKey;
 	private CustomizedRow reverseJoinDeleteNewRow;
 	private CustomizedRow revereJoinDeleteOldRow;
-
+	
+	private String baseTable;
+	
+	private boolean isDeleteOperation;
 
 
 	public Stream() {
@@ -60,6 +63,7 @@ public class Stream implements Serializable {
 		resetPreaggregationRows();
 		resetReverseJoinRows();
 	}
+
 
 	public void resetReverseJoinRows() {
 		reverseJoinUpdateNewRow = null;
@@ -342,6 +346,22 @@ public class Stream implements Serializable {
 
 	public void setDeletePreaggRowDeleted(CustomizedRow deletePreaggRowDeleted) {
 		this.deletePreaggRowDeleted = deletePreaggRowDeleted;
+	}
+	
+	public String getBaseTable() {
+		return baseTable;
+	}
+
+	public void setBaseTable(String baseTable) {
+		this.baseTable = baseTable;
+	}
+	
+	public boolean isDeleteOperation() {
+		return isDeleteOperation;
+	}
+
+	public void setDeleteOperation(boolean isDeleteOperation) {
+		this.isDeleteOperation = isDeleteOperation;
 	}
 
 }

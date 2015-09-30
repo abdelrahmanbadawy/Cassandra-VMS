@@ -30,9 +30,6 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 
-import flexjson.JSONDeserializer;
-import flexjson.JSONSerializer;
-
 
 public class ViewManager{
 
@@ -648,7 +645,7 @@ public class ViewManager{
 			// delete this from the other row
 			myMap2.remove(pk);
 
-			ReverseJoinHelper.insertStatement(joinTable, keyspace, joinKeyName, oldJoinKeyValue, column, myMap2);
+			ReverseJoinHelper.insertStatement(joinTable, keyspace, joinKeyName, oldJoinKeyValue, column, myMap2, stream);
 
 			// retrieve and set update old row
 			Row row_after_change_join_value = Utils.selectAllStatement(keyspace, joinTable, joinKeyName, oldJoinKeyValue);
@@ -683,7 +680,7 @@ public class ViewManager{
 			stream.setReverseJoinUpadteOldRow(crow2);
 		}
 
-		ReverseJoinHelper.insertStatement(joinTable, keyspace, joinKeyName, joinKeyValue, column, myMap);
+		ReverseJoinHelper.insertStatement(joinTable, keyspace, joinKeyName, joinKeyValue, column, myMap, stream);
 
 		// Set the rj updated row for join updates
 		Row result = Utils.selectAllStatement(keyspace, joinTable, joinKeyName, joinKeyValue);
@@ -1242,7 +1239,7 @@ public class ViewManager{
 				myMap.remove(pk);
 			}
 
-			ReverseJoinHelper.insertStatement(joinTable, keyspace, joinKeyName, joinKeyValue, column, myMap);
+			ReverseJoinHelper.insertStatement(joinTable, keyspace, joinKeyName, joinKeyValue, column, myMap, stream);
 
 
 			// checking if all list items are null --> delete the whole row

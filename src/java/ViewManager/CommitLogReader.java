@@ -23,7 +23,7 @@ public class CommitLogReader {
 		try {
 			br = new BufferedReader(new FileReader("logs//output.log"));
 			vmc = new ViewManagerController();
-			
+
 		} catch (FileNotFoundException e) {
 
 			e.printStackTrace();
@@ -44,28 +44,34 @@ public class CommitLogReader {
 				String jsonString = splitRaw[1];
 
 				JSONObject json = (JSONObject) new JSONParser()
-				.parse(jsonString);
+						.parse(jsonString);
 
 				String type = json.get("type").toString();
 				String table = json.get("table").toString();
 
-				if(table.contains("preagg_agg")){
-					
-					if(type.equalsIgnoreCase("insert"))
+				if (table.contains("preagg_agg")) {
+
+					if (type.equalsIgnoreCase("insert"))
 						vmc.propagatePreaggUpdate(json);
-		
-				}else{
 
-					if (type.equals("insert")) {
-						vmc.update(json);
-					}
+				} else {
 
-					if (type.equals("update")) {
-						vmc.update(json);
-					}
+					if (table.contains("RJ_")) {
+						if (type.equalsIgnoreCase("insert"))
+							vmc.propagateRJ(json);
+					} else {
 
-					if (type.equals("delete-row")) {
-						vmc.cascadeDelete(json, true);
+						if (type.equals("insert")) {
+							vmc.update(json);
+						}
+
+						if (type.equals("update")) {
+							vmc.update(json);
+						}
+
+						if (type.equals("delete-row")) {
+							vmc.cascadeDelete(json, true);
+						}
 					}
 				}
 

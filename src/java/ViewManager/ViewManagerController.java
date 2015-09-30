@@ -132,6 +132,10 @@ public class ViewManagerController {
 		int indexBaseTableName = baseTableName.indexOf((String) json.get("table"));
 		String baseTablePrimaryKey = pkName.get(indexBaseTableName);
 		String baseTablePrimaryKeyType = pkType.get(indexBaseTableName);
+		
+		stream = new Stream();
+		
+		stream.setBaseTable((String) json.get("table"));
 
 		CustomizedRow deltaUpdatedRow = null;
 
@@ -530,7 +534,7 @@ public class ViewManagerController {
 				}
 
 			}
-
+/*
 			// HERE UPDATE JOIN TABLES
 
 			// ===================================================================================================================
@@ -950,7 +954,7 @@ public class ViewManagerController {
 				}
 
 			}
-
+*/
 			// END OF UPDATE JoinPreag
 			stream.resetReverseJoinRows();
 
@@ -1280,6 +1284,9 @@ public class ViewManagerController {
 		int indexBaseTableName = baseTableName.indexOf((String) json
 				.get("table"));
 		String baseTablePrimaryKey = pkName.get(indexBaseTableName);
+		stream = new Stream();
+		stream.setBaseTable((String) json.get("table"));
+		
 		CustomizedRow deltaDeletedRow = null;
 
 		// 1. delete from Delta Table
@@ -2392,7 +2399,7 @@ public class ViewManagerController {
 		JSONObject data = (JSONObject) json.get("data");
 		String bufferString = data.get("stream").toString();
 
-		Stream stream = null;
+		 stream = null;
 
 		stream = Serialize.deserializeStream(bufferString);
 
@@ -2488,6 +2495,224 @@ public class ViewManagerController {
 		}
 
 
+	}
+	
+public boolean propagateRJ(JSONObject json) {
+
+	
+		
+		JSONObject data = (JSONObject) json.get("data");
+		
+		String bufferString = data.get("stream").toString();
+		
+		
+		
+	     stream = Serialize.deserializeStream(bufferString);
+	     
+	     System.out.println("++++++++     "+stream.getBaseTable());
+		
+		String tableName = stream.getBaseTable();
+		int indexBaseTableName = baseTableName.indexOf(stream.getBaseTable());
+		String baseTablePrimaryKey = pkName.get(indexBaseTableName);
+		String baseTablePrimaryKeyType = pkType.get(indexBaseTableName);
+
+		// String tableName = (String) json.get("table");
+		String keyspace = (String) json.get("keyspace");
+
+		String joinTable = json.get("table").toString();
+
+		// j
+		int indexOfRJ = rj_joinTables.indexOf(joinTable);
+
+		// basetables
+		int nrOfTables = Integer.parseInt(rj_nrDelta.get(indexOfRJ));
+
+		List<String> baseTables = Arrays.asList(joinTable.split("_")).subList(
+				1, nrOfTables + 1);
+
+		int column = baseTables.indexOf(tableName) + 1;
+
+		String joinKeyName = rj_joinKeys.get(indexOfRJ * 2 + column - 1);
+
+		String joinKeyType = rj_joinKeyTypes.get(indexOfRJ);
+
+		int position = reverseTablesNames_Join.indexOf(joinTable);
+
+		if (position != -1) {
+
+			String temp = "mapping.unit(";
+			temp += Integer.toString(position);
+			temp += ")";
+
+			int nrJoin = VmXmlHandler.getInstance().getRjJoinMapping()
+					.getInt(temp + ".nrJoin");
+
+			for (int i = 0; i < nrJoin; i++) {
+
+				String s = temp + ".join(" + Integer.toString(i) + ")";
+				String innerJoinTableName = VmXmlHandler.getInstance()
+						.getRjJoinMapping().getString(s + ".innerJoin");
+				String leftJoinTableName = VmXmlHandler.getInstance()
+						.getRjJoinMapping().getString(s + ".leftJoin");
+				String rightJoinTableName = VmXmlHandler.getInstance()
+						.getRjJoinMapping().getString(s + ".rightJoin");
+
+				String leftJoinTable = VmXmlHandler.getInstance()
+						.getRjJoinMapping().getString(s + ".LeftTable");
+				String rightJoinTable = VmXmlHandler.getInstance()
+						.getRjJoinMapping().getString(s + ".RightTable");
+
+				 
+
+				Boolean updateLeft = false;
+				Boolean updateRight = false;
+
+				if (tableName.equals(leftJoinTable)) {
+					updateLeft = true;
+				} else {
+					updateRight = true;
+				}
+
+				vm.updateJoinController(stream, innerJoinTableName,
+						leftJoinTableName, rightJoinTableName, json,
+						updateLeft, updateRight, joinKeyType, joinKeyName,
+						baseTablePrimaryKey);
+
+			}
+		} else {
+			System.out.println("No join table for this reverse join table "
+					+ joinTable + " available");
+		}
+
+		// UPDATE join agg
+
+		int positionAgg = reverseTablesNames_AggJoin.indexOf(joinTable);
+
+		if (positionAgg != -1) {
+
+			String temp = "mapping.unit(";
+			temp += Integer.toString(positionAgg);
+			temp += ")";
+
+			Boolean updateLeft = false;
+			Boolean updateRight = false;
+
+			String leftJoinTable = VmXmlHandler.getInstance()
+					.getRJAggJoinMapping().getString(temp + ".LeftTable");
+			String rightJoinTable = VmXmlHandler.getInstance()
+					.getRJAggJoinMapping().getString(temp + ".RightTable");
+
+			
+
+			if (tableName.equals(leftJoinTable)) {
+				updateLeft = true;
+			} else {
+				updateRight = true;
+			}
+
+			int nrLeftAggColumns = VmXmlHandler.getInstance()
+					.getRJAggJoinMapping().getInt(temp + ".leftAggColumns.nr");
+
+			for (int e = 0; e < nrLeftAggColumns; e++) {
+
+				String aggColName = VmXmlHandler.getInstance()
+						.getRJAggJoinMapping()
+						.getString(temp + ".leftAggColumns.c(" + e + ").name");
+				String aggColType = VmXmlHandler.getInstance()
+						.getRJAggJoinMapping()
+						.getString(temp + ".leftAggColumns.c(" + e + ").type");
+				String innerJoinAggTable = VmXmlHandler
+						.getInstance()
+						.getRJAggJoinMapping()
+						.getString(
+								temp + ".leftAggColumns.c(" + e
+										+ ").inner.name");
+				String leftJoinAggTable = VmXmlHandler
+						.getInstance()
+						.getRJAggJoinMapping()
+						.getString(
+								temp + ".leftAggColumns.c(" + e + ").left.name");
+
+				int index = VmXmlHandler.getInstance().getRJAggJoinMapping()
+						.getInt(temp + ".leftAggColumns.c(" + e + ").index");
+
+				if (updateLeft) {
+
+					vm.updateJoinAgg_UpdateLeft_AggColLeftSide(stream,
+							innerJoinAggTable, leftJoinAggTable, json,
+							joinKeyType, joinKeyName, aggColName, aggColType);
+				} else {
+					vm.updateJoinAgg_UpdateRight_AggColLeftSide(stream,
+							innerJoinAggTable, leftJoinAggTable, json,
+							joinKeyType, joinKeyName, aggColName, aggColType,
+							index);
+				}
+
+				if (!leftJoinAggTable.equals("false")) {
+					evaluateLeftorRightJoinAggHaving(temp, "leftAggColumns", e,
+							json, "left");
+				}
+
+				if (!innerJoinAggTable.equals("false")) {
+					evaluateInnerJoinAggHaving(temp, "leftAggColumns", e, json);
+				}
+
+				stream.resetJoinAggRows();
+			}
+
+			int nrRightAggColumns = VmXmlHandler.getInstance()
+					.getRJAggJoinMapping().getInt(temp + ".rightAggColumns.nr");
+
+			for (int e = 0; e < nrRightAggColumns; e++) {
+
+				String aggColName = VmXmlHandler.getInstance()
+						.getRJAggJoinMapping()
+						.getString(temp + ".rightAggColumns.c(" + e + ").name");
+				String aggColType = VmXmlHandler.getInstance()
+						.getRJAggJoinMapping()
+						.getString(temp + ".rightAggColumns.c(" + e + ").type");
+				String innerJoinAggTable = VmXmlHandler
+						.getInstance()
+						.getRJAggJoinMapping()
+						.getString(
+								temp + ".rightAggColumns.c(" + e
+										+ ").inner.name");
+				String rightJoinAggTable = VmXmlHandler
+						.getInstance()
+						.getRJAggJoinMapping()
+						.getString(
+								temp + ".rightAggColumns.c(" + e
+										+ ").right.name");
+
+				int index = VmXmlHandler.getInstance().getRJAggJoinMapping()
+						.getInt(temp + ".rightAggColumns.c(" + e + ").index");
+
+				if (updateLeft) {
+					vm.updateJoinAgg_UpdateLeft_AggColRightSide(stream,
+							innerJoinAggTable, rightJoinAggTable, json,
+							joinKeyType, joinKeyName, aggColName, aggColType,
+							index);
+				} else {
+
+					vm.updateJoinAgg_UpdateRight_AggColRightSide(stream,
+							innerJoinAggTable, rightJoinAggTable, json,
+							joinKeyType, joinKeyName, aggColName, aggColType);
+				}
+
+				if (!rightJoinAggTable.equals("false")) {
+					evaluateLeftorRightJoinAggHaving(temp, "rightAggColumns",
+							e, json, "right");
+				}
+
+				if (!innerJoinAggTable.equals("false")) {
+					evaluateInnerJoinAggHaving(temp, "rightAggColumns", e, json);
+				}
+
+				stream.resetJoinAggRows();
+
+			}
+		}
+		return true;
 	}
 
 }
