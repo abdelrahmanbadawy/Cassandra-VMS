@@ -653,16 +653,26 @@ public class ViewManager{
 			myMap2.putAll(tempMapImmutable2);
 			// delete this from the other row
 			myMap2.remove(pk);
+			
+			//new updated row
+			CustomizedRow newcr = null;
+			
+			if(column == 1)
+			newcr = CustomizedRow.constructRJRow(joinKeyName, joinKeyName, myMap2, crow.getMap("list_item2"));
+			else
+			newcr = CustomizedRow.constructRJRow(joinKeyName, joinKeyName, crow.getMap("list_item1") ,myMap2);
+			
+			stream.setReverseJoinUpdateNewRow(newcr);
 
 			ReverseJoinHelper.insertStatement(joinTable, keyspace, joinKeyName, oldJoinKeyValue, column, myMap2, stream);
 
 			// retrieve and set update old row
-			Row row_after_change_join_value = Utils.selectAllStatement(keyspace, joinTable, joinKeyName, oldJoinKeyValue);
+			//Row row_after_change_join_value = Utils.selectAllStatement(keyspace, joinTable, joinKeyName, oldJoinKeyValue);
 
-			CustomizedRow crow1 = new CustomizedRow(row_after_change_join_value);
+			//CustomizedRow crow1 = new CustomizedRow(row_after_change_join_value);
 			// The old row that contains the old join key value after being
 			// updated
-			stream.setReverseJoinUpdatedOldRow_changeJoinKey(crow1);
+			//stream.setReverseJoinUpdateNewRow(crow1);
 
 			// check if all maps are empty --> remove the row
 			boolean allNull = true;
@@ -684,20 +694,33 @@ public class ViewManager{
 			if (allNull) {
 				Utils.deleteEntireRowWithPK(keyspace, joinTable, joinKeyName, oldJoinKeyValue);
 			}
-		}else{
+		}
+		
+		//else{
 			CustomizedRow crow2 = new CustomizedRow(theRow);
 			stream.setReverseJoinUpadteOldRow(crow2);
-		}
+		//}
 
+			// Set the rj updated row for join updates
+			//new updated row
+			CustomizedRow newcr = null;
+			
+			if(column == 1)
+			newcr = CustomizedRow.constructRJRow(joinKeyName, joinKeyName, myMap, crow2.getMap("list_item2"));
+			else
+			newcr = CustomizedRow.constructRJRow(joinKeyName, joinKeyName, crow2.getMap("list_item1") ,myMap);
+			
+			stream.setReverseJoinUpdateNewRow(newcr);
+			
 		ReverseJoinHelper.insertStatement(joinTable, keyspace, joinKeyName, joinKeyValue, column, myMap, stream);
 
 		// Set the rj updated row for join updates
-		Row result = Utils.selectAllStatement(keyspace, joinTable, joinKeyName, joinKeyValue);
-		CustomizedRow crow = new CustomizedRow(result);
-		stream.setReverseJoinUpdateNewRow(crow);
+//		Row result = Utils.selectAllStatement(keyspace, joinTable, joinKeyName, joinKeyValue);
+//		CustomizedRow crow = new CustomizedRow(result);
+//		stream.setReverseJoinUpdateNewRow(crow);
 
 	}
-
+	
 	public boolean updateJoinController(Stream stream, String innerJName,
 			String leftJName, String rightJName, JSONObject json,
 			Boolean updateLeft, Boolean updateRight, String joinKeyType,

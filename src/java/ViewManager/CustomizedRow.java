@@ -176,5 +176,23 @@ public class CustomizedRow implements Serializable{
 
 		return crow;
 	}
+	
+	public static CustomizedRow constructRJRow(String aggKey, String aggKeyValue, Map<String,String> myList1, Map<String,String> myList2){
+		
+		CustomizedRow crow = new CustomizedRow();
+		List<String> names = new ArrayList<String>(Arrays.asList(aggKey,"list_item1","list_item2"));
+		crow.setColNames(names);
+		
+		List<String> types = new ArrayList<String>(Arrays.asList("text","Map.class","Map.class"));
+		crow.setColTypes(types);
+		
+		List<Object> values = new ArrayList<Object>(Arrays.asList(aggKeyValue,myList1,myList2));
+		crow.setColValues(values);
+
+		crow.setColDefSize(values.size());
+
+		return crow;
+		
+	}
 
 }
