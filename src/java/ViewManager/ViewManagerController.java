@@ -2635,11 +2635,12 @@ public class ViewManagerController {
 		String bufferString = data.get("stream").toString();
 
 		stream = Serialize.deserializeStream(bufferString);
+		JSONObject deltaJSON = stream.getDeltaJSON();
 
 		if(!stream.isDeleteOperation()){
-			propagatePreaggUpdate(json);
+			propagatePreaggUpdate(deltaJSON);
 		}else{
-			propagatePreaggDelete(json);
+			propagatePreaggDelete(deltaJSON);
 		}
 		
 
