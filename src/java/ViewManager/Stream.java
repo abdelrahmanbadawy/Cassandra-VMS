@@ -8,6 +8,8 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 
+import org.json.simple.JSONObject;
+
 import com.datastax.driver.core.Row;
 
 public class Stream implements Serializable {
@@ -39,7 +41,7 @@ public class Stream implements Serializable {
 	//Preaggregation
 	private CustomizedRow updatedPreaggRow;
 	private CustomizedRow updatedPreaggRowDeleted;
-	private CustomizedRow updatedPreaggRowChangeAK;
+	
 	//Preaggregation delete
 	private CustomizedRow deletePreaggRow;
 	private CustomizedRow deletePreaggRowDeleted;
@@ -54,6 +56,8 @@ public class Stream implements Serializable {
 	private String baseTable;
 	
 	private boolean isDeleteOperation;
+	
+	private JSONObject deltaJSON;
 
 
 	public Stream() {
@@ -77,7 +81,6 @@ public class Stream implements Serializable {
 	public void resetPreaggregationRows() {
 		updatedPreaggRow = null;
 		updatedPreaggRowDeleted = null;
-		updatedPreaggRowChangeAK = null;
 		deletePreaggRow = null;
 		deletePreaggRowDeleted = null;
 
@@ -283,14 +286,6 @@ public class Stream implements Serializable {
 		this.updatedPreaggRowDeleted = updatedPreaggRowDeleted;
 	}
 
-	public CustomizedRow getUpdatedPreaggRowChangeAK() {
-		return updatedPreaggRowChangeAK;
-	}
-
-	public void setUpdatedPreaggRowChangeAK(CustomizedRow updatedPreaggRowChangeAK) {
-		this.updatedPreaggRowChangeAK = updatedPreaggRowChangeAK;
-	}
-
 	public CustomizedRow getReverseJoinUpdateNewRow() {
 		return reverseJoinUpdateNewRow;
 	}
@@ -363,6 +358,16 @@ public class Stream implements Serializable {
 
 	public void setDeleteOperation(boolean isDeleteOperation) {
 		this.isDeleteOperation = isDeleteOperation;
+	}
+
+
+	public JSONObject getDeltaJSON() {
+		return deltaJSON;
+	}
+
+
+	public void setDeltaJSON(JSONObject deltaJSON) {
+		this.deltaJSON = deltaJSON;
 	}
 
 }

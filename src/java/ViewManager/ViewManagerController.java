@@ -1339,71 +1339,6 @@ public class ViewManagerController {
 						json, preaggTable, AggKey, AggKeyType, AggCol,
 						AggColType);
 
-				// update the corresponding preagg wih having clause
-
-				position = preaggTableNames.indexOf(preaggTable);
-
-				if (position != -1) {
-
-					String temp4 = "mapping.unit(";
-					temp4 += Integer.toString(position);
-					temp4 += ")";
-
-					int nrConditions = VmXmlHandler.getInstance()
-							.getHavingPreAggMapping().getInt(temp4 + ".nrCond");
-
-					for (int r = 0; r < nrConditions; r++) {
-
-						String s1 = temp4 + ".Cond(" + Integer.toString(r)
-								+ ")";
-						String havingTable = VmXmlHandler.getInstance()
-								.getHavingPreAggMapping()
-								.getString(s1 + ".name");
-
-						String nrAnd = VmXmlHandler.getInstance()
-								.getHavingPreAggMapping()
-								.getString(s1 + ".nrAnd");
-
-						boolean eval1 = true;
-
-						for (int j = 0; j < Integer.parseInt(nrAnd); j++) {
-
-							String s11 = s1 + ".And(";
-							s11 += Integer.toString(j);
-							s11 += ")";
-
-							String aggFct = VmXmlHandler.getInstance()
-									.getHavingPreAggMapping()
-									.getString(s11 + ".aggFct");
-							String operation = VmXmlHandler.getInstance()
-									.getHavingPreAggMapping()
-									.getString(s11 + ".operation");
-							String value = VmXmlHandler.getInstance()
-									.getHavingPreAggMapping()
-									.getString(s11 + ".value");
-
-
-							eval1&= Utils.evalueJoinAggConditions(stream.getDeletePreaggRow(), aggFct, operation, value);
-
-						}
-
-						CustomizedRow DeletedPreagRowMapSize1 = stream.getDeletePreaggRowDeleted();
-
-						if (stream.getDeletePreaggRow() != null) {
-							if (eval1) {
-								vm.updateHaving(stream.getDeltaDeletedRow(),
-										json,havingTable, stream.getDeletePreaggRow());
-							} else {
-								vm.deleteRowHaving((String) json.get("keyspace"),
-										havingTable, stream.getDeletePreaggRow());
-							}
-						} else if (DeletedPreagRowMapSize1 != null) {
-							vm.deleteRowHaving((String) json.get("keyspace"),
-									havingTable, DeletedPreagRowMapSize1);
-						}
-					}
-				}
-
 			}
 
 		} else {
@@ -2395,9 +2330,7 @@ public class ViewManagerController {
 	}
 
 
-	public void propagatePreaggUpdate(Stream stream1, JSONObject json) {
-
-		stream = stream1;
+	public void propagatePreaggUpdate(JSONObject json) {
 
 		String preaggTable = json.get("table").toString();
 
@@ -2427,7 +2360,6 @@ public class ViewManagerController {
 						.getString(s1 + ".nrAnd");
 
 				boolean eval1 = true;
-				boolean eval2 = true;
 
 				for (int n = 0; n < Integer.parseInt(nrAnd); n++) {
 
@@ -2446,17 +2378,12 @@ public class ViewManagerController {
 							.getString(s11 + ".value");
 
 					CustomizedRow PreagRow = stream.getUpdatedPreaggRow();
-					CustomizedRow PreagRowAK = stream.getUpdatedPreaggRowChangeAK();
 
 					eval1&= Utils.evalueJoinAggConditions(PreagRow, aggFct, operation, value);
-					if(PreagRowAK!=null){
-						eval2&= Utils.evalueJoinAggConditions(PreagRowAK, aggFct, operation, value);
-					}
 				}
 
 				CustomizedRow PreagRow = stream.getUpdatedPreaggRow();
-				CustomizedRow PreagRowAK = stream.getUpdatedPreaggRowChangeAK();
-
+				
 				// if matching now & not matching before
 				// if condition matching now & matched before
 				if (eval1) {
@@ -2467,15 +2394,6 @@ public class ViewManagerController {
 					vm.deleteRowHaving((String) json.get("keyspace"),
 							havingTable, PreagRow);
 					// if not matching now & not before, ignore
-				}
-
-				if (PreagRowAK != null && eval2) {
-					vm.updateHaving(stream.getDeltaUpdatedRow(),
-							json,havingTable, PreagRowAK);
-
-				}else if (PreagRowAK != null && !eval2) {
-					vm.deleteRowHaving((String) json.get("keyspace"),
-							havingTable, PreagRowAK);
 				}
 
 				CustomizedRow deletedRow = stream.getUpdatedPreaggRowDeleted();
@@ -2716,20 +2634,85 @@ public class ViewManagerController {
 		JSONObject data = (JSONObject) json.get("data");
 		String bufferString = data.get("stream").toString();
 
-		stream = null;
 		stream = Serialize.deserializeStream(bufferString);
 
 		if(!stream.isDeleteOperation()){
-			propagatePreaggUpdate(stream,json);
+			propagatePreaggUpdate(json);
 		}else{
-			propagatePreaggDelete(stream,json);
+			propagatePreaggDelete(json);
 		}
 		
 
 	}
 
-	private void propagatePreaggDelete(Stream stream2, JSONObject json) {
-		// TODO Auto-generated method stub
+	private void propagatePreaggDelete(JSONObject json) {
+		
+		// update the corresponding preagg wih having clause
+
+		String preaggTable = json.get("table").toString();
+		int position = preaggTableNames.indexOf(preaggTable);
+
+		if (position != -1) {
+
+			String temp4 = "mapping.unit(";
+			temp4 += Integer.toString(position);
+			temp4 += ")";
+
+			int nrConditions = VmXmlHandler.getInstance()
+					.getHavingPreAggMapping().getInt(temp4 + ".nrCond");
+
+			for (int r = 0; r < nrConditions; r++) {
+
+				String s1 = temp4 + ".Cond(" + Integer.toString(r)
+						+ ")";
+				String havingTable = VmXmlHandler.getInstance()
+						.getHavingPreAggMapping()
+						.getString(s1 + ".name");
+
+				String nrAnd = VmXmlHandler.getInstance()
+						.getHavingPreAggMapping()
+						.getString(s1 + ".nrAnd");
+
+				boolean eval1 = true;
+
+				for (int j = 0; j < Integer.parseInt(nrAnd); j++) {
+
+					String s11 = s1 + ".And(";
+					s11 += Integer.toString(j);
+					s11 += ")";
+
+					String aggFct = VmXmlHandler.getInstance()
+							.getHavingPreAggMapping()
+							.getString(s11 + ".aggFct");
+					String operation = VmXmlHandler.getInstance()
+							.getHavingPreAggMapping()
+							.getString(s11 + ".operation");
+					String value = VmXmlHandler.getInstance()
+							.getHavingPreAggMapping()
+							.getString(s11 + ".value");
+
+
+					eval1&= Utils.evalueJoinAggConditions(stream.getDeletePreaggRow(), aggFct, operation, value);
+
+				}
+
+				CustomizedRow DeletedPreagRowMapSize1 = stream.getDeletePreaggRowDeleted();
+
+				if (stream.getDeletePreaggRow() != null) {
+					if (eval1) {
+						vm.updateHaving(stream.getDeltaDeletedRow(),
+								json,havingTable, stream.getDeletePreaggRow());
+					} else {
+						vm.deleteRowHaving((String) json.get("keyspace"),
+								havingTable, stream.getDeletePreaggRow());
+					}
+				} else if (DeletedPreagRowMapSize1 != null) {
+					vm.deleteRowHaving((String) json.get("keyspace"),
+							havingTable, DeletedPreagRowMapSize1);
+				}
+			}
+		}
+	
 		
 	}
 

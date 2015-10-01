@@ -171,6 +171,7 @@ public class ViewManager{
 		//TO BE REMOVED
 		//stream.setDeltaUpdatedRow(row);
 		stream.setDeltaUpdatedRow(crow);
+		stream.setDeltaJSON(json);
 
 		return true;
 	}
@@ -338,9 +339,6 @@ public class ViewManager{
 		
 		if (deltaUpdatedRow != null) {
 
-			int indexNew = deltaUpdatedRow.getIndexOf(aggKey + "_new");
-			int indexOld = deltaUpdatedRow.getIndexOf(aggKey + "_old");
-
 			aggKeyValue = Utils.getColumnValueFromDeltaStream(deltaUpdatedRow,aggKey,aggKeyType, "_new");
 			aggKeyValue_old = Utils.getColumnValueFromDeltaStream(deltaUpdatedRow,aggKey,aggKeyType, "_old");
 
@@ -428,7 +426,6 @@ public class ViewManager{
 			do{
 
 				if (!override) {
-					stream.setUpdatedPreaggRowChangeAK(null);
 					stream.setUpdatedPreaggRowDeleted(null);
 				}
 				if (!mapSize1) {
@@ -525,7 +522,7 @@ public class ViewManager{
 					}
 					// Selection to set updatedRow
 					CustomizedRow crow = new CustomizedRow(PreAggMap.one());
-					stream.setUpdatedPreaggRowChangeAK(crow);
+					stream.setUpdatedPreaggRow(crow);
 
 					// perform a new insertion for the new aggkey given in json
 					updatePreaggregation(stream, aggKey, aggKeyType,
