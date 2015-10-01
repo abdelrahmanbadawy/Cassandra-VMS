@@ -2360,40 +2360,42 @@ public class ViewManagerController {
 						.getString(s1 + ".nrAnd");
 
 				boolean eval1 = true;
-
-				for (int n = 0; n < Integer.parseInt(nrAnd); n++) {
-
-					String s11 = s1 + ".And(";
-					s11 += Integer.toString(n);
-					s11 += ")";
-
-					String aggFct = VmXmlHandler.getInstance()
-							.getHavingPreAggMapping()
-							.getString(s11 + ".aggFct");
-					String operation = VmXmlHandler.getInstance()
-							.getHavingPreAggMapping()
-							.getString(s11 + ".operation");
-					String value = VmXmlHandler.getInstance()
-							.getHavingPreAggMapping()
-							.getString(s11 + ".value");
-
-					CustomizedRow PreagRow = stream.getUpdatedPreaggRow();
-
-					eval1&= Utils.evalueJoinAggConditions(PreagRow, aggFct, operation, value);
-				}
-
 				CustomizedRow PreagRow = stream.getUpdatedPreaggRow();
-				
-				// if matching now & not matching before
-				// if condition matching now & matched before
-				if (eval1) {
-					vm.updateHaving(stream.getDeltaUpdatedRow(),
-							json,havingTable, PreagRow);
-					// if not matching now
-				} else if (!eval1) {
-					vm.deleteRowHaving((String) json.get("keyspace"),
-							havingTable, PreagRow);
-					// if not matching now & not before, ignore
+
+				if(PreagRow!=null){
+
+					for (int n = 0; n < Integer.parseInt(nrAnd); n++) {
+
+						String s11 = s1 + ".And(";
+						s11 += Integer.toString(n);
+						s11 += ")";
+
+						String aggFct = VmXmlHandler.getInstance()
+								.getHavingPreAggMapping()
+								.getString(s11 + ".aggFct");
+						String operation = VmXmlHandler.getInstance()
+								.getHavingPreAggMapping()
+								.getString(s11 + ".operation");
+						String value = VmXmlHandler.getInstance()
+								.getHavingPreAggMapping()
+								.getString(s11 + ".value");
+
+
+
+						eval1&= Utils.evalueJoinAggConditions(PreagRow, aggFct, operation, value);
+					}
+
+					// if matching now & not matching before
+					// if condition matching now & matched before
+					if (eval1) {
+						vm.updateHaving(stream.getDeltaUpdatedRow(),
+								json,havingTable, PreagRow);
+						// if not matching now
+					} else if (!eval1) {
+						vm.deleteRowHaving((String) json.get("keyspace"),
+								havingTable, PreagRow);
+						// if not matching now & not before, ignore
+					}
 				}
 
 				CustomizedRow deletedRow = stream.getUpdatedPreaggRowDeleted();
@@ -2642,12 +2644,12 @@ public class ViewManagerController {
 		}else{
 			propagatePreaggDelete(deltaJSON);
 		}
-		
+
 
 	}
 
 	private void propagatePreaggDelete(JSONObject json) {
-		
+
 		// update the corresponding preagg wih having clause
 
 		String preaggTable = json.get("table").toString();
@@ -2713,8 +2715,8 @@ public class ViewManagerController {
 				}
 			}
 		}
-	
-		
+
+
 	}
 
 
