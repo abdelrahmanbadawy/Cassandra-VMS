@@ -493,11 +493,18 @@ public class ViewManager{
 
 					CustomizedRow crow = new CustomizedRow(theRow);
 					stream.setUpdatedPreaggRowDeleted(crow);
-
+					stream.setDeleteOperation(true);
+					String blob = Serialize.serializeStream2(stream);
+					PreaggregationHelper.insertStatementToDelete(json, preaggTable, aggKey, aggKeyValue_old, blob);
+					
 					// 4. delete the whole row
 					Utils.deleteEntireRowWithPK((String) json.get("keyspace"),
 							preaggTable, aggKey, aggKeyValue_old);
 
+					//Reseting the stream
+					stream.setDeleteOperation(false);
+					stream.setUpdatedPreaggRowDeleted(null);
+					
 					// 4.a perform a new insertion with new values
 					updatePreaggregation(stream, aggKey, aggKeyType,
 							json, preaggTable, baseTablePrimaryKey, aggCol,
@@ -513,17 +520,13 @@ public class ViewManager{
 					// aggKeyValue_old to refelect changes
 
 					ByteBuffer blob_old = theRow.getBytes("blob");
-					String blob_new = Serialize.serializeStream2(stream);
-
-					while(!PreaggregationHelper.subtractOldAggColValue(myList, aggColValue_old, myMap, theRow, aggColIndexInList, json, preaggTable, aggKey, aggKeyValue_old,blob_old,blob_new)){
+					
+					while(!PreaggregationHelper.subtractOldAggColValue(stream,myList, aggColValue_old, myMap, theRow, aggColIndexInList, json, preaggTable, aggKey, aggKeyValue_old,blob_old)){
 						PreAggMap = PreaggregationHelper.selectStatement(json, preaggTable, aggKey, aggKeyValue_old);
 						theRow = PreAggMap.one();
 						blob_old = theRow.getBytes("blob");
 					}
-					// Selection to set updatedRow
-					CustomizedRow crow = new CustomizedRow(PreAggMap.one());
-					stream.setUpdatedPreaggRow(crow);
-
+		
 					// perform a new insertion for the new aggkey given in json
 					updatePreaggregation(stream, aggKey, aggKeyType,
 							json, preaggTable, baseTablePrimaryKey, aggCol,

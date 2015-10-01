@@ -76,12 +76,12 @@ public class PreaggregationHelper {
 		float max = aggColValue;
 
 		ResultSet rs = null;
-		
+
 		CustomizedRow constructedRow = CustomizedRow.constructUpdatedPreaggRow(aggKey,aggKeyValue,myMap,sum,count,average,min,max, Serialize.serializeStream2(stream));
 		stream.setUpdatedPreaggRow(constructedRow);
 		String blob = Serialize.serializeStream2(stream);
 
-		
+
 		// 3. execute the insertion
 		StringBuilder insertQueryAgg = new StringBuilder("INSERT INTO ");
 		insertQueryAgg.append((String) json.get("keyspace"))
@@ -94,7 +94,7 @@ public class PreaggregationHelper {
 		//.append("?, ?, ?, ?, ?, ?,?) IF NOT EXISTS ;");
 
 		System.out.println(insertQueryAgg.toString());
-		
+
 		try{
 			/*Session session1 = currentCluster.connect();
 			rs = session1.execute(insertQueryAgg.toString());		*/	
@@ -117,6 +117,24 @@ public class PreaggregationHelper {
 			return false;
 
 
+	}
+
+	public static void insertStatementToDelete(JSONObject json,String preaggTable,String aggKey,String aggKeyValue,String blob){
+
+		// 3. execute the insertion
+
+		StringBuilder insertQueryAgg = new StringBuilder("INSERT INTO ");
+		insertQueryAgg.append((String) json.get("keyspace"))
+		.append(".").append(preaggTable).append(" ( ")
+		.append(aggKey ).append(", stream").append(") VALUES (").append(aggKeyValue + ", ")
+		.append(blob).append(" );");
+
+		try{
+			Session session = currentCluster.connect();
+			session.execute(insertQueryAgg.toString());
+		}catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	public static void insertStatement(JSONObject json,String preaggTable,String aggKey,String aggKeyValue,Map<String, String> myMap,float sum,float count,float min,float max,float average){
@@ -238,11 +256,11 @@ public class PreaggregationHelper {
 			max = aggColValue;
 		}
 
-		
+
 		CustomizedRow constructedRow = CustomizedRow.constructUpdatedPreaggRow(aggKey,aggKeyValue,myMap,sum,count,average,min,max, Serialize.serializeStream2(stream));
 		stream.setUpdatedPreaggRow(constructedRow);
 		String buffer_new = Serialize.serializeStream2(stream);
-		
+
 		//insertStatement(json, preaggTable, aggKey, aggKeyValue, myMap, sum, count, min, max, average);
 		if(updateStatement(sum, count, average, min, max, myMap, aggKey, aggKeyValue, preaggTable, json, buffer_old,buffer_new))
 			return true;
@@ -252,7 +270,7 @@ public class PreaggregationHelper {
 
 	}
 
-	public static boolean subtractOldAggColValue(ArrayList<String> myList, float aggColValue_old,Map<String, String> myMap,Row theRow, int aggColIndexInList,JSONObject json, String preaggTable,String aggKey,String aggKeyValue,ByteBuffer blob_old,String blob_new ){
+	public static boolean subtractOldAggColValue(Stream stream,ArrayList<String> myList, float aggColValue_old,Map<String, String> myMap,Row theRow, int aggColIndexInList,JSONObject json, String preaggTable,String aggKey,String aggKeyValue,ByteBuffer blob_old){
 
 		String pk = myList.get(0);
 		myList.remove(0);
@@ -280,6 +298,11 @@ public class PreaggregationHelper {
 				max = Float
 				.valueOf(listArray[aggColIndexInList - 1]);
 		}
+
+
+		CustomizedRow crow = CustomizedRow.constructUpdatedPreaggRow(aggKey, aggKeyValue, myMap, sum, count, average, min, max, Serialize.serializeStream2(stream));
+		stream.setUpdatedPreaggRow(crow);
+		String blob_new = Serialize.serializeStream2(stream);
 
 		//insertStatement(json, preaggTable, aggKey, aggKeyValue, myMap, sum, count, min, max, average);
 		if(updateStatement(sum, count, average, min, max, myMap, aggKey, aggKeyValue, preaggTable, json, blob_old,blob_new))
