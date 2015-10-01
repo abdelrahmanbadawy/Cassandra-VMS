@@ -92,21 +92,21 @@ public abstract class Message {
 	public enum Type {
 		ERROR(0, Direction.RESPONSE, ErrorMessage.codec), STARTUP(1,
 				Direction.REQUEST, StartupMessage.codec), READY(2,
-				Direction.RESPONSE, ReadyMessage.codec), AUTHENTICATE(3,
-				Direction.RESPONSE, AuthenticateMessage.codec), CREDENTIALS(4,
-				Direction.REQUEST, CredentialsMessage.codec), OPTIONS(5,
-				Direction.REQUEST, OptionsMessage.codec), SUPPORTED(6,
-				Direction.RESPONSE, SupportedMessage.codec), QUERY(7,
-				Direction.REQUEST, QueryMessage.codec), RESULT(8,
-				Direction.RESPONSE, ResultMessage.codec), PREPARE(9,
-				Direction.REQUEST, PrepareMessage.codec), EXECUTE(10,
-				Direction.REQUEST, ExecuteMessage.codec), REGISTER(11,
-				Direction.REQUEST, RegisterMessage.codec), EVENT(12,
-				Direction.RESPONSE, EventMessage.codec), BATCH(13,
-				Direction.REQUEST, BatchMessage.codec), AUTH_CHALLENGE(14,
-				Direction.RESPONSE, AuthChallenge.codec), AUTH_RESPONSE(15,
-				Direction.REQUEST, AuthResponse.codec), AUTH_SUCCESS(16,
-				Direction.RESPONSE, AuthSuccess.codec);
+						Direction.RESPONSE, ReadyMessage.codec), AUTHENTICATE(3,
+								Direction.RESPONSE, AuthenticateMessage.codec), CREDENTIALS(4,
+										Direction.REQUEST, CredentialsMessage.codec), OPTIONS(5,
+												Direction.REQUEST, OptionsMessage.codec), SUPPORTED(6,
+														Direction.RESPONSE, SupportedMessage.codec), QUERY(7,
+																Direction.REQUEST, QueryMessage.codec), RESULT(8,
+																		Direction.RESPONSE, ResultMessage.codec), PREPARE(9,
+																				Direction.REQUEST, PrepareMessage.codec), EXECUTE(10,
+																						Direction.REQUEST, ExecuteMessage.codec), REGISTER(11,
+																								Direction.REQUEST, RegisterMessage.codec), EVENT(12,
+																										Direction.RESPONSE, EventMessage.codec), BATCH(13,
+																												Direction.REQUEST, BatchMessage.codec), AUTH_CHALLENGE(14,
+																														Direction.RESPONSE, AuthChallenge.codec), AUTH_RESPONSE(15,
+																																Direction.REQUEST, AuthResponse.codec), AUTH_SUCCESS(16,
+																																		Direction.RESPONSE, AuthSuccess.codec);
 
 		public final int opcode;
 		public final Direction direction;
@@ -265,7 +265,7 @@ public abstract class Message {
 
 	@ChannelHandler.Sharable
 	public static class ProtocolEncoder extends
-			MessageToMessageEncoder<Message> {
+	MessageToMessageEncoder<Message> {
 		public void encode(ChannelHandlerContext ctx, Message message,
 				List results) {
 			Connection connection = ctx.channel().attr(Connection.attributeKey)
@@ -416,13 +416,13 @@ public abstract class Message {
 
 
 				boolean applied = true;
-				
-				
+
+
 				if(response.toString().contains("[applied]") && response.toString().split("\n")[1].split(" ")[2].equals("false")){
 					applied = false;
 				}
-				
-				
+
+
 				if (applied && ! request.toString().toLowerCase().contains("selection")
 						&& ! request.toString().toLowerCase().contains("delta_")
 						&& ! request.toString().toLowerCase().contains("inner_")
@@ -434,13 +434,13 @@ public abstract class Message {
 						&& ! request.toString().toLowerCase().contains("join_agg")
 						&& (request.toString().toLowerCase().contains("insert")
 								|| request.toString().toLowerCase()
-										.contains("update") || (request
-								.toString().toLowerCase().contains("delete")))) {
+								.contains("update") || (request
+										.toString().toLowerCase().contains("delete")))) {
 
 					this.parseInputForViewMaintenance(request.toString() + '\n');
 
 				}
-				
+
 
 			} catch (Throwable t) {
 				JVMStabilityInspector.inspectThrowable(t);
@@ -470,12 +470,12 @@ public abstract class Message {
 
 				String [] table_keyspace = (rawInput.split(" ")[2]).split("\\.");
 
-				
-				
+
+
 				tableName = table_keyspace[1];
 				keySpaceName = table_keyspace[0];
-				
-				
+
+
 
 				String[] splitRaw = rawInput.split(" WHERE ");
 				String rawSetString = splitRaw[0].split(" SET ")[1];
@@ -508,20 +508,20 @@ public abstract class Message {
 
 				if ( !tableName.contains("delta") )
 					commitLogger.info(convertUpdateToJSON(queryType, keySpaceName,
-						tableName, condition_columns, condition_values,
-						set_data_columns, set_data_values, transactionId)
-						.toJSONString());
+							tableName, condition_columns, condition_values,
+							set_data_columns, set_data_values, transactionId)
+							.toJSONString());
 
 			} else {
 				// insert
 
-			
+
 
 				if (queryType.toLowerCase().equals("insert")) {
 					String [] table_keyspace = (rawInput.split(" ")[3]).split("\\.");
 
-					
-					
+
+
 					tableName = table_keyspace[1];
 					keySpaceName = table_keyspace[0];
 
@@ -544,52 +544,57 @@ public abstract class Message {
 					String[] table_keyspace = rawInput.split(" ")[3].split("\\.");
 
 					tableName = table_keyspace[1];
-					keySpaceName = table_keyspace[0];
 
-					String[] splitRaw = rawInput.split(" WHERE ");
+					if(!tableName.contains("preag_agg")){
 
-					String rawConditionString = splitRaw[1].split(";")[0];
+						keySpaceName = table_keyspace[0];
 
-					rawConditionString = rawConditionString.split(" IF ")[0];
-				
-					String[] condition_columns; 
-					String[] condition_values;
+						String[] splitRaw = rawInput.split(" WHERE ");
 
-					
-					if(!rawConditionString.contains("IN")){
-						
-						condition_columns = new String[1];
-						String condition_values_string = "" ;
-						
-						String[] condition = rawConditionString.split(" = ");
-						condition_columns[0] = condition[0];
-						condition_values_string = condition[1];
-						
-						commitLogger.info(convertDeleteToJSON(queryType,
-								keySpaceName, tableName, condition_columns,
-								condition_values_string, transactionId).toJSONString());
-						
-					}else{
-						
-						String[] splitRawConditionSetString = rawConditionString
-								.split(" IN ");
-						
-						condition_columns = new String[1];
-						
-						condition_columns[0] = splitRawConditionSetString[0];
-						splitRawConditionSetString[1] = splitRawConditionSetString[1].replace("(", "").replace(")", "");
-						
-						String[] inValues = splitRawConditionSetString[1].split(",");
-						condition_values = new String[inValues.length];
-						
-						for (int i = 0; i < inValues.length; i++) {				
+						String rawConditionString = splitRaw[1].split(";")[0];
+
+						rawConditionString = rawConditionString.split(" IF ")[0];
+
+						String[] condition_columns; 
+						String[] condition_values;
+
+
+						if(!rawConditionString.contains("IN")){
+
+							condition_columns = new String[1];
+							String condition_values_string = "" ;
+
+							String[] condition = rawConditionString.split(" = ");
+							condition_columns[0] = condition[0];
+							condition_values_string = condition[1];
+
 							commitLogger.info(convertDeleteToJSON(queryType,
 									keySpaceName, tableName, condition_columns,
-									inValues[i], transactionId).toJSONString());
+									condition_values_string, transactionId).toJSONString());
+
+						}else{
+
+							String[] splitRawConditionSetString = rawConditionString
+									.split(" IN ");
+
+							condition_columns = new String[1];
+
+							condition_columns[0] = splitRawConditionSetString[0];
+							splitRawConditionSetString[1] = splitRawConditionSetString[1].replace("(", "").replace(")", "");
+
+							String[] inValues = splitRawConditionSetString[1].split(",");
+							condition_values = new String[inValues.length];
+
+							for (int i = 0; i < inValues.length; i++) {				
+								commitLogger.info(convertDeleteToJSON(queryType,
+										keySpaceName, tableName, condition_columns,
+										inValues[i], transactionId).toJSONString());
+							}
+
 						}
-						
 					}
 				}
+
 			}
 
 		}
@@ -710,7 +715,7 @@ public abstract class Message {
 	 * shouldn't be logged at server ERROR level)
 	 */
 	static final class UnexpectedChannelExceptionHandler implements
-			Predicate<Throwable> {
+	Predicate<Throwable> {
 		private final Channel channel;
 		private final boolean alwaysLogAtError;
 
