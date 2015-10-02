@@ -2195,8 +2195,8 @@ public class ViewManager{
 
 		CustomizedRow newRJRow = stream.getReverseJoinUpdateNewRow();
 		CustomizedRow oldRJRow = stream.getReverseJoinUpadteOldRow();
-		CustomizedRow changeAK = stream.getReverseJoinUpdatedOldRow_changeJoinKey();
 
+		
 		// change in join key value or agg key value
 		if (!(oldJoinKeyValue.equals("'null'"))
 				&& (!joinKeyValue.equals(oldJoinKeyValue) || !aggKeyValue
