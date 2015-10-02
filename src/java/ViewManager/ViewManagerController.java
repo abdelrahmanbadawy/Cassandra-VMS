@@ -2413,11 +2413,11 @@ public class ViewManagerController {
 
 	}
 
-	public boolean propagateRJ(JSONObject json) {
+	public boolean propagateRJ(JSONObject rjjson) {
 
 
 
-		JSONObject data = (JSONObject) json.get("data");
+		JSONObject data = (JSONObject) rjjson.get("data");
 
 		String bufferString = data.get("stream").toString();
 
@@ -2425,7 +2425,7 @@ public class ViewManagerController {
 
 		stream = Serialize.deserializeStream(bufferString);
 
-		System.out.println("++++++++     "+stream.getBaseTable());
+		JSONObject json = stream.getDeltaJSON();
 
 		String tableName = stream.getBaseTable();
 		int indexBaseTableName = baseTableName.indexOf(stream.getBaseTable());
@@ -2435,7 +2435,7 @@ public class ViewManagerController {
 		// String tableName = (String) json.get("table");
 		String keyspace = (String) json.get("keyspace");
 
-		String joinTable = json.get("table").toString();
+		String joinTable = rjjson.get("table").toString();
 
 		// j
 		int indexOfRJ = rj_joinTables.indexOf(joinTable);
@@ -2500,6 +2500,7 @@ public class ViewManagerController {
 					+ joinTable + " available");
 		}
 
+		/*
 		// UPDATE join agg
 
 		int positionAgg = reverseTablesNames_AggJoin.indexOf(joinTable);
@@ -2628,6 +2629,7 @@ public class ViewManagerController {
 
 			}
 		}
+		*/
 		return true;
 	}
 
