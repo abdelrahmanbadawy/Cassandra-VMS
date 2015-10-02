@@ -535,428 +535,7 @@ public class ViewManagerController {
 				}
 
 			}
-			/*
-			// HERE UPDATE JOIN TABLES
 
-			// ===================================================================================================================
-			// 4. update Join tables
-
-			String updatedReverseJoin = vm.getReverseJoinTableName();
-
-			position = reverseTablesNames_Join.indexOf(updatedReverseJoin);
-
-			if (position != -1) {
-
-				String temp = "mapping.unit(";
-				temp += Integer.toString(position);
-				temp += ")";
-
-				int nrJoin = VmXmlHandler.getInstance().getRjJoinMapping()
-						.getInt(temp + ".nrJoin");
-
-				for (int i = 0; i < nrJoin; i++) {
-
-					String s = temp + ".join(" + Integer.toString(i) + ")";
-					String innerJoinTableName = VmXmlHandler.getInstance()
-							.getRjJoinMapping().getString(s + ".innerJoin");
-					String leftJoinTableName = VmXmlHandler.getInstance()
-							.getRjJoinMapping().getString(s + ".leftJoin");
-					String rightJoinTableName = VmXmlHandler.getInstance()
-							.getRjJoinMapping().getString(s + ".rightJoin");
-
-					String leftJoinTable = VmXmlHandler.getInstance()
-							.getRjJoinMapping().getString(s + ".LeftTable");
-					String rightJoinTable = VmXmlHandler.getInstance()
-							.getRjJoinMapping().getString(s + ".RightTable");
-
-					tableName = (String) json.get("table");
-
-					Boolean updateLeft = false;
-					Boolean updateRight = false;
-
-					if (tableName.equals(leftJoinTable)) {
-						updateLeft = true;
-					} else {
-						updateRight = true;
-					}
-
-					vm.updateJoinController(stream,
-							innerJoinTableName, leftJoinTableName,
-							rightJoinTableName, json, updateLeft, updateRight,
-							joinKeyType, joinKeyName, baseTablePrimaryKey);
-
-				}
-			} else {
-				System.out.println("No join table for this reverse join table "
-						+ updatedReverseJoin + " available");
-			}
-
-			// UPDATE join agg
-
-			int positionAgg = reverseTablesNames_AggJoin.indexOf(joinTable);
-
-			if (positionAgg != -1) {
-
-				String temp = "mapping.unit(";
-				temp += Integer.toString(positionAgg);
-				temp += ")";
-
-				Boolean updateLeft = false;
-				Boolean updateRight = false;
-
-				String leftJoinTable = VmXmlHandler.getInstance()
-						.getRJAggJoinMapping().getString(temp + ".LeftTable");
-				String rightJoinTable = VmXmlHandler.getInstance()
-						.getRJAggJoinMapping().getString(temp + ".RightTable");
-
-				tableName = (String) json.get("table");
-
-				if (tableName.equals(leftJoinTable)) {
-					updateLeft = true;
-				} else {
-					updateRight = true;
-				}
-
-				int nrLeftAggColumns = VmXmlHandler.getInstance()
-						.getRJAggJoinMapping()
-						.getInt(temp + ".leftAggColumns.nr");
-
-				for (int e = 0; e < nrLeftAggColumns; e++) {
-
-					String aggColName = VmXmlHandler
-							.getInstance()
-							.getRJAggJoinMapping()
-							.getString(
-									temp + ".leftAggColumns.c(" + e + ").name");
-					String aggColType = VmXmlHandler
-							.getInstance()
-							.getRJAggJoinMapping()
-							.getString(
-									temp + ".leftAggColumns.c(" + e + ").type");
-					String innerJoinAggTable = VmXmlHandler
-							.getInstance()
-							.getRJAggJoinMapping()
-							.getString(
-									temp + ".leftAggColumns.c(" + e + ").inner.name");
-					String leftJoinAggTable = VmXmlHandler
-							.getInstance()
-							.getRJAggJoinMapping()
-							.getString(
-									temp + ".leftAggColumns.c(" + e + ").left.name");
-
-					int index = VmXmlHandler
-							.getInstance()
-							.getRJAggJoinMapping()
-							.getInt(temp + ".leftAggColumns.c(" + e + ").index");
-
-					if (updateLeft) {
-
-						vm.updateJoinAgg_UpdateLeft_AggColLeftSide(stream,
-								innerJoinAggTable, leftJoinAggTable, json,
-								joinKeyType, joinKeyName, aggColName,
-								aggColType);
-					} else {
-						vm.updateJoinAgg_UpdateRight_AggColLeftSide(stream,
-								innerJoinAggTable, leftJoinAggTable, json,
-								joinKeyType, joinKeyName, aggColName,
-								aggColType, index);
-					}
-
-
-					if(!leftJoinAggTable.equals("false")){
-						evaluateLeftorRightJoinAggHaving(temp,"leftAggColumns", e, json,"left");
-					}
-
-					if(!innerJoinAggTable.equals("false")){
-						evaluateInnerJoinAggHaving(temp, "leftAggColumns", e, json);
-					}
-
-					stream.resetJoinAggRows();
-				}
-
-				int nrRightAggColumns = VmXmlHandler.getInstance()
-						.getRJAggJoinMapping()
-						.getInt(temp + ".rightAggColumns.nr");
-
-				for (int e = 0; e < nrRightAggColumns; e++) {
-
-					String aggColName = VmXmlHandler
-							.getInstance()
-							.getRJAggJoinMapping()
-							.getString(
-									temp + ".rightAggColumns.c(" + e + ").name");
-					String aggColType = VmXmlHandler
-							.getInstance()
-							.getRJAggJoinMapping()
-							.getString(
-									temp + ".rightAggColumns.c(" + e + ").type");
-					String innerJoinAggTable = VmXmlHandler
-							.getInstance()
-							.getRJAggJoinMapping()
-							.getString(
-									temp + ".rightAggColumns.c(" + e
-									+ ").inner.name");
-					String rightJoinAggTable = VmXmlHandler
-							.getInstance()
-							.getRJAggJoinMapping()
-							.getString(
-									temp + ".rightAggColumns.c(" + e
-									+ ").right.name");
-
-					int index = VmXmlHandler
-							.getInstance()
-							.getRJAggJoinMapping()
-							.getInt(temp + ".rightAggColumns.c(" + e
-									+ ").index");
-
-					if (updateLeft) {
-						vm.updateJoinAgg_UpdateLeft_AggColRightSide(stream,
-								innerJoinAggTable, rightJoinAggTable, json,
-								joinKeyType, joinKeyName, aggColName,
-								aggColType, index);
-					} else {
-
-						vm.updateJoinAgg_UpdateRight_AggColRightSide(stream,
-								innerJoinAggTable, rightJoinAggTable, json,
-								joinKeyType, joinKeyName, aggColName,
-								aggColType);
-					}
-
-					if(!rightJoinAggTable.equals("false")){
-						evaluateLeftorRightJoinAggHaving(temp,"rightAggColumns", e, json,"right");
-					}
-
-					if(!innerJoinAggTable.equals("false")){
-						evaluateInnerJoinAggHaving(temp, "rightAggColumns", e, json);
-					}
-
-					stream.resetJoinAggRows();
-
-				}
-
-			}
-
-			// ======================================================================================================
-			// Update Group By Join Agg clauses
-
-			int positionAggGroupBy = reverseTablesNames_AggJoinGroupBy
-					.indexOf(joinTable);
-
-			if (positionAggGroupBy != -1) {
-
-				String temp = "mapping.unit(";
-				temp += Integer.toString(positionAggGroupBy);
-				temp += ")";
-
-				Boolean updateLeft = false;
-				Boolean updateRight = false;
-
-				String leftJoinTable = VmXmlHandler.getInstance()
-						.getRJAggJoinGroupByMapping()
-						.getString(temp + ".LeftTable");
-				String rightJoinTable = VmXmlHandler.getInstance()
-						.getRJAggJoinGroupByMapping()
-						.getString(temp + ".RightTable");
-
-				tableName = (String) json.get("table");
-
-				if (tableName.equals(leftJoinTable)) {
-					updateLeft = true;
-				} else {
-					updateRight = true;
-				}
-
-				int nrLeftAggColumns = VmXmlHandler.getInstance()
-						.getRJAggJoinGroupByMapping()
-						.getInt(temp + ".leftAggColumns.nr");
-
-				for (int e = 0; e < nrLeftAggColumns; e++) {
-
-					String aggColName = VmXmlHandler
-							.getInstance()
-							.getRJAggJoinGroupByMapping()
-							.getString(
-									temp + ".leftAggColumns.c(" + e + ").name");
-					String aggColType = VmXmlHandler
-							.getInstance()
-							.getRJAggJoinGroupByMapping()
-							.getString(
-									temp + ".leftAggColumns.c(" + e + ").type");
-
-					int nrAgg = VmXmlHandler
-							.getInstance()
-							.getRJAggJoinGroupByMapping()
-							.getInt(temp + ".leftAggColumns.c(" + e + ").nrAgg");
-
-					for (int i = 0; i < nrAgg; i++) {
-
-						String innerJoinAggTable = VmXmlHandler
-								.getInstance()
-								.getRJAggJoinGroupByMapping()
-								.getString(
-										temp + ".leftAggColumns.c(" + e
-										+ ").Agg(" + i + ").inner.name");
-						String leftJoinAggTable = VmXmlHandler
-								.getInstance()
-								.getRJAggJoinGroupByMapping()
-								.getString(
-										temp + ".leftAggColumns.c(" + e
-										+ ").Agg(" + i + ").left.name");
-
-						String Key = VmXmlHandler
-								.getInstance()
-								.getRJAggJoinGroupByMapping()
-								.getString(
-										temp + ".leftAggColumns.c(" + e
-										+ ").Agg(" + i + ").Key");
-						String KeyType = VmXmlHandler
-								.getInstance()
-								.getRJAggJoinGroupByMapping()
-								.getString(
-										temp + ".leftAggColumns.c(" + e
-										+ ").Agg(" + i + ").KeyType");
-
-						int index = VmXmlHandler
-								.getInstance()
-								.getRJAggJoinGroupByMapping()
-								.getInt(temp + ".leftAggColumns.c(" + e
-										+ ").index");
-
-						int AggKeyIndex = VmXmlHandler
-								.getInstance()
-								.getRJAggJoinGroupByMapping()
-								.getInt(temp + ".leftAggColumns.c(" + e
-										+ ").Agg(" + i + ").aggKeyIndex");
-
-
-						if (updateLeft) {
-
-							vm.updateJoinAgg_UpdateLeft_AggColLeftSide_GroupBy(stream,
-									innerJoinAggTable, leftJoinAggTable, json,
-									KeyType, Key, aggColName, aggColType,
-									joinKeyName, joinKeyType);
-
-						} else {
-							vm.updateJoinAgg_UpdateRight_AggColLeftSide_GroupBy(stream,
-									innerJoinAggTable, leftJoinAggTable, json,
-									joinKeyType, joinKeyName, aggColName,
-									aggColType, index, Key, KeyType,
-									AggKeyIndex);
-						}
-
-						//evalute Left Having
-						if(!leftJoinAggTable.equals("false")){							
-							evaluateLeftorRightJoinAggGroupByHaving(i,e,temp,json,"left");
-						}
-
-						//evalute Inner Having
-						if(!innerJoinAggTable.equals("false")){
-							evaluateInnerJoinAggGroupByHaving(i,e,temp,json,"leftAggColumns");
-						}
-
-						stream.resetJoinAggGroupByUpRows();
-
-					}
-				}
-
-				int nrRightAggColumns = VmXmlHandler.getInstance()
-						.getRJAggJoinGroupByMapping()
-						.getInt(temp + ".rightAggColumns.nr");
-
-				for (int e = 0; e < nrRightAggColumns; e++) {
-
-					String aggColName = VmXmlHandler
-							.getInstance()
-							.getRJAggJoinGroupByMapping()
-							.getString(
-									temp + ".rightAggColumns.c(" + e + ").name");
-					String aggColType = VmXmlHandler
-							.getInstance()
-							.getRJAggJoinGroupByMapping()
-							.getString(
-									temp + ".rightAggColumns.c(" + e + ").type");
-
-					int nrAgg = VmXmlHandler
-							.getInstance()
-							.getRJAggJoinGroupByMapping()
-							.getInt(temp + ".rightAggColumns.c(" + e
-									+ ").nrAgg");
-
-					for (int i = 0; i < nrAgg; i++) {
-
-						String Key = VmXmlHandler
-								.getInstance()
-								.getRJAggJoinGroupByMapping()
-								.getString(
-										temp + ".rightAggColumns.c(" + e
-										+ ").Agg(" + i + ").Key");
-						String KeyType = VmXmlHandler
-								.getInstance()
-								.getRJAggJoinGroupByMapping()
-								.getString(
-										temp + ".rightAggColumns.c(" + e
-										+ ").Agg(" + i + ").KeyType");
-
-						int index = VmXmlHandler
-								.getInstance()
-								.getRJAggJoinGroupByMapping()
-								.getInt(temp + ".rightAggColumns.c(" + e
-										+ ").index");
-
-						String innerJoinAggTable = VmXmlHandler
-								.getInstance()
-								.getRJAggJoinGroupByMapping()
-								.getString(
-										temp + ".rightAggColumns.c(" + e
-										+ ").Agg(" + i + ").inner");
-
-						String rightJoinAggTable = VmXmlHandler
-								.getInstance()
-								.getRJAggJoinGroupByMapping()
-								.getString(
-										temp + ".rightAggColumns.c(" + e
-										+ ").Agg(" + i + ").right");
-
-						int AggKeyIndex = VmXmlHandler
-								.getInstance()
-								.getRJAggJoinGroupByMapping()
-								.getInt(temp + ".rightAggColumns.c(" + e
-										+ ").Agg(" + i + ").aggKeyIndex");
-
-						if (updateLeft) {
-							vm.updateJoinAgg_UpdateLeft_AggColRightSide_GroupBy(stream,
-									innerJoinAggTable, rightJoinAggTable, json,
-									joinKeyType, joinKeyName, aggColName,
-									aggColType, index, Key, KeyType,
-									AggKeyIndex);
-
-						} else {
-
-							vm.updateJoinAgg_UpdateRight_AggColRightSide_GroupBy(stream,
-									innerJoinAggTable, rightJoinAggTable, json,
-									KeyType, Key, aggColName, aggColType,
-									joinKeyName, joinKeyType);
-
-						}
-
-						//evalute Left Having
-						if(!rightJoinAggTable.equals("false")){							
-							evaluateLeftorRightJoinAggGroupByHaving(i,e,temp,json,"right");
-						}
-
-						//evalute Inner Having
-						if(!innerJoinAggTable.equals("false")){
-							evaluateInnerJoinAggGroupByHaving(i,e,temp,json,"rightAggColumns");
-						}
-
-						stream.resetJoinAggGroupByUpRows();
-
-					}
-				}
-
-			}
-			 */
-			// END OF UPDATE JoinPreag
 			stream.resetReverseJoinRows();
 
 			cursor += nrOfTables;
@@ -2421,8 +2000,6 @@ public class ViewManagerController {
 
 		String bufferString = data.get("stream").toString();
 
-
-
 		stream = Serialize.deserializeStream(bufferString);
 
 		JSONObject json = stream.getDeltaJSON();
@@ -2499,6 +2076,232 @@ public class ViewManagerController {
 			System.out.println("No join table for this reverse join table "
 					+ joinTable + " available");
 		}
+
+
+		// ======================================================================================================
+		// Update Group By Join Agg clauses
+
+		int positionAggGroupBy = reverseTablesNames_AggJoinGroupBy
+				.indexOf(joinTable);
+
+		if (positionAggGroupBy != -1) {
+
+			String temp = "mapping.unit(";
+			temp += Integer.toString(positionAggGroupBy);
+			temp += ")";
+
+			Boolean updateLeft = false;
+			Boolean updateRight = false;
+
+			String leftJoinTable = VmXmlHandler.getInstance()
+					.getRJAggJoinGroupByMapping()
+					.getString(temp + ".LeftTable");
+			String rightJoinTable = VmXmlHandler.getInstance()
+					.getRJAggJoinGroupByMapping()
+					.getString(temp + ".RightTable");
+
+			tableName = (String) json.get("table");
+
+			if (tableName.equals(leftJoinTable)) {
+				updateLeft = true;
+			} else {
+				updateRight = true;
+			}
+
+			int nrLeftAggColumns = VmXmlHandler.getInstance()
+					.getRJAggJoinGroupByMapping()
+					.getInt(temp + ".leftAggColumns.nr");
+
+			for (int e = 0; e < nrLeftAggColumns; e++) {
+
+				String aggColName = VmXmlHandler
+						.getInstance()
+						.getRJAggJoinGroupByMapping()
+						.getString(
+								temp + ".leftAggColumns.c(" + e + ").name");
+				String aggColType = VmXmlHandler
+						.getInstance()
+						.getRJAggJoinGroupByMapping()
+						.getString(
+								temp + ".leftAggColumns.c(" + e + ").type");
+
+				int nrAgg = VmXmlHandler
+						.getInstance()
+						.getRJAggJoinGroupByMapping()
+						.getInt(temp + ".leftAggColumns.c(" + e + ").nrAgg");
+
+				for (int i = 0; i < nrAgg; i++) {
+
+					String innerJoinAggTable = VmXmlHandler
+							.getInstance()
+							.getRJAggJoinGroupByMapping()
+							.getString(
+									temp + ".leftAggColumns.c(" + e
+									+ ").Agg(" + i + ").inner.name");
+					String leftJoinAggTable = VmXmlHandler
+							.getInstance()
+							.getRJAggJoinGroupByMapping()
+							.getString(
+									temp + ".leftAggColumns.c(" + e
+									+ ").Agg(" + i + ").left.name");
+
+					String Key = VmXmlHandler
+							.getInstance()
+							.getRJAggJoinGroupByMapping()
+							.getString(
+									temp + ".leftAggColumns.c(" + e
+									+ ").Agg(" + i + ").Key");
+					String KeyType = VmXmlHandler
+							.getInstance()
+							.getRJAggJoinGroupByMapping()
+							.getString(
+									temp + ".leftAggColumns.c(" + e
+									+ ").Agg(" + i + ").KeyType");
+
+					int index = VmXmlHandler
+							.getInstance()
+							.getRJAggJoinGroupByMapping()
+							.getInt(temp + ".leftAggColumns.c(" + e
+									+ ").index");
+
+					int AggKeyIndex = VmXmlHandler
+							.getInstance()
+							.getRJAggJoinGroupByMapping()
+							.getInt(temp + ".leftAggColumns.c(" + e
+									+ ").Agg(" + i + ").aggKeyIndex");
+
+
+					if (updateLeft) {
+
+						vm.updateJoinAgg_UpdateLeft_AggColLeftSide_GroupBy(stream,
+								innerJoinAggTable, leftJoinAggTable, json,
+								KeyType, Key, aggColName, aggColType,
+								joinKeyName, joinKeyType);
+
+					} else {
+						vm.updateJoinAgg_UpdateRight_AggColLeftSide_GroupBy(stream,
+								innerJoinAggTable, leftJoinAggTable, json,
+								joinKeyType, joinKeyName, aggColName,
+								aggColType, index, Key, KeyType,
+								AggKeyIndex);
+					}
+
+					//evalute Left Having
+					if(!leftJoinAggTable.equals("false")){							
+						evaluateLeftorRightJoinAggGroupByHaving(i,e,temp,json,"left");
+					}
+
+					//evalute Inner Having
+					if(!innerJoinAggTable.equals("false")){
+						evaluateInnerJoinAggGroupByHaving(i,e,temp,json,"leftAggColumns");
+					}
+
+					stream.resetJoinAggGroupByUpRows();
+
+				}
+			}
+
+			int nrRightAggColumns = VmXmlHandler.getInstance()
+					.getRJAggJoinGroupByMapping()
+					.getInt(temp + ".rightAggColumns.nr");
+
+			for (int e = 0; e < nrRightAggColumns; e++) {
+
+				String aggColName = VmXmlHandler
+						.getInstance()
+						.getRJAggJoinGroupByMapping()
+						.getString(
+								temp + ".rightAggColumns.c(" + e + ").name");
+				String aggColType = VmXmlHandler
+						.getInstance()
+						.getRJAggJoinGroupByMapping()
+						.getString(
+								temp + ".rightAggColumns.c(" + e + ").type");
+
+				int nrAgg = VmXmlHandler
+						.getInstance()
+						.getRJAggJoinGroupByMapping()
+						.getInt(temp + ".rightAggColumns.c(" + e
+								+ ").nrAgg");
+
+				for (int i = 0; i < nrAgg; i++) {
+
+					String Key = VmXmlHandler
+							.getInstance()
+							.getRJAggJoinGroupByMapping()
+							.getString(
+									temp + ".rightAggColumns.c(" + e
+									+ ").Agg(" + i + ").Key");
+					String KeyType = VmXmlHandler
+							.getInstance()
+							.getRJAggJoinGroupByMapping()
+							.getString(
+									temp + ".rightAggColumns.c(" + e
+									+ ").Agg(" + i + ").KeyType");
+
+					int index = VmXmlHandler
+							.getInstance()
+							.getRJAggJoinGroupByMapping()
+							.getInt(temp + ".rightAggColumns.c(" + e
+									+ ").index");
+
+					String innerJoinAggTable = VmXmlHandler
+							.getInstance()
+							.getRJAggJoinGroupByMapping()
+							.getString(
+									temp + ".rightAggColumns.c(" + e
+									+ ").Agg(" + i + ").inner");
+
+					String rightJoinAggTable = VmXmlHandler
+							.getInstance()
+							.getRJAggJoinGroupByMapping()
+							.getString(
+									temp + ".rightAggColumns.c(" + e
+									+ ").Agg(" + i + ").right");
+
+					int AggKeyIndex = VmXmlHandler
+							.getInstance()
+							.getRJAggJoinGroupByMapping()
+							.getInt(temp + ".rightAggColumns.c(" + e
+									+ ").Agg(" + i + ").aggKeyIndex");
+
+					if (updateLeft) {
+						vm.updateJoinAgg_UpdateLeft_AggColRightSide_GroupBy(stream,
+								innerJoinAggTable, rightJoinAggTable, json,
+								joinKeyType, joinKeyName, aggColName,
+								aggColType, index, Key, KeyType,
+								AggKeyIndex);
+
+					} else {
+
+						vm.updateJoinAgg_UpdateRight_AggColRightSide_GroupBy(stream,
+								innerJoinAggTable, rightJoinAggTable, json,
+								KeyType, Key, aggColName, aggColType,
+								joinKeyName, joinKeyType);
+
+					}
+
+					//evalute Left Having
+					if(!rightJoinAggTable.equals("false")){							
+						evaluateLeftorRightJoinAggGroupByHaving(i,e,temp,json,"right");
+					}
+
+					//evalute Inner Having
+					if(!innerJoinAggTable.equals("false")){
+						evaluateInnerJoinAggGroupByHaving(i,e,temp,json,"rightAggColumns");
+					}
+
+					stream.resetJoinAggGroupByUpRows();
+
+				}
+			}
+
+		}
+
+		//END OF UPDATE JoinAgg Group By
+		//===============================================
+
+
 
 		/*
 		// UPDATE join agg
@@ -2629,7 +2432,7 @@ public class ViewManagerController {
 
 			}
 		}
-		*/
+		 */
 		return true;
 	}
 
@@ -2719,6 +2522,32 @@ public class ViewManagerController {
 			}
 		}
 
+	}
+
+	public void decideGroupBy(JSONObject json) {
+
+		JSONObject data = (JSONObject) json.get("data");
+		String bufferString = data.get("stream").toString();
+
+		stream = Serialize.deserializeStream(bufferString);
+		JSONObject deltaJSON = stream.getDeltaJSON();
+
+		if(!stream.isDeleteOperation()){
+			propagateGroupByUpdate(deltaJSON);
+		}else{
+			propagateGroupByDelete(deltaJSON);
+		}
+		
+	}
+
+	private void propagateGroupByDelete(JSONObject deltaJSON) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	private void propagateGroupByUpdate(JSONObject deltaJSON) {
+		// TODO Auto-generated method stub
+		
 	}
 
 
