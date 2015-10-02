@@ -2500,6 +2500,7 @@ public class ViewManagerController {
 					+ joinTable + " available");
 		}
 
+		/*
 		// UPDATE join agg
 
 		int positionAgg = reverseTablesNames_AggJoin.indexOf(joinTable);
@@ -2628,6 +2629,7 @@ public class ViewManagerController {
 
 			}
 		}
+		*/
 		return true;
 	}
 

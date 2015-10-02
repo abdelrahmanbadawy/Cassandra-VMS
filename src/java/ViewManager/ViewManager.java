@@ -750,20 +750,42 @@ public class ViewManager {
 		}
 
 		// else{
-		CustomizedRow crow2 = new CustomizedRow(theRow);
+		CustomizedRow crow2;
+		if(theRow!=null){
+		 crow2 = new CustomizedRow(theRow);
+		
+		}
+		else{
+			crow2 = CustomizedRow.constructRJRow(joinKeyName, joinKeyName,
+					new HashMap<String, String>(), new HashMap<String, String>());
+		}
 		stream.setReverseJoinUpadteOldRow(crow2);
+		
 		// }
 
 		// Set the rj updated row for join updates
 		// new updated row
 		CustomizedRow newcr = null;
+		
+		
 
+		
+		if(theRow != null){
 		if (column == 1)
 			newcr = CustomizedRow.constructRJRow(joinKeyName, joinKeyName,
 					myMap, crow2.getMap("list_item2"));
 		else
 			newcr = CustomizedRow.constructRJRow(joinKeyName, joinKeyName,
 					crow2.getMap("list_item1"), myMap);
+		}
+		else{
+			if (column == 1)
+				newcr = CustomizedRow.constructRJRow(joinKeyName, joinKeyName,
+						myMap, new HashMap<String, String>());
+			else
+				newcr = CustomizedRow.constructRJRow(joinKeyName, joinKeyName,
+						new HashMap<String, String>(), myMap);
+		}
 
 		stream.setReverseJoinUpdateNewRow(newcr);
 
@@ -788,6 +810,7 @@ public class ViewManager {
 
 		if (updateLeft) {
 
+			
 			Map<String, String> tempMapImmutable1_old = oldRow
 					.getMap("list_item1");
 			Map<String, String> tempMapImmutable1_new = newRow
