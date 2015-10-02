@@ -15,14 +15,8 @@ import com.datastax.driver.core.Row;
 public class Stream implements Serializable {
 
 	//JoinAggGroupBy
-	private CustomizedRow innerJoinAggGroupByOldRow;
-	private CustomizedRow innerJoinAggGroupByUpdatedOldRow;
-	private CustomizedRow innerJoinAggGroupByNewRow;
-	private CustomizedRow innerJoinAggGroupByDeleteRow;
-	private CustomizedRow leftOrRightJoinAggGroupByOldRow;
-	private CustomizedRow leftOrRightJoinAggGroupByUpdatedOldRow;
-	private CustomizedRow leftOrRightJoinAggGroupByNewRow;
-	private CustomizedRow leftOrRightJoinAggGroupByDeleteRow;
+	private CustomizedRow updatedJoinAggGroupByRow;
+	private CustomizedRow updatedJoinAggGroupByRowDeleted;
 
 	//JoinAgg
 	private CustomizedRow innerJoinAggOldRow;
@@ -41,7 +35,7 @@ public class Stream implements Serializable {
 	//Preaggregation
 	private CustomizedRow updatedPreaggRow;
 	private CustomizedRow updatedPreaggRowDeleted;
-	
+
 	//Preaggregation delete
 	private CustomizedRow deletePreaggRow;
 	private CustomizedRow deletePreaggRowDeleted;
@@ -52,11 +46,11 @@ public class Stream implements Serializable {
 	private CustomizedRow reverseJoinUpdatedOldRow_changeJoinKey;
 	private CustomizedRow reverseJoinDeleteNewRow;
 	private CustomizedRow revereJoinDeleteOldRow;
-	
+
 	private String baseTable;
-	
+
 	private boolean isDeleteOperation;
-	
+
 	private JSONObject deltaJSON;
 
 
@@ -104,86 +98,12 @@ public class Stream implements Serializable {
 
 	}
 
-	public CustomizedRow getInnerJoinAggGroupByOldRow() {
-		return innerJoinAggGroupByOldRow;
-	}
-
-	public void setInnerJoinAggGroupByOldRow(CustomizedRow joinAggGroupByOldRow) {
-		this.innerJoinAggGroupByOldRow = joinAggGroupByOldRow;
-	}
-
-	public CustomizedRow getInnerJoinAggGroupByUpdatedOldRow() {
-		return innerJoinAggGroupByUpdatedOldRow;
-	}
-
-	public void setInnerJoinAggGroupByUpdatedOldRow(
-			CustomizedRow joinAggGroupByUpdatedOldRow) {
-		this.innerJoinAggGroupByUpdatedOldRow = joinAggGroupByUpdatedOldRow;
-	}
-
-	public CustomizedRow getInnerJoinAggGroupByNewRow() {
-		return innerJoinAggGroupByNewRow;
-	}
-
-	public void setInnerJoinAggGroupByNewRow(CustomizedRow joinAggGroupByNewRow) {
-		this.innerJoinAggGroupByNewRow = joinAggGroupByNewRow;
-	}
-
-	public CustomizedRow getLeftOrRightJoinAggGroupByOldRow() {
-		return leftOrRightJoinAggGroupByOldRow;
-	}
-
-	public void setLeftOrRightJoinAggGroupByOldRow(
-			CustomizedRow leftOrRightJoinAggGroupByOldRow) {
-		this.leftOrRightJoinAggGroupByOldRow = leftOrRightJoinAggGroupByOldRow;
-	}
-
-	public CustomizedRow getLeftOrRightJoinAggGroupByNewRow() {
-		return leftOrRightJoinAggGroupByNewRow;
-	}
-
-	public void setLeftOrRightJoinAggGroupByNewRow(
-			CustomizedRow leftOrRightJoinAggGroupByNewRow) {
-		this.leftOrRightJoinAggGroupByNewRow = leftOrRightJoinAggGroupByNewRow;
-	}
-
-	public CustomizedRow getLeftOrRightJoinAggGroupByUpdatedOldRow() {
-		return leftOrRightJoinAggGroupByUpdatedOldRow;
-	}
-
-	public void setLeftOrRightJoinAggGroupByUpdatedOldRow(
-			CustomizedRow leftOrRightJoinAggGroupByUpdatedOldRow) {
-		this.leftOrRightJoinAggGroupByUpdatedOldRow = leftOrRightJoinAggGroupByUpdatedOldRow;
-	}
 
 	public void resetJoinAggGroupByUpRows(){
-		setInnerJoinAggGroupByOldRow(null);
-		setInnerJoinAggGroupByUpdatedOldRow(null);
-		setInnerJoinAggGroupByNewRow(null);
-		setInnerJoinAggGroupByDeleteOldRow(null);
-		setLeftOrRightJoinAggGroupByNewRow(null);
-		setLeftOrRightJoinAggGroupByOldRow(null);
-		setLeftOrRightJoinAggGroupByUpdatedOldRow(null);
-		setLeftOrRightJoinAggGroupByDeleteRow(null);
+		setUpdatedJoinAggGroupByRow(null);
+		setUpdatedJoinAggGroupByRowDeleted(null);
 	}
 
-	public CustomizedRow getInnerJoinAggGroupByDeleteOldRow() {
-		return innerJoinAggGroupByDeleteRow;
-	}
-
-	public void setInnerJoinAggGroupByDeleteOldRow(
-			CustomizedRow innerJoinAggGroupByDeleteRow) {
-		this.innerJoinAggGroupByDeleteRow = innerJoinAggGroupByDeleteRow;
-	}
-
-	public CustomizedRow getLeftOrRightJoinAggGroupByDeleteRow() {
-		return leftOrRightJoinAggGroupByDeleteRow;
-	}
-
-	public void setLeftOrRightJoinAggGroupByDeleteRow(
-			CustomizedRow leftOrRightJoinAggGroupByDeleteRow) {
-		this.leftOrRightJoinAggGroupByDeleteRow = leftOrRightJoinAggGroupByDeleteRow;
-	}
 
 	public CustomizedRow getInnerJoinAggOldRow() {
 		return innerJoinAggOldRow;
@@ -343,7 +263,7 @@ public class Stream implements Serializable {
 	public void setDeletePreaggRowDeleted(CustomizedRow deletePreaggRowDeleted) {
 		this.deletePreaggRowDeleted = deletePreaggRowDeleted;
 	}
-	
+
 	public String getBaseTable() {
 		return baseTable;
 	}
@@ -351,7 +271,7 @@ public class Stream implements Serializable {
 	public void setBaseTable(String baseTable) {
 		this.baseTable = baseTable;
 	}
-	
+
 	public boolean isDeleteOperation() {
 		return isDeleteOperation;
 	}
@@ -368,6 +288,27 @@ public class Stream implements Serializable {
 
 	public void setDeltaJSON(JSONObject deltaJSON) {
 		this.deltaJSON = deltaJSON;
+	}
+
+
+	public CustomizedRow getUpdatedJoinAggGroupByRow() {
+		return updatedJoinAggGroupByRow;
+	}
+
+
+	public void setUpdatedJoinAggGroupByRow(CustomizedRow updatedJoinAggGroupByRow) {
+		this.updatedJoinAggGroupByRow = updatedJoinAggGroupByRow;
+	}
+
+
+	public CustomizedRow getUpdatedJoinAggGroupByRowDeleted() {
+		return updatedJoinAggGroupByRowDeleted;
+	}
+
+
+	public void setUpdatedJoinAggGroupByRowDeleted(
+			CustomizedRow updatedJoinAggGroupByRowDeleted) {
+		this.updatedJoinAggGroupByRowDeleted = updatedJoinAggGroupByRowDeleted;
 	}
 
 }

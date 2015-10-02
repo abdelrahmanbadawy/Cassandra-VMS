@@ -194,5 +194,23 @@ public class CustomizedRow implements Serializable{
 		return crow;
 		
 	}
+	
+	public static CustomizedRow constructJoinAggGroupBy(String aggKey,String aggKeyValue,List<Float>myList,float sum,int count,float average,float min,float max,String blob){
+		
+		CustomizedRow crow = new CustomizedRow();
+		List<String> names = new ArrayList<String>(Arrays.asList(aggKey,"agg_list","sum","average","min","max","count","stream"));
+		crow.setColNames(names);
+
+		List<String> types = new ArrayList<String>(Arrays.asList("text","List.class","float","float","float","float","int","blob"));
+		crow.setColTypes(types);
+
+		List<Object> values = new ArrayList<Object>(Arrays.asList(aggKeyValue,myList,sum,average,min,max,count,blob));
+		crow.setColValues(values);
+
+		crow.setColDefSize(values.size());
+
+		return crow;
+	}
+	
 
 }

@@ -64,14 +64,49 @@ public class JoinAggGroupByHelper {
 
 	}
 
+
+
+	public static void insertStatement(JSONObject json, String joinAggTable,CustomizedRow row, String blob){
+
+		String aggKeyName = row.getName(0);
+		String aggKeyType = row.getType(0);
+		String aggKeyValue = Utils.getColumnValueFromDeltaStream(row, aggKeyName, aggKeyType, "");
+
+		List<Float> myList = new ArrayList<Float>();
+		myList.addAll(row.getList("agg_list"));
+
+		float sum = row.getFloat("sum");
+		float avg = row.getFloat("average");
+		float min = row.getFloat("min");
+		float max = row.getFloat("max");
+		int count = row.getInt("count");
+
+		StringBuilder insertQueryAgg = new StringBuilder("INSERT INTO ").append((String) json.get("keyspace"))
+				.append(".").append(joinAggTable).append(" ( ")
+				.append(aggKeyName + ", ").append("agg_list, sum, count, average, min, max, stream")
+				.append(") VALUES (")
+				.append(aggKeyValue + ", ").append(myList+", ").append(sum).append(", ").append(count).append(", ")
+				.append(avg).append(", ").append(min).append(", ").append(max).append(", ").append(blob).append(");");
+
+		System.out.println(insertQueryAgg);
+
+		try {
+			Session session = currentCluster.connect();
+			session.execute(insertQueryAgg.toString());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+	}
+
 	public static boolean updateStatement(Float sum, int count, Float avg, Float min, Float max, List<Float> myList, String key, String keyValue,
-			String preaggTable, JSONObject json, Float oldSum){
+			String preaggTable, JSONObject json, Float oldSum, String blob){
 
 		StringBuilder updateQuery = new StringBuilder("UPDATE ");
 		updateQuery.append((String) json.get("keyspace"))
 		.append(".").append(preaggTable).append(" SET agg_list = ").append(myList)
 		.append(", sum = ").append(sum).append(", count = ").append(count).append(", average = ").append(avg).append(", min = ")
-		.append(min).append(", max = ").append(max).append(" WHERE ").append(key).append(" = ").append(keyValue)
+		.append(min).append(", max = ").append(max).append(", stream = "+blob).append(" WHERE ").append(key).append(" = ").append(keyValue)
 		.append(" IF sum = ").append(oldSum).append(";");
 
 
@@ -161,28 +196,23 @@ public class JoinAggGroupByHelper {
 			e.printStackTrace();
 		}
 
-		if(theRow.getInt("count")==1){
+		if(theRow==null){
+			return true;
+		}else if(theRow.getInt("count")==1){
 
-			if(joinAggTable.contains("inner")){
-				CustomizedRow crow = new CustomizedRow(theRow);
-				stream.setInnerJoinAggGroupByDeleteOldRow(crow);
-			}else{
-				CustomizedRow crow = new CustomizedRow(theRow);
-				stream.setLeftOrRightJoinAggGroupByDeleteRow(crow);
-			}
+			CustomizedRow crow = new CustomizedRow(theRow);
+			stream.setUpdatedJoinAggGroupByRowDeleted(crow);
+			stream.setDeleteOperation(true);
+			String blob = Serialize.serializeStream2(stream);
+			JoinAggGroupByHelper.insertStatement(json, joinAggTable, crow,blob);
+
+			// Reseting the stream
+			stream.setDeleteOperation(false);
+			stream.setUpdatedJoinAggGroupByRowDeleted(null);
+
 
 			Utils.deleteEntireRowWithPK((String) json.get("keyspace"), joinAggTable, aggKeyName, aggKeyValue);
 		}else{
-
-
-			if(joinAggTable.contains("inner")){
-				CustomizedRow crow = new CustomizedRow(theRow);
-				stream.setInnerJoinAggGroupByOldRow(crow);
-			}else{
-				CustomizedRow crow = new CustomizedRow(theRow);
-				stream.setLeftOrRightJoinAggGroupByOldRow(crow);
-			}
-
 
 			Float sum = theRow.getFloat("sum");
 			sum -= Float.parseFloat(aggColValue);
@@ -211,35 +241,13 @@ public class JoinAggGroupByHelper {
 
 			if (!joinAggTable.equals("false")) {
 
-				//				StringBuilder insertQueryAgg = new StringBuilder("INSERT INTO ").append((String) json.get("keyspace"))
-				//						.append(".").append(joinAggTable).append(" ( ")
-				//						.append(aggKeyName + ", ").append("list_item, sum, count, average, min, max")
-				//						.append(") VALUES (")
-				//						.append(aggKeyValue + ", ").append(myList+", ").append(sum).append(", ").append(count).append(", ")
-				//						.append(avg).append(", ").append(min).append(", ").append(max).append(");");
-				//
-				//				System.out.println(insertQueryAgg);
-				//
-				//				try {
-				//					Session session = currentCluster.connect();
-				//					session.execute(insertQueryAgg.toString());
-				//				} catch (Exception e) {
-				//					e.printStackTrace();
-				//				}
+				CustomizedRow crow  = CustomizedRow.constructJoinAggGroupBy(aggKeyName, aggKeyValue, myList, sum, count, avg, min, max, Serialize.serializeStream2(stream));
+				stream.setUpdatedJoinAggGroupByRow(crow);
 
+				String blob = Serialize.serializeStream2(stream);
 
-
-				if(!updateStatement(sum, count, avg, min, max, myList, aggKeyName, aggKeyValue, joinAggTable, json, theRow.getFloat("sum")))
+				if(!updateStatement(sum, count, avg, min, max, myList, aggKeyName, aggKeyValue, joinAggTable, json, theRow.getFloat("sum"),blob))
 					return false;
-
-				if(joinAggTable.contains("inner")){
-					CustomizedRow crow = new CustomizedRow(selectStatement(joinAggTable, aggKeyName, aggKeyValue, json));
-					stream.setInnerJoinAggGroupByUpdatedOldRow(crow);
-				}else{
-					CustomizedRow crow = new CustomizedRow(selectStatement(joinAggTable, aggKeyName, aggKeyValue, json));
-					stream.setLeftOrRightJoinAggGroupByUpdatedOldRow(crow);
-				}
-
 			}
 		}
 
@@ -307,16 +315,20 @@ public class JoinAggGroupByHelper {
 			}
 		}
 
+		CustomizedRow crow = CustomizedRow.constructJoinAggGroupBy(aggKey, aggKeyValue, myList, sum, count, avg, min, max, Serialize.serializeStream2(stream));
+		stream.setUpdatedJoinAggGroupByRow(crow);
+		String blob = Serialize.serializeStream2(stream);
+
 		StringBuilder insertQueryAgg = new StringBuilder(
 				"INSERT INTO ");
 		insertQueryAgg.append((String) json.get("keyspace"))
 		.append(".").append(innerJoinAggTable)
 		.append(" ( ").append(aggKey + ", ").append("agg_list, ")
-		.append("sum, count, average, min, max")
+		.append("sum, count, average, min, max,stream")
 		.append(") VALUES (").append(aggKeyValue + ", ").append(myList+", ")
 		.append(sum).append(", ").append(count)
 		.append(", ").append(avg).append(", ").append(min)
-		.append(", ").append(max).append(");");
+		.append(", ").append(max).append(", ").append(blob).append(");");
 		System.out.println(insertQueryAgg);
 
 		try {
@@ -326,10 +338,6 @@ public class JoinAggGroupByHelper {
 			e.printStackTrace();
 
 		}
-
-		CustomizedRow crow = new CustomizedRow(selectStatement(innerJoinAggTable, aggKey, aggKeyValue, json));
-		stream.setInnerJoinAggGroupByNewRow(crow);
-
 
 	}
 
@@ -465,7 +473,7 @@ public class JoinAggGroupByHelper {
 
 		//First Insertion
 		if(theRow==null){
-			if(!aggColValue.equals("'null'") && !aggColValue.equals("null") ){
+			if(!aggColValue.equals("null") ){
 				sum = Float.valueOf(aggColValue);
 				min = Float.valueOf(aggColValue);
 				max = Float.valueOf(aggColValue);
@@ -474,13 +482,15 @@ public class JoinAggGroupByHelper {
 				myList.add(Float.valueOf(aggColValue));
 			}
 
+			CustomizedRow crow = CustomizedRow.constructJoinAggGroupBy(aggKey,aggKeyValue,myList,sum,count,average,min,max,Serialize.serializeStream2(stream));
+			stream.setUpdatedJoinAggGroupByRow(crow);
 
 			StringBuilder insertQueryAgg = new StringBuilder("INSERT INTO ");
 			insertQueryAgg
 			.append((String) json.get("keyspace"))
-			.append(".").append(joinTable).append(" ( ").append(aggKey + ", ").append("agg_list, sum, count, average, min, max").append(") VALUES (")
+			.append(".").append(joinTable).append(" ( ").append(aggKey + ", ").append("agg_list, sum, count, average, min, max, stream").append(") VALUES (")
 			.append(aggKeyValue + ", ").append(myList+", ").append(sum).append(", ").append(count).append(", ")
-			.append(average).append(", ").append(min).append(", ").append(max).append(");");
+			.append(average).append(", ").append(min).append(", ").append(max).append(", ").append(Serialize.serializeStream2(stream)).append(");");
 
 			System.out.println(insertQueryAgg);
 
@@ -497,8 +507,8 @@ public class JoinAggGroupByHelper {
 			sum = theRow.getFloat("sum");
 			count = theRow.getInt("count");
 
-			if((oldAggColValue.equals("'null'")|| oldAggColValue.equals("null"))|| (!aggKeyValue.equals(oldAggKeyValue)) ){
-				if(!aggColValue.equals("'null'") && !aggColValue.equals("null")){
+			if(oldAggColValue.equals("null")|| (!aggKeyValue.equals(oldAggKeyValue)) ){
+				if( !aggColValue.equals("null")){
 					count++;								
 					sum += Float.parseFloat(aggColValue);
 					average = sum/count;
@@ -506,8 +516,8 @@ public class JoinAggGroupByHelper {
 				}
 			}
 
-			if(!oldAggColValue.equals("'null'") && !oldAggColValue.equals("null") && aggKeyValue.equals(oldAggKeyValue)){
-				if(!aggColValue.equals("'null'") && !aggColValue.equals("null")){
+			if(!oldAggColValue.equals("null") && aggKeyValue.equals(oldAggKeyValue)){
+				if( !aggColValue.equals("null")){
 					sum+=Float.parseFloat(aggColValue);
 					sum-=Float.parseFloat(oldAggColValue);
 					myList.remove(Float.parseFloat(oldAggColValue));
@@ -530,36 +540,12 @@ public class JoinAggGroupByHelper {
 				}
 			}
 
+			CustomizedRow crow = CustomizedRow.constructJoinAggGroupBy(aggKey,aggKeyValue,myList,sum,count,average,min,max,Serialize.serializeStream2(stream));
+			stream.setUpdatedJoinAggGroupByRow(crow);
 
-			if(!updateStatement(sum, count, average, min, max, myList, aggKey, aggKeyValue, joinTable, json, theRow.getFloat("sum")))
+			if(!updateStatement(sum, count, average, min, max, myList, aggKey, aggKeyValue, joinTable, json, theRow.getFloat("sum"),Serialize.serializeStream2(stream)))
 				return false;
 
-		}
-
-		//		StringBuilder insertQueryAgg = new StringBuilder("INSERT INTO ");
-		//		insertQueryAgg
-		//		.append((String) json.get("keyspace"))
-		//		.append(".").append(joinTable).append(" ( ").append(aggKey + ", ").append("list_item, sum, count, average, min, max").append(") VALUES (")
-		//		.append(aggKeyValue + ", ").append(myList+", ").append(sum).append(", ").append(count).append(", ")
-		//		.append(average).append(", ").append(min).append(", ").append(max).append(");");
-		//
-		//		System.out.println(insertQueryAgg);
-		//
-		//		try {
-		//			Session session = currentCluster.connect();
-		//			session.execute(insertQueryAgg.toString());
-		//		} catch (Exception e) {
-		//			e.printStackTrace();
-		//
-		//		}
-
-
-		if(joinTable.contains("inner")){
-			CustomizedRow crow = new CustomizedRow(selectStatement(joinTable, aggKey, aggKeyValue, json));
-			stream.setInnerJoinAggGroupByNewRow(crow);
-		}else{
-			CustomizedRow crow = new CustomizedRow(selectStatement(joinTable, aggKey, aggKeyValue, json));
-			stream.setLeftOrRightJoinAggGroupByNewRow(crow);
 		}
 
 		return true;
@@ -587,7 +573,7 @@ public class JoinAggGroupByHelper {
 
 	}
 
-	public static boolean deleteElementFromRow(Stream stream, JSONObject json, String joinTable, String aggKey, String aggKeyValue, String aggColValue){
+	/*public static boolean deleteElementFromRow(Stream stream, JSONObject json, String joinTable, String aggKey, String aggKeyValue, String aggColValue){
 
 		float sum = 0;
 		float min = 0;
@@ -665,10 +651,10 @@ public class JoinAggGroupByHelper {
 			CustomizedRow crow = new CustomizedRow(selectStatement(joinTable, aggKey, aggKeyValue, json));
 			stream.setLeftOrRightJoinAggGroupByNewRow(crow);
 		}
-		
+
 		return true;
 
-	}
+	}*/
 
 
 }

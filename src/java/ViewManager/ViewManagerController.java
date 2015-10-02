@@ -46,6 +46,7 @@ public class ViewManagerController {
 	int rjoins;
 	List<String> pkType;
 	Stream stream = null;
+	List<String> havingJoinGroupBy;
 
 	public ViewManagerController() {
 
@@ -107,6 +108,9 @@ public class ViewManagerController {
 
 		preaggJoinTableNames = VmXmlHandler.getInstance()
 				.getHavingJoinAggMapping().getList("mapping.unit.preaggTable");
+
+		havingJoinGroupBy =  VmXmlHandler.getInstance().getRJAggJoinGroupByHavingMapping()
+				.getList("mapping.unit.name");
 
 	}
 
@@ -708,138 +712,6 @@ public class ViewManagerController {
 	}
 
 
-	private void evaluateInnerJoinAggGroupByHaving(int i, int e, String temp,JSONObject json,String aggColPosition) {
-
-		Integer nrHaving =  VmXmlHandler.getInstance()
-				.getRJAggJoinGroupByMapping().getInt(temp + "." +aggColPosition+".c(" + e
-						+ ").Agg(" + i + ").inner.nrHaving");
-
-		if(nrHaving!=0){
-
-			List<String> innerHaving =  VmXmlHandler.getInstance()
-					.getRJAggJoinGroupByMapping().getList(temp + "." +aggColPosition+".c(" + e
-							+ ").Agg(" + i + ").inner.Having.name");
-
-			List<String> aggFct =  VmXmlHandler.getInstance()
-					.getRJAggJoinGroupByMapping().getList(temp + "." +aggColPosition+".c(" + e
-							+ ").Agg(" + i + ").inner.Having.And.aggFct");
-
-			List<String> innerHavingType =  VmXmlHandler.getInstance()
-					.getRJAggJoinGroupByMapping().getList(temp + "." +aggColPosition+".c(" + e
-							+ ").Agg(" + i + ").inner.Having.And.type");
-			List<String> operation =  VmXmlHandler.getInstance()
-					.getRJAggJoinGroupByMapping().getList(temp + "." +aggColPosition+".c(" + e
-							+ ").Agg(" + i + ").inner.Having.And.operation");
-			List<String> value =  VmXmlHandler.getInstance()
-					.getRJAggJoinGroupByMapping().getList(temp + "." +aggColPosition+".c(" + e
-							+ ").Agg(" + i + ").inner.Having.And.value");
-
-			for(int j=0;j<nrHaving;j++){
-
-				if(stream.getInnerJoinAggGroupByDeleteOldRow()!=null){
-					//boolean result = Utils.evalueJoinAggConditions(stream.getInnerJoinAggGroupByDeleteOldRow(), aggFct.get(j), operation.get(j), value.get(j));
-					//if(result){
-					String pkName = stream.getInnerJoinAggGroupByDeleteOldRow().getName(0);
-					String pkType = stream.getInnerJoinAggGroupByDeleteOldRow().getType(0);
-					String pkValue = Utils.getColumnValueFromDeltaStream(stream.getInnerJoinAggGroupByDeleteOldRow(), pkName, pkType, "");
-					Utils.deleteEntireRowWithPK((String)json.get("keyspace"), innerHaving.get(j), pkName,pkValue);
-					//}
-				}
-
-				if(stream.getInnerJoinAggGroupByUpdatedOldRow()!=null){
-					boolean result = Utils.evalueJoinAggConditions(stream.getInnerJoinAggGroupByUpdatedOldRow(), aggFct.get(j), operation.get(j), value.get(j));
-					if(result){
-						JoinAggGroupByHelper.insertStatement(json, innerHaving.get(j), stream.getInnerJoinAggGroupByUpdatedOldRow());
-					}else{
-						String pkName = stream.getInnerJoinAggGroupByUpdatedOldRow().getName(0);
-						String pkType = stream.getInnerJoinAggGroupByUpdatedOldRow().getType(0);
-						String pkValue = Utils.getColumnValueFromDeltaStream(stream.getInnerJoinAggGroupByUpdatedOldRow(), pkName, pkType, "");
-						Utils.deleteEntireRowWithPK((String)json.get("keyspace"), innerHaving.get(j), pkName,pkValue);
-					}
-				}
-
-				if(stream.getInnerJoinAggGroupByNewRow()!=null){
-					boolean result = Utils.evalueJoinAggConditions(stream.getInnerJoinAggGroupByNewRow(), aggFct.get(j), operation.get(j), value.get(j));
-					if(result){
-						JoinAggGroupByHelper.insertStatement(json, innerHaving.get(j), stream.getInnerJoinAggGroupByNewRow());
-					}else{
-						String pkName = stream.getInnerJoinAggGroupByNewRow().getName(0);
-						String pkType = stream.getInnerJoinAggGroupByNewRow().getType(0);
-						String pkValue = Utils.getColumnValueFromDeltaStream(stream.getInnerJoinAggGroupByNewRow(), pkName, pkType, "");
-						Utils.deleteEntireRowWithPK((String)json.get("keyspace"), innerHaving.get(j), pkName,pkValue);
-					}
-				}
-			}
-
-		}
-
-	}
-
-	private void evaluateLeftorRightJoinAggGroupByHaving(int i, int e, String temp,JSONObject json,String position) {
-
-		Integer nrHaving =  VmXmlHandler.getInstance()
-				.getRJAggJoinGroupByMapping().getInt(temp + ".leftAggColumns.c(" + e
-						+ ").Agg(" + i + ")."+position+".nrHaving");
-
-		if(nrHaving!=0){
-
-			List<String> leftHaving =  VmXmlHandler.getInstance()
-					.getRJAggJoinGroupByMapping().getList(temp + ".leftAggColumns.c(" + e
-							+ ").Agg(" + i + ")."+position+".Having.name");
-
-			List<String> aggFct =  VmXmlHandler.getInstance()
-					.getRJAggJoinGroupByMapping().getList(temp + ".leftAggColumns.c(" + e
-							+ ").Agg(" + i + ")."+position+".Having.And.aggFct");
-
-			List<String> leftHavingType =  VmXmlHandler.getInstance()
-					.getRJAggJoinGroupByMapping().getList(temp + ".leftAggColumns.c(" + e
-							+ ").Agg(" + i + ")."+position+".Having.And.type");
-			List<String> operation =  VmXmlHandler.getInstance()
-					.getRJAggJoinGroupByMapping().getList(temp + ".leftAggColumns.c(" + e
-							+ ").Agg(" + i + ")."+position+".Having.And.operation");
-			List<String> value =  VmXmlHandler.getInstance()
-					.getRJAggJoinGroupByMapping().getList(temp + ".leftAggColumns.c(" + e
-							+ ").Agg(" + i + ")."+position+".Having.And.value");
-
-			for(int j=0;j<nrHaving;j++){
-
-				if(stream.getLeftOrRightJoinAggGroupByDeleteRow()!=null){
-					//boolean result = Utils.evalueJoinAggConditions(stream.getLeftOrRightJoinAggGroupByDeleteRow(), aggFct.get(j), operation.get(j), value.get(j));
-					//if(result){
-					String pkName = stream.getLeftOrRightJoinAggGroupByDeleteRow().getName(0);
-					String pkType = stream.getLeftOrRightJoinAggGroupByDeleteRow().getType(0);
-					String pkValue = Utils.getColumnValueFromDeltaStream(stream.getLeftOrRightJoinAggGroupByDeleteRow(), pkName, pkType, "");
-					Utils.deleteEntireRowWithPK((String)json.get("keyspace"), leftHaving.get(j), pkName,pkValue);
-					//}
-				}
-
-				if(stream.getLeftOrRightJoinAggGroupByUpdatedOldRow()!=null){
-					boolean result = Utils.evalueJoinAggConditions(stream.getLeftOrRightJoinAggGroupByUpdatedOldRow(), aggFct.get(j), operation.get(j), value.get(j));
-					if(result){
-						JoinAggGroupByHelper.insertStatement(json, leftHaving.get(j), stream.getLeftOrRightJoinAggGroupByUpdatedOldRow());
-					}else{
-						String pkName = stream.getLeftOrRightJoinAggGroupByUpdatedOldRow().getName(0);
-						String pkType = stream.getLeftOrRightJoinAggGroupByUpdatedOldRow().getType(0);
-						String pkValue = Utils.getColumnValueFromDeltaStream(stream.getLeftOrRightJoinAggGroupByUpdatedOldRow(), pkName, pkType, "");
-						Utils.deleteEntireRowWithPK((String)json.get("keyspace"), leftHaving.get(j), pkName,pkValue);
-					}
-				}
-
-				if(stream.getLeftOrRightJoinAggGroupByNewRow()!=null){
-					boolean result = Utils.evalueJoinAggConditions(stream.getLeftOrRightJoinAggGroupByNewRow(), aggFct.get(j), operation.get(j), value.get(j));
-					if(result){
-						JoinAggGroupByHelper.insertStatement(json, leftHaving.get(j), stream.getLeftOrRightJoinAggGroupByNewRow());
-					}else{
-						String pkName = stream.getLeftOrRightJoinAggGroupByNewRow().getName(0);
-						String pkType = stream.getLeftOrRightJoinAggGroupByNewRow().getType(0);
-						String pkValue = Utils.getColumnValueFromDeltaStream(stream.getLeftOrRightJoinAggGroupByNewRow(), pkName, pkType, "");
-						Utils.deleteEntireRowWithPK((String)json.get("keyspace"), leftHaving.get(j), pkName,pkValue);
-					}
-				}
-			}
-		}
-	}
-
 	private boolean checkIfAggIsNull(String aggKey, CustomizedRow deltaUpdatedRow) {
 
 		if (deltaUpdatedRow != null) {
@@ -1323,19 +1195,19 @@ public class ViewManagerController {
 
 							if (updateLeft) {
 
-								vm.deleteJoinAgg_DeleteLeft_AggColLeftSide_GroupBy(stream,
+								/*vm.deleteJoinAgg_DeleteLeft_AggColLeftSide_GroupBy(stream,
 										innerJoinAggTable, leftJoinAggTable,
 										json, aggKeyType, aggKey, aggColName,
-										aggColType,index);
+										aggColType,index);*/
 							} else {
-								vm.deleteJoinAgg_DeleteRight_AggColLeftSide_GroupBy(stream,
+								/*vm.deleteJoinAgg_DeleteRight_AggColLeftSide_GroupBy(stream,
 										innerJoinAggTable, leftJoinAggTable,
 										json, aggKeyType, aggKey, aggColName,
-										aggColType, AggKeyIndex, index);
+										aggColType, AggKeyIndex, index);*/
 							}
 
 
-							//evalute Left Having
+							/*	//evalute Left Having
 							if(!leftJoinAggTable.equals("false")){							
 								evaluateLeftorRightJoinAggGroupByHaving(i,e,temp,json,"left");
 							}
@@ -1343,7 +1215,7 @@ public class ViewManagerController {
 							//evalute Inner Having
 							if(!innerJoinAggTable.equals("false")){
 								evaluateInnerJoinAggGroupByHaving(i,e,temp,json,"leftAggColumns");
-							}
+							}*/
 
 							stream.resetJoinAggGroupByUpRows();
 
@@ -1415,19 +1287,19 @@ public class ViewManagerController {
 											+ ").Agg(" + i + ").aggKeyIndex");
 
 							if (updateLeft) {
-								vm.deleteJoinAgg_DeleteLeft_AggColRightSide_GroupBy(stream,
+								/*vm.deleteJoinAgg_DeleteLeft_AggColRightSide_GroupBy(stream,
 										innerJoinAggTable, rightJoinAggTable,
 										json, aggKeyType, aggKey, aggColName,
-										aggColType, AggKeyIndex, index);
+										aggColType, AggKeyIndex, index);*/
 							} else {
 
-								vm.deleteJoinAgg_DeleteRight_AggColRightSide_GroupBy(stream,
+							/*	vm.deleteJoinAgg_DeleteRight_AggColRightSide_GroupBy(stream,
 										innerJoinAggTable, rightJoinAggTable,
 										json, aggKeyType, aggKey, aggColName,
-										aggColType,index);
+										aggColType,index);*/
 							}
 
-							//evalute Left Having
+							/*	//evalute Left Having
 							if(!rightJoinAggTable.equals("false")){							
 								evaluateLeftorRightJoinAggGroupByHaving(i,e,temp,json,"right");
 							}
@@ -1435,7 +1307,7 @@ public class ViewManagerController {
 							//evalute Inner Having
 							if(!innerJoinAggTable.equals("false")){
 								evaluateInnerJoinAggGroupByHaving(i,e,temp,json,"rightAggColumns");
-							}
+							}*/
 
 							stream.resetJoinAggGroupByUpRows();
 
@@ -1780,27 +1652,27 @@ public class ViewManagerController {
 
 					if (updateLeft) {
 
-						vm.deleteJoinAgg_DeleteLeft_AggColLeftSide_GroupBy(stream,
+						/*vm.deleteJoinAgg_DeleteLeft_AggColLeftSide_GroupBy(stream,
 								innerJoinAggTable, leftJoinAggTable,
 								json, aggKeyType, aggKey, aggColName,
-								aggColType,index);
+								aggColType,index);*/
 					} else {
-						vm.deleteJoinAgg_DeleteRight_AggColLeftSide_GroupBy(stream,
+						/*vm.deleteJoinAgg_DeleteRight_AggColLeftSide_GroupBy(stream,
 								innerJoinAggTable, leftJoinAggTable,
 								json, aggKeyType, aggKey, aggColName,
-								aggColType, AggKeyIndex, index);
+								aggColType, AggKeyIndex, index);*/
 					}
 
 
 					//evalute Left Having
-					if(!leftJoinAggTable.equals("false")){							
+					/*if(!leftJoinAggTable.equals("false")){							
 						evaluateLeftorRightJoinAggGroupByHaving(i,e,temp,json,"left");
 					}
 
 					//evalute Inner Having
 					if(!innerJoinAggTable.equals("false")){
 						evaluateInnerJoinAggGroupByHaving(i,e,temp,json,"leftAggColumns");
-					}
+					}*/
 
 					stream.resetJoinAggGroupByUpRows();
 
@@ -1872,27 +1744,27 @@ public class ViewManagerController {
 									+ ").Agg(" + i + ").aggKeyIndex");
 
 					if (updateLeft) {
-						vm.deleteJoinAgg_DeleteLeft_AggColRightSide_GroupBy(stream,
+						/*vm.deleteJoinAgg_DeleteLeft_AggColRightSide_GroupBy(stream,
 								innerJoinAggTable, rightJoinAggTable,
 								json, aggKeyType, aggKey, aggColName,
-								aggColType, AggKeyIndex, index);
+								aggColType, AggKeyIndex, index);*/
 					} else {
 
-						vm.deleteJoinAgg_DeleteRight_AggColRightSide_GroupBy(stream,
+						/*vm.deleteJoinAgg_DeleteRight_AggColRightSide_GroupBy(stream,
 								innerJoinAggTable, rightJoinAggTable,
 								json, aggKeyType, aggKey, aggColName,
-								aggColType,index);
+								aggColType,index);*/
 					}
 
 					//evalute Left Having
-					if(!rightJoinAggTable.equals("false")){							
+					/*	if(!rightJoinAggTable.equals("false")){							
 						evaluateLeftorRightJoinAggGroupByHaving(i,e,temp,json,"right");
 					}
 
 					//evalute Inner Having
 					if(!innerJoinAggTable.equals("false")){
 						evaluateInnerJoinAggGroupByHaving(i,e,temp,json,"rightAggColumns");
-					}
+					}*/
 
 					stream.resetJoinAggGroupByUpRows();
 
@@ -2186,16 +2058,6 @@ public class ViewManagerController {
 								AggKeyIndex);
 					}
 
-					//evalute Left Having
-					if(!leftJoinAggTable.equals("false")){							
-						evaluateLeftorRightJoinAggGroupByHaving(i,e,temp,json,"left");
-					}
-
-					//evalute Inner Having
-					if(!innerJoinAggTable.equals("false")){
-						evaluateInnerJoinAggGroupByHaving(i,e,temp,json,"leftAggColumns");
-					}
-
 					stream.resetJoinAggGroupByUpRows();
 
 				}
@@ -2281,16 +2143,6 @@ public class ViewManagerController {
 
 					}
 
-					//evalute Left Having
-					if(!rightJoinAggTable.equals("false")){							
-						evaluateLeftorRightJoinAggGroupByHaving(i,e,temp,json,"right");
-					}
-
-					//evalute Inner Having
-					if(!innerJoinAggTable.equals("false")){
-						evaluateInnerJoinAggGroupByHaving(i,e,temp,json,"rightAggColumns");
-					}
-
 					stream.resetJoinAggGroupByUpRows();
 
 				}
@@ -2300,7 +2152,6 @@ public class ViewManagerController {
 
 		//END OF UPDATE JoinAgg Group By
 		//===============================================
-
 
 
 		/*
@@ -2537,17 +2388,68 @@ public class ViewManagerController {
 		}else{
 			propagateGroupByDelete(deltaJSON);
 		}
-		
+
 	}
 
 	private void propagateGroupByDelete(JSONObject deltaJSON) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
-	private void propagateGroupByUpdate(JSONObject deltaJSON) {
-		// TODO Auto-generated method stub
-		
+	private void propagateGroupByUpdate(JSONObject json) {
+
+		String groupByTable = json.get("table").toString();
+
+		int position = havingJoinGroupBy.indexOf(groupByTable);
+
+		if(position!=-1){
+
+			String temp = "mapping.unit("+position+").";
+			Integer nrHaving =  VmXmlHandler.getInstance()
+					.getRJAggJoinGroupByHavingMapping().getInt(temp + "nrHaving");
+
+			if(nrHaving!=0){
+
+				List<String> havingTableName =  VmXmlHandler.getInstance()
+						.getRJAggJoinGroupByMapping().getList(temp +"Having.name");
+
+				List<String> aggFct =  VmXmlHandler.getInstance()
+						.getRJAggJoinGroupByMapping().getList(temp + "Having.aggFct");
+
+				List<String> type =  VmXmlHandler.getInstance()
+						.getRJAggJoinGroupByMapping().getList(temp +"Having.type");
+				List<String> operation =  VmXmlHandler.getInstance()
+						.getRJAggJoinGroupByMapping().getList(temp + "Having.operation");
+				List<String> value =  VmXmlHandler.getInstance()
+						.getRJAggJoinGroupByMapping().getList(temp + "Having.value");
+
+				for(int j=0;j<nrHaving;j++){
+
+					if(stream.getUpdatedJoinAggGroupByRowDeleted()!=null){
+						//boolean result = Utils.evalueJoinAggConditions(stream.getInnerJoinAggGroupByDeleteOldRow(), aggFct.get(j), operation.get(j), value.get(j));
+						//if(result){
+						String pkName = stream.getUpdatedJoinAggGroupByRowDeleted().getName(0);
+						String pkType = stream.getUpdatedJoinAggGroupByRowDeleted().getType(0);
+						String pkValue = Utils.getColumnValueFromDeltaStream(stream.getUpdatedJoinAggGroupByRowDeleted(), pkName, pkType, "");
+						Utils.deleteEntireRowWithPK((String)json.get("keyspace"), havingTableName.get(j), pkName,pkValue);
+						//}
+					}
+
+					if(stream.getUpdatedJoinAggGroupByRow()!=null){
+						boolean result = Utils.evalueJoinAggConditions(stream.getUpdatedJoinAggGroupByRow(), aggFct.get(j), operation.get(j), value.get(j));
+						if(result){
+							JoinAggGroupByHelper.insertStatement(json, havingTableName.get(j), stream.getUpdatedJoinAggGroupByRow());
+						}else{
+							String pkName = stream.getUpdatedJoinAggGroupByRow().getName(0);
+							String pkType = stream.getUpdatedJoinAggGroupByRow().getType(0);
+							String pkValue = Utils.getColumnValueFromDeltaStream(stream.getUpdatedJoinAggGroupByRow(), pkName, pkType, "");
+							Utils.deleteEntireRowWithPK((String)json.get("keyspace"), havingTableName.get(j), pkName,pkValue);
+						}
+					}
+				}
+			}
+		}
+
 	}
 
 

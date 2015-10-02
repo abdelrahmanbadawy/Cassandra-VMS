@@ -51,7 +51,7 @@ public class CommitLogReader {
 
 				if (table.contains("groupby")) {
 					if (type.equalsIgnoreCase("insert"))
-						vmc.decidePreagg(json);
+						vmc.decideGroupBy(json);
 
 				}else if (table.contains("preagg_agg")) {
 					if (type.equalsIgnoreCase("insert"))
