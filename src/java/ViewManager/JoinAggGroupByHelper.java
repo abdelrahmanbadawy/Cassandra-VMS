@@ -573,7 +573,7 @@ public class JoinAggGroupByHelper {
 
 	}
 
-	/*public static boolean deleteElementFromRow(Stream stream, JSONObject json, String joinTable, String aggKey, String aggKeyValue, String aggColValue){
+	public static boolean deleteElementFromRow(Stream stream, JSONObject json, String joinTable, String aggKey, String aggKeyValue, String aggColValue){
 
 		float sum = 0;
 		float min = 0;
@@ -624,37 +624,17 @@ public class JoinAggGroupByHelper {
 			}
 		}
 
-		//		StringBuilder insertQueryAgg = new StringBuilder("INSERT INTO ");
-		//		insertQueryAgg
-		//		.append((String) json.get("keyspace"))
-		//		.append(".").append(joinTable).append(" ( ").append(aggKey + ", ").append("list_item, sum, count, average, min, max").append(") VALUES (")
-		//		.append(aggKeyValue + ", ").append(myList+", ").append(sum).append(", ").append(count).append(", ")
-		//		.append(average).append(", ").append(min).append(", ").append(max).append(");");
-		//
-		//		System.out.println(insertQueryAgg);
-		//
-		//		try {
-		//			Session session = currentCluster.connect();
-		//			session.execute(insertQueryAgg.toString());
-		//		} catch (Exception e) {
-		//			e.printStackTrace();
-		//
-		//		}
+		CustomizedRow crow = CustomizedRow.constructJoinAggGroupBy(aggKey, aggKeyValue, myList, sum, count, average, min, max, Serialize.serializeStream2(stream));
+		stream.setUpdatedJoinAggGroupByRow(crow);
+		String blob = Serialize.serializeStream2(stream);
 
-		if(!updateStatement(sum, count, average, min, max, myList, aggKey, aggKeyValue, joinTable, json, theRow.getFloat("sum")))
+		if(!updateStatement(sum, count, average, min, max, myList, aggKey, aggKeyValue, joinTable, json, theRow.getFloat("sum"),blob))
 			return false;
 
-		if(joinTable.contains("inner")){
-			CustomizedRow crow = new CustomizedRow(selectStatement(joinTable, aggKey, aggKeyValue, json));
-			stream.setInnerJoinAggGroupByNewRow(crow);
-		}else{
-			CustomizedRow crow = new CustomizedRow(selectStatement(joinTable, aggKey, aggKeyValue, json));
-			stream.setLeftOrRightJoinAggGroupByNewRow(crow);
-		}
 
 		return true;
 
-	}*/
+	}
 
 
 }

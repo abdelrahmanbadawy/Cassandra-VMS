@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.cassandra.cli.CliParser.newColumnFamily_return;
+import org.apache.cassandra.transport.SerDeserTest;
 import org.apache.cassandra.utils.ByteBufferUtil;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.JsonGenerationException;
@@ -766,7 +767,6 @@ public class ViewManager {
 		// Set the rj updated row for join updates
 		// new updated row
 		CustomizedRow newcr = null;
-
 
 
 
@@ -3147,7 +3147,7 @@ public class ViewManager {
 
 	}
 
-	/*public Boolean deleteJoinAgg_DeleteLeft_AggColLeftSide_GroupBy(
+	public Boolean deleteJoinAgg_DeleteLeft_AggColLeftSide_GroupBy(
 			Stream stream, String innerJoinAggTable, String leftJoinAggTable,
 			JSONObject json, String aggKeyType, String aggkey,
 			String aggColName, String aggColType, int index) {
@@ -3157,86 +3157,53 @@ public class ViewManager {
 		String aggKeyValue = getColumnValueFromDeltaStream(
 				stream.getDeltaDeletedRow(), aggkey, aggKeyType, "_new");
 
-		CustomizedRow newRJRow = null;
+		CustomizedRow newRJRow = stream.getReverseJoinDeleteNewRow();
 
-		if (stream.getReverseJoinDeleteNewRow() == null) {
+
+		if (newRJRow.getMap("list_item1").isEmpty()) {
+
+			// remove from left and inner
 			if (!leftJoinAggTable.equals("false")) {
-				CustomizedRow crow = new CustomizedRow(
-						JoinAggGroupByHelper.selectStatement(leftJoinAggTable,
-								aggkey, aggKeyValue, json));
-
-				stream.setLeftOrRightJoinAggGroupByDeleteRow(crow);
-				Utils.deleteEntireRowWithPK(json.get("keyspace").toString(),
-						leftJoinAggTable, aggkey, aggKeyValue);
+				while (!JoinAggGroupByHelper.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
+						leftJoinAggTable, aggkey, aggKeyValue,aggColValue));
 			}
-
 			if (!innerJoinAggTable.equals("false")) {
-				CustomizedRow crow = new CustomizedRow(
-						JoinAggGroupByHelper.selectStatement(innerJoinAggTable,
-								aggkey, aggKeyValue, json));
-
-				stream.setInnerJoinAggGroupByDeleteOldRow(crow);
-				Utils.deleteEntireRowWithPK(json.get("keyspace").toString(),
-						innerJoinAggTable, aggkey, aggKeyValue);
-			}
-			return true;
-
-		} else {
-			newRJRow = stream.getReverseJoinDeleteNewRow();
-		}
-
-		if (newRJRow.getMap("list_item2").isEmpty()) {
-
-			// remove from left: if count == 1, then delete entire row, else
-			// substract & update row
-			if (!innerJoinAggTable.equals("false")) { //
-				while (!JoinAggGroupByHelper
-						.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
-								innerJoinAggTable, aggkey, aggKeyValue,
-								aggColValue))
-					;
+				while (!JoinAggGroupByHelper.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
+						innerJoinAggTable, aggkey, aggKeyValue,aggColValue));
 			}
 
 		} else {
 
-			if (newRJRow.getMap("list_item1").isEmpty()) {
-				// remove from left and inner
+			if (newRJRow.getMap("list_item2").isEmpty()) {
+
+				// remove from left: if count == 1, then delete entire row, else
+				// substract & update row
+				if (!innerJoinAggTable.equals("false")) { //
+					while (!JoinAggGroupByHelper.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
+							innerJoinAggTable, aggkey, aggKeyValue,
+							aggColValue));
+				}
+
+			} 
+
+			if (!newRJRow.getMap("list_item1").isEmpty() && !newRJRow.getMap("list_item2").isEmpty()) {
+
 				if (!leftJoinAggTable.equals("false")) {
-					while (!JoinAggGroupByHelper
-							.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
-									leftJoinAggTable, aggkey, aggKeyValue,
-									aggColValue))
-						;
+					while (!JoinAggGroupByHelper.deleteElementFromRow(stream, json,
+							leftJoinAggTable, aggkey, aggKeyValue, aggColValue));
 				}
 				if (!innerJoinAggTable.equals("false")) {
-					while (!JoinAggGroupByHelper
-							.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
-									innerJoinAggTable, aggkey, aggKeyValue,
-									aggColValue))
-						;
+					while (!JoinAggGroupByHelper.deleteElementFromRow(stream, json,
+							innerJoinAggTable, aggkey, aggKeyValue, aggColValue));
 				}
 			}
-		}
 
-		if (!newRJRow.getMap("list_item1").isEmpty()
-				&& !newRJRow.getMap("list_item2").isEmpty()) {
-
-			if (!leftJoinAggTable.equals("false")) {
-				while (!JoinAggGroupByHelper.deleteElementFromRow(stream, json,
-						leftJoinAggTable, aggkey, aggKeyValue, aggColValue))
-					;
-			}
-			if (!innerJoinAggTable.equals("false")) {
-				while (!JoinAggGroupByHelper.deleteElementFromRow(stream, json,
-						innerJoinAggTable, aggkey, aggKeyValue, aggColValue))
-					;
-			}
 		}
 
 		return true;
-	}*/
+	}
 
-	/*public Boolean deleteJoinAgg_DeleteRight_AggColRightSide_GroupBy(
+	public Boolean deleteJoinAgg_DeleteRight_AggColRightSide_GroupBy(
 			Stream stream, String innerJoinAggTable, String rightJoinAggTable,
 			JSONObject json, String aggKeyType, String aggKey,
 			String aggColName, String aggColType, int index) {
@@ -3246,112 +3213,59 @@ public class ViewManager {
 		String aggKeyValue = getColumnValueFromDeltaStream(
 				stream.getDeltaDeletedRow(), aggKey, aggKeyType, "_new");
 
-		CustomizedRow newRJRow = null;
+		CustomizedRow newRJRow = stream.getReverseJoinDeleteNewRow();
 
-		if (stream.getReverseJoinDeleteNewRow() == null) {
+
+		if (newRJRow.getMap("list_item2").isEmpty()) {
+
+			// remove from left and inner
 			if (!rightJoinAggTable.equals("false")) {
-				CustomizedRow crow = new CustomizedRow(
-						JoinAggGroupByHelper.selectStatement(rightJoinAggTable,
-								aggKey, aggKeyValue, json));
-
-				stream.setLeftOrRightJoinAggGroupByDeleteRow(crow);
-				Utils.deleteEntireRowWithPK(json.get("keyspace").toString(),
-						rightJoinAggTable, aggKey, aggKeyValue);
+				while (!JoinAggGroupByHelper.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
+						rightJoinAggTable, aggKey, aggKeyValue,aggColValue));
 			}
-
 			if (!innerJoinAggTable.equals("false")) {
-				CustomizedRow crow = new CustomizedRow(
-						JoinAggGroupByHelper.selectStatement(innerJoinAggTable,
-								aggKey, aggKeyValue, json));
-
-				stream.setInnerJoinAggGroupByDeleteOldRow(crow);
-				Utils.deleteEntireRowWithPK(json.get("keyspace").toString(),
-						innerJoinAggTable, aggKey, aggKeyValue);
-			}
-			return true;
-
-		} else {
-			newRJRow = stream.getReverseJoinDeleteNewRow();
-		}
-
-		if (newRJRow.getMap("list_item1").isEmpty()) {
-
-			// remove from left: if count == 1, then delete entire row, else
-			// substract & update row
-			if (!innerJoinAggTable.equals("false")) {
-				while (!JoinAggGroupByHelper
-						.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
-								innerJoinAggTable, aggKey, aggKeyValue,
-								aggColValue))
-					;
+				while (!JoinAggGroupByHelper.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
+						innerJoinAggTable, aggKey, aggKeyValue,aggColValue));
 			}
 
 		} else {
 
-			if (newRJRow.getMap("list_item2").isEmpty()) {
-				// remove from left and inner
+			if (newRJRow.getMap("list_item1").isEmpty()) {
+
+				// remove from left: if count == 1, then delete entire row, else
+				// substract & update row
+				if (!innerJoinAggTable.equals("false")) { //
+					while (!JoinAggGroupByHelper.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
+							innerJoinAggTable, aggKey, aggKeyValue,
+							aggColValue));
+				}
+
+			} 
+
+			if (!newRJRow.getMap("list_item2").isEmpty() && !newRJRow.getMap("list_item1").isEmpty()) {
+
 				if (!rightJoinAggTable.equals("false")) {
-					while (!JoinAggGroupByHelper
-							.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
-									rightJoinAggTable, aggKey, aggKeyValue,
-									aggColValue))
-						;
+					while (!JoinAggGroupByHelper.deleteElementFromRow(stream, json,
+							rightJoinAggTable, aggKey, aggKeyValue, aggColValue));
 				}
 				if (!innerJoinAggTable.equals("false")) {
-					while (!JoinAggGroupByHelper
-							.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
-									innerJoinAggTable, aggKey, aggKeyValue,
-									aggColValue))
-						;
+					while (!JoinAggGroupByHelper.deleteElementFromRow(stream, json,
+							innerJoinAggTable, aggKey, aggKeyValue, aggColValue));
 				}
 			}
-		}
 
-		if (!newRJRow.getMap("list_item1").isEmpty()
-				&& !newRJRow.getMap("list_item2").isEmpty()) {
-
-			if (!rightJoinAggTable.equals("false")) {
-				while (!JoinAggGroupByHelper.deleteElementFromRow(stream, json,
-						rightJoinAggTable, aggKey, aggKeyValue, aggColValue))
-					;
-			}
-			if (!innerJoinAggTable.equals("false")) {
-				while (!JoinAggGroupByHelper.deleteElementFromRow(stream, json,
-						innerJoinAggTable, aggKey, aggKeyValue, aggColValue))
-					;
-			}
 		}
 
 		return true;
-	}*/
+	}
 
-	/*public Boolean deleteJoinAgg_DeleteLeft_AggColRightSide_GroupBy(
+	public Boolean deleteJoinAgg_DeleteLeft_AggColRightSide_GroupBy(
 			Stream stream, String innerJoinAggTable, String rightJoinAggTable,
 			JSONObject json, String aggKeyType, String aggKey,
 			String aggColName, String aggColType, int aggKeyIndex, int index) {
 
-		CustomizedRow newRJRow = null;
-		String aggKeyValue = getColumnValueFromDeltaStream(
-				stream.getDeltaDeletedRow(), aggKey, aggKeyType, "_new");
-
-		if (stream.getReverseJoinDeleteNewRow() == null) {
-			if (!rightJoinAggTable.equals("false")) {
-				CustomizedRow crow = new CustomizedRow(
-						JoinAggGroupByHelper.selectStatement(rightJoinAggTable,
-								aggKey, aggKeyValue, json));
-
-				stream.setLeftOrRightJoinAggGroupByDeleteRow(crow);
-				Utils.deleteEntireRowWithPK(json.get("keyspace").toString(),
-						rightJoinAggTable, aggKey, aggKeyValue);
-			}
-			return true;
-
-		} else {
-			newRJRow = stream.getReverseJoinDeleteNewRow();
-		}
-
-		if (newRJRow.getMap("list_item1").isEmpty()
-				&& !newRJRow.getMap("list_item2").isEmpty()) {
+		CustomizedRow newRJRow = stream.getReverseJoinDeleteNewRow();
+		if (newRJRow.getMap("list_item1").isEmpty() && !newRJRow.getMap("list_item2").isEmpty()) {
 
 			// remove from inner
 			if (!innerJoinAggTable.equals("false")) {
@@ -3363,47 +3277,26 @@ public class ViewManager {
 
 		return true;
 
-	}*/
+	}
 
-	/*public Boolean deleteJoinAgg_DeleteRight_AggColLeftSide_GroupBy(
+	public Boolean deleteJoinAgg_DeleteRight_AggColLeftSide_GroupBy(
 			Stream stream, String innerJoinAggTable, String leftJoinAggTable,
 			JSONObject json, String aggKeyType, String aggKey,
 			String aggColName, String aggColType, int aggKeyIndex, int index) {
 
-		CustomizedRow newRJRow = null;
-		String aggKeyValue = getColumnValueFromDeltaStream(
-				stream.getDeltaDeletedRow(), aggKey, aggKeyType, "_new");
+		CustomizedRow newRJRow = stream.getReverseJoinDeleteNewRow();
 
-		if (stream.getReverseJoinDeleteNewRow() == null) {
-			if (!leftJoinAggTable.equals("false")) {
-				CustomizedRow crow = new CustomizedRow(
-						JoinAggGroupByHelper.selectStatement(leftJoinAggTable,
-								aggKey, aggKeyValue, json));
-				stream.setLeftOrRightJoinAggGroupByDeleteRow(crow);
-				Utils.deleteEntireRowWithPK(json.get("keyspace").toString(),
-						leftJoinAggTable, aggKey, aggKeyValue);
-			}
-			return true;
-
-		} else {
-			newRJRow = stream.getReverseJoinDeleteNewRow();
-		}
-
-		if (newRJRow.getMap("list_item2").isEmpty()
-				&& !newRJRow.getMap("list_item1").isEmpty()) {
+		if (newRJRow.getMap("list_item2").isEmpty()&& !newRJRow.getMap("list_item1").isEmpty()) {
 
 			// remove from inner
 			if (!innerJoinAggTable.equals("false")) {
-				JoinAggGroupByHelper.deleteListItem1FromGroupBy(stream,
-						newRJRow, index, aggKeyType, aggKey, json,
+				JoinAggGroupByHelper.deleteListItem1FromGroupBy(stream,newRJRow, index, aggKeyType, aggKey, json,
 						innerJoinAggTable, aggKeyIndex);
 			}
-
 		}
 
 		return true;
-
-	}*/
+	}
 
 	public void deleteElementFromHaving(Stream stream, JSONObject json,
 			String havingTable, String aggKey, String aggKeyType,

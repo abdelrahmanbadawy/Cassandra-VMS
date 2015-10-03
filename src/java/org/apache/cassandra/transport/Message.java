@@ -546,7 +546,7 @@ public abstract class Message {
 
 					tableName = table_keyspace[1];
 
-					if(!tableName.contains("preag_agg")){
+					if(!tableName.contains("preag_agg") && !tableName.contains("rj") && !tableName.contains("groupby") ){
 
 						keySpaceName = table_keyspace[0];
 
