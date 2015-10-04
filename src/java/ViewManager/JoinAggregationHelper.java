@@ -155,7 +155,7 @@ public class JoinAggregationHelper {
 
 	}
 
-	public static boolean UpdateOldRowBySubtracting(Stream stream,String listItem,CustomizedRow deltaRow, JSONObject json,String joinAggTable, String joinKey,String joinKeyValue, String aggColName, String aggColValue, CustomizedRow changedKeyReverseRow){
+	public static boolean UpdateOldRowBySubtracting(Stream stream,String listItem,CustomizedRow deltaRow, JSONObject json,String joinAggTable, String joinKey,String joinKeyValue, String aggColName, String aggColValue, CustomizedRow newRow){
 
 
 		Row theRow = selectStatement(joinKey, joinKeyValue, joinAggTable, json);
@@ -175,7 +175,7 @@ public class JoinAggregationHelper {
 			if (min == Float.parseFloat(aggColValue)) {
 				// loop on list_item1 to get the new minimum
 
-				Map<String, String> map1 = changedKeyReverseRow.getMap(listItem);
+				Map<String, String> map1 = newRow.getMap(listItem);
 
 				min = Float.MAX_VALUE;
 
@@ -206,7 +206,7 @@ public class JoinAggregationHelper {
 
 			Float max = theRow.getFloat("max");
 
-			Map<String, String> map1 = changedKeyReverseRow.getMap(listItem);
+			Map<String, String> map1 = newRow.getMap(listItem);
 
 			max = Float.MIN_VALUE;
 

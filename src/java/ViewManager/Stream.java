@@ -43,7 +43,6 @@ public class Stream implements Serializable {
 	//Reverse Join
 	private CustomizedRow reverseJoinUpdateNewRow;
 	private CustomizedRow reverseJoinUpadteOldRow;
-	private CustomizedRow reverseJoinUpdatedOldRow_changeJoinKey;
 	private CustomizedRow reverseJoinDeleteNewRow;
 	private CustomizedRow revereJoinDeleteOldRow;
 
@@ -67,7 +66,7 @@ public class Stream implements Serializable {
 	public void resetReverseJoinRows() {
 		reverseJoinUpdateNewRow = null;
 		reverseJoinUpadteOldRow = null;
-		reverseJoinUpdatedOldRow_changeJoinKey= null;
+		//reverseJoinUpdatedOldRow_changeJoinKey= null;
 		reverseJoinDeleteNewRow= null;
 		revereJoinDeleteOldRow = null;
 	}
@@ -222,14 +221,7 @@ public class Stream implements Serializable {
 		this.reverseJoinUpadteOldRow = reverseJoinUpadteOldRow;
 	}
 
-	public CustomizedRow getReverseJoinUpdatedOldRow_changeJoinKey() {
-		return reverseJoinUpdatedOldRow_changeJoinKey;
-	}
 
-	public void setReverseJoinUpdatedOldRow_changeJoinKey(
-			CustomizedRow reverseJoinUpdatedOldRow_changeJoinKey) {
-		this.reverseJoinUpdatedOldRow_changeJoinKey = reverseJoinUpdatedOldRow_changeJoinKey;
-	}
 
 	public CustomizedRow getReverseJoinDeleteNewRow() {
 		return reverseJoinDeleteNewRow;
