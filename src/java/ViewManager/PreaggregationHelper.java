@@ -171,7 +171,7 @@ public class PreaggregationHelper {
 		updateQuery.append((String) json.get("keyspace"))
 		.append(".").append(preaggTable).append(" SET list_item = ?, sum = ").append(sum)
 		.append(", count = ").append(count).append(", average = ").append(avg).append(", min = ")
-		.append(min).append(", max = ").append(max).append(", stream = ").append(blob_new).append(" WHERE ").append(key).append(" = ").append(keyValue)
+		.append(min).append(", max = ").append(max).append(", stream= ").append(blob_new).append(" WHERE ").append(key).append(" = ").append(keyValue)
 		.append(" IF stream = ?").append(";");
 
 
@@ -184,6 +184,7 @@ public class PreaggregationHelper {
 			PreparedStatement statement1 = session.prepare(updateQuery
 					.toString());
 			BoundStatement boundStatement = new BoundStatement(statement1);
+			System.out.println(boundStatement.toString());
 			updated = session.execute(boundStatement.bind(myMap,blob_old)).one();
 
 		} catch (Exception e) {

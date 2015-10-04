@@ -1736,9 +1736,9 @@ public class ViewManagerController {
 	}
 
 
-	public void propagatePreaggUpdate(JSONObject json) {
+	public void propagatePreaggUpdate(JSONObject json, String table) {
 
-		String preaggTable = json.get("table").toString();
+		String preaggTable = table;
 
 		// 2.1 update preaggregations with having clause
 		// check if preagg has some having clauses or not
@@ -2240,26 +2240,29 @@ public class ViewManagerController {
 		return true;
 	}
 
-	public void decidePreagg(JSONObject json) {
+	public void decidePreagg(JSONObject json, String table) {
 
 		JSONObject data = (JSONObject) json.get("data");
+		if(data==null)
+			data = (JSONObject) json.get("set_data");
+		
 		String bufferString = data.get("stream").toString();
 
 		stream = Serialize.deserializeStream(bufferString);
 		JSONObject deltaJSON = stream.getDeltaJSON();
 
 		if(!stream.isDeleteOperation()){
-			propagatePreaggUpdate(deltaJSON);
+			propagatePreaggUpdate(deltaJSON,table);
 		}else{
-			propagatePreaggDelete(deltaJSON);
+			propagatePreaggDelete(deltaJSON,table);
 		}
 	}
 
-	private void propagatePreaggDelete(JSONObject json) {
+	private void propagatePreaggDelete(JSONObject json, String table) {
 
 		// update the corresponding preagg wih having clause
 
-		String preaggTable = json.get("table").toString();
+		String preaggTable = table;
 		int position = preaggTableNames.indexOf(preaggTable);
 
 		if (position != -1) {
@@ -2331,6 +2334,9 @@ public class ViewManagerController {
 	public void decideGroupBy(JSONObject json) {
 
 		JSONObject data = (JSONObject) json.get("data");
+		if(data==null)
+			data = (JSONObject) json.get("set_data");
+
 		String bufferString = data.get("stream").toString();
 
 		stream = Serialize.deserializeStream(bufferString);
