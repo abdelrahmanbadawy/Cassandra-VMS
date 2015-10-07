@@ -358,14 +358,23 @@ public class JoinAggregationHelper {
 			sum += Float.parseFloat(aggColValue)-Float.parseFloat(oldAggColValue);
 		}
 		 */
+		
+		
 		Float sum = theRow.getFloat("sum");
+		
+		
 		if (!aggColValue.equals("null"))
 			sum += Float.parseFloat(aggColValue);
 
 		if (!oldAggColValue.equals("null"))
 			sum -= Float.parseFloat(oldAggColValue);
-
+		
+		
+		
 		int count = theRow.getInt("count");
+		
+		
+		
 
 		// old = null and new != null
 		if (oldAggColValue.equals("null")
@@ -377,6 +386,8 @@ public class JoinAggregationHelper {
 					&& aggColValue.equals("null"))
 				count--;
 
+	
+		
 		Float avg = sum / (float) count;
 
 		Float min = theRow.getFloat("min");
