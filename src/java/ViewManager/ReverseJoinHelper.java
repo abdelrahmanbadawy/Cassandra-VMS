@@ -37,6 +37,8 @@ public class ReverseJoinHelper {
 		PreparedStatement statement = session.prepare(insertQuery.toString());
 		BoundStatement boundStatement = new BoundStatement(statement);
 		session.execute(boundStatement.bind(myMap));
+		
+		System.out.println(insertQuery);
 
 	}
 
