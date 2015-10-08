@@ -758,7 +758,7 @@ public class ViewManager {
 				CustomizedRow rowDeleted = CustomizedRow.constructRJRow(joinKeyName, oldJoinKeyValue,  row_old_join_value.getMap("list_item1",String.class, String.class), row_old_join_value.getMap("list_item2",String.class, String.class));
 				stream.setDeleteOperation(true);
 				stream.setRevereJoinDeleteOldRow(rowDeleted);
-				CustomizedRow rowDeletedNew = CustomizedRow.constructRJRow(joinKeyName, oldJoinKeyValue, null, null);
+				CustomizedRow rowDeletedNew = CustomizedRow.constructRJRow(joinKeyName, oldJoinKeyValue, new HashMap<String, String>(), new HashMap<String, String>());
 				stream.setReverseJoinDeleteNewRow(rowDeletedNew);
 				ReverseJoinHelper.insertToDelete(joinTable, keyspace, joinKeyName, oldJoinKeyValue, stream);
 
@@ -1338,6 +1338,7 @@ public class ViewManager {
 			String joinKeyName, String tableName, String keyspace,
 			String joinKeyType, int column) {
 
+		CustomizedRow crowNew = null;
 		setReverseJoinTableName(joinTable);
 
 		String joinKeyValue = Utils.getColumnValueFromDeltaStream(
@@ -1368,11 +1369,19 @@ public class ViewManager {
 				myMap = new HashMap<String, String>();
 				myMap.putAll(tempMapImmutable);
 				myMap.remove(pk);
+				
+				
+				if(column==1)
+					crowNew = CustomizedRow.constructRJRow(joinKeyName, joinKeyValue, myMap, theRow.getMap("list_item2", String.class, String.class));
+				else
+					crowNew = CustomizedRow.constructRJRow(joinKeyName, joinKeyValue, theRow.getMap("list_item1", String.class, String.class),myMap);
+
+				stream.setReverseJoinDeleteNewRow(crowNew);
+				ReverseJoinHelper.insertStatement(joinTable, keyspace, joinKeyName,
+						joinKeyValue, column, myMap, stream);
+				
 			}
-
-			ReverseJoinHelper.insertStatement(joinTable, keyspace, joinKeyName,
-					joinKeyValue, column, myMap, stream);
-
+			
 			// checking if all list items are null --> delete the whole row
 			boolean allNull = true;
 			if (myMap == null) {
@@ -1391,6 +1400,10 @@ public class ViewManager {
 
 			// all entries are nulls
 			if (allNull) {
+				crowNew = CustomizedRow.constructRJRow(joinKeyName, joinKeyValue,new HashMap<String, String>(),new HashMap<String, String>());
+				stream.setReverseJoinDeleteNewRow(crowNew);
+				ReverseJoinHelper.insertToDelete(joinTable, keyspace, joinKeyName, joinKeyValue, stream);
+				
 				Utils.deleteEntireRowWithPK(keyspace, joinTable, joinKeyName,
 						joinKeyValue);
 			}
@@ -1398,10 +1411,10 @@ public class ViewManager {
 		}
 
 		// get new deleted row from rj
-		Row row = Utils.selectAllStatement(keyspace, joinTable, joinKeyName,
+		/*Row row = Utils.selectAllStatement(keyspace, joinTable, joinKeyName,
 				joinKeyValue);
 		CustomizedRow crow1 = new CustomizedRow(row);
-		stream.setReverseJoinDeleteNewRow(crow1);
+		stream.setReverseJoinDeleteNewRow(crow1);*/
 
 	}
 
