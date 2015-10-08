@@ -16,6 +16,10 @@ public class ClientProcess {
 		
 		Client.connectToCluster(XmlHandler.getInstance().getClusterConfig().getString("config.host.localhost"));
 		
+		Client.createKeySpace("test");
+		Client.createTable();
+		Client.createViewTable();
+		
 
 		while(args.length == 0 || !args[0].equals("exit")){
 

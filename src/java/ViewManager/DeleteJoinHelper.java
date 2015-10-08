@@ -70,7 +70,7 @@ public class DeleteJoinHelper {
 					Object[] hm = condition.keySet().toArray();
 
 					if (!leftPkValue.equals(condition.get(hm[0]))) {
-						myMap1.remove(entry.getKey());
+						//myMap1.remove(entry.getKey());
 						continue;
 					}
 				}
@@ -131,7 +131,7 @@ public class DeleteJoinHelper {
 					Object[] hm = condition.keySet().toArray();
 
 					if (!rightPkValue.equals(condition.get(hm[0]))) {
-						myMap2.remove(entry.getKey());
+			//			myMap2.remove(entry.getKey());
 						continue;
 					}
 				}

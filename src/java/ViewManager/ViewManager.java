@@ -198,8 +198,7 @@ public class ViewManager {
 		// 2. set DeltaDeletedRow variable for streaming
 		CustomizedRow crow = new CustomizedRow(row);
 		stream.setDeltaDeletedRow(crow);
-		stream.setDeleteOperation(true);
-
+		
 		// 3. delete row from delta
 		Utils.deleteEntireRowWithPK((String) json.get("keyspace"), "delta_"
 				+ json.get("table"), hm[0].toString(), condition.get(hm[0])
@@ -1338,6 +1337,7 @@ public class ViewManager {
 
 		Row theRow = Utils.selectAllStatement(keyspace, joinTable, joinKeyName,
 				joinKeyValue);
+		
 
 		CustomizedRow crow = new CustomizedRow(theRow);
 		stream.setRevereJoinDeleteOldRow(crow);
@@ -1363,6 +1363,20 @@ public class ViewManager {
 				myMap.remove(pk);
 			}
 
+			// new updated row
+						CustomizedRow newcr = null;
+
+						if (column == 1)
+							newcr = CustomizedRow.constructRJRow(joinKeyName, joinKeyValue,
+									myMap, crow.getMap("list_item2"));
+						else
+							newcr = CustomizedRow.constructRJRow(joinKeyName, joinKeyValue,
+									crow.getMap("list_item1"), myMap);
+
+						stream.setReverseJoinDeleteNewRow(newcr);
+			
+						stream.setDeleteOperation(true);
+			
 			ReverseJoinHelper.insertStatement(joinTable, keyspace, joinKeyName,
 					joinKeyValue, column, myMap, stream);
 
@@ -1391,10 +1405,10 @@ public class ViewManager {
 		}
 
 		// get new deleted row from rj
-		Row row = Utils.selectAllStatement(keyspace, joinTable, joinKeyName,
-				joinKeyValue);
-		CustomizedRow crow1 = new CustomizedRow(row);
-		stream.setReverseJoinDeleteNewRow(crow1);
+//		Row row = Utils.selectAllStatement(keyspace, joinTable, joinKeyName,
+//				joinKeyValue);
+//		CustomizedRow crow1 = new CustomizedRow(row);
+//		stream.setReverseJoinDeleteNewRow(crow1);
 
 	}
 
@@ -2641,6 +2655,7 @@ public class ViewManager {
 			String joinKeyType, String joinKeyName, String aggColName,
 			String aggColType) {
 
+		
 		String joinKeyValue = Utils.getColumnValueFromDeltaStream(
 				stream.getDeltaDeletedRow(), joinKeyName, joinKeyType, "_new");
 		String aggColValue = Utils.getColumnValueFromDeltaStream(
@@ -2671,9 +2686,11 @@ public class ViewManager {
 
 		} else {
 			newRJRow = stream.getReverseJoinDeleteNewRow();
+			
 		}
 
 		if (newRJRow.getMap("list_item2").isEmpty()) {
+			
 
 			if (newRJRow.getMap("list_item1").isEmpty()) {
 				// remove from left
