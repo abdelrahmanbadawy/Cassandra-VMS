@@ -424,6 +424,7 @@ public abstract class Message {
 
 
 				if (applied && ! request.toString().toLowerCase().contains("selection")
+						&& ! request.toString().toLowerCase().contains("rj")
 						&& ! request.toString().toLowerCase().contains("delta_")
 						&& ! request.toString().toLowerCase().contains("inner_")
 						&& ! request.toString().toLowerCase().contains("having_")
@@ -432,7 +433,7 @@ public abstract class Message {
 						&& ! request.toString().toLowerCase().contains("left_")
 						&& ! request.toString().toLowerCase().contains("right_")
 						&& ! request.toString().toLowerCase().contains("join_agg")
-						&& request.toString().toLowerCase().contains("groupby_")
+						//&& request.toString().toLowerCase().contains("groupby_")
 						&& (request.toString().toLowerCase().contains("insert")
 								|| request.toString().toLowerCase()
 								.contains("update") || (request
@@ -475,8 +476,6 @@ public abstract class Message {
 
 				tableName = table_keyspace[1];
 				keySpaceName = table_keyspace[0];
-
-
 
 				String[] splitRaw = rawInput.split(" WHERE ");
 				String rawSetString = splitRaw[0].split(" SET ")[1];
