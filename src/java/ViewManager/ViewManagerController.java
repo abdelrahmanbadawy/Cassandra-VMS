@@ -1939,28 +1939,34 @@ public class ViewManagerController {
 
 	}
 
-	public void decideGroupBy(JSONObject json) {
+	public void decideGroupBy(JSONObject json, String table) {
 
 		JSONObject data = (JSONObject) json.get("data");
 		if(data==null)
 			data = (JSONObject) json.get("set_data");
 
-		String bufferString = data.get("stream").toString();
+		String bufferString = null;
+		Object buffer = data.get("stream");
+		if(buffer==null)
+			bufferString = data.get("stream ").toString();
+		else
+			bufferString = buffer.toString();
+				
 
 		stream = Serialize.deserializeStream(bufferString);
 		JSONObject deltaJSON = stream.getDeltaJSON();
 
 		if(!stream.isDeleteOperation()){
-			propagateGroupByUpdate(deltaJSON);
+			propagateGroupByUpdate(deltaJSON,table);
 		}else{
-			propagateGroupByDelete(deltaJSON);
+			propagateGroupByDelete(deltaJSON,table);
 		}
 
 	}
 
-	private void propagateGroupByDelete(JSONObject json) {
+	private void propagateGroupByDelete(JSONObject json, String table) {
 
-		String groupByTable = json.get("table").toString();
+		String groupByTable = table;
 
 		int position = havingJoinGroupBy.indexOf(groupByTable);
 
@@ -1973,17 +1979,17 @@ public class ViewManagerController {
 			if(nrHaving!=0){
 
 				List<String> havingTableName =  VmXmlHandler.getInstance()
-						.getRJAggJoinGroupByMapping().getList(temp +"Having.name");
+						.getRJAggJoinGroupByHavingMapping().getList(temp +"Having.name");
 
 				List<String> aggFct =  VmXmlHandler.getInstance()
-						.getRJAggJoinGroupByMapping().getList(temp + "Having.aggFct");
+						.getRJAggJoinGroupByHavingMapping().getList(temp + "Having.aggFct");
 
 				List<String> type =  VmXmlHandler.getInstance()
-						.getRJAggJoinGroupByMapping().getList(temp +"Having.type");
+						.getRJAggJoinGroupByHavingMapping().getList(temp +"Having.type");
 				List<String> operation =  VmXmlHandler.getInstance()
-						.getRJAggJoinGroupByMapping().getList(temp + "Having.operation");
+						.getRJAggJoinGroupByHavingMapping().getList(temp + "Having.operation");
 				List<String> value =  VmXmlHandler.getInstance()
-						.getRJAggJoinGroupByMapping().getList(temp + "Having.value");
+						.getRJAggJoinGroupByHavingMapping().getList(temp + "Having.value");
 
 				for(int j=0;j<nrHaving;j++){
 
@@ -2015,9 +2021,9 @@ public class ViewManagerController {
 
 	}
 
-	private void propagateGroupByUpdate(JSONObject json) {
+	private void propagateGroupByUpdate(JSONObject json, String table) {
 
-		String groupByTable = json.get("table").toString();
+		String groupByTable = table;
 
 		int position = havingJoinGroupBy.indexOf(groupByTable);
 
@@ -2030,17 +2036,17 @@ public class ViewManagerController {
 			if(nrHaving!=0){
 
 				List<String> havingTableName =  VmXmlHandler.getInstance()
-						.getRJAggJoinGroupByMapping().getList(temp +"Having.name");
+						.getRJAggJoinGroupByHavingMapping().getList(temp +"Having.name");
 
 				List<String> aggFct =  VmXmlHandler.getInstance()
-						.getRJAggJoinGroupByMapping().getList(temp + "Having.aggFct");
+						.getRJAggJoinGroupByHavingMapping().getList(temp + "Having.aggFct");
 
 				List<String> type =  VmXmlHandler.getInstance()
-						.getRJAggJoinGroupByMapping().getList(temp +"Having.type");
+						.getRJAggJoinGroupByHavingMapping().getList(temp +"Having.type");
 				List<String> operation =  VmXmlHandler.getInstance()
-						.getRJAggJoinGroupByMapping().getList(temp + "Having.operation");
+						.getRJAggJoinGroupByHavingMapping().getList(temp + "Having.operation");
 				List<String> value =  VmXmlHandler.getInstance()
-						.getRJAggJoinGroupByMapping().getList(temp + "Having.value");
+						.getRJAggJoinGroupByHavingMapping().getList(temp + "Having.value");
 
 				for(int j=0;j<nrHaving;j++){
 

@@ -432,7 +432,6 @@ public abstract class Message {
 						&& ! request.toString().toLowerCase().contains("left_")
 						&& ! request.toString().toLowerCase().contains("right_")
 						&& ! request.toString().toLowerCase().contains("join_agg")
-						&& !request.toString().toLowerCase().contains("groupby_")
 						&& (request.toString().toLowerCase().contains("insert")
 								|| request.toString().toLowerCase()
 								.contains("update") || (request
@@ -441,6 +440,12 @@ public abstract class Message {
 					this.parseInputForViewMaintenance(request.toString() + '\n');
 
 				}
+
+				if(applied && request.toString().toLowerCase().contains("groupby") && (request.toString().toLowerCase().contains("insert")
+						|| request.toString().toLowerCase()
+						.contains("update") || (request
+								.toString().toLowerCase().contains("delete"))))
+					this.parseInputForViewMaintenance(request.toString() + '\n');
 
 
 			} catch (Throwable t) {
@@ -470,22 +475,18 @@ public abstract class Message {
 			if (queryType.toLowerCase().equals("update")) {
 
 				String [] table_keyspace = (rawInput.split(" ")[2]).split("\\.");
-
-
-
 				tableName = table_keyspace[1];
 				keySpaceName = table_keyspace[0];
 
-
-
 				String[] splitRaw = rawInput.split(" WHERE ");
 				String rawSetString = splitRaw[0].split(" SET ")[1];
-
+				
 				String[] splitRawSetString = rawSetString.split(", ");
 
 				String[] set_data_columns = new String[splitRawSetString.length];
 				String[] set_data_values = new String[splitRawSetString.length];
 
+		
 				for (int i = 0; i < splitRawSetString.length; i++) {
 					String[] set = splitRawSetString[i].split("= ");
 					set_data_columns[i] = set[0];

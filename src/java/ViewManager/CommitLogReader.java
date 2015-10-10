@@ -50,9 +50,9 @@ public class CommitLogReader {
 				String table = json.get("table").toString();
 
 				if (table.contains("groupby")) {
-					vmc.decideGroupBy(json);
+					vmc.decideGroupBy(json,table);
 				}else if (table.contains("preagg_agg")) {
-					vmc.decidePreagg(json,table);
+					//vmc.decidePreagg(json,table);
 				} else {
 
 					if (table.contains("RJ_")) {

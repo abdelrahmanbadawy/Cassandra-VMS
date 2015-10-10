@@ -16,7 +16,7 @@ public class CustomizedRow implements Serializable{
 	private List<String> colTypes;
 	private List<Object> colValues;
 	int colDefSize;
-	
+
 	private static final long serialVersionUID = 1L;
 
 	public CustomizedRow(){
@@ -36,6 +36,13 @@ public class CustomizedRow implements Serializable{
 			for(int i=0;i<row.getColumnDefinitions().size();i++){
 
 				colDefSize = row.getColumnDefinitions().size();
+				if(row.getColumnDefinitions().getName(i).contains("stream")){
+					colNames.add("stream");
+					colTypes.add("blob");
+					colValues.add("null");
+					continue;
+				}
+
 				colNames.add(row.getColumnDefinitions().getName(i));
 				colTypes.add(row.getColumnDefinitions().getType(i).toString());
 
@@ -145,7 +152,7 @@ public class CustomizedRow implements Serializable{
 	}
 
 	public void setColNames(List<String> names){
-		
+
 		this.colNames.addAll(names);
 	}
 
@@ -176,27 +183,27 @@ public class CustomizedRow implements Serializable{
 
 		return crow;
 	}
-	
+
 	public static CustomizedRow constructRJRow(String aggKey, String aggKeyValue, Map<String,String> myList1, Map<String,String> myList2){
-		
+
 		CustomizedRow crow = new CustomizedRow();
 		List<String> names = new ArrayList<String>(Arrays.asList(aggKey,"list_item1","list_item2"));
 		crow.setColNames(names);
-		
+
 		List<String> types = new ArrayList<String>(Arrays.asList("text","Map.class","Map.class"));
 		crow.setColTypes(types);
-		
+
 		List<Object> values = new ArrayList<Object>(Arrays.asList(aggKeyValue,myList1,myList2));
 		crow.setColValues(values);
 
 		crow.setColDefSize(values.size());
 
 		return crow;
-		
+
 	}
-	
+
 	public static CustomizedRow constructJoinAggGroupBy(String aggKey,String aggKeyValue,List<Float>myList,float sum,int count,float average,float min,float max,String blob){
-		
+
 		CustomizedRow crow = new CustomizedRow();
 		List<String> names = new ArrayList<String>(Arrays.asList(aggKey,"agg_list","sum","average","min","max","count","stream"));
 		crow.setColNames(names);
@@ -211,6 +218,6 @@ public class CustomizedRow implements Serializable{
 
 		return crow;
 	}
-	
+
 
 }
