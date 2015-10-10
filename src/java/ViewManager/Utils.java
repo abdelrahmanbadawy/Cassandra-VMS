@@ -264,7 +264,7 @@ public class Utils {
 			if(stream.isNull(name + suffix)){
 				value = "null";
 			}else{
-				if(stream.getString(name + suffix).startsWith("'") && stream.getString(name + suffix).endsWith("'"))
+				if(stream.getString(name + suffix).trim().startsWith("'") && stream.getString(name + suffix).trim().endsWith("'"))
 					value = stream.getString(name + suffix);
 				else
 					value = ("'"+ stream.getString(name + suffix) + "'");
@@ -291,7 +291,7 @@ public class Utils {
 			if(stream.isNull(name + suffix)){
 				value = "null";
 			}else{
-				if(stream.getString(name + suffix).startsWith("'") && stream.getString(name + suffix).endsWith("'"))
+				if(stream.getString(name + suffix).trim().startsWith("'") && stream.getString(name + suffix).trim().endsWith("'"))
 					value = stream.getString(name + suffix);
 				else
 					value = ("'"+ stream.getString(name + suffix) + "'");

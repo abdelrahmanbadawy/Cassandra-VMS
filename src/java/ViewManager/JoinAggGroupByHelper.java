@@ -51,21 +51,24 @@ public class JoinAggGroupByHelper {
 				.append(".").append(joinAggTable).append(" ( ")
 				.append(aggKeyName + ", ").append("agg_list, sum, count, average, min, max")
 				.append(") VALUES (")
-				.append(aggKeyValue + ", ").append(myList+", ").append(sum).append(", ").append(count).append(", ")
+				.append(aggKeyValue + ", ").append("?"+", ").append(sum).append(", ").append(count).append(", ")
 				.append(avg).append(", ").append(min).append(", ").append(max).append(");");
 
 		System.out.println(insertQueryAgg);
 
 		try {
 			Session session = currentCluster.connect();
-			session.execute(insertQueryAgg.toString());
+		
+			PreparedStatement statement1 = session.prepare(insertQueryAgg.toString());
+			BoundStatement boundStatement = new BoundStatement(statement1);
+			System.out.println(boundStatement.toString());
+			session.execute(boundStatement.bind(myList)).one();
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
 	}
-
-
 
 	public static void insertStatement(JSONObject json, String joinAggTable,CustomizedRow row, String blob){
 
@@ -86,14 +89,19 @@ public class JoinAggGroupByHelper {
 				.append(".").append(joinAggTable).append(" ( ")
 				.append(aggKeyName + ", ").append("agg_list, sum, count, average, min, max, stream ")
 				.append(") VALUES (")
-				.append(aggKeyValue + ", ").append(myList+", ").append(sum).append(", ").append(count).append(", ")
+				.append(aggKeyValue + ", ").append("?, ").append(sum).append(", ").append(count).append(", ")
 				.append(avg).append(", ").append(min).append(", ").append(max).append(", ").append(blob).append(");");
 
 		System.out.println(insertQueryAgg);
 
 		try {
 			Session session = currentCluster.connect();
-			session.execute(insertQueryAgg.toString());
+			PreparedStatement statement1 = session.prepare(insertQueryAgg.toString());
+			BoundStatement boundStatement = new BoundStatement(statement1);
+			System.out.println(boundStatement.toString());
+			session.execute(boundStatement.bind(myList)).one();
+			
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -190,17 +198,9 @@ public class JoinAggGroupByHelper {
 
 		List<Float> myList = new ArrayList<Float>();
 
-		StringBuilder selectQuery1 = new StringBuilder("SELECT *").append(" FROM ").append((String) json.get("keyspace")).append(".")
-				.append(joinAggTable).append(" where ").append(aggKeyName + " = ").append(aggKeyValue).append(";");
-
-		Row theRow = null;
-		try {
-			Session session = currentCluster.connect();
-			theRow = session.execute(selectQuery1.toString()).one();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
+		
+		Row theRow = Utils.selectAllStatement((String) json.get("keyspace"), joinAggTable, aggKeyName, aggKeyValue);
+		
 		if(theRow==null){
 			return true;
 		}else if(theRow.getInt("count")==1){
@@ -324,26 +324,9 @@ public class JoinAggGroupByHelper {
 		stream.setUpdatedJoinAggGroupByRow(crow);
 		String blob = Serialize.serializeStream2(stream);
 
-		StringBuilder insertQueryAgg = new StringBuilder(
-				"INSERT INTO ");
-		insertQueryAgg.append((String) json.get("keyspace"))
-		.append(".").append(innerJoinAggTable)
-		.append(" ( ").append(aggKey + ", ").append("agg_list, ")
-		.append("sum, count, average, min, max,stream ")
-		.append(") VALUES (").append(aggKeyValue + ", ").append(myList+", ")
-		.append(sum).append(", ").append(count)
-		.append(", ").append(avg).append(", ").append(min)
-		.append(", ").append(max).append(", ").append(blob).append(");");
-		System.out.println(insertQueryAgg);
-
-		try {
-			Session session = currentCluster.connect();
-			session.execute(insertQueryAgg.toString());
-		} catch (Exception e) {
-			e.printStackTrace();
-
-		}
-
+		
+		insertStatement(json, innerJoinAggTable, crow, blob);
+	
 	}
 
 	public static void addListItem1toInnerJoinGroupBy(Stream stream,CustomizedRow deltaUpdatedRow,String aggColName, String leftJoinAggTable, CustomizedRow newRJRow, int index,
@@ -406,22 +389,8 @@ public class JoinAggGroupByHelper {
 			CustomizedRow crow = CustomizedRow.constructJoinAggGroupBy(aggKey,aggKeyValue,myList,sum,count,average,min,max,Serialize.serializeStream2(stream));
 			stream.setUpdatedJoinAggGroupByRow(crow);
 
-			StringBuilder insertQueryAgg = new StringBuilder("INSERT INTO ");
-			insertQueryAgg
-			.append((String) json.get("keyspace"))
-			.append(".").append(joinTable).append(" ( ").append(aggKey + ", ").append("agg_list, sum, count, average, min, max, stream ").append(") VALUES (")
-			.append(aggKeyValue + ", ").append(myList+", ").append(sum).append(", ").append(count).append(", ")
-			.append(average).append(", ").append(min).append(", ").append(max).append(", ").append(Serialize.serializeStream2(stream)).append(");");
+			insertStatement(json, joinTable, crow, Serialize.serializeStream2(stream));
 
-			System.out.println(insertQueryAgg);
-
-			try {
-				Session session = currentCluster.connect();
-				session.execute(insertQueryAgg.toString());
-			} catch (Exception e) {
-				e.printStackTrace();
-
-			}
 		}else{
 			//Update
 			myList.addAll(theRow.getList("agg_list", Float.class));
