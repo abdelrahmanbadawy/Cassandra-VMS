@@ -58,7 +58,7 @@ public class PreaggregationHelper {
 		return PreAggMap;
 	}
 
-	public static boolean firstInsertion(Stream stream,ArrayList<String> colValues, float aggColValue, JSONObject json, String preaggTable, String aggKey, String aggKeyValue){
+	public static boolean firstInsertion(String aggKeyType,Stream stream,ArrayList<String> colValues, float aggColValue, JSONObject json, String preaggTable, String aggKey, String aggKeyValue){
 
 		// 2.c.1 create a map, add pk and list with delta _new values
 		// 2.c.2 set the agg col values
@@ -77,7 +77,7 @@ public class PreaggregationHelper {
 
 		ResultSet rs = null;
 
-		CustomizedRow constructedRow = CustomizedRow.constructUpdatedPreaggRow(aggKey,aggKeyValue,myMap,sum,count,average,min,max, Serialize.serializeStream2(stream));
+		CustomizedRow constructedRow = CustomizedRow.constructUpdatedPreaggRow(aggKey,aggKeyValue,aggKeyType,myMap,sum,count,average,min,max, Serialize.serializeStream2(stream));
 		stream.setUpdatedPreaggRow(constructedRow);
 		String blob = Serialize.serializeStream2(stream);
 
@@ -200,7 +200,7 @@ public class PreaggregationHelper {
 
 	}
 
-	public static boolean updateAggColValue(Stream stream, ArrayList<String> myList,float aggColValue,float aggColValue_old,Row theRow, int aggColIndexInList,JSONObject json, String preaggTable,String aggKey,String aggKeyValue, ByteBuffer buffer_old){
+	public static boolean updateAggColValue(String aggKeyType,Stream stream, ArrayList<String> myList,float aggColValue,float aggColValue_old,Row theRow, int aggColIndexInList,JSONObject json, String preaggTable,String aggKey,String aggKeyValue, ByteBuffer buffer_old){
 
 		float sum = 0;
 		int count = 0;
@@ -258,7 +258,7 @@ public class PreaggregationHelper {
 		}
 
 
-		CustomizedRow constructedRow = CustomizedRow.constructUpdatedPreaggRow(aggKey,aggKeyValue,myMap,sum,count,average,min,max, Serialize.serializeStream2(stream));
+		CustomizedRow constructedRow = CustomizedRow.constructUpdatedPreaggRow(aggKey,aggKeyValue,aggKeyType,myMap,sum,count,average,min,max, Serialize.serializeStream2(stream));
 		stream.setUpdatedPreaggRow(constructedRow);
 		String buffer_new = Serialize.serializeStream2(stream);
 
@@ -271,7 +271,7 @@ public class PreaggregationHelper {
 
 	}
 
-	public static boolean subtractOldAggColValue(Stream stream,ArrayList<String> myList, float aggColValue_old,Map<String, String> myMap,Row theRow, int aggColIndexInList,JSONObject json, String preaggTable,String aggKey,String aggKeyValue,ByteBuffer blob_old){
+	public static boolean subtractOldAggColValue(String aggKeyType, Stream stream,ArrayList<String> myList, float aggColValue_old,Map<String, String> myMap,Row theRow, int aggColIndexInList,JSONObject json, String preaggTable,String aggKey,String aggKeyValue,ByteBuffer blob_old){
 
 		String pk = myList.get(0);
 		myList.remove(0);
@@ -301,7 +301,7 @@ public class PreaggregationHelper {
 		}
 
 
-		CustomizedRow crow = CustomizedRow.constructUpdatedPreaggRow(aggKey, aggKeyValue, myMap, sum, count, average, min, max, Serialize.serializeStream2(stream));
+		CustomizedRow crow = CustomizedRow.constructUpdatedPreaggRow(aggKey, aggKeyValue, aggKeyType,myMap, sum, count, average, min, max, Serialize.serializeStream2(stream));
 		stream.setUpdatedPreaggRow(crow);
 		String blob_new = Serialize.serializeStream2(stream);
 

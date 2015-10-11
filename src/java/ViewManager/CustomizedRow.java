@@ -168,12 +168,13 @@ public class CustomizedRow implements Serializable{
 		this.colDefSize = value;
 	}
 
-	public static CustomizedRow constructUpdatedPreaggRow(String aggKey, String aggKeyValue, Map<String,String> myList, float sum, int count, float average, float min, float max,String blob){
+	public static CustomizedRow constructUpdatedPreaggRow(String aggKey, String aggKeyValue,String aggKeyType, Map<String,String> myList, float sum, int count, float average, float min, float max,String blob){
+		
 		CustomizedRow crow = new CustomizedRow();
 		List<String> names = new ArrayList<String>(Arrays.asList(aggKey,"list_item","sum","average","min","max","count","stream"));
 		crow.setColNames(names);
 
-		List<String> types = new ArrayList<String>(Arrays.asList("text","Map.class","float","float","float","float","int","blob"));
+		List<String> types = new ArrayList<String>(Arrays.asList(aggKeyType,"Map.class","float","float","float","float","int","blob"));
 		crow.setColTypes(types);
 
 		List<Object> values = new ArrayList<Object>(Arrays.asList(aggKeyValue,myList,sum,average,min,max,count,blob));
@@ -184,13 +185,14 @@ public class CustomizedRow implements Serializable{
 		return crow;
 	}
 
-	public static CustomizedRow constructRJRow(String aggKey, String aggKeyValue, Map<String,String> myList1, Map<String,String> myList2){
+	public static CustomizedRow constructRJRow(String aggKey, String aggKeyValue,String aggKeyType, Map<String,String> myList1, Map<String,String> myList2){
 
+			
 		CustomizedRow crow = new CustomizedRow();
 		List<String> names = new ArrayList<String>(Arrays.asList(aggKey,"list_item1","list_item2"));
 		crow.setColNames(names);
 
-		List<String> types = new ArrayList<String>(Arrays.asList("text","Map.class","Map.class"));
+		List<String> types = new ArrayList<String>(Arrays.asList(aggKeyType,"Map.class","Map.class"));
 		crow.setColTypes(types);
 
 		List<Object> values = new ArrayList<Object>(Arrays.asList(aggKeyValue,myList1,myList2));

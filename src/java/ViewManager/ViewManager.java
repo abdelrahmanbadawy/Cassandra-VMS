@@ -309,7 +309,7 @@ public class ViewManager {
 				ByteBuffer blob_old = theRow.getBytes("stream");
 
 				CustomizedRow constructedRow = CustomizedRow
-						.constructUpdatedPreaggRow(aggKey, aggKeyValue, myMap,
+						.constructUpdatedPreaggRow(aggKey, aggKeyValue,aggKeyType, myMap,
 								sum, (int) count, average, min, max,
 								Serialize.serializeStream2(stream));
 				stream.setDeletePreaggRow(constructedRow);
@@ -483,7 +483,7 @@ public class ViewManager {
 					// 2.c.2 set the agg col values
 
 					if (PreaggregationHelper
-							.firstInsertion(stream, myList, aggColValue, json,
+							.firstInsertion(aggKeyType,stream, myList, aggColValue, json,
 									preaggTable, aggKey, aggKeyValue)) {
 						loop = false;
 					} else {
@@ -497,7 +497,7 @@ public class ViewManager {
 
 					ByteBuffer blob_old = theRow1.getBytes("stream");
 
-					if (PreaggregationHelper.updateAggColValue(stream, myList,
+					if (PreaggregationHelper.updateAggColValue(aggKeyType,stream, myList,
 							aggColValue, aggColValue_old, theRow1,
 							aggColIndexInList, json, preaggTable, aggKey,
 							aggKeyValue, blob_old)) {
@@ -569,7 +569,7 @@ public class ViewManager {
 
 					ByteBuffer blob_old = theRow.getBytes("stream");
 
-					while (!PreaggregationHelper.subtractOldAggColValue(stream,
+					while (!PreaggregationHelper.subtractOldAggColValue(aggKeyType,stream,
 							myList, aggColValue_old, myMap, theRow,
 							aggColIndexInList, json, preaggTable, aggKey,
 							aggKeyValue_old, blob_old)) {
@@ -689,7 +689,7 @@ public class ViewManager {
 					joinTable, joinKeyName, oldJoinKeyValue);
 			CustomizedRow crow = new CustomizedRow(row_old_join_value);
 			if(row_old_join_value==null){
-				crow = CustomizedRow.constructRJRow(joinKeyName, oldJoinKeyValue,
+				crow = CustomizedRow.constructRJRow(joinKeyName, oldJoinKeyValue,joinKeyType,
 						new HashMap<String, String>(), new HashMap<String, String>());
 			}
 
@@ -712,10 +712,10 @@ public class ViewManager {
 			CustomizedRow newcr = null;
 
 			if (column == 1)
-				newcr = CustomizedRow.constructRJRow(joinKeyName, oldJoinKeyValue,
+				newcr = CustomizedRow.constructRJRow(joinKeyName, oldJoinKeyValue,joinKeyType,
 						myMap2, crow.getMap("list_item2"));
 			else
-				newcr = CustomizedRow.constructRJRow(joinKeyName, oldJoinKeyValue,
+				newcr = CustomizedRow.constructRJRow(joinKeyName, oldJoinKeyValue,joinKeyType,
 						crow.getMap("list_item1"), myMap2);
 
 			stream.setReverseJoinUpdateNewRow(newcr);
@@ -764,7 +764,7 @@ public class ViewManager {
 			crow2 = new CustomizedRow(theRow);
 
 		} else {
-			crow2 = CustomizedRow.constructRJRow(joinKeyName,joinKeyValue ,
+			crow2 = CustomizedRow.constructRJRow(joinKeyName,joinKeyValue ,joinKeyType,
 					new HashMap<String, String>(),
 					new HashMap<String, String>());
 		}
@@ -778,17 +778,17 @@ public class ViewManager {
 
 		if (theRow != null) {
 			if (column == 1)
-				newcr = CustomizedRow.constructRJRow(joinKeyName, joinKeyValue,
+				newcr = CustomizedRow.constructRJRow(joinKeyName, joinKeyValue,joinKeyType,
 						myMap, crow2.getMap("list_item2"));
 			else
-				newcr = CustomizedRow.constructRJRow(joinKeyName, joinKeyValue,
+				newcr = CustomizedRow.constructRJRow(joinKeyName, joinKeyValue,joinKeyType,
 						crow2.getMap("list_item1"), myMap);
 		} else {
 			if (column == 1)
-				newcr = CustomizedRow.constructRJRow(joinKeyName, joinKeyValue,
+				newcr = CustomizedRow.constructRJRow(joinKeyName, joinKeyValue,joinKeyType,
 						myMap, new HashMap<String, String>());
 			else
-				newcr = CustomizedRow.constructRJRow(joinKeyName, joinKeyValue,
+				newcr = CustomizedRow.constructRJRow(joinKeyName, joinKeyValue,joinKeyType,
 						new HashMap<String, String>(), myMap);
 		}
 
@@ -1367,10 +1367,10 @@ public class ViewManager {
 			CustomizedRow newcr = null;
 
 			if (column == 1)
-				newcr = CustomizedRow.constructRJRow(joinKeyName, joinKeyValue,
+				newcr = CustomizedRow.constructRJRow(joinKeyName, joinKeyValue,joinKeyType,
 						myMap, crow.getMap("list_item2"));
 			else
-				newcr = CustomizedRow.constructRJRow(joinKeyName, joinKeyValue,
+				newcr = CustomizedRow.constructRJRow(joinKeyName, joinKeyValue,joinKeyType,
 						crow.getMap("list_item1"), myMap);
 
 			stream.setReverseJoinDeleteNewRow(newcr);
