@@ -52,7 +52,7 @@ public class CommitLogReader {
 				if (table.contains("groupby")) {
 					vmc.decideGroupBy(json,table);
 				}else if (table.contains("preagg_agg")) {
-					//vmc.decidePreagg(json,table);
+					vmc.decidePreagg(json,table);
 				} else {
 
 					if (table.contains("RJ_")) {
