@@ -1369,12 +1369,23 @@ public class ViewManager {
 			// new updated row
 			CustomizedRow newcr = null;
 
-			if (column == 1)
-				newcr = CustomizedRow.constructRJRow(joinKeyName, joinKeyValue,joinKeyType,
-						myMap, crow.getMap("list_item2"));
-			else
-				newcr = CustomizedRow.constructRJRow(joinKeyName, joinKeyValue,joinKeyType,
-						crow.getMap("list_item1"), myMap);
+			if (column == 1){
+				if(myMap==null){
+					newcr = CustomizedRow.constructRJRow(joinKeyName, joinKeyValue,joinKeyType,
+							new HashMap<String, String>(), crow.getMap("list_item2"));
+				}else{
+					newcr = CustomizedRow.constructRJRow(joinKeyName, joinKeyValue,joinKeyType,
+							myMap, crow.getMap("list_item2"));
+				}
+			}else{
+				if(myMap==null){
+					newcr = CustomizedRow.constructRJRow(joinKeyName, joinKeyValue,joinKeyType,
+							crow.getMap("list_item1"), new HashMap<String, String>());
+				}else{
+					newcr = CustomizedRow.constructRJRow(joinKeyName, joinKeyValue,joinKeyType,
+							crow.getMap("list_item1"), myMap);
+				}
+			}
 
 			stream.setReverseJoinDeleteNewRow(newcr);
 

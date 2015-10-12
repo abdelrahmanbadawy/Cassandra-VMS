@@ -739,6 +739,7 @@ public class ViewManagerController {
 		stream = new Stream();
 		stream.setBaseTable((String) json.get("table"));
 		stream.setDeleteOperation(true);
+		stream.setDeltaJSON(json);
 
 
 		CustomizedRow deltaDeletedRow = null;
