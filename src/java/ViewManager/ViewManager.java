@@ -738,7 +738,7 @@ public class ViewManager {
 			// check if all maps are empty --> remove the row
 			boolean allNull = true;
 
-			if (myMap2.size() == 0) {
+			if (myMap2.size() == 0 && row_old_join_value!=null) {
 
 				for (int k = 0; k < baseTables.size() && allNull; k++) {
 					if (column != k + 1
@@ -748,8 +748,11 @@ public class ViewManager {
 
 					}
 				}
-			} else
-				allNull = false;
+			} else{
+				if(row_old_join_value!=null){
+					allNull = false;
+				}
+			}
 
 			// all entries are nulls
 			if (allNull) {

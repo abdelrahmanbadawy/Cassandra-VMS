@@ -50,26 +50,30 @@ public class CommitLogReader {
 				String table = json.get("table").toString();
 
 				if (table.contains("groupby")) {
-					vmc.decideGroupBy(json,table);
+					if (type.equalsIgnoreCase("insert")||type.equalsIgnoreCase("update")){
+						vmc.decideGroupBy(json,table);
+					}
 				}else if (table.contains("preagg_agg")) {
-					vmc.decidePreagg(json,table);
+					if (type.equalsIgnoreCase("insert")||type.equalsIgnoreCase("update")){
+						vmc.decidePreagg(json,table);
+					}
 				} else {
 
 					if (table.contains("RJ_")) {
 						if (type.equalsIgnoreCase("insert")){
-							
+
 							JSONObject data = (JSONObject) json.get("data");
 
 							String bufferString = data.get("stream").toString();
 
 							Stream s = Serialize.deserializeStream(bufferString);
-							
+
 							if(s.isDeleteOperation())
-							vmc.propagateDeleteRJ(json);
+								vmc.propagateDeleteRJ(json);
 							else
-							vmc.propagateRJ(json);
+								vmc.propagateRJ(json);
 						}
-							
+
 					} else {
 
 						if (type.equals("insert")) {
