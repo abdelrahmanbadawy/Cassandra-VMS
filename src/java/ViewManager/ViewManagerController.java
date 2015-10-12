@@ -329,7 +329,8 @@ public class ViewManagerController {
 							boolean eval_old = Utils.evaluateCondition(deltaUpdatedRow, operation, value, type,colName + "_old");
 
 							if (eval_old) {
-								cascadeDeleteHavingTables(json,preaggTable,AggKey,AggKeyType,pkVAlue,AggCol,AggColType);
+								vm.deleteRowPreaggAgg(stream, pkVAlue, json, preaggTable, AggKey, AggKeyType, AggCol, AggColType);
+								//cascadeDeleteHavingTables(json,preaggTable,AggKey,AggKeyType,pkVAlue,AggCol,AggColType);
 							}
 							// continue
 							continue;
@@ -488,34 +489,12 @@ public class ViewManagerController {
 							// 1. retrieve the row to be deleted from delta
 							// table
 
-							StringBuilder selectQuery = new StringBuilder(
-									"SELECT *");
-							selectQuery.append(" FROM ")
-							.append(json.get("keyspace")).append(".")
-							.append("delta_" + json.get("table"))
-							.append(" WHERE ")
-							.append(baseTablePrimaryKey).append(" = ")
-							.append(pkVAlue).append(";");
-
-							System.out.println(selectQuery);
-
-							ResultSet selectionResult;
-
-							try {
-
-								Session session = currentCluster.connect();
-								selectionResult = session.execute(selectQuery
-										.toString());
-
-							} catch (Exception e) {
-								e.printStackTrace();
-								return;
-							}
+							Row selecRow = Utils.selectAllStatement((String)json.get("keyspace"), "delta_" + json.get("table"), baseTablePrimaryKey, pkVAlue);
 
 							// 2. set DeltaDeletedRow variable for streaming
 							//vm.setDeltaDeletedRow(selectionResult.one());
 
-							CustomizedRow crow = new CustomizedRow(selectionResult.one());
+							CustomizedRow crow = new CustomizedRow(selecRow);
 							stream.setDeltaDeletedRow(crow);
 
 							cascadeDeleteReverseJoin( json, j, cursor);
@@ -546,33 +525,6 @@ public class ViewManagerController {
 		}
 
 		stream.resetDeltaRows();
-	}
-
-	private void cascadeDeleteHavingTables(JSONObject json,String preaggTable,String aggKey, String aggKeyType, String pkVAlue, String aggCol, String aggColType) {
-
-		int position1 = preaggTableNames.indexOf(preaggTable);
-
-		if (position1 != -1) {
-
-			String temp4 = "mapping.unit(";
-			temp4 += Integer.toString(position1);
-			temp4 += ")";
-
-			int nrConditions = VmXmlHandler.getInstance()
-					.getHavingPreAggMapping().getInt(temp4 + ".nrCond");
-
-			for (int m = 0; m < nrConditions; m++) {
-
-				String s1 = temp4 + ".Cond(" + Integer.toString(m)
-						+ ")";
-
-				String havingTable = VmXmlHandler.getInstance()
-						.getHavingPreAggMapping()
-						.getString(s1 + ".name");
-
-				vm.deleteElementFromHaving(stream,json,havingTable,aggKey,aggKeyType,pkVAlue,aggCol,aggColType);
-			}
-		}
 	}
 
 	private void evaluateLeftorRightJoinAggHaving(String temp, String aggColPosition,
