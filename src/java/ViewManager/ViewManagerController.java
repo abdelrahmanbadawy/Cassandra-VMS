@@ -1902,7 +1902,7 @@ public class ViewManagerController {
 
 				boolean eval1 = true;
 
-				if(stream.getDeletePreaggRow()!=null){
+				if(stream.getUpdatedPreaggRow()!=null){
 
 					for (int j = 0; j < Integer.parseInt(nrAnd); j++) {
 
@@ -1921,20 +1921,20 @@ public class ViewManagerController {
 								.getString(s11 + ".value");
 
 
-						eval1&= Utils.evalueJoinAggConditions(stream.getDeletePreaggRow(), aggFct, operation, value);
+						eval1&= Utils.evalueJoinAggConditions(stream.getUpdatedPreaggRow(), aggFct, operation, value);
 
 					}
 
 					if (eval1) {
 						vm.updateHaving(stream.getDeltaDeletedRow(),
-								json,havingTable, stream.getDeletePreaggRow());
+								json,havingTable, stream.getUpdatedPreaggRow());
 					} else {
 						vm.deleteRowHaving((String) json.get("keyspace"),
-								havingTable, stream.getDeletePreaggRow());
+								havingTable, stream.getUpdatedPreaggRow());
 					}
 				}
 
-				CustomizedRow DeletedPreagRow = stream.getDeletePreaggRowDeleted();
+				CustomizedRow DeletedPreagRow = stream.getUpdatedPreaggRowDeleted();
 
 				if (DeletedPreagRow != null) {
 					vm.deleteRowHaving((String) json.get("keyspace"),

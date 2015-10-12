@@ -252,7 +252,7 @@ public class ViewManager {
 				// 4. delete the whole row
 
 				CustomizedRow crow = new CustomizedRow(theRow);
-				stream.setDeletePreaggRowDeleted(crow);
+				stream.setUpdatedPreaggRowDeleted(crow);
 				stream.setDeleteOperation(true);
 				String blob = Serialize.serializeStream2(stream);
 				PreaggregationHelper.insertStatementToDelete(json, preaggTable,
@@ -312,7 +312,7 @@ public class ViewManager {
 						.constructUpdatedPreaggRow(aggKey, aggKeyValue,aggKeyType, myMap,
 								sum, (int) count, average, min, max,
 								Serialize.serializeStream2(stream));
-				stream.setDeletePreaggRow(constructedRow);
+				stream.setUpdatedPreaggRow(constructedRow);
 				String buffer_new = Serialize.serializeStream2(stream);
 
 				while (!PreaggregationHelper.updateStatement(sum, (int) count,
