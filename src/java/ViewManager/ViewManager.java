@@ -260,6 +260,8 @@ public class ViewManager {
 
 				deleteEntireRowWithPK((String) json.get("keyspace"),
 						preaggTable, aggKey, aggKeyValue);
+				
+				stream.setDeleteOperation(false);
 
 			} else {
 
@@ -1394,6 +1396,7 @@ public class ViewManager {
 			ReverseJoinHelper.insertStatement(joinTable, keyspace, joinKeyName,
 					joinKeyValue, column, myMap, stream);
 
+			stream.setDeleteOperation(false);
 			// checking if all list items are null --> delete the whole row
 			boolean allNull = true;
 			if (myMap == null) {
@@ -1433,17 +1436,18 @@ public class ViewManager {
 
 		// 1. get row updated by reverse join
 		CustomizedRow theRow = stream.getRevereJoinDeleteOldRow();
+		HashMap<String, String> myMap2  = new HashMap<String, String>();
+		HashMap<String, String> myMap1  = new HashMap<String, String>();
+		
+		if(theRow!=null) {
+			// 1.a get columns item_1, item_2
+			Map<String, String> tempMapImmutable1 = theRow.getMap("list_item1");
+			Map<String, String> tempMapImmutable2 = theRow.getMap("list_item2");
 
-		// 1.a get columns item_1, item_2
-		Map<String, String> tempMapImmutable1 = theRow.getMap("list_item1");
-		Map<String, String> tempMapImmutable2 = theRow.getMap("list_item2");
-
-		// 2. retrieve list_item1, list_item2
-		HashMap<String, String> myMap1 = new HashMap<String, String>();
-		myMap1.putAll(tempMapImmutable1);
-
-		HashMap<String, String> myMap2 = new HashMap<String, String>();
-		myMap2.putAll(tempMapImmutable2);
+			// 2. retrieve list_item1, list_item2
+			myMap1.putAll(tempMapImmutable1);
+			myMap2.putAll(tempMapImmutable2);
+		}
 
 		// Case 1 : delete from left join table if item_list2 is empty
 		// !leftJName.equals(false) meaning : no left join wanted, only right
