@@ -16,7 +16,7 @@
 				<c>
 					<name>ects</name>
 					<type>varint</type>
-					<index>1</index>
+					<index>0</index>
 					<nrAgg>1</nrAgg>
 					<Agg>
 						<Key>name</Key>

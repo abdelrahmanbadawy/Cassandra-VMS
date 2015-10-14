@@ -36,27 +36,7 @@
 				</Cond>
 			</Preagg>
 
-			<Preagg>
-				<name></name>
-				<AggKey>faculty</AggKey>
-				<AggKeyType>text</AggKeyType>
-				<AggCol>ects</AggCol>
-				<AggColType>varint</AggColType>
-			</Preagg>
-
 		</unit>
-		<unit>
-			<deltaTable>delta_emp</deltaTable>
-			<nrPreagg>1</nrPreagg>
-			<Preagg>
-				<name></name>
-				<AggKey></AggKey>
-				<AggKeyType></AggKeyType>
-				<AggCol></AggCol>
-				<AggColType></AggColType>
-			</Preagg>
-		</unit>
-
-
+		
 	</mapping>
 </setup>

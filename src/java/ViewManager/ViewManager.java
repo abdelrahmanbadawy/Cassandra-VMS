@@ -219,6 +219,10 @@ public class ViewManager {
 		float average = 0;
 		float min = Float.MAX_VALUE;
 		float max = -Float.MAX_VALUE;
+		
+		if(stream.getDeltaDeletedRow()==null){
+			stream.setDeltaDeletedRow(stream.getDeltaUpdatedRow());
+		}
 
 		// 1. retrieve agg key value from delta stream to retrieve the correct
 		// row from preagg
@@ -1336,6 +1340,10 @@ public class ViewManager {
 			String joinKeyType, int column) {
 
 		setReverseJoinTableName(joinTable);
+		
+		if(stream.getDeltaDeletedRow()==null){
+			stream.setDeltaDeletedRow(stream.getDeltaUpdatedRow());
+		}
 
 		String joinKeyValue = Utils.getColumnValueFromDeltaStream(
 				stream.getDeltaDeletedRow(), joinKeyName, joinKeyType, "_new");
@@ -2410,6 +2418,11 @@ public class ViewManager {
 				stream.getDeltaUpdatedRow(), aggKey, aggKeyType, "_new");
 		String oldAggKeyValue = getColumnValueFromDeltaStream(
 				stream.getDeltaUpdatedRow(), aggKey, aggKeyType, "_old");
+		
+		String joinKeyValue = getColumnValueFromDeltaStream(
+				stream.getDeltaUpdatedRow(), joinKeyName, joinKeyType, "_new");
+		String oldjoinKeyValue = getColumnValueFromDeltaStream(
+				stream.getDeltaUpdatedRow(), joinKeyName, joinKeyType, "_old");
 
 		String aggColValue = getColumnValueFromDeltaStream(
 				stream.getDeltaUpdatedRow(), aggColName, aggColType, "_new");
@@ -2418,6 +2431,8 @@ public class ViewManager {
 
 		CustomizedRow newRJRow = stream.getReverseJoinUpdateNewRow();
 		CustomizedRow oldRJRow = stream.getReverseJoinUpadteOldRow();
+		
+		boolean changeJK = !oldjoinKeyValue.equals(joinKeyValue) && !oldjoinKeyValue.equals("'null'");
 
 		// ==================================================
 		// increase
@@ -2429,7 +2444,7 @@ public class ViewManager {
 			if (!leftJoinAggTable.equals("false")) {
 				while (!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(stream,
 						json, leftJoinAggTable, aggKey, aggKeyValue,
-						aggColValue, oldAggColValue, oldAggKeyValue))
+						aggColValue, oldAggColValue, oldAggKeyValue,changeJK))
 					;
 			}
 
@@ -2438,7 +2453,7 @@ public class ViewManager {
 					while (!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(
 							stream, json, innerJoinAggTable, aggKey,
 							aggKeyValue, aggColValue, oldAggColValue,
-							oldAggKeyValue))
+							oldAggKeyValue,changeJK))
 						;
 				}
 			}
@@ -2494,7 +2509,7 @@ public class ViewManager {
 					while (!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(
 							stream, json, leftJoinAggTable, aggKey,
 							aggKeyValue, aggColValue, oldAggColValue,
-							oldAggKeyValue))
+							oldAggKeyValue,changeJK))
 						;
 				}
 
@@ -2504,7 +2519,7 @@ public class ViewManager {
 								.JoinAggGroupByChangeAddRow(stream, json,
 										innerJoinAggTable, aggKey, aggKeyValue,
 										aggColValue, oldAggColValue,
-										oldAggKeyValue))
+										oldAggKeyValue,changeJK))
 							;
 					}
 				}
@@ -2516,7 +2531,7 @@ public class ViewManager {
 					while (!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(
 							stream, json, leftJoinAggTable, aggKey,
 							aggKeyValue, aggColValue, oldAggColValue,
-							oldAggKeyValue))
+							oldAggKeyValue,changeJK))
 						;
 				}
 
@@ -2526,7 +2541,7 @@ public class ViewManager {
 								.JoinAggGroupByChangeAddRow(stream, json,
 										innerJoinAggTable, aggKey, aggKeyValue,
 										aggColValue, oldAggColValue,
-										oldAggKeyValue))
+										oldAggKeyValue,changeJK))
 							;
 					}
 				}
@@ -2555,7 +2570,7 @@ public class ViewManager {
 			}
 		}
 
-		if (newRJRow.getMap("list_item2").size() == 1
+		if (newRJRow.getMap("list_item2").size() == 1 && oldRJRow.getMap("list_item2").size() == 0
 				&& !newRJRow.getMap("list_item1").isEmpty()) {
 			if (!innerJoinAggTable.equals("false")) {
 				JoinAggGroupByHelper.addListItem1toInnerJoinGroupBy(stream,
@@ -2579,6 +2594,11 @@ public class ViewManager {
 				stream.getDeltaUpdatedRow(), aggKey, aggKeyType, "_new");
 		String oldAggKeyValue = getColumnValueFromDeltaStream(
 				stream.getDeltaUpdatedRow(), aggKey, aggKeyType, "_old");
+		
+		String joinKeyValue = getColumnValueFromDeltaStream(
+				stream.getDeltaUpdatedRow(), joinKeyName, joinKeyType, "_new");
+		String oldjoinKeyValue = getColumnValueFromDeltaStream(
+				stream.getDeltaUpdatedRow(), joinKeyName, joinKeyType, "_old");
 
 		String aggColValue = getColumnValueFromDeltaStream(
 				stream.getDeltaUpdatedRow(), aggColName, aggColType, "_new");
@@ -2587,6 +2607,8 @@ public class ViewManager {
 
 		CustomizedRow newRJRow = stream.getReverseJoinUpdateNewRow();
 		CustomizedRow oldRJRow = stream.getReverseJoinUpadteOldRow();
+		
+		boolean changeJK = !oldjoinKeyValue.equals(joinKeyValue) && oldjoinKeyValue.equals("'null'");
 
 		// ==================================================
 		// increase
@@ -2598,7 +2620,7 @@ public class ViewManager {
 			if (!rightJoinAggTable.equals("false")) {
 				while (!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(stream,
 						json, rightJoinAggTable, aggKey, aggKeyValue,
-						aggColValue, oldAggColValue, oldAggKeyValue))
+						aggColValue, oldAggColValue, oldAggKeyValue,changeJK))
 					;
 			}
 
@@ -2607,7 +2629,7 @@ public class ViewManager {
 					while (!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(
 							stream, json, innerJoinAggTable, aggKey,
 							aggKeyValue, aggColValue, oldAggColValue,
-							oldAggKeyValue))
+							oldAggKeyValue,changeJK))
 						;
 				}
 			}
@@ -2663,7 +2685,7 @@ public class ViewManager {
 					while (!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(
 							stream, json, rightJoinAggTable, aggKey,
 							aggKeyValue, aggColValue, oldAggColValue,
-							oldAggKeyValue))
+							oldAggKeyValue,changeJK))
 						;
 				}
 
@@ -2673,7 +2695,7 @@ public class ViewManager {
 								.JoinAggGroupByChangeAddRow(stream, json,
 										innerJoinAggTable, aggKey, aggKeyValue,
 										aggColValue, oldAggColValue,
-										oldAggKeyValue))
+										oldAggKeyValue,changeJK))
 							;
 					}
 				}
@@ -2685,7 +2707,7 @@ public class ViewManager {
 					while (!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(
 							stream, json, rightJoinAggTable, aggKey,
 							aggKeyValue, aggColValue, oldAggColValue,
-							oldAggKeyValue))
+							oldAggKeyValue,changeJK))
 						;
 				}
 
@@ -2695,7 +2717,7 @@ public class ViewManager {
 								.JoinAggGroupByChangeAddRow(stream, json,
 										innerJoinAggTable, aggKey, aggKeyValue,
 										aggColValue, oldAggColValue,
-										oldAggKeyValue))
+										oldAggKeyValue,changeJK))
 							;
 					}
 				}
@@ -2725,7 +2747,7 @@ public class ViewManager {
 			}
 		}
 
-		if (newRJRow.getMap("list_item1").size() == 1
+		if (newRJRow.getMap("list_item1").size() == 1 && oldRJRow.getMap("list_item1").size() == 1
 				&& !newRJRow.getMap("list_item2").isEmpty()) {
 			if (!innerJoinAggTable.equals("false")) {
 				JoinAggGroupByHelper.addListItem2toInnerJoinGroupBy(stream,
