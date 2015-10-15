@@ -52,7 +52,7 @@ public class ReverseJoinHelper {
 			
 			StringBuilder updateQuery = new StringBuilder("UPDATE ");
 			updateQuery.append(keyspace)
-			.append(".").append(joinTable).append(" SET list_item").append((column+1)).append("= ?")
+			.append(".").append(joinTable).append(" SET list_item").append((column)).append("= ?")
 			.append(", counter= ").append(counter+1).append(", stream= ").append(Serialize.serializeStream2(stream))
 			.append(" WHERE ").append(joinKeyName).append("= ").append(joinKeyValue)
 			.append(" IF counter = ").append(counter).append(";");
