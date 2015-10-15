@@ -78,10 +78,6 @@ public class CommitLogReader {
 							
 
 							JSONObject data = (JSONObject) json.get("set_data");
-							System.out.println("     ss          "+data);
-							System.out.println(data.get("stream"));
-
-							
 							
 							String bufferString = data.get("stream").toString();
 

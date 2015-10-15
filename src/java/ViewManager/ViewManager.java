@@ -774,7 +774,7 @@ public class ViewManager {
 			// all entries are nulls
 			if (allNull) {
 				Utils.deleteEntireRowWithPK(keyspace, joinTable, joinKeyName,
-						oldJoinKeyValue);
+						oldJoinKeyValue, counter+1);
 			}
 		}
 
@@ -1518,7 +1518,7 @@ public class ViewManager {
 			// all entries are nulls
 			if (allNull) {
 				Utils.deleteEntireRowWithPK(keyspace, joinTable, joinKeyName,
-						joinKeyValue);
+						joinKeyValue, counter+1);
 			}
 
 		}
