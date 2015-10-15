@@ -713,108 +713,108 @@ public class ViewManagerController {
 		// tables
 		// preagg tables hold all column values, hence they have to be updated
 
-		int position = deltaTableName.indexOf("delta_"
-				+ (String) json.get("table"));
-
-		if (position != -1) {
-
-			String temp = "mapping.unit(";
-			temp += Integer.toString(position);
-			temp += ")";
-
-			int nrPreagg = VmXmlHandler.getInstance().getDeltaPreaggMapping()
-					.getInt(temp + ".nrPreagg");
-
-			for (int i = 0; i < nrPreagg; i++) {
-
-				String s = temp + ".Preagg(" + Integer.toString(i) + ")";
-				String AggKey = VmXmlHandler.getInstance()
-						.getDeltaPreaggMapping().getString(s + ".AggKey");
-				String AggKeyType = VmXmlHandler.getInstance()
-						.getDeltaPreaggMapping().getString(s + ".AggKeyType");
-				String preaggTable = VmXmlHandler.getInstance()
-						.getDeltaPreaggMapping().getString(s + ".name");
-				String AggCol = VmXmlHandler.getInstance()
-						.getDeltaPreaggMapping().getString(s + ".AggCol");
-				String AggColType = VmXmlHandler.getInstance()
-						.getDeltaPreaggMapping().getString(s + ".AggColType");
-
-				// by passing the whole delta Row, we have agg key value even if
-				// it is not in json
-				vm.deleteRowPreaggAgg(stream, baseTablePrimaryKey,
-						json, preaggTable, AggKey, AggKeyType, AggCol,
-						AggColType);
-
-			}
-
-		} else {
-			System.out.println("No Preaggregation table for this delta table "
-					+ " delta_" + (String) json.get("table") + " available");
-		}
-
-		stream.resetPreaggregationRows();
-
-		// ===================================================================================
-		// 3. for the delta table updated, get the depending selection tables
-		// tables
-		// check if condition is true based on selection true
-		// if true, delete row from selection table
-
-		int position1 = deltaTableName.indexOf("delta_"
-				+ (String) json.get("table"));
-
-		if (deleteOperation && position1 != -1) {
-
-			String temp4 = "mapping.unit(";
-			temp4 += Integer.toString(position1);
-			temp4 += ")";
-
-			int nrConditions = VmXmlHandler.getInstance()
-					.getDeltaSelectionMapping().getInt(temp4 + ".nrCond");
-
-			for (int i = 0; i < nrConditions; i++) {
-
-				String s = temp4 + ".Cond(" + Integer.toString(i) + ")";
-				String selecTable = VmXmlHandler.getInstance()
-						.getDeltaSelectionMapping().getString(s + ".name");
-
-				String nrAnd = VmXmlHandler.getInstance()
-						.getDeltaSelectionMapping().getString(s + ".nrAnd");
-
-				boolean eval = true;
-
-				for (int j = 0; j < Integer.parseInt(nrAnd); j++) {
-
-					String s11 = s + ".And(";
-					s11 += Integer.toString(j);
-					s11 += ")";
-
-					String operation = VmXmlHandler.getInstance()
-							.getDeltaSelectionMapping()
-							.getString(s11 + ".operation");
-					String value = VmXmlHandler.getInstance()
-							.getDeltaSelectionMapping()
-							.getString(s11 + ".value");
-					String type = VmXmlHandler.getInstance()
-							.getDeltaSelectionMapping()
-							.getString(s11 + ".type");
-
-					String selColName = VmXmlHandler.getInstance()
-							.getDeltaSelectionMapping()
-							.getString(s11 + ".selectionCol");
-
-					eval&= Utils.evaluateCondition(stream.getDeltaDeletedRow(), operation, value, type, selColName+"_new");
-
-				}
-
-				if (eval){
-					vm.deleteRowSelection(
-							(String) json.get("keyspace"), selecTable,
-							baseTablePrimaryKey, json);
-				}
-			}
-
-		}
+//		int position = deltaTableName.indexOf("delta_"
+//				+ (String) json.get("table"));
+//
+//		if (position != -1) {
+//
+//			String temp = "mapping.unit(";
+//			temp += Integer.toString(position);
+//			temp += ")";
+//
+//			int nrPreagg = VmXmlHandler.getInstance().getDeltaPreaggMapping()
+//					.getInt(temp + ".nrPreagg");
+//
+//			for (int i = 0; i < nrPreagg; i++) {
+//
+//				String s = temp + ".Preagg(" + Integer.toString(i) + ")";
+//				String AggKey = VmXmlHandler.getInstance()
+//						.getDeltaPreaggMapping().getString(s + ".AggKey");
+//				String AggKeyType = VmXmlHandler.getInstance()
+//						.getDeltaPreaggMapping().getString(s + ".AggKeyType");
+//				String preaggTable = VmXmlHandler.getInstance()
+//						.getDeltaPreaggMapping().getString(s + ".name");
+//				String AggCol = VmXmlHandler.getInstance()
+//						.getDeltaPreaggMapping().getString(s + ".AggCol");
+//				String AggColType = VmXmlHandler.getInstance()
+//						.getDeltaPreaggMapping().getString(s + ".AggColType");
+//
+//				// by passing the whole delta Row, we have agg key value even if
+//				// it is not in json
+//				vm.deleteRowPreaggAgg(stream, baseTablePrimaryKey,
+//						json, preaggTable, AggKey, AggKeyType, AggCol,
+//						AggColType);
+//
+//			}
+//
+//		} else {
+//			System.out.println("No Preaggregation table for this delta table "
+//					+ " delta_" + (String) json.get("table") + " available");
+//		}
+//
+//		stream.resetPreaggregationRows();
+//
+//		// ===================================================================================
+//		// 3. for the delta table updated, get the depending selection tables
+//		// tables
+//		// check if condition is true based on selection true
+//		// if true, delete row from selection table
+//
+//		int position1 = deltaTableName.indexOf("delta_"
+//				+ (String) json.get("table"));
+//
+//		if (deleteOperation && position1 != -1) {
+//
+//			String temp4 = "mapping.unit(";
+//			temp4 += Integer.toString(position1);
+//			temp4 += ")";
+//
+//			int nrConditions = VmXmlHandler.getInstance()
+//					.getDeltaSelectionMapping().getInt(temp4 + ".nrCond");
+//
+//			for (int i = 0; i < nrConditions; i++) {
+//
+//				String s = temp4 + ".Cond(" + Integer.toString(i) + ")";
+//				String selecTable = VmXmlHandler.getInstance()
+//						.getDeltaSelectionMapping().getString(s + ".name");
+//
+//				String nrAnd = VmXmlHandler.getInstance()
+//						.getDeltaSelectionMapping().getString(s + ".nrAnd");
+//
+//				boolean eval = true;
+//
+//				for (int j = 0; j < Integer.parseInt(nrAnd); j++) {
+//
+//					String s11 = s + ".And(";
+//					s11 += Integer.toString(j);
+//					s11 += ")";
+//
+//					String operation = VmXmlHandler.getInstance()
+//							.getDeltaSelectionMapping()
+//							.getString(s11 + ".operation");
+//					String value = VmXmlHandler.getInstance()
+//							.getDeltaSelectionMapping()
+//							.getString(s11 + ".value");
+//					String type = VmXmlHandler.getInstance()
+//							.getDeltaSelectionMapping()
+//							.getString(s11 + ".type");
+//
+//					String selColName = VmXmlHandler.getInstance()
+//							.getDeltaSelectionMapping()
+//							.getString(s11 + ".selectionCol");
+//
+//					eval&= Utils.evaluateCondition(stream.getDeltaDeletedRow(), operation, value, type, selColName+"_new");
+//
+//				}
+//
+//				if (eval){
+//					vm.deleteRowSelection(
+//							(String) json.get("keyspace"), selecTable,
+//							baseTablePrimaryKey, json);
+//				}
+//			}
+//
+//		}
 
 		// ==========================================================================================================================
 		// 4. reverse joins
@@ -1639,7 +1639,12 @@ public class ViewManagerController {
 
 	public boolean propagateDeleteRJ(JSONObject rjjson) {
 
-		JSONObject data = (JSONObject) rjjson.get("data");
+		String type = rjjson.get("type").toString();
+		JSONObject data;
+		if(type.equalsIgnoreCase("insert"))
+		 data = (JSONObject) rjjson.get("data");
+		else
+			data = (JSONObject) rjjson.get("set_data");
 
 		String bufferString = data.get("stream").toString();
 

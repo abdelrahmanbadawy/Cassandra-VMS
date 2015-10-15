@@ -73,6 +73,27 @@ public class CommitLogReader {
 							else
 								vmc.propagateRJ(json);
 						}
+						
+						if (type.equalsIgnoreCase("update")){
+							
+
+							JSONObject data = (JSONObject) json.get("set_data");
+							System.out.println("     ss          "+data);
+							System.out.println(data.get("stream"));
+
+							
+							
+							String bufferString = data.get("stream").toString();
+
+							
+							
+							Stream s = Serialize.deserializeStream(bufferString);
+
+							if(s.isDeleteOperation())
+								vmc.propagateDeleteRJ(json);
+							else
+								vmc.propagateRJ(json);
+						}
 
 					} else {
 
