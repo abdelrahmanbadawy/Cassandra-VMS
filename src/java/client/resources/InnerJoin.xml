@@ -6,7 +6,7 @@
 		<tableDefinition>
 			<baseTable>RJ_courses_student_faculty_faculty</baseTable>
 
-			<columnNumber>7</columnNumber>
+			<columnNumber>8</columnNumber>
 			<keyspace>test</keyspace>
 			<name>inner_join_courses_student_faculty_faculty</name>
 			
@@ -50,6 +50,10 @@
 			<column>
 				<type>text</type>
 				<name>student_name</name>
+			</column>
+			<column>
+				<type>map&lt;text,text&gt;</type>
+				<name>signature</name>
 			</column>
 			
 			

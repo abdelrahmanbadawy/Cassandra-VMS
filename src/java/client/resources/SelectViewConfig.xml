@@ -9,7 +9,7 @@
 			<condition>ects>3,ects=1</condition>
 			<name>selection_courses_cond1</name>
 
-			<columnNumber>3</columnNumber>
+			<columnNumber>4</columnNumber>
 			<primaryKey>
 				<type>int</type>
 				<name>id</name>
@@ -28,6 +28,11 @@
 				<family>colfam3</family>
 				<type>text</type>
 				<name>faculty</name>
+			</column>
+			<column>
+				<family>colfam3</family>
+				<type>map&lt;text,text&gt;</type>
+				<name>signature</name>
 			</column>
 
 		</tableDefinition>
@@ -38,7 +43,7 @@
 			<condition>faculty=Informatics</condition>
 			<name>selection_courses_cond3</name>
 
-			<columnNumber>3</columnNumber>
+			<columnNumber>4</columnNumber>
 			<primaryKey>
 				<type>int</type>
 				<name>id</name>
@@ -57,6 +62,11 @@
 				<family>colfam3</family>
 				<type>text</type>
 				<name>faculty</name>
+			</column>
+			<column>
+				<family>colfam3</family>
+				<type>map&lt;text,text&gt;</type>
+				<name>signature</name>
 			</column>
 
 		</tableDefinition>
@@ -67,7 +77,7 @@
 			<condition>ects=4</condition>
 			<name>selection_courses_cond2</name>
 
-			<columnNumber>3</columnNumber>
+			<columnNumber>4</columnNumber>
 			<primaryKey>
 				<type>int</type>
 				<name>id</name>
@@ -86,6 +96,11 @@
 				<family>colfam3</family>
 				<type>text</type>
 				<name>faculty</name>
+			</column>
+			<column>
+				<family>colfam3</family>
+				<type>map&lt;text,text&gt;</type>
+				<name>signature</name>
 			</column>
 
 		</tableDefinition>
