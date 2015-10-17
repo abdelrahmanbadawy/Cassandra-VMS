@@ -872,8 +872,13 @@ public class ViewManagerController implements Runnable {
 
 	public boolean propagateRJ(JSONObject rjjson) {
 
-		JSONObject data = (JSONObject) rjjson.get("data");
-
+		String type = rjjson.get("type").toString();
+		JSONObject data;
+		if(type.equalsIgnoreCase("insert"))
+		 data = (JSONObject) rjjson.get("data");
+		else
+			data = (JSONObject) rjjson.get("set_data");
+		
 		String bufferString = data.get("stream").toString();
 
 		stream = Serialize.deserializeStream(bufferString);
@@ -1293,7 +1298,12 @@ public class ViewManagerController implements Runnable {
 
 	public boolean propagateDeleteRJ(JSONObject rjjson) {
 
-		JSONObject data = (JSONObject) rjjson.get("data");
+		String type = rjjson.get("type").toString();
+		JSONObject data;
+		if(type.equalsIgnoreCase("insert"))
+		 data = (JSONObject) rjjson.get("data");
+		else
+			data = (JSONObject) rjjson.get("set_data");
 
 		String bufferString = data.get("stream").toString();
 

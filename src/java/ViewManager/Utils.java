@@ -46,6 +46,28 @@ public class Utils {
 
 		return true;
 	}
+	
+	public static boolean deleteEntireRowWithPK(String keyspace, String tableName,
+			String pk, String pkValue, int counter) {
+
+		StringBuilder deleteQuery = new StringBuilder("delete from ");
+		deleteQuery.append(keyspace).append(".").append(tableName)
+		.append(" WHERE ").append(pk + " = ").append(pkValue)
+		.append(" IF counter = ").append(counter).append(";");
+
+		System.out.println(deleteQuery.toString());
+		try {
+
+			Session session = currentCluster.connect();
+			session.execute(deleteQuery.toString());
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+
+		return true;
+	}
 
 	public static Row selectAllStatement(String keyspace,String table,String pk,String pkValue ){
 
