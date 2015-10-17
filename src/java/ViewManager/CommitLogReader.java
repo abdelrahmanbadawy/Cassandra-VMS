@@ -42,103 +42,11 @@ public class CommitLogReader {
 
 	}
 
-	/*public void read() {
-
-		Client.connectToCluster("192.168.56.101");
-
-		String raw;
-		try {
-			raw = br.readLine();
-
-			while (raw != null) {
-				String[] splitRaw = raw.split(" - ");
-				String jsonString = splitRaw[1];
-
-				JSONObject json = (JSONObject) new JSONParser()
-				.parse(jsonString);
-
-				String type = json.get("type").toString();
-				String table = json.get("table").toString();
-
-				if (table.contains("groupby")) {
-					if (type.equalsIgnoreCase("insert")||type.equalsIgnoreCase("update")){
-						vmc.decideGroupBy(json,table);
-					}
-				}else if (table.contains("preagg_agg")) {
-					if (type.equalsIgnoreCase("insert")||type.equalsIgnoreCase("update")){
-						vmc.decidePreagg(json,table);
-					}
-				} else {
-
-					if (table.contains("RJ_")) {
-						if (type.equalsIgnoreCase("insert")){
-
-							JSONObject data = (JSONObject) json.get("data");
-
-							String bufferString = data.get("stream").toString();
-
-							Stream s = Serialize.deserializeStream(bufferString);
-
-							if(s.isDeleteOperation())
-								vmc.propagateDeleteRJ(json);
-							else
-								vmc.propagateRJ(json);
-						}
-						
-						if (type.equalsIgnoreCase("update")){
-							
-
-							JSONObject data = (JSONObject) json.get("set_data");
-							
-							String bufferString = data.get("stream").toString();
-
-							
-							
-							Stream s = Serialize.deserializeStream(bufferString);
-
-							if(s.isDeleteOperation())
-								vmc.propagateDeleteRJ(json);
-							else
-								vmc.propagateRJ(json);
-						}
-
-					} else {
-
-						if (type.equals("insert")) {
-							vmc.update(json);
-						}
-
-						if (type.equals("update")) {
-							vmc.update(json);
-						}
-
-						if (type.equals("delete-row")) {
-							vmc.cascadeDelete(json, true);
-						}
-					}
-				}
-
-				raw = br.readLine();
-			}
-
-			Client.getClusterInstance().close();
-
-		} catch (IOException e) {
-			e.printStackTrace();
-
-		} catch (ParseException e) {
-			e.printStackTrace();
-		}
-
-	}*/
 
 	public static void main(String[] args) {
 
 		CommitLogReader cmr = new CommitLogReader();
-		
-
-		//======================================================
-
+	
 		// monitor a single file
 		TimerTask task = new FileWatcher(new File(fileName)) {
 			protected void onChange(File file) {
