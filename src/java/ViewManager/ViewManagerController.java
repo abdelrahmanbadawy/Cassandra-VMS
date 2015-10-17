@@ -1,32 +1,21 @@
 package ViewManager;
 
-import java.math.BigInteger;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
-import org.apache.cassandra.cql3.UpdateParameters;
-import org.apache.cassandra.db.marshal.ColumnToCollectionType;
-import org.apache.commons.codec.DecoderException;
-import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.XMLConfiguration;
+import org.eclipse.jdt.core.dom.ThisExpression;
 import org.json.simple.JSONObject;
 
-import client.client.XmlHandler;
-
 import com.datastax.driver.core.Cluster;
-import com.datastax.driver.core.ColumnDefinitions;
-import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
-import com.datastax.driver.core.Session;
-import com.datastax.driver.core.policies.DCAwareRoundRobinPolicy;
-import com.datastax.driver.core.policies.DefaultRetryPolicy;
-import com.datastax.driver.core.policies.TokenAwarePolicy;
-import com.datastax.driver.core.utils.Bytes;
 
-public class ViewManagerController {
+
+public class ViewManagerController implements Runnable {
 
 	Cluster currentCluster = null;
 	ViewManager vm = null;
@@ -37,7 +26,6 @@ public class ViewManagerController {
 	List<String> reverseTablesNames_Join;
 	List<String> reverseTablesNames_AggJoin;
 	List<String> reverseTablesNames_AggJoinGroupBy;
-	List<String> preaggTableNames;
 	List<String> preaggJoinTableNames;
 	List<String> rj_joinTables;
 	List<String> rj_joinKeys;
@@ -46,17 +34,19 @@ public class ViewManagerController {
 	int rjoins;
 	List<String> pkType;
 	Stream stream = null;
-	List<String> havingJoinGroupBy;
+	TaskDistributor td;
 
-	public ViewManagerController() {
 
-		connectToCluster();
+	public ViewManagerController(ViewManager vm,Cluster cluster, TaskDistributor td) {	
+		
+		System.out.println("I'm up");
 		retrieveLoadXmlHandlers();
 		parseXmlMapping();
 		stream = new Stream();
-
-		vm = new ViewManager(currentCluster);
-
+		this.vm = vm;
+		currentCluster = cluster;
+		this.td = td; 
+		
 	}
 
 	private void retrieveLoadXmlHandlers() {
@@ -103,30 +93,14 @@ public class ViewManagerController {
 		rjoins = VmXmlHandler.getInstance().getDeltaReverseJoinMapping()
 				.getInt("mapping.nrUnit");
 
-		preaggTableNames = VmXmlHandler.getInstance().getHavingPreAggMapping()
-				.getList("mapping.unit.preaggTable");
-
 		preaggJoinTableNames = VmXmlHandler.getInstance()
 				.getHavingJoinAggMapping().getList("mapping.unit.preaggTable");
 
-		havingJoinGroupBy =  VmXmlHandler.getInstance().getRJAggJoinGroupByHavingMapping()
-				.getList("mapping.unit.name");
+		/*havingJoinGroupBy =  VmXmlHandler.getInstance().getRJAggJoinGroupByHavingMapping()
+				.getList("mapping.unit.name");*/
 
 	}
 
-	private void connectToCluster() {
-
-		currentCluster = Cluster
-				.builder()
-				.addContactPoint(
-						XmlHandler.getInstance().getClusterConfig()
-						.getString("config.host.localhost"))
-						.withRetryPolicy(DefaultRetryPolicy.INSTANCE)
-						.withLoadBalancingPolicy(
-								new TokenAwarePolicy(new DCAwareRoundRobinPolicy()))
-								.build();
-
-	}
 
 	public void update(JSONObject json) {
 
@@ -896,89 +870,6 @@ public class ViewManagerController {
 	}
 
 
-	public void propagatePreaggUpdate(JSONObject json, String table) {
-
-		String preaggTable = table;
-
-		// 2.1 update preaggregations with having clause
-		// check if preagg has some having clauses or not
-		int position1 = preaggTableNames.indexOf(preaggTable);
-
-		if (position1 != -1) {
-
-			String temp4 = "mapping.unit(";
-			temp4 += Integer.toString(position1);
-			temp4 += ")";
-
-			int nrConditions = VmXmlHandler.getInstance()
-					.getHavingPreAggMapping().getInt(temp4 + ".nrCond");
-
-			for (int m = 0; m < nrConditions; m++) {
-
-				String s1 = temp4 + ".Cond(" + Integer.toString(m)
-						+ ")";
-				String havingTable = VmXmlHandler.getInstance()
-						.getHavingPreAggMapping()
-						.getString(s1 + ".name");
-
-				String nrAnd = VmXmlHandler.getInstance()
-						.getHavingPreAggMapping()
-						.getString(s1 + ".nrAnd");
-
-				boolean eval1 = true;
-				CustomizedRow PreagRow = stream.getUpdatedPreaggRow();
-
-				if(PreagRow!=null){
-
-					for (int n = 0; n < Integer.parseInt(nrAnd); n++) {
-
-						String s11 = s1 + ".And(";
-						s11 += Integer.toString(n);
-						s11 += ")";
-
-						String aggFct = VmXmlHandler.getInstance()
-								.getHavingPreAggMapping()
-								.getString(s11 + ".aggFct");
-						String operation = VmXmlHandler.getInstance()
-								.getHavingPreAggMapping()
-								.getString(s11 + ".operation");
-						String value = VmXmlHandler.getInstance()
-								.getHavingPreAggMapping()
-								.getString(s11 + ".value");
-
-
-
-						eval1&= Utils.evalueJoinAggConditions(PreagRow, aggFct, operation, value);
-					}
-
-					// if matching now & not matching before
-					// if condition matching now & matched before
-					if (eval1) {
-						vm.updateHaving(stream.getDeltaUpdatedRow(),
-								json,havingTable, PreagRow);
-						// if not matching now
-					} else if (!eval1) {
-						vm.deleteRowHaving((String) json.get("keyspace"),
-								havingTable, PreagRow);
-						// if not matching now & not before, ignore
-					}
-				}
-
-				CustomizedRow deletedRow = stream.getUpdatedPreaggRowDeleted();
-				if (deletedRow != null) {
-					vm.deleteRowHaving((String) json.get("keyspace"),
-							havingTable, deletedRow);
-				}
-			}
-		} else {
-			System.out
-			.println("No Having table for this joinpreaggregation Table "
-					+ preaggTable + " available");
-		}
-
-
-	}
-
 	public boolean propagateRJ(JSONObject rjjson) {
 
 		JSONObject data = (JSONObject) rjjson.get("data");
@@ -1396,246 +1287,9 @@ public class ViewManagerController {
 		//===============================================
 
 
-
-
-
 		return true;
 	}
 
-	public void decidePreagg(JSONObject json, String table) {
-
-		JSONObject data = (JSONObject) json.get("data");
-		if(data==null)
-			data = (JSONObject) json.get("set_data");
-
-		String bufferString = null;
-		Object buffer = data.get("stream");
-		if(buffer==null)
-			bufferString = data.get("stream ").toString();
-		else
-			bufferString = buffer.toString();
-
-
-		stream = Serialize.deserializeStream(bufferString);
-		JSONObject deltaJSON = stream.getDeltaJSON();
-
-		if(!stream.isDeleteOperation()){
-			propagatePreaggUpdate(deltaJSON,table);
-		}else{
-			propagatePreaggDelete(deltaJSON,table);
-		}
-	}
-
-	private void propagatePreaggDelete(JSONObject json, String table) {
-
-		// update the corresponding preagg wih having clause
-
-		String preaggTable = table;
-		int position = preaggTableNames.indexOf(preaggTable);
-
-		if (position != -1) {
-
-			String temp4 = "mapping.unit(";
-			temp4 += Integer.toString(position);
-			temp4 += ")";
-
-			int nrConditions = VmXmlHandler.getInstance()
-					.getHavingPreAggMapping().getInt(temp4 + ".nrCond");
-
-			for (int r = 0; r < nrConditions; r++) {
-
-				String s1 = temp4 + ".Cond(" + Integer.toString(r)
-						+ ")";
-				String havingTable = VmXmlHandler.getInstance()
-						.getHavingPreAggMapping()
-						.getString(s1 + ".name");
-
-				String nrAnd = VmXmlHandler.getInstance()
-						.getHavingPreAggMapping()
-						.getString(s1 + ".nrAnd");
-
-				boolean eval1 = true;
-
-				if(stream.getUpdatedPreaggRow()!=null){
-
-					for (int j = 0; j < Integer.parseInt(nrAnd); j++) {
-
-						String s11 = s1 + ".And(";
-						s11 += Integer.toString(j);
-						s11 += ")";
-
-						String aggFct = VmXmlHandler.getInstance()
-								.getHavingPreAggMapping()
-								.getString(s11 + ".aggFct");
-						String operation = VmXmlHandler.getInstance()
-								.getHavingPreAggMapping()
-								.getString(s11 + ".operation");
-						String value = VmXmlHandler.getInstance()
-								.getHavingPreAggMapping()
-								.getString(s11 + ".value");
-
-
-						eval1&= Utils.evalueJoinAggConditions(stream.getUpdatedPreaggRow(), aggFct, operation, value);
-
-					}
-
-					if (eval1) {
-						vm.updateHaving(stream.getDeltaDeletedRow(),
-								json,havingTable, stream.getUpdatedPreaggRow());
-					} else {
-						vm.deleteRowHaving((String) json.get("keyspace"),
-								havingTable, stream.getUpdatedPreaggRow());
-					}
-				}
-
-				CustomizedRow DeletedPreagRow = stream.getUpdatedPreaggRowDeleted();
-
-				if (DeletedPreagRow != null) {
-					vm.deleteRowHaving((String) json.get("keyspace"),
-							havingTable, DeletedPreagRow);
-				}
-			}
-		}
-
-	}
-
-	public void decideGroupBy(JSONObject json, String table) {
-
-		JSONObject data = (JSONObject) json.get("data");
-		if(data==null)
-			data = (JSONObject) json.get("set_data");
-
-		String bufferString = null;
-		Object buffer = data.get("stream");
-		if(buffer==null)
-			bufferString = data.get("stream ").toString();
-		else
-			bufferString = buffer.toString();
-
-
-		stream = Serialize.deserializeStream(bufferString);
-		JSONObject deltaJSON = stream.getDeltaJSON();
-
-		if(!stream.isDeleteOperation()){
-			propagateGroupByUpdate(deltaJSON,table);
-		}else{
-			propagateGroupByDelete(deltaJSON,table);
-		}
-
-	}
-
-	private void propagateGroupByDelete(JSONObject json, String table) {
-
-		String groupByTable = table;
-
-		int position = havingJoinGroupBy.indexOf(groupByTable);
-
-		if(position!=-1){
-
-			String temp = "mapping.unit("+position+").";
-			Integer nrHaving =  VmXmlHandler.getInstance()
-					.getRJAggJoinGroupByHavingMapping().getInt(temp + "nrHaving");
-
-			if(nrHaving!=0){
-
-				List<String> havingTableName =  VmXmlHandler.getInstance()
-						.getRJAggJoinGroupByHavingMapping().getList(temp +"Having.name");
-
-				List<String> aggFct =  VmXmlHandler.getInstance()
-						.getRJAggJoinGroupByHavingMapping().getList(temp + "Having.aggFct");
-
-				List<String> type =  VmXmlHandler.getInstance()
-						.getRJAggJoinGroupByHavingMapping().getList(temp +"Having.type");
-				List<String> operation =  VmXmlHandler.getInstance()
-						.getRJAggJoinGroupByHavingMapping().getList(temp + "Having.operation");
-				List<String> value =  VmXmlHandler.getInstance()
-						.getRJAggJoinGroupByHavingMapping().getList(temp + "Having.value");
-
-				for(int j=0;j<nrHaving;j++){
-
-					if(stream.getUpdatedJoinAggGroupByRowDeleted()!=null){
-						//boolean result = Utils.evalueJoinAggConditions(stream.getInnerJoinAggGroupByDeleteOldRow(), aggFct.get(j), operation.get(j), value.get(j));
-						//if(result){
-						String pkName = stream.getUpdatedJoinAggGroupByRowDeleted().getName(0);
-						String pkType = stream.getUpdatedJoinAggGroupByRowDeleted().getType(0);
-						String pkValue = Utils.getColumnValueFromDeltaStream(stream.getUpdatedJoinAggGroupByRowDeleted(), pkName, pkType, "");
-						Utils.deleteEntireRowWithPK((String)json.get("keyspace"), havingTableName.get(j), pkName,pkValue);
-						//}
-					}
-
-					if(stream.getUpdatedJoinAggGroupByRow()!=null){
-						boolean result = Utils.evalueJoinAggConditions(stream.getUpdatedJoinAggGroupByRow(), aggFct.get(j), operation.get(j), value.get(j));
-						if(result){
-							JoinAggGroupByHelper.insertStatement(json, havingTableName.get(j), stream.getUpdatedJoinAggGroupByRow());
-						}else{
-							String pkName = stream.getUpdatedJoinAggGroupByRow().getName(0);
-							String pkType = stream.getUpdatedJoinAggGroupByRow().getType(0);
-							String pkValue = Utils.getColumnValueFromDeltaStream(stream.getUpdatedJoinAggGroupByRow(), pkName, pkType, "");
-							Utils.deleteEntireRowWithPK((String)json.get("keyspace"), havingTableName.get(j), pkName,pkValue);
-						}
-					}
-				}
-			}
-		}
-
-
-	}
-
-	private void propagateGroupByUpdate(JSONObject json, String table) {
-
-		String groupByTable = table;
-
-		int position = havingJoinGroupBy.indexOf(groupByTable);
-
-		if(position!=-1){
-
-			String temp = "mapping.unit("+position+").";
-			Integer nrHaving =  VmXmlHandler.getInstance()
-					.getRJAggJoinGroupByHavingMapping().getInt(temp + "nrHaving");
-
-			if(nrHaving!=0){
-
-				List<String> havingTableName =  VmXmlHandler.getInstance()
-						.getRJAggJoinGroupByHavingMapping().getList(temp +"Having.name");
-
-				List<String> aggFct =  VmXmlHandler.getInstance()
-						.getRJAggJoinGroupByHavingMapping().getList(temp + "Having.aggFct");
-
-				List<String> type =  VmXmlHandler.getInstance()
-						.getRJAggJoinGroupByHavingMapping().getList(temp +"Having.type");
-				List<String> operation =  VmXmlHandler.getInstance()
-						.getRJAggJoinGroupByHavingMapping().getList(temp + "Having.operation");
-				List<String> value =  VmXmlHandler.getInstance()
-						.getRJAggJoinGroupByHavingMapping().getList(temp + "Having.value");
-
-				for(int j=0;j<nrHaving;j++){
-
-					if(stream.getUpdatedJoinAggGroupByRowDeleted()!=null){
-						//boolean result = Utils.evalueJoinAggConditions(stream.getInnerJoinAggGroupByDeleteOldRow(), aggFct.get(j), operation.get(j), value.get(j));
-						//if(result){
-						String pkName = stream.getUpdatedJoinAggGroupByRowDeleted().getName(0);
-						String pkType = stream.getUpdatedJoinAggGroupByRowDeleted().getType(0);
-						String pkValue = Utils.getColumnValueFromDeltaStream(stream.getUpdatedJoinAggGroupByRowDeleted(), pkName, pkType, "");
-						Utils.deleteEntireRowWithPK((String)json.get("keyspace"), havingTableName.get(j), pkName,pkValue);
-						//}
-					}
-
-					if(stream.getUpdatedJoinAggGroupByRow()!=null){
-						boolean result = Utils.evalueJoinAggConditions(stream.getUpdatedJoinAggGroupByRow(), aggFct.get(j), operation.get(j), value.get(j));
-						if(result){
-							JoinAggGroupByHelper.insertStatement(json, havingTableName.get(j), stream.getUpdatedJoinAggGroupByRow());
-						}else{
-							String pkName = stream.getUpdatedJoinAggGroupByRow().getName(0);
-							String pkType = stream.getUpdatedJoinAggGroupByRow().getType(0);
-							String pkValue = Utils.getColumnValueFromDeltaStream(stream.getUpdatedJoinAggGroupByRow(), pkName, pkType, "");
-							Utils.deleteEntireRowWithPK((String)json.get("keyspace"), havingTableName.get(j), pkName,pkValue);
-						}
-					}
-				}
-			}
-		}
-
-	}
 
 	public boolean propagateDeleteRJ(JSONObject rjjson) {
 
@@ -2075,6 +1729,43 @@ public class ViewManagerController {
 
 
 		return true;
+	}
+
+	@Override
+	public void run() {
+
+		while(true){
+
+		
+			while(!td.delta.isEmpty()){
+				JSONObject head = td.delta.remove();
+				decide(head);
+			}
+			
+			try {
+		        Thread.sleep(3000);
+		    } catch (InterruptedException e) {
+		        // We've been interrupted: no more messages.
+		        return;
+		    }
+		}
+
+
+	}
+
+	private void decide(JSONObject json) {
+		String type = json.get("type").toString();
+		if (type.equals("insert")) {
+			update(json);
+		}
+
+		if (type.equals("update")) {
+			update(json);
+		}
+
+		if (type.equals("delete-row")) {
+			cascadeDelete(json, true);
+		}
 	}
 
 
