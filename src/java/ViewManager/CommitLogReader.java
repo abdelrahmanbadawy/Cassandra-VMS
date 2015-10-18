@@ -89,7 +89,7 @@ public class CommitLogReader {
 				String table = json.get("table").toString();
 
 				System.out.println(table);
-				td.processRequest(json,type,table);
+				td.processRequest(json,type,table, readPtr);
 				System.out.println("back");
 
 				if(counter<10){

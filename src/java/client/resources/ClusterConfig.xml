@@ -2,7 +2,7 @@
 <setup>
 	<config>
 		<host>
-			<localhost>127.0.0.1</localhost>
+			<localhost>192.168.56.101</localhost>
 		</host>
 		<numberNodes>
 			<value>1</value>

@@ -33,7 +33,7 @@ public class TaskDistributor {
 	public TaskDistributor(){
 
 		connectToCluster();
-		vm = new ViewManager(getCurrentCluster());
+		vm = new ViewManager(getCurrentCluster(), "vm1");
 
 		rJ = new LinkedList<JSONObject>();
 		preAgg = new LinkedList<JSONObject>();
@@ -77,7 +77,9 @@ public class TaskDistributor {
 		}
 	}
 
-	public void processRequest(JSONObject json,String type,String table){
+	public void processRequest(JSONObject json,String type,String table, long readPtr){
+		
+		json.put("readPtr", readPtr);
 
 		if (table.contains("groupby")) {
 			if (type.equalsIgnoreCase("insert")||type.equalsIgnoreCase("update")){

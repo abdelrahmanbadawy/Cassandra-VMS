@@ -1,6 +1,9 @@
 package ViewManager;
 
 import java.math.BigInteger;
+import java.util.HashMap;
+
+import org.json.simple.JSONObject;
 
 import client.client.XmlHandler;
 
@@ -445,5 +448,32 @@ public class Utils {
 		}
 
 		return eval;
+	}
+	
+	public static boolean updateSignature(String rowKey, String keyValue,
+			String table, JSONObject json, String mapKey, String value){
+
+		StringBuilder updateQuery = new StringBuilder("UPDATE ");
+		updateQuery.append((String) json.get("keyspace"))
+		.append(".").append(table).append(" SET signature['").append(mapKey).append("']='").append(value)
+		.append("' WHERE ").append(rowKey).append(" = ").append(keyValue)
+		.append(";");
+
+
+		System.out.println(updateQuery);
+
+		
+		try {
+
+			Session session = currentCluster.connect();
+			session.execute(updateQuery.toString()).one();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+
+		return true;
+
 	}
 }
