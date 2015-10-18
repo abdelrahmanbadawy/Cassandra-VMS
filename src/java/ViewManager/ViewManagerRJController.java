@@ -127,7 +127,7 @@ public class ViewManagerRJController implements Runnable{
 				if(stream.getLeftOrRightJoinAggUpdatedOldRow()!=null){
 					boolean result = Utils.evalueJoinAggConditions(stream.getLeftOrRightJoinAggUpdatedOldRow(), aggFct.get(j), operation.get(j), value.get(j));
 					if(result){
-						JoinAggregationHelper.insertStatement(json, havingTableName.get(j), stream.getLeftOrRightJoinAggUpdatedOldRow());
+						JoinAggregationHelper.insertStatement(json, havingTableName.get(j), stream.getLeftOrRightJoinAggUpdatedOldRow(), vm.getIdentifier());
 
 					}else{
 						String pkName = stream.getLeftOrRightJoinAggUpdatedOldRow().getName(0);
@@ -140,7 +140,7 @@ public class ViewManagerRJController implements Runnable{
 				if(stream.getLeftOrRightJoinAggNewRow()!=null){
 					boolean result = Utils.evalueJoinAggConditions(stream.getLeftOrRightJoinAggNewRow(), aggFct.get(j), operation.get(j), value.get(j));
 					if(result){
-						JoinAggregationHelper.insertStatement(json, havingTableName.get(j), stream.getLeftOrRightJoinAggNewRow());
+						JoinAggregationHelper.insertStatement(json, havingTableName.get(j), stream.getLeftOrRightJoinAggNewRow(), vm.getIdentifier());
 					}else{
 						String pkName = stream.getLeftOrRightJoinAggNewRow().getName(0);
 						String pkType = stream.getLeftOrRightJoinAggNewRow().getType(0);
@@ -195,7 +195,7 @@ public class ViewManagerRJController implements Runnable{
 				if(stream.getInnerJoinAggUpdatedOldRow()!=null){
 					boolean result = Utils.evalueJoinAggConditions(stream.getInnerJoinAggUpdatedOldRow(), aggFct.get(j), operation.get(j), value.get(j));
 					if(result){
-						JoinAggregationHelper.insertStatement(json, innerHaving.get(j), stream.getInnerJoinAggUpdatedOldRow());
+						JoinAggregationHelper.insertStatement(json, innerHaving.get(j), stream.getInnerJoinAggUpdatedOldRow(), vm.getIdentifier());
 					}else{
 						String pkName = stream.getInnerJoinAggUpdatedOldRow().getName(0);
 						String pkType = stream.getInnerJoinAggUpdatedOldRow().getType(0);
@@ -207,7 +207,7 @@ public class ViewManagerRJController implements Runnable{
 				if(stream.getInnerJoinAggNewRow()!=null){
 					boolean result = Utils.evalueJoinAggConditions(stream.getInnerJoinAggNewRow(), aggFct.get(j), operation.get(j), value.get(j));
 					if(result){
-						JoinAggregationHelper.insertStatement(json, innerHaving.get(j), stream.getInnerJoinAggNewRow());
+						JoinAggregationHelper.insertStatement(json, innerHaving.get(j), stream.getInnerJoinAggNewRow(), vm.getIdentifier());
 					}else{
 						String pkName = stream.getInnerJoinAggNewRow().getName(0);
 						String pkType = stream.getInnerJoinAggNewRow().getType(0);

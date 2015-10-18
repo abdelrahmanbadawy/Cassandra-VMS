@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 
 import org.apache.cassandra.cli.CliParser.newColumnFamily_return;
@@ -35,9 +36,11 @@ public class ViewManager {
 
 	Cluster currentCluster = null;
 	private String reverseJoinTableName;
+	private String identifier;
 
-	public ViewManager(Cluster currenCluster) {
+	public ViewManager(Cluster currenCluster, String identifier) {
 		this.currentCluster = currenCluster;
+		this.identifier = identifier;
 	}
 
 	public boolean updateDelta(Stream stream, JSONObject json,
@@ -1919,7 +1922,7 @@ public class ViewManager {
 								Float.valueOf(sum), count,
 								Float.valueOf(avg), Float.valueOf(min),
 								Float.valueOf(max), joinKeyName,
-								joinKeyValue, leftJoinAggTable, json);
+								joinKeyValue, leftJoinAggTable, json, identifier);
 						CustomizedRow crow = new CustomizedRow(
 								JoinAggregationHelper.selectStatement(
 										joinKeyName, joinKeyValue,
@@ -1939,10 +1942,10 @@ public class ViewManager {
 												joinKeyName, joinKeyValue,
 												leftJoinAggTable, aggColName,
 												aggColValue, oldAggColValue,
-												oldRJRow))
+												oldRJRow, identifier))
 									;
 							else
-								while(!JoinAggregationHelper.updateNewRowByAddingNewElement(stream, joinKeyName, joinKeyValue, json, leftJoinAggTable, aggColValue));
+								while(!JoinAggregationHelper.updateNewRowByAddingNewElement(stream, joinKeyName, joinKeyValue, json, leftJoinAggTable, aggColValue, identifier));
 
 						}
 					}
@@ -1971,7 +1974,7 @@ public class ViewManager {
 									Float.valueOf(sum), count,
 									Float.valueOf(avg), Float.valueOf(min),
 									Float.valueOf(max), joinKeyName,
-									joinKeyValue, leftJoinAggTable, json);
+									joinKeyValue, leftJoinAggTable, json, identifier);
 							CustomizedRow crow = new CustomizedRow(
 									JoinAggregationHelper.selectStatement(
 											joinKeyName, joinKeyValue,
@@ -1984,7 +1987,7 @@ public class ViewManager {
 									Float.valueOf(sum), count,
 									Float.valueOf(avg), Float.valueOf(min),
 									Float.valueOf(max), joinKeyName,
-									joinKeyValue, innerJoinAggTable, json);
+									joinKeyValue, innerJoinAggTable, json, identifier);
 							CustomizedRow crow = new CustomizedRow(
 									JoinAggregationHelper.selectStatement(
 											joinKeyName, joinKeyValue,
@@ -2005,10 +2008,10 @@ public class ViewManager {
 												joinKeyName, joinKeyValue,
 												leftJoinAggTable, aggColName,
 												aggColValue, oldAggColValue,
-												oldRJRow))
+												oldRJRow, identifier))
 									;
 							else
-								while(!JoinAggregationHelper.updateNewRowByAddingNewElement(stream, joinKeyName, joinKeyValue, json, leftJoinAggTable, aggColValue));
+								while(!JoinAggregationHelper.updateNewRowByAddingNewElement(stream, joinKeyName, joinKeyValue, json, leftJoinAggTable, aggColValue, identifier));
 
 
 						}
@@ -2022,11 +2025,11 @@ public class ViewManager {
 												joinKeyName, joinKeyValue,
 												innerJoinAggTable, aggColName,
 												aggColValue, oldAggColValue,
-												oldRJRow))
+												oldRJRow, identifier))
 									;
 
 							else
-								while(!JoinAggregationHelper.updateNewRowByAddingNewElement(stream, joinKeyName, joinKeyValue, json, innerJoinAggTable, aggColValue));
+								while(!JoinAggregationHelper.updateNewRowByAddingNewElement(stream, joinKeyName, joinKeyValue, json, innerJoinAggTable, aggColValue, identifier));
 
 						}
 
@@ -2058,7 +2061,7 @@ public class ViewManager {
 										stream.getDeltaUpdatedRow(), json,
 										leftJoinAggTable, joinKeyName,
 										joinKeyValue, aggColName,
-										oldAggColValue, newRJRow))
+										oldAggColValue, newRJRow, identifier))
 							;
 					}
 				}
@@ -2088,7 +2091,7 @@ public class ViewManager {
 										stream.getDeltaUpdatedRow(), json,
 										leftJoinAggTable, joinKeyName,
 										joinKeyValue, aggColName,
-										oldAggColValue, newRJRow))
+										oldAggColValue, newRJRow, identifier))
 							;
 					}
 
@@ -2099,7 +2102,7 @@ public class ViewManager {
 										stream.getDeltaUpdatedRow(), json,
 										innerJoinAggTable, joinKeyName,
 										joinKeyValue, aggColName,
-										oldAggColValue, newRJRow))
+										oldAggColValue, newRJRow, identifier))
 							;
 
 					}
@@ -2158,7 +2161,7 @@ public class ViewManager {
 								Float.valueOf(sum), count,
 								Float.valueOf(avg), Float.valueOf(min),
 								Float.valueOf(max), joinKeyName,
-								joinKeyValue, rightJoinAggTable, json);
+								joinKeyValue, rightJoinAggTable, json, identifier);
 						CustomizedRow crow = new CustomizedRow(
 								JoinAggregationHelper.selectStatement(
 										joinKeyName, joinKeyValue,
@@ -2179,10 +2182,10 @@ public class ViewManager {
 												joinKeyName, joinKeyValue,
 												rightJoinAggTable, aggColName,
 												aggColValue, oldAggColValue,
-												oldRJRow))
+												oldRJRow, identifier))
 									;
 							else
-								while(!JoinAggregationHelper.updateNewRowByAddingNewElement(stream, joinKeyName, joinKeyValue, json, rightJoinAggTable, aggColValue));
+								while(!JoinAggregationHelper.updateNewRowByAddingNewElement(stream, joinKeyName, joinKeyValue, json, rightJoinAggTable, aggColValue, identifier));
 
 						}
 					}
@@ -2211,7 +2214,7 @@ public class ViewManager {
 									Float.valueOf(sum), count,
 									Float.valueOf(avg), Float.valueOf(min),
 									Float.valueOf(max), joinKeyName,
-									joinKeyValue, rightJoinAggTable, json);
+									joinKeyValue, rightJoinAggTable, json, identifier);
 							CustomizedRow crow = new CustomizedRow(
 									JoinAggregationHelper.selectStatement(
 											joinKeyName, joinKeyValue,
@@ -2224,7 +2227,7 @@ public class ViewManager {
 									Float.valueOf(sum), count,
 									Float.valueOf(avg), Float.valueOf(min),
 									Float.valueOf(max), joinKeyName,
-									joinKeyValue, innerJoinAggTable, json);
+									joinKeyValue, innerJoinAggTable, json, identifier);
 							CustomizedRow crow = new CustomizedRow(
 									JoinAggregationHelper.selectStatement(
 											joinKeyName, joinKeyValue,
@@ -2245,10 +2248,10 @@ public class ViewManager {
 												joinKeyName, joinKeyValue,
 												rightJoinAggTable, aggColName,
 												aggColValue, oldAggColValue,
-												oldRJRow))
+												oldRJRow, identifier))
 									;
 							else
-								while(!JoinAggregationHelper.updateNewRowByAddingNewElement(stream, joinKeyName, joinKeyValue, json, rightJoinAggTable, aggColValue));
+								while(!JoinAggregationHelper.updateNewRowByAddingNewElement(stream, joinKeyName, joinKeyValue, json, rightJoinAggTable, aggColValue, identifier));
 
 
 						}
@@ -2262,11 +2265,11 @@ public class ViewManager {
 												joinKeyName, joinKeyValue,
 												innerJoinAggTable, aggColName,
 												aggColValue, oldAggColValue,
-												oldRJRow))
+												oldRJRow, identifier))
 									;
 
 							else
-								while(!JoinAggregationHelper.updateNewRowByAddingNewElement(stream, joinKeyName, joinKeyValue, json, innerJoinAggTable, aggColValue));
+								while(!JoinAggregationHelper.updateNewRowByAddingNewElement(stream, joinKeyName, joinKeyValue, json, innerJoinAggTable, aggColValue, identifier));
 
 						}
 
@@ -2295,7 +2298,7 @@ public class ViewManager {
 										stream.getDeltaUpdatedRow(), json,
 										rightJoinAggTable, joinKeyName,
 										joinKeyValue, aggColName,
-										oldAggColValue, newRJRow))
+										oldAggColValue, newRJRow, identifier))
 							;
 					}
 				}
@@ -2326,7 +2329,7 @@ public class ViewManager {
 										stream.getDeltaUpdatedRow(), json,
 										rightJoinAggTable, joinKeyName,
 										joinKeyValue, aggColName,
-										oldAggColValue, newRJRow))
+										oldAggColValue, newRJRow, identifier))
 							;
 					}
 					if(!innerJoinAggTable.equals("false")){
@@ -2336,7 +2339,7 @@ public class ViewManager {
 										stream.getDeltaUpdatedRow(), json,
 										innerJoinAggTable, joinKeyName,
 										joinKeyValue, aggColName,
-										oldAggColValue, newRJRow))
+										oldAggColValue, newRJRow, identifier))
 							;
 					}
 				}
@@ -2379,13 +2382,13 @@ public class ViewManager {
 						&& !rightJoinAggTable.equals("false")) {
 					JoinAggregationHelper.moveRowsToInnerJoinAgg(stream,
 							rightJoinAggTable, innerJoinAggTable, joinKeyName,
-							joinKeyValue, json);
+							joinKeyValue, json, identifier);
 
 				} else {
 
 					JoinAggregationHelper.addRowsToInnerJoinAgg(stream,
 							"list_item2", newRJRow, aggColIndexInList,
-							innerJoinAggTable, json, joinKeyName, joinKeyValue);
+							innerJoinAggTable, json, joinKeyName, joinKeyValue, identifier);
 				}
 			}
 		}
@@ -2433,12 +2436,12 @@ public class ViewManager {
 						&& !leftJoinAggTable.equals("false")) {
 					JoinAggregationHelper.moveRowsToInnerJoinAgg(stream,
 							leftJoinAggTable, innerJoinAggTable, joinKeyName,
-							joinKeyValue, json);
+							joinKeyValue, json, identifier);
 
 				} else {
 					JoinAggregationHelper.addRowsToInnerJoinAgg(stream,
 							"list_item1", newRJRow, aggColIndexInList,
-							innerJoinAggTable, json, joinKeyName, joinKeyValue);
+							innerJoinAggTable, json, joinKeyName, joinKeyValue, identifier);
 				}
 			}
 		}
@@ -2912,7 +2915,7 @@ public class ViewManager {
 					while (!JoinAggregationHelper.UpdateOldRowBySubtracting(
 							stream, "list_item1", stream.getDeltaDeletedRow(),
 							json, leftJoinAggTable, joinKeyName, joinKeyValue,
-							aggColName, aggColValue, newRJRow))
+							aggColName, aggColValue, newRJRow, identifier))
 						;
 					// JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item1",
 					// stream.getDeltaDeletedRow(), json, leftJoinAggTable,
@@ -2963,7 +2966,7 @@ public class ViewManager {
 										stream.getDeltaDeletedRow(), json,
 										leftJoinAggTable, joinKeyName,
 										joinKeyValue, aggColName, aggColValue,
-										newRJRow))
+										newRJRow, identifier))
 							;
 						// JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item1",
 						// stream.getDeltaDeletedRow(), json, leftJoinAggTable,
@@ -2978,7 +2981,7 @@ public class ViewManager {
 										stream.getDeltaDeletedRow(), json,
 										innerJoinAggTable, joinKeyName,
 										joinKeyValue, aggColName, aggColValue,
-										newRJRow))
+										newRJRow, identifier))
 							;
 						// JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item1",
 						// stream.getDeltaDeletedRow(), json, innerJoinAggTable,
@@ -3051,7 +3054,7 @@ public class ViewManager {
 					while (!JoinAggregationHelper.UpdateOldRowBySubtracting(
 							stream, "list_item2", stream.getDeltaDeletedRow(),
 							json, rightJoinAggTable, joinKeyName, joinKeyValue,
-							aggColName, aggColValue, newRJRow))
+							aggColName, aggColValue, newRJRow, identifier))
 						;
 					// JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item2",
 					// stream.getDeltaDeletedRow(), json, rightJoinAggTable,
@@ -3100,7 +3103,7 @@ public class ViewManager {
 										stream.getDeltaDeletedRow(), json,
 										rightJoinAggTable, joinKeyName,
 										joinKeyValue, aggColName, aggColValue,
-										newRJRow))
+										newRJRow, identifier))
 							;
 						// JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item2",
 						// stream.getDeltaDeletedRow(), json, rightJoinAggTable,
@@ -3115,7 +3118,7 @@ public class ViewManager {
 										stream.getDeltaDeletedRow(), json,
 										innerJoinAggTable, joinKeyName,
 										joinKeyValue, aggColName, aggColValue,
-										newRJRow))
+										newRJRow, identifier))
 							;
 						// JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item2",
 						// stream.getDeltaDeletedRow(), json, innerJoinAggTable,
@@ -3456,6 +3459,13 @@ public class ViewManager {
 
 	public void setReverseJoinTableName(String reverseJoinTableName) {
 		this.reverseJoinTableName = reverseJoinTableName;
+	}
+	public String getIdentifier() {
+		return identifier;
+	}
+
+	public void setIdentifier(String identifier) {
+		this.identifier = identifier;
 	}
 
 }
