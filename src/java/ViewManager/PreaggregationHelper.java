@@ -58,7 +58,7 @@ public class PreaggregationHelper {
 		return PreAggMap;
 	}
 
-	public static boolean firstInsertion(String aggKeyType,Stream stream,ArrayList<String> colValues, float aggColValue, JSONObject json, String preaggTable, String aggKey, String aggKeyValue){
+	public static boolean firstInsertion(String aggKeyType,Stream stream,ArrayList<String> colValues, float aggColValue, JSONObject json, String preaggTable, String aggKey, String aggKeyValue, String identifier){
 
 		// 2.c.1 create a map, add pk and list with delta _new values
 		// 2.c.2 set the agg col values
@@ -87,10 +87,11 @@ public class PreaggregationHelper {
 		insertQueryAgg.append((String) json.get("keyspace"))
 		.append(".").append(preaggTable).append(" ( ")
 		.append(aggKey + ", ").append("list_item, ")
-		.append("sum, count, average, min, stream, max")
+		.append("sum, count, average, min, stream, max, signature")
 		.append(") VALUES (").append(aggKeyValue + ", ")
 		.append("?, ").append(sum+", ").append((int) count+", ").append(average+", ").append(min+", ")
-		.append(blob+", ").append(max).append(" ) IF NOT EXISTS ;");
+		.append(blob+", ").append(max).append(", {'").append(identifier).append("': '").append(json.get("readPtr").toString())
+		.append("'} ) IF NOT EXISTS ;");
 		//.append("?, ?, ?, ?, ?, ?,?) IF NOT EXISTS ;");
 
 		System.out.println(insertQueryAgg.toString());
@@ -119,7 +120,7 @@ public class PreaggregationHelper {
 
 	}
 
-	public static void insertStatementToDelete(JSONObject json,String preaggTable,String aggKey,String aggKeyValue,String blob){
+	public static void insertStatementToDelete(JSONObject json,String preaggTable,String aggKey,String aggKeyValue,String blob, String identifier){
 
 		// 3. execute the insertion
 
@@ -135,9 +136,11 @@ public class PreaggregationHelper {
 		}catch (Exception e) {
 			e.printStackTrace();
 		}
+		
+		Utils.updateSignature(aggKey, aggKeyValue, preaggTable, json, identifier, json.get("readPtr").toString());
 	}
 
-	public static void insertStatement(JSONObject json,String preaggTable,String aggKey,String aggKeyValue,Map<String, String> myMap,float sum,float count,float min,float max,float average){
+	public static void insertStatement(JSONObject json,String preaggTable,String aggKey,String aggKeyValue,Map<String, String> myMap,float sum,float count,float min,float max,float average, String identifier){
 
 		// 3. execute the insertion
 		StringBuilder insertQueryAgg = new StringBuilder("INSERT INTO ");
@@ -162,16 +165,18 @@ public class PreaggregationHelper {
 		}catch (Exception e) {
 			e.printStackTrace();
 		}
+		Utils.updateSignature(aggKey, aggKeyValue, preaggTable, json, identifier, json.get("readPtr").toString());
 	}
 
 	public static boolean updateStatement(Float sum, int count, Float avg, Float min, Float max, Map<String, String> myMap, String key, String keyValue,
-			String preaggTable, JSONObject json, ByteBuffer blob_old,String blob_new){
+			String preaggTable, JSONObject json, ByteBuffer blob_old,String blob_new, String identifier){
 
 		StringBuilder updateQuery = new StringBuilder("UPDATE ");
 		updateQuery.append((String) json.get("keyspace"))
 		.append(".").append(preaggTable).append(" SET list_item = ?, sum = ").append(sum)
 		.append(", count = ").append(count).append(", average = ").append(avg).append(", min = ")
-		.append(min).append(", max = ").append(max).append(", stream = ").append(blob_new).append(" WHERE ").append(key).append(" = ").append(keyValue)
+		.append(min).append(", max = ").append(max).append(", stream = ").append(blob_new).append(", signature['").append(identifier).append("']= '")
+		.append(json.get("readPtr")).append("' WHERE ").append(key).append(" = ").append(keyValue)
 		.append(" IF stream = ?").append(";");
 
 
@@ -200,7 +205,7 @@ public class PreaggregationHelper {
 
 	}
 
-	public static boolean updateAggColValue(String aggKeyType,Stream stream, ArrayList<String> myList,float aggColValue,float aggColValue_old,Row theRow, int aggColIndexInList,JSONObject json, String preaggTable,String aggKey,String aggKeyValue, ByteBuffer buffer_old){
+	public static boolean updateAggColValue(String aggKeyType,Stream stream, ArrayList<String> myList,float aggColValue,float aggColValue_old,Row theRow, int aggColIndexInList,JSONObject json, String preaggTable,String aggKey,String aggKeyValue, ByteBuffer buffer_old, String identifier){
 
 		float sum = 0;
 		int count = 0;
@@ -263,7 +268,7 @@ public class PreaggregationHelper {
 		String buffer_new = Serialize.serializeStream2(stream);
 
 		//insertStatement(json, preaggTable, aggKey, aggKeyValue, myMap, sum, count, min, max, average);
-		if(updateStatement(sum, count, average, min, max, myMap, aggKey, aggKeyValue, preaggTable, json, buffer_old,buffer_new))
+		if(updateStatement(sum, count, average, min, max, myMap, aggKey, aggKeyValue, preaggTable, json, buffer_old,buffer_new,identifier))
 			return true;
 		else
 			return false;
@@ -271,7 +276,7 @@ public class PreaggregationHelper {
 
 	}
 
-	public static boolean subtractOldAggColValue(String aggKeyType, Stream stream,ArrayList<String> myList, float aggColValue_old,Map<String, String> myMap,Row theRow, int aggColIndexInList,JSONObject json, String preaggTable,String aggKey,String aggKeyValue,ByteBuffer blob_old){
+	public static boolean subtractOldAggColValue(String aggKeyType, Stream stream,ArrayList<String> myList, float aggColValue_old,Map<String, String> myMap,Row theRow, int aggColIndexInList,JSONObject json, String preaggTable,String aggKey,String aggKeyValue,ByteBuffer blob_old, String identifier){
 
 		String pk = myList.get(0);
 		myList.remove(0);
@@ -306,7 +311,7 @@ public class PreaggregationHelper {
 		String blob_new = Serialize.serializeStream2(stream);
 
 		//insertStatement(json, preaggTable, aggKey, aggKeyValue, myMap, sum, count, min, max, average);
-		if(updateStatement(sum, count, average, min, max, myMap, aggKey, aggKeyValue, preaggTable, json, blob_old,blob_new))
+		if(updateStatement(sum, count, average, min, max, myMap, aggKey, aggKeyValue, preaggTable, json, blob_old,blob_new, identifier))
 			return true;
 		else
 			return false;

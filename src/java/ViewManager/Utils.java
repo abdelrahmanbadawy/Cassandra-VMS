@@ -455,7 +455,7 @@ public class Utils {
 
 		StringBuilder updateQuery = new StringBuilder("UPDATE ");
 		updateQuery.append((String) json.get("keyspace"))
-		.append(".").append(table).append(" SET signature['").append(mapKey).append("']='").append(value)
+		.append(".").append(table).append(" SET signature['").append(mapKey).append("']= '").append(value)
 		.append("' WHERE ").append(rowKey).append(" = ").append(keyValue)
 		.append(";");
 

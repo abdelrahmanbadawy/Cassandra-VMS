@@ -263,7 +263,7 @@ public class ViewManager {
 				stream.setDeleteOperation(true);
 				String blob = Serialize.serializeStream2(stream);
 				PreaggregationHelper.insertStatementToDelete(json, preaggTable,
-						aggKey, aggKeyValue, blob);
+						aggKey, aggKeyValue, blob, identifier);
 
 				deleteEntireRowWithPK((String) json.get("keyspace"),
 						preaggTable, aggKey, aggKeyValue);
@@ -326,7 +326,7 @@ public class ViewManager {
 
 				while (!PreaggregationHelper.updateStatement(sum, (int) count,
 						average, min, max, myMap, aggKey, aggKeyValue,
-						preaggTable, json, blob_old, buffer_new)) {
+						preaggTable, json, blob_old, buffer_new, identifier)) {
 					Row row = PreaggregationHelper.selectStatement(json,
 							preaggTable, aggKey, aggKeyValue).one();
 					blob_old = row.getBytes("stream");
@@ -493,7 +493,7 @@ public class ViewManager {
 
 					if (PreaggregationHelper
 							.firstInsertion(aggKeyType,stream, myList, aggColValue, json,
-									preaggTable, aggKey, aggKeyValue)) {
+									preaggTable, aggKey, aggKeyValue, identifier)) {
 						loop = false;
 					} else {
 						loop = true;
@@ -509,7 +509,7 @@ public class ViewManager {
 					if (PreaggregationHelper.updateAggColValue(aggKeyType,stream, myList,
 							aggColValue, aggColValue_old, theRow1,
 							aggColIndexInList, json, preaggTable, aggKey,
-							aggKeyValue, blob_old)) {
+							aggKeyValue, blob_old, identifier)) {
 						loop = false;
 					} else {
 						loop = true;
@@ -552,7 +552,7 @@ public class ViewManager {
 					stream.setDeleteOperation(true);
 					String blob = Serialize.serializeStream2(stream);
 					PreaggregationHelper.insertStatementToDelete(json,
-							preaggTable, aggKey, aggKeyValue_old, blob);
+							preaggTable, aggKey, aggKeyValue_old, blob, identifier);
 
 					// 4. delete the whole row
 					Utils.deleteEntireRowWithPK((String) json.get("keyspace"),
@@ -581,7 +581,7 @@ public class ViewManager {
 					while (!PreaggregationHelper.subtractOldAggColValue(aggKeyType,stream,
 							myList, aggColValue_old, myMap, theRow,
 							aggColIndexInList, json, preaggTable, aggKey,
-							aggKeyValue_old, blob_old)) {
+							aggKeyValue_old, blob_old, identifier)) {
 						PreAggMap = PreaggregationHelper.selectStatement(json,
 								preaggTable, aggKey, aggKeyValue_old);
 						theRow = PreAggMap.one();
@@ -1623,7 +1623,7 @@ public class ViewManager {
 				pkType, "");
 
 		PreaggregationHelper.insertStatement(json, havingTable, pkName,
-				pkVAlue, myMap, sum, count, min, max, average);
+				pkVAlue, myMap, sum, count, min, max, average, identifier);
 
 		return true;
 	}
@@ -3448,7 +3448,7 @@ public class ViewManager {
 			}
 
 			PreaggregationHelper.insertStatement(json, havingTable, aggKey,
-					aggKeyValue, map, sum, count, min, max, average);
+					aggKeyValue, map, sum, count, min, max, average, identifier);
 
 		}
 	}

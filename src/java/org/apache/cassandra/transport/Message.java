@@ -508,7 +508,7 @@ public abstract class Message {
 					condition_values[i] = condition[1];
 				}
 
-				if ( !tableName.contains("delta") )
+				if ( !tableName.contains("delta") && !(set_data_columns.length==1 && set_data_columns[0].contains("signature")))
 					commitLogger.info(convertUpdateToJSON(queryType, keySpaceName,
 							tableName, condition_columns, condition_values,
 							set_data_columns, set_data_values, transactionId)
