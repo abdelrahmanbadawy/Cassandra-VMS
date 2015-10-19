@@ -32,7 +32,7 @@ public class JoinAggGroupByHelper {
 							.build();
 
 
-	public static void insertStatement(JSONObject json, String joinAggTable,CustomizedRow row){
+	public static void insertStatement(JSONObject json, String joinAggTable,CustomizedRow row, String identifier){
 
 		String aggKeyName = row.getName(0);
 		String aggKeyType = row.getType(0);
@@ -67,10 +67,12 @@ public class JoinAggGroupByHelper {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		
+		Utils.updateSignature(aggKeyName, aggKeyValue, joinAggTable, json, identifier, json.get("readPtr").toString());
 
 	}
 
-	public static void insertStatement(JSONObject json, String joinAggTable,CustomizedRow row, String blob){
+	public static void insertStatement(JSONObject json, String joinAggTable,CustomizedRow row, String blob, String identifier){
 
 		String aggKeyName = row.getName(0);
 		String aggKeyType = row.getType(0);
@@ -106,17 +108,18 @@ public class JoinAggGroupByHelper {
 			e.printStackTrace();
 		}
 
+		Utils.updateSignature(aggKeyName, aggKeyValue, joinAggTable, json, identifier, json.get("readPtr").toString());
 	}
 
 	public static boolean updateStatement(Float sum, int count, Float avg, Float min, Float max, List<Float> myList, String key, String keyValue,
-			String preaggTable, JSONObject json, Float oldSum, String blob){
+			String preaggTable, JSONObject json, Float oldSum, String blob, String identifier){
 
 		StringBuilder updateQuery = new StringBuilder("UPDATE ");
 		updateQuery.append((String) json.get("keyspace"))
 		.append(".").append(preaggTable).append(" SET sum = ").append(sum).append(", count = ").append(count).append(", average = ").append(avg).append(", min = ")
 		.append(min).append(", max = ").append(max).append(", stream = "+blob)
-		.append(", agg_list = ").append("?")
-		.append(" WHERE ").append(key).append(" = ").append(keyValue)
+		.append(", agg_list = ").append("?, signature['").append(identifier).append("']= '").append(json.get("readPtr").toString())
+		.append("' WHERE ").append(key).append(" = ").append(keyValue)
 		.append(" IF sum = ").append(oldSum).append(";");
 
 
@@ -164,7 +167,7 @@ public class JoinAggGroupByHelper {
 	}
 
 
-	public static void deleteListItem1FromGroupBy(Stream stream,CustomizedRow row, int index, String aggKeyType, String aggKeyName, JSONObject json, String innerJoinAggTable, int aggKeyIndex){
+	public static void deleteListItem1FromGroupBy(Stream stream,CustomizedRow row, int index, String aggKeyType, String aggKeyName, JSONObject json, String innerJoinAggTable, int aggKeyIndex, String identifier){
 
 		Map<String,String> temp= row.getMap("list_item1");
 
@@ -174,12 +177,12 @@ public class JoinAggGroupByHelper {
 			String[] listArray = list.split(",");
 			String aggColValue = listArray[index];
 			String aggKeyValue = listArray[aggKeyIndex];
-			while(!searchAndDeleteRowFromJoinAggGroupBy(stream,json, innerJoinAggTable, aggKeyName, aggKeyValue, aggColValue));
+			while(!searchAndDeleteRowFromJoinAggGroupBy(stream,json, innerJoinAggTable, aggKeyName, aggKeyValue, aggColValue, identifier));
 
 		}
 	}
 
-	public static void deleteListItem2FromGroupBy(Stream stream,CustomizedRow row, int index, String aggKeyType, String aggKeyName, JSONObject json, String innerJoinAggTable, int aggKeyIndex){
+	public static void deleteListItem2FromGroupBy(Stream stream,CustomizedRow row, int index, String aggKeyType, String aggKeyName, JSONObject json, String innerJoinAggTable, int aggKeyIndex, String identifier){
 
 		Map<String,String> temp= row.getMap("list_item2");
 
@@ -189,12 +192,12 @@ public class JoinAggGroupByHelper {
 			String[] listArray = list.split(",");
 			String aggColValue = listArray[index];
 			String aggKeyValue = listArray[aggKeyIndex];
-			while(!searchAndDeleteRowFromJoinAggGroupBy(stream,json, innerJoinAggTable, aggKeyName, aggKeyValue, aggColValue));
+			while(!searchAndDeleteRowFromJoinAggGroupBy(stream,json, innerJoinAggTable, aggKeyName, aggKeyValue, aggColValue, identifier));
 
 		}
 	}
 
-	public static boolean searchAndDeleteRowFromJoinAggGroupBy(Stream stream, JSONObject json, String joinAggTable, String aggKeyName, String aggKeyValue, String aggColValue) {
+	public static boolean searchAndDeleteRowFromJoinAggGroupBy(Stream stream, JSONObject json, String joinAggTable, String aggKeyName, String aggKeyValue, String aggColValue, String identifier) {
 
 		List<Float> myList = new ArrayList<Float>();
 
@@ -209,7 +212,7 @@ public class JoinAggGroupByHelper {
 			stream.setUpdatedJoinAggGroupByRowDeleted(crow);
 			stream.setDeleteOperation(true);
 			String blob = Serialize.serializeStream2(stream);
-			JoinAggGroupByHelper.insertStatement(json, joinAggTable, crow,blob);
+			JoinAggGroupByHelper.insertStatement(json, joinAggTable, crow,blob, identifier);
 
 			// Reseting the stream
 			stream.setDeleteOperation(false);
@@ -251,7 +254,7 @@ public class JoinAggGroupByHelper {
 
 				String blob = Serialize.serializeStream2(stream);
 
-				if(!updateStatement(sum, count, avg, min, max, myList, aggKeyName, aggKeyValue, joinAggTable, json, theRow.getFloat("sum"),blob))
+				if(!updateStatement(sum, count, avg, min, max, myList, aggKeyName, aggKeyValue, joinAggTable, json, theRow.getFloat("sum"),blob, identifier))
 					return false;
 			}
 		}
@@ -260,7 +263,7 @@ public class JoinAggGroupByHelper {
 
 	}
 
-	public static boolean addKeytoInnerAggJoinGroupBy(Stream stream,CustomizedRow deltaUpdatedRow, String leftJoinAggTable,JSONObject json, String aggColValue, String aggColName,int index,CustomizedRow newRJRow, String innerJoinAggTable,String aggKey,String aggKeyValue){
+	public static boolean addKeytoInnerAggJoinGroupBy(Stream stream,CustomizedRow deltaUpdatedRow, String leftJoinAggTable,JSONObject json, String aggColValue, String aggColName,int index,CustomizedRow newRJRow, String innerJoinAggTable,String aggKey,String aggKeyValue, String identifier){
 
 		float sum = 0;
 		float min = 0;
@@ -298,7 +301,7 @@ public class JoinAggGroupByHelper {
 			CustomizedRow crow = CustomizedRow.constructJoinAggGroupBy(aggKey,aggKeyValue,myList,sum,count,average,min,max,Serialize.serializeStream2(stream));
 			stream.setUpdatedJoinAggGroupByRow(crow);
 
-			insertStatement(json, innerJoinAggTable, crow, Serialize.serializeStream2(stream));
+			insertStatement(json, innerJoinAggTable, crow, Serialize.serializeStream2(stream), identifier);
 
 		}else{
 			//Update
@@ -329,7 +332,7 @@ public class JoinAggGroupByHelper {
 			CustomizedRow crow = CustomizedRow.constructJoinAggGroupBy(aggKey,aggKeyValue,myList,sum,count,average,min,max,Serialize.serializeStream2(stream));
 			stream.setUpdatedJoinAggGroupByRow(crow);
 
-			if(!updateStatement(sum, count, average, min, max, myList, aggKey, aggKeyValue, innerJoinAggTable, json, theRow.getFloat("sum"),Serialize.serializeStream2(stream)))
+			if(!updateStatement(sum, count, average, min, max, myList, aggKey, aggKeyValue, innerJoinAggTable, json, theRow.getFloat("sum"),Serialize.serializeStream2(stream), identifier))
 				return false;
 
 		}
@@ -340,7 +343,7 @@ public class JoinAggGroupByHelper {
 
 	public static void addListItem1toInnerJoinGroupBy(Stream stream,CustomizedRow deltaUpdatedRow,String aggColName, String leftJoinAggTable, CustomizedRow newRJRow, int index,
 			String aggKeyType, String aggKeyName, JSONObject json,
-			String innerJoinAggTable, int aggKeyIndex) {
+			String innerJoinAggTable, int aggKeyIndex, String identifier) {
 
 
 		Map<String,String> temp= newRJRow.getMap("list_item1");
@@ -351,14 +354,14 @@ public class JoinAggGroupByHelper {
 			String[] listArray = list.split(",");
 			String aggColValue = listArray[index];
 			String aggKeyValue = listArray[aggKeyIndex];
-			addKeytoInnerAggJoinGroupBy(stream,deltaUpdatedRow,leftJoinAggTable, json, aggColValue, aggColName, index, newRJRow, innerJoinAggTable, aggKeyName, aggKeyValue);
+			addKeytoInnerAggJoinGroupBy(stream,deltaUpdatedRow,leftJoinAggTable, json, aggColValue, aggColName, index, newRJRow, innerJoinAggTable, aggKeyName, aggKeyValue, identifier);
 
 		}
 
 	}
 
 
-	public static boolean JoinAggGroupByChangeAddRow(Stream stream, JSONObject json, String joinTable, String aggKey, String aggKeyValue, String aggColValue, String oldAggColValue,String oldAggKeyValue, boolean changeJK){
+	public static boolean JoinAggGroupByChangeAddRow(Stream stream, JSONObject json, String joinTable, String aggKey, String aggKeyValue, String aggColValue, String oldAggColValue,String oldAggKeyValue, boolean changeJK, String identifier){
 
 		float sum = 0;
 		float min = 0;
@@ -398,7 +401,7 @@ public class JoinAggGroupByHelper {
 			CustomizedRow crow = CustomizedRow.constructJoinAggGroupBy(aggKey,aggKeyValue,myList,sum,count,average,min,max,Serialize.serializeStream2(stream));
 			stream.setUpdatedJoinAggGroupByRow(crow);
 
-			insertStatement(json, joinTable, crow, Serialize.serializeStream2(stream));
+			insertStatement(json, joinTable, crow, Serialize.serializeStream2(stream), identifier);
 
 		}else{
 			//Update
@@ -442,7 +445,7 @@ public class JoinAggGroupByHelper {
 			CustomizedRow crow = CustomizedRow.constructJoinAggGroupBy(aggKey,aggKeyValue,myList,sum,count,average,min,max,Serialize.serializeStream2(stream));
 			stream.setUpdatedJoinAggGroupByRow(crow);
 
-			if(!updateStatement(sum, count, average, min, max, myList, aggKey, aggKeyValue, joinTable, json, theRow.getFloat("sum"),Serialize.serializeStream2(stream)))
+			if(!updateStatement(sum, count, average, min, max, myList, aggKey, aggKeyValue, joinTable, json, theRow.getFloat("sum"),Serialize.serializeStream2(stream), identifier))
 				return false;
 
 		}
@@ -454,7 +457,7 @@ public class JoinAggGroupByHelper {
 	public static void addListItem2toInnerJoinGroupBy(Stream stream,CustomizedRow deltaUpdatedRow, String aggColName,
 			String rightJoinAggTable, CustomizedRow newRJRow, int index, String keyType,
 			String aggKeyName, JSONObject json, String innerJoinAggTable,
-			int aggKeyIndex) {
+			int aggKeyIndex, String identifier) {
 
 
 		Map<String,String> temp= newRJRow.getMap("list_item2");
@@ -465,14 +468,14 @@ public class JoinAggGroupByHelper {
 			String[] listArray = list.split(",");
 			String aggColValue = listArray[index];
 			String aggKeyValue = listArray[aggKeyIndex];
-			addKeytoInnerAggJoinGroupBy(stream,deltaUpdatedRow,rightJoinAggTable, json, aggColValue, aggColName, index, newRJRow, innerJoinAggTable, aggKeyName, aggKeyValue);
+			addKeytoInnerAggJoinGroupBy(stream,deltaUpdatedRow,rightJoinAggTable, json, aggColValue, aggColName, index, newRJRow, innerJoinAggTable, aggKeyName, aggKeyValue, identifier);
 
 		}
 
 
 	}
 
-	public static boolean deleteElementFromRow(Stream stream, JSONObject json, String joinTable, String aggKey, String aggKeyValue, String aggColValue){
+	public static boolean deleteElementFromRow(Stream stream, JSONObject json, String joinTable, String aggKey, String aggKeyValue, String aggColValue, String identifier){
 
 		float sum = 0;
 		float min = 0;
@@ -527,7 +530,7 @@ public class JoinAggGroupByHelper {
 		stream.setUpdatedJoinAggGroupByRow(crow);
 		String blob = Serialize.serializeStream2(stream);
 
-		if(!updateStatement(sum, count, average, min, max, myList, aggKey, aggKeyValue, joinTable, json, theRow.getFloat("sum"),blob))
+		if(!updateStatement(sum, count, average, min, max, myList, aggKey, aggKeyValue, joinTable, json, theRow.getFloat("sum"),blob, identifier))
 			return false;
 
 

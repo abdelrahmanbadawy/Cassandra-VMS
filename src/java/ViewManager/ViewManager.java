@@ -2537,7 +2537,7 @@ public class ViewManager {
 			if (!leftJoinAggTable.equals("false")) {
 				while (!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(stream,
 						json, leftJoinAggTable, aggKey, aggKeyValue,
-						aggColValue, oldAggColValue, oldAggKeyValue,changeJK))
+						aggColValue, oldAggColValue, oldAggKeyValue,changeJK, identifier))
 					;
 			}
 
@@ -2546,7 +2546,7 @@ public class ViewManager {
 					while (!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(
 							stream, json, innerJoinAggTable, aggKey,
 							aggKeyValue, aggColValue, oldAggColValue,
-							oldAggKeyValue,changeJK))
+							oldAggKeyValue,changeJK, identifier))
 						;
 				}
 			}
@@ -2561,7 +2561,7 @@ public class ViewManager {
 				while (!JoinAggGroupByHelper
 						.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
 								leftJoinAggTable, aggKey, oldAggKeyValue,
-								oldAggColValue))
+								oldAggColValue, identifier))
 					;
 			}
 
@@ -2570,7 +2570,7 @@ public class ViewManager {
 					while (!JoinAggGroupByHelper
 							.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
 									innerJoinAggTable, aggKey, oldAggKeyValue,
-									oldAggColValue))
+									oldAggColValue, identifier))
 						;
 				}
 			}
@@ -2584,7 +2584,7 @@ public class ViewManager {
 					while (!JoinAggGroupByHelper
 							.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
 									leftJoinAggTable, aggKey, oldAggKeyValue,
-									oldAggColValue))
+									oldAggColValue, identifier))
 						;
 				}
 
@@ -2593,7 +2593,7 @@ public class ViewManager {
 						while (!JoinAggGroupByHelper
 								.searchAndDeleteRowFromJoinAggGroupBy(stream,
 										json, innerJoinAggTable, aggKey,
-										oldAggKeyValue, oldAggColValue))
+										oldAggKeyValue, oldAggColValue, identifier))
 							;
 					}
 				}
@@ -2602,7 +2602,7 @@ public class ViewManager {
 					while (!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(
 							stream, json, leftJoinAggTable, aggKey,
 							aggKeyValue, aggColValue, oldAggColValue,
-							oldAggKeyValue,changeJK))
+							oldAggKeyValue,changeJK, identifier))
 						;
 				}
 
@@ -2612,7 +2612,7 @@ public class ViewManager {
 								.JoinAggGroupByChangeAddRow(stream, json,
 										innerJoinAggTable, aggKey, aggKeyValue,
 										aggColValue, oldAggColValue,
-										oldAggKeyValue,changeJK))
+										oldAggKeyValue,changeJK, identifier))
 							;
 					}
 				}
@@ -2624,7 +2624,7 @@ public class ViewManager {
 					while (!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(
 							stream, json, leftJoinAggTable, aggKey,
 							aggKeyValue, aggColValue, oldAggColValue,
-							oldAggKeyValue,changeJK))
+							oldAggKeyValue,changeJK, identifier))
 						;
 				}
 
@@ -2634,7 +2634,7 @@ public class ViewManager {
 								.JoinAggGroupByChangeAddRow(stream, json,
 										innerJoinAggTable, aggKey, aggKeyValue,
 										aggColValue, oldAggColValue,
-										oldAggKeyValue,changeJK))
+										oldAggKeyValue,changeJK, identifier))
 							;
 					}
 				}
@@ -2659,7 +2659,7 @@ public class ViewManager {
 			if (!innerJoinAggTable.equals("false")) {
 				JoinAggGroupByHelper.deleteListItem1FromGroupBy(stream,
 						oldRJRow, index, keyType, key, json, innerJoinAggTable,
-						aggKeyIndex);
+						aggKeyIndex, identifier);
 			}
 		}
 
@@ -2669,7 +2669,7 @@ public class ViewManager {
 				JoinAggGroupByHelper.addListItem1toInnerJoinGroupBy(stream,
 						stream.getDeltaUpdatedRow(), aggColName,
 						leftJoinAggTable, newRJRow, index, keyType, key, json,
-						innerJoinAggTable, aggKeyIndex);
+						innerJoinAggTable, aggKeyIndex, identifier);
 			}
 		}
 
@@ -2713,7 +2713,7 @@ public class ViewManager {
 			if (!rightJoinAggTable.equals("false")) {
 				while (!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(stream,
 						json, rightJoinAggTable, aggKey, aggKeyValue,
-						aggColValue, oldAggColValue, oldAggKeyValue,changeJK))
+						aggColValue, oldAggColValue, oldAggKeyValue,changeJK, identifier))
 					;
 			}
 
@@ -2722,7 +2722,7 @@ public class ViewManager {
 					while (!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(
 							stream, json, innerJoinAggTable, aggKey,
 							aggKeyValue, aggColValue, oldAggColValue,
-							oldAggKeyValue,changeJK))
+							oldAggKeyValue,changeJK, identifier))
 						;
 				}
 			}
@@ -2737,7 +2737,7 @@ public class ViewManager {
 				while (!JoinAggGroupByHelper
 						.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
 								rightJoinAggTable, aggKey, oldAggKeyValue,
-								oldAggColValue))
+								oldAggColValue, identifier))
 					;
 			}
 
@@ -2746,7 +2746,7 @@ public class ViewManager {
 					while (!JoinAggGroupByHelper
 							.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
 									innerJoinAggTable, aggKey, oldAggKeyValue,
-									oldAggColValue))
+									oldAggColValue, identifier))
 						;
 				}
 			}
@@ -2760,7 +2760,7 @@ public class ViewManager {
 					while (!JoinAggGroupByHelper
 							.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
 									rightJoinAggTable, aggKey, oldAggKeyValue,
-									oldAggColValue))
+									oldAggColValue, identifier))
 						;
 				}
 
@@ -2769,7 +2769,7 @@ public class ViewManager {
 						while (!JoinAggGroupByHelper
 								.searchAndDeleteRowFromJoinAggGroupBy(stream,
 										json, innerJoinAggTable, aggKey,
-										oldAggKeyValue, oldAggColValue))
+										oldAggKeyValue, oldAggColValue, identifier))
 							;
 					}
 				}
@@ -2778,7 +2778,7 @@ public class ViewManager {
 					while (!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(
 							stream, json, rightJoinAggTable, aggKey,
 							aggKeyValue, aggColValue, oldAggColValue,
-							oldAggKeyValue,changeJK))
+							oldAggKeyValue,changeJK, identifier))
 						;
 				}
 
@@ -2788,7 +2788,7 @@ public class ViewManager {
 								.JoinAggGroupByChangeAddRow(stream, json,
 										innerJoinAggTable, aggKey, aggKeyValue,
 										aggColValue, oldAggColValue,
-										oldAggKeyValue,changeJK))
+										oldAggKeyValue,changeJK, identifier))
 							;
 					}
 				}
@@ -2800,7 +2800,7 @@ public class ViewManager {
 					while (!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(
 							stream, json, rightJoinAggTable, aggKey,
 							aggKeyValue, aggColValue, oldAggColValue,
-							oldAggKeyValue,changeJK))
+							oldAggKeyValue,changeJK, identifier))
 						;
 				}
 
@@ -2810,7 +2810,7 @@ public class ViewManager {
 								.JoinAggGroupByChangeAddRow(stream, json,
 										innerJoinAggTable, aggKey, aggKeyValue,
 										aggColValue, oldAggColValue,
-										oldAggKeyValue,changeJK))
+										oldAggKeyValue,changeJK, identifier))
 							;
 					}
 				}
@@ -2836,7 +2836,7 @@ public class ViewManager {
 			if (!innerJoinAggTable.equals("false")) {
 				JoinAggGroupByHelper.deleteListItem2FromGroupBy(stream,
 						oldRJRow, index, keyType, key, json, innerJoinAggTable,
-						aggKeyIndex);
+						aggKeyIndex, identifier);
 			}
 		}
 
@@ -2846,7 +2846,7 @@ public class ViewManager {
 				JoinAggGroupByHelper.addListItem2toInnerJoinGroupBy(stream,
 						stream.getDeltaUpdatedRow(), aggColName,
 						rightJoinAggTable, newRJRow, index, keyType, key, json,
-						innerJoinAggTable, aggKeyIndex);
+						innerJoinAggTable, aggKeyIndex, identifier);
 			}
 		}
 
@@ -3235,14 +3235,14 @@ public class ViewManager {
 				while (!JoinAggGroupByHelper
 						.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
 								leftJoinAggTable, aggkey, aggKeyValue,
-								aggColValue))
+								aggColValue, identifier))
 					;
 			}
 			if (!innerJoinAggTable.equals("false")) {
 				while (!JoinAggGroupByHelper
 						.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
 								innerJoinAggTable, aggkey, aggKeyValue,
-								aggColValue))
+								aggColValue, identifier))
 					;
 			}
 
@@ -3256,7 +3256,7 @@ public class ViewManager {
 					while (!JoinAggGroupByHelper
 							.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
 									innerJoinAggTable, aggkey, aggKeyValue,
-									aggColValue))
+									aggColValue, identifier))
 						;
 				}
 
@@ -3268,13 +3268,13 @@ public class ViewManager {
 				if (!leftJoinAggTable.equals("false")) {
 					while (!JoinAggGroupByHelper.deleteElementFromRow(stream,
 							json, leftJoinAggTable, aggkey, aggKeyValue,
-							aggColValue))
+							aggColValue, identifier))
 						;
 				}
 				if (!innerJoinAggTable.equals("false")) {
 					while (!JoinAggGroupByHelper.deleteElementFromRow(stream,
 							json, innerJoinAggTable, aggkey, aggKeyValue,
-							aggColValue))
+							aggColValue, identifier))
 						;
 				}
 			}
@@ -3303,14 +3303,14 @@ public class ViewManager {
 				while (!JoinAggGroupByHelper
 						.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
 								rightJoinAggTable, aggKey, aggKeyValue,
-								aggColValue))
+								aggColValue, identifier))
 					;
 			}
 			if (!innerJoinAggTable.equals("false")) {
 				while (!JoinAggGroupByHelper
 						.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
 								innerJoinAggTable, aggKey, aggKeyValue,
-								aggColValue))
+								aggColValue, identifier))
 					;
 			}
 
@@ -3324,7 +3324,7 @@ public class ViewManager {
 					while (!JoinAggGroupByHelper
 							.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
 									innerJoinAggTable, aggKey, aggKeyValue,
-									aggColValue))
+									aggColValue, identifier))
 						;
 				}
 
@@ -3336,13 +3336,13 @@ public class ViewManager {
 				if (!rightJoinAggTable.equals("false")) {
 					while (!JoinAggGroupByHelper.deleteElementFromRow(stream,
 							json, rightJoinAggTable, aggKey, aggKeyValue,
-							aggColValue))
+							aggColValue, identifier))
 						;
 				}
 				if (!innerJoinAggTable.equals("false")) {
 					while (!JoinAggGroupByHelper.deleteElementFromRow(stream,
 							json, innerJoinAggTable, aggKey, aggKeyValue,
-							aggColValue))
+							aggColValue, identifier))
 						;
 				}
 			}
@@ -3365,7 +3365,7 @@ public class ViewManager {
 			if (!innerJoinAggTable.equals("false")) {
 				JoinAggGroupByHelper.deleteListItem2FromGroupBy(stream,
 						newRJRow, index, aggKeyType, aggKey, json,
-						innerJoinAggTable, aggKeyIndex);
+						innerJoinAggTable, aggKeyIndex, identifier);
 			}
 		}
 
@@ -3387,7 +3387,7 @@ public class ViewManager {
 			if (!innerJoinAggTable.equals("false")) {
 				JoinAggGroupByHelper.deleteListItem1FromGroupBy(stream,
 						newRJRow, index, aggKeyType, aggKey, json,
-						innerJoinAggTable, aggKeyIndex);
+						innerJoinAggTable, aggKeyIndex, identifier);
 			}
 		}
 

@@ -98,7 +98,7 @@ public class ViewManagerGroupByController implements Runnable {
 					if(stream.getUpdatedJoinAggGroupByRow()!=null){
 						boolean result = Utils.evalueJoinAggConditions(stream.getUpdatedJoinAggGroupByRow(), aggFct.get(j), operation.get(j), value.get(j));
 						if(result){
-							JoinAggGroupByHelper.insertStatement(json, havingTableName.get(j), stream.getUpdatedJoinAggGroupByRow());
+							JoinAggGroupByHelper.insertStatement(json, havingTableName.get(j), stream.getUpdatedJoinAggGroupByRow(), vm.getIdentifier());
 						}else{
 							String pkName = stream.getUpdatedJoinAggGroupByRow().getName(0);
 							String pkType = stream.getUpdatedJoinAggGroupByRow().getType(0);
@@ -154,7 +154,7 @@ public class ViewManagerGroupByController implements Runnable {
 					if(stream.getUpdatedJoinAggGroupByRow()!=null){
 						boolean result = Utils.evalueJoinAggConditions(stream.getUpdatedJoinAggGroupByRow(), aggFct.get(j), operation.get(j), value.get(j));
 						if(result){
-							JoinAggGroupByHelper.insertStatement(json, havingTableName.get(j), stream.getUpdatedJoinAggGroupByRow());
+							JoinAggGroupByHelper.insertStatement(json, havingTableName.get(j), stream.getUpdatedJoinAggGroupByRow(), vm.getIdentifier());
 						}else{
 							String pkName = stream.getUpdatedJoinAggGroupByRow().getName(0);
 							String pkType = stream.getUpdatedJoinAggGroupByRow().getType(0);
