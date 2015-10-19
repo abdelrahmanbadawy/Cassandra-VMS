@@ -2,6 +2,7 @@ package ViewManager;
 
 import java.util.List;
 
+import org.apache.commons.configuration.ConfigurationException;
 import org.json.simple.JSONObject;
 
 import com.datastax.driver.core.Cluster;
@@ -13,6 +14,8 @@ public class ViewManagerGroupByController implements Runnable {
 	Cluster cluster;
 	List<String> havingJoinGroupBy;
 	TaskDistributor td;
+	List<String> vm_identifiers;
+	int identifier_index;
 
 	public ViewManagerGroupByController(ViewManager vm,Cluster cluster,TaskDistributor td) {	
 		System.out.println("up group by");
@@ -28,6 +31,8 @@ public class ViewManagerGroupByController implements Runnable {
 
 		havingJoinGroupBy =  VmXmlHandler.getInstance().getRJAggJoinGroupByHavingMapping()
 				.getList("mapping.unit.name");
+		vm_identifiers = VmXmlHandler.getInstance().getVMProperties().getList("vm.identifier");
+		identifier_index = vm_identifiers.indexOf(vm.getIdentifier());
 	}
 
 	public void decideGroupBy(JSONObject json) {
@@ -109,7 +114,17 @@ public class ViewManagerGroupByController implements Runnable {
 				}
 			}
 		}
-
+		System.out.println("saving execPtrGB "+ json.get("readPtr").toString());
+		
+		
+		VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtrGB", json.get("readPtr").toString());
+		try {
+			
+			VmXmlHandler.getInstance().getVMProperties().save(VmXmlHandler.getInstance().getVMProperties().getFile());
+		} catch (ConfigurationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	private void propagateGroupByDelete(JSONObject json, String table) {
@@ -164,6 +179,17 @@ public class ViewManagerGroupByController implements Runnable {
 					}
 				}
 			}
+		}
+		System.out.println("saving execPtrGB "+ json.get("readPtr").toString());
+		
+		
+		VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtrGB", json.get("readPtr").toString());
+		try {
+			
+			VmXmlHandler.getInstance().getVMProperties().save(VmXmlHandler.getInstance().getVMProperties().getFile());
+		} catch (ConfigurationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 
 

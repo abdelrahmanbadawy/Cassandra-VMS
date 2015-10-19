@@ -2,6 +2,7 @@ package ViewManager;
 
 import java.util.List;
 
+import org.apache.commons.configuration.ConfigurationException;
 import org.json.simple.JSONObject;
 
 import com.datastax.driver.core.Cluster;
@@ -14,7 +15,9 @@ public class ViewManagerPreaggController implements Runnable{
 	List<String> havingJoinGroupBy;
 	List<String> preaggTableNames;
 	TaskDistributor td;
-
+	List<String> vm_identifiers;
+	int identifier_index;
+	
 	public ViewManagerPreaggController(ViewManager vm,Cluster cluster,TaskDistributor td) {	
 		System.out.println("up preag");
 		this.vm = vm;
@@ -28,6 +31,8 @@ public class ViewManagerPreaggController implements Runnable{
 	private void parseXML() {
 		preaggTableNames = VmXmlHandler.getInstance().getHavingPreAggMapping()
 				.getList("mapping.unit.preaggTable");
+		vm_identifiers = VmXmlHandler.getInstance().getVMProperties().getList("vm.identifier");
+		identifier_index = vm_identifiers.indexOf(vm.getIdentifier());
 	}
 
 
@@ -136,6 +141,18 @@ public class ViewManagerPreaggController implements Runnable{
 			.println("No Having table for this joinpreaggregation Table "
 					+ preaggTable + " available");
 		}
+		
+		System.out.println("saving execPtrPreagg "+ json.get("readPtr").toString());
+		
+		
+		VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtrPreagg", json.get("readPtr").toString());
+		try {
+			
+			VmXmlHandler.getInstance().getVMProperties().save(VmXmlHandler.getInstance().getVMProperties().getFile());
+		} catch (ConfigurationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	private void propagatePreaggDelete(JSONObject json, String table) {
@@ -207,6 +224,17 @@ public class ViewManagerPreaggController implements Runnable{
 							havingTable, DeletedPreagRow);
 				}
 			}
+		}
+		System.out.println("saving execPtrPreagg "+ json.get("readPtr").toString());
+		
+		
+		VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtrPreagg", json.get("readPtr").toString());
+		try {
+			
+			VmXmlHandler.getInstance().getVMProperties().save(VmXmlHandler.getInstance().getVMProperties().getFile());
+		} catch (ConfigurationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 
 	}

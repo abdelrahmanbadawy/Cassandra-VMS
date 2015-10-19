@@ -26,19 +26,22 @@ public class ViewManagerRJController implements Runnable{
 	List<String> reverseTablesNames_Join;
 	List<String> reverseTablesNames_AggJoin;
 	List<String> reverseTablesNames_AggJoinGroupBy;
+	List<String> vm_identifiers;
+	int identifier_index;
 
 
 	int rjoins;
 
 	public ViewManagerRJController(ViewManager vm,Cluster cluster, TaskDistributor taskDistributor) {	
 		System.out.println("RJ Controller is up");
-
-		parseXML();	
 		this.vm = vm;
+		parseXML();	
+		
 		this.cluster = cluster;
 		stream = new Stream();
 		td = taskDistributor;
-
+		vm_identifiers = VmXmlHandler.getInstance().getVMProperties().getList("vm.identifier");
+		identifier_index = vm_identifiers.indexOf(vm.getIdentifier());
 
 	}
 
@@ -150,7 +153,9 @@ public class ViewManagerRJController implements Runnable{
 				}
 			}
 
-		}		
+		}	
+		
+		
 	}
 
 
@@ -218,6 +223,8 @@ public class ViewManagerRJController implements Runnable{
 			}
 
 		}
+		
+		
 	}
 
 
@@ -661,7 +668,17 @@ public class ViewManagerRJController implements Runnable{
 			}
 
 		}
-
+		System.out.println("saving execPtrRJ "+ json.get("readPtr").toString());
+		
+		
+		VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtrRJ", json.get("readPtr").toString());
+		try {
+			
+			VmXmlHandler.getInstance().getVMProperties().save(VmXmlHandler.getInstance().getVMProperties().getFile());
+		} catch (ConfigurationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
 		return true;
 	}
@@ -1088,7 +1105,17 @@ public class ViewManagerRJController implements Runnable{
 		//END OF UPDATE JoinAgg Group By
 		//===============================================
 
-
+		System.out.println("saving execPtrRJ "+ json.get("readPtr").toString());
+		
+		
+		VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtrRJ", json.get("readPtr").toString());
+		try {
+			
+			VmXmlHandler.getInstance().getVMProperties().save(VmXmlHandler.getInstance().getVMProperties().getFile());
+		} catch (ConfigurationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return true;
 	}
 
