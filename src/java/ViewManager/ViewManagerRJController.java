@@ -243,6 +243,8 @@ public class ViewManagerRJController implements Runnable{
 
 
 		JSONObject json = stream.getDeltaJSON();
+		
+		json.put("readPtr", rjjson.get("readPtr"));
 
 		String tableName = stream.getBaseTable();
 		int indexBaseTableName = baseTableName.indexOf(stream.getBaseTable());
@@ -668,10 +670,10 @@ public class ViewManagerRJController implements Runnable{
 			}
 
 		}
-		System.out.println("saving execPtrRJ "+ json.get("readPtr").toString());
+		System.out.println("saving execPtrRJ "+ rjjson.get("readPtr").toString());
 		
 		
-		VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtrRJ", json.get("readPtr").toString());
+		VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtrRJ", rjjson.get("readPtr").toString());
 		try {
 			
 			VmXmlHandler.getInstance().getVMProperties().save(VmXmlHandler.getInstance().getVMProperties().getFile());
@@ -699,6 +701,9 @@ public class ViewManagerRJController implements Runnable{
 
 		JSONObject json = stream.getDeltaJSON();
 
+		json.put("readPtr", rjjson.get("readPtr"));
+		
+		
 		String tableName = stream.getBaseTable();
 		int indexBaseTableName = baseTableName.indexOf(stream.getBaseTable());
 		String baseTablePrimaryKey = pkName.get(indexBaseTableName);
@@ -1105,10 +1110,10 @@ public class ViewManagerRJController implements Runnable{
 		//END OF UPDATE JoinAgg Group By
 		//===============================================
 
-		System.out.println("saving execPtrRJ "+ json.get("readPtr").toString());
+		System.out.println("saving execPtrRJ "+ rjjson.get("readPtr").toString());
 		
 		
-		VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtrRJ", json.get("readPtr").toString());
+		VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtrRJ", rjjson.get("readPtr").toString());
 		try {
 			
 			VmXmlHandler.getInstance().getVMProperties().save(VmXmlHandler.getInstance().getVMProperties().getFile());

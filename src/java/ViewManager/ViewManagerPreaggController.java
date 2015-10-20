@@ -50,19 +50,23 @@ public class ViewManagerPreaggController implements Runnable{
 			bufferString = data.get("stream ").toString();
 		else
 			bufferString = buffer.toString();
+		
+		String ptr = json.get("readPtr").toString();
 
 
 		stream = Serialize.deserializeStream(bufferString);
 		JSONObject deltaJSON = stream.getDeltaJSON();
+		
+		deltaJSON.put("readPtr", ptr);
 
 		if(!stream.isDeleteOperation()){
-			propagatePreaggUpdate(deltaJSON,table);
+			propagatePreaggUpdate(deltaJSON,table, ptr);
 		}else{
-			propagatePreaggDelete(deltaJSON,table);
+			propagatePreaggDelete(deltaJSON,table, ptr);
 		}
 	}
 
-	public void propagatePreaggUpdate(JSONObject json, String table) {
+	public void propagatePreaggUpdate(JSONObject json, String table, String ptr) {
 
 		String preaggTable = table;
 
@@ -142,10 +146,10 @@ public class ViewManagerPreaggController implements Runnable{
 					+ preaggTable + " available");
 		}
 		
-		System.out.println("saving execPtrPreagg "+ json.get("readPtr").toString());
+		System.out.println("saving execPtrPreagg "+ ptr);
 		
 		
-		VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtrPreagg", json.get("readPtr").toString());
+		VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtrPreagg", ptr);
 		try {
 			
 			VmXmlHandler.getInstance().getVMProperties().save(VmXmlHandler.getInstance().getVMProperties().getFile());
@@ -155,7 +159,7 @@ public class ViewManagerPreaggController implements Runnable{
 		}
 	}
 
-	private void propagatePreaggDelete(JSONObject json, String table) {
+	private void propagatePreaggDelete(JSONObject json, String table , String ptr) {
 
 		// update the corresponding preagg wih having clause
 
@@ -225,10 +229,10 @@ public class ViewManagerPreaggController implements Runnable{
 				}
 			}
 		}
-		System.out.println("saving execPtrPreagg "+ json.get("readPtr").toString());
+		System.out.println("saving execPtrPreagg "+ ptr);
 		
 		
-		VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtrPreagg", json.get("readPtr").toString());
+		VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtrPreagg", ptr);
 		try {
 			
 			VmXmlHandler.getInstance().getVMProperties().save(VmXmlHandler.getInstance().getVMProperties().getFile());

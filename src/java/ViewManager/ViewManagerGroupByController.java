@@ -50,18 +50,21 @@ public class ViewManagerGroupByController implements Runnable {
 		else
 			bufferString = buffer.toString();
 
+		String ptr = json.get("readPtr").toString();
 
 		stream = Serialize.deserializeStream(bufferString);
 		JSONObject deltaJSON = stream.getDeltaJSON();
+		
+		deltaJSON.put("readPtr", ptr);
 
 		if(!stream.isDeleteOperation()){
-			propagateGroupByUpdate(deltaJSON,table);
+			propagateGroupByUpdate(deltaJSON,table, ptr);
 		}else{
-			propagateGroupByDelete(deltaJSON,table);
+			propagateGroupByDelete(deltaJSON,table, ptr);
 		}
 	}
 
-	private void propagateGroupByUpdate(JSONObject json, String table) {
+	private void propagateGroupByUpdate(JSONObject json, String table, String ptr) {
 
 		String groupByTable = table;
 
@@ -114,10 +117,10 @@ public class ViewManagerGroupByController implements Runnable {
 				}
 			}
 		}
-		System.out.println("saving execPtrGB "+ json.get("readPtr").toString());
+		System.out.println("saving execPtrGB "+ ptr);
 		
 		
-		VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtrGB", json.get("readPtr").toString());
+		VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtrGB", ptr);
 		try {
 			
 			VmXmlHandler.getInstance().getVMProperties().save(VmXmlHandler.getInstance().getVMProperties().getFile());
@@ -127,7 +130,7 @@ public class ViewManagerGroupByController implements Runnable {
 		}
 	}
 
-	private void propagateGroupByDelete(JSONObject json, String table) {
+	private void propagateGroupByDelete(JSONObject json, String table, String ptr) {
 
 		String groupByTable = table;
 
@@ -180,10 +183,10 @@ public class ViewManagerGroupByController implements Runnable {
 				}
 			}
 		}
-		System.out.println("saving execPtrGB "+ json.get("readPtr").toString());
+		System.out.println("saving execPtrGB "+ ptr);
 		
 		
-		VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtrGB", json.get("readPtr").toString());
+		VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtrGB", ptr);
 		try {
 			
 			VmXmlHandler.getInstance().getVMProperties().save(VmXmlHandler.getInstance().getVMProperties().getFile());

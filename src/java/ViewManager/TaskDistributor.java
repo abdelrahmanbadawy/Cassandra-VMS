@@ -80,6 +80,7 @@ public class TaskDistributor {
 	public void processRequest(JSONObject json,String type,String table, long readPtr){
 		
 		json.put("readPtr", readPtr);
+		
 
 		if (table.contains("groupby")) {
 			if (type.equalsIgnoreCase("insert")||type.equalsIgnoreCase("update")){
