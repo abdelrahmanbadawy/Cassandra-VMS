@@ -70,7 +70,7 @@
 
 			<columnNumber>8</columnNumber>
 			<keyspace>test</keyspace>
-			<name>preagg_agg_courses_faculty_ects_ects_eq4</name>
+			<name>preagg_agg_courses_faculty_ects_eq4</name>
 
 			<primaryKey>
 				<type>text</type>
@@ -132,7 +132,7 @@
 
 			<columnNumber>8</columnNumber>
 			<keyspace>test</keyspace>
-			<name>preagg_agg_courses_faculty_ects_ects_eq4</name>
+			<name>preagg_agg_courses_faculty_ects_eq4</name>
 
 			<primaryKey>
 				<type>text</type>

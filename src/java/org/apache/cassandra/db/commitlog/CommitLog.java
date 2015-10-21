@@ -307,11 +307,11 @@ public class CommitLog implements CommitLogMBean
 				delete = true;
 
 			if(delete){
-				if(table.contains("preag_agg") || table.contains("rj") || table.contains("groupby"))
+				if(table.contains("preagg_agg") || table.contains("rj") || table.contains("groupby"))
 					return;
 			}
-				
-				
+
+
 			pkName = cfm.partitionKeyColumns().get(0).name.toString();
 			columns.add(pkName);
 			String pkType =  cfm.partitionKeyColumns().get(0).type.toString();
@@ -357,6 +357,10 @@ public class CommitLog implements CommitLogMBean
 			for (Cell cell : cf){
 				try {
 					if(!cell.name().equals(pkName) && i!=0){
+
+						if(cfm.comparator.getString(cell.name()).equals("signature") && cf.getColumnCount()==2)
+							return;
+
 						columns.add(cfm.comparator.getString(cell.name()));
 						String cellType = cfm.getColumnDefinition(cell.name()).type.toString();
 
