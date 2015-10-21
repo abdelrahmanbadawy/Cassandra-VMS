@@ -306,6 +306,12 @@ public class CommitLog implements CommitLogMBean
 			if(cf.deletionInfo().getTopLevelDeletion().markedForDeleteAt>0)
 				delete = true;
 
+			if(delete){
+				if(table.contains("preag_agg") || table.contains("rj") || table.contains("groupby"))
+					return;
+			}
+				
+				
 			pkName = cfm.partitionKeyColumns().get(0).name.toString();
 			columns.add(pkName);
 			String pkType =  cfm.partitionKeyColumns().get(0).type.toString();
