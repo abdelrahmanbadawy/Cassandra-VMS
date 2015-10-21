@@ -31,6 +31,16 @@ public class JoinAggregationHelper {
 
 	public static boolean insertStatement(Float sum, int count, Float avg, Float min, Float max, String key, String keyValue,
 			String joinAggTable, JSONObject json, String identifier){
+		
+		if(json.get("recovery_mode").equals("on")){
+			Row rs = selectStatement(key, keyValue, joinAggTable, json);
+			
+			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier))
+					>= Long.parseLong(json.get("readPtr").toString()))
+				return true;
+			
+		}
+		
 
 		StringBuilder insertQueryAgg = new StringBuilder(
 				"INSERT INTO ");
@@ -62,10 +72,22 @@ public class JoinAggregationHelper {
 
 	public static boolean insertStatement(JSONObject json, String joinAggTable,CustomizedRow row, String identifier){
 
-
+		
+		
+		
 		String aggKeyName = row.getName(0);
 		String aggKeyType = row.getType(0);
 		String aggKeyValue = Utils.getColumnValueFromDeltaStream(row, aggKeyName, aggKeyType, "");
+		
+		if(json.get("recovery_mode").equals("on")){
+			Row rs = selectStatement(aggKeyName, aggKeyValue, joinAggTable, json);
+			
+			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier))
+					>= Long.parseLong(json.get("readPtr").toString()))
+				return true;
+			
+		}
+		
 
 		float sum = row.getFloat("sum");
 		float avg = row.getFloat("average");
@@ -103,6 +125,16 @@ public class JoinAggregationHelper {
 	public static boolean updateStatement(Float sum, int count, Float avg, Float min, Float max, String key, String keyValue,
 			String joinAggTable, JSONObject json, Float oldSum, String identifier){
 
+		if(json.get("recovery_mode").equals("on")){
+			Row rs = selectStatement(key, keyValue, joinAggTable, json);
+			
+			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier))
+					>= Long.parseLong(json.get("readPtr").toString()))
+				return true;
+			
+		}
+		
+		
 		StringBuilder updateQuery = new StringBuilder("UPDATE ");
 		updateQuery.append((String) json.get("keyspace"))
 		.append(".").append(joinAggTable).append(" SET sum = ").append(sum)
@@ -136,7 +168,7 @@ public class JoinAggregationHelper {
 		StringBuilder selectQuery1 = new StringBuilder(
 				"SELECT ").append(key)
 				.append(", sum, ").append("count, ")
-				.append("average, min, max ");
+				.append("average, min, max, signature ");
 		selectQuery1.append(" FROM ")
 		.append((String) json.get("keyspace"))
 		.append(".").append(joinAggTable)

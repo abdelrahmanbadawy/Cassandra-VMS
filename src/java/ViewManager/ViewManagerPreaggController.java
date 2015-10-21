@@ -58,6 +58,7 @@ public class ViewManagerPreaggController implements Runnable{
 		JSONObject deltaJSON = stream.getDeltaJSON();
 
 		deltaJSON.put("readPtr", ptr);
+		deltaJSON.put("recovery_mode", json.get("recovery_mode").toString());
 
 		if(!stream.isDeleteOperation()){
 			propagatePreaggUpdate(deltaJSON,table, ptr);
