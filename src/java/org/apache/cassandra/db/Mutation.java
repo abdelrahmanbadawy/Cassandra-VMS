@@ -84,7 +84,7 @@ public class Mutation implements IMutation
 
     public Mutation copy()
     {
-        Mutation copy = new Mutation(keyspaceName, key, new HashMap<>(modifications));
+        Mutation copy = new Mutation(keyspaceName, key, new HashMap<>(getModifications()));
         return copy;
     }
 
@@ -95,7 +95,7 @@ public class Mutation implements IMutation
 
     public Collection<UUID> getColumnFamilyIds()
     {
-        return modifications.keySet();
+        return getModifications().keySet();
     }
 
     public ByteBuffer key()
@@ -105,12 +105,12 @@ public class Mutation implements IMutation
 
     public Collection<ColumnFamily> getColumnFamilies()
     {
-        return modifications.values();
+        return getModifications().values();
     }
 
     public ColumnFamily getColumnFamily(UUID cfId)
     {
-        return modifications.get(cfId);
+        return getModifications().get(cfId);
     }
 
     /*
@@ -122,7 +122,7 @@ public class Mutation implements IMutation
     public void add(ColumnFamily columnFamily)
     {
         assert columnFamily != null;
-        ColumnFamily prev = modifications.put(columnFamily.id(), columnFamily);
+        ColumnFamily prev = getModifications().put(columnFamily.id(), columnFamily);
         if (prev != null)
             // developer error
             throw new IllegalArgumentException("ColumnFamily " + columnFamily + " already has modifications in this mutation: " + prev);
@@ -138,18 +138,18 @@ public class Mutation implements IMutation
 
     public ColumnFamily addOrGet(CFMetaData cfm)
     {
-        ColumnFamily cf = modifications.get(cfm.cfId);
+        ColumnFamily cf = getModifications().get(cfm.cfId);
         if (cf == null)
         {
             cf = ArrayBackedSortedColumns.factory.create(cfm);
-            modifications.put(cfm.cfId, cf);
+            getModifications().put(cfm.cfId, cf);
         }
         return cf;
     }
 
     public boolean isEmpty()
     {
-        return modifications.isEmpty();
+        return getModifications().isEmpty();
     }
 
     public void add(String cfName, CellName name, ByteBuffer value, long timestamp, int timeToLive)
@@ -194,11 +194,11 @@ public class Mutation implements IMutation
         if (!keyspaceName.equals(mutation.keyspaceName) || !key.equals(mutation.key))
             throw new IllegalArgumentException();
 
-        for (Map.Entry<UUID, ColumnFamily> entry : mutation.modifications.entrySet())
+        for (Map.Entry<UUID, ColumnFamily> entry : mutation.getModifications().entrySet())
         {
             // It's slighty faster to assume the key wasn't present and fix if
             // not in the case where it wasn't there indeed.
-            ColumnFamily cf = modifications.put(entry.getKey(), entry.getValue());
+            ColumnFamily cf = getModifications().put(entry.getKey(), entry.getValue());
             if (cf != null)
                 entry.getValue().addAll(cf);
         }
@@ -247,8 +247,8 @@ public class Mutation implements IMutation
         buff.append(", modifications=[");
         if (shallow)
         {
-            List<String> cfnames = new ArrayList<String>(modifications.size());
-            for (UUID cfid : modifications.keySet())
+            List<String> cfnames = new ArrayList<String>(getModifications().size());
+            for (UUID cfid : getModifications().keySet())
             {
                 CFMetaData cfm = Schema.instance.getCFMetaData(cfid);
                 cfnames.add(cfm == null ? "-dropped-" : cfm.cfName);
@@ -256,20 +256,24 @@ public class Mutation implements IMutation
             buff.append(StringUtils.join(cfnames, ", "));
         }
         else
-            buff.append(StringUtils.join(modifications.values(), ", "));
+            buff.append(StringUtils.join(getModifications().values(), ", "));
         return buff.append("])").toString();
     }
 
     public Mutation without(UUID cfId)
     {
         Mutation mutation = new Mutation(keyspaceName, key);
-        for (Map.Entry<UUID, ColumnFamily> entry : modifications.entrySet())
+        for (Map.Entry<UUID, ColumnFamily> entry : getModifications().entrySet())
             if (!entry.getKey().equals(cfId))
                 mutation.add(entry.getValue());
         return mutation;
     }
 
-    public static class MutationSerializer implements IVersionedSerializer<Mutation>
+    public Map<UUID, ColumnFamily> getModifications() {
+		return modifications;
+	}
+
+	public static class MutationSerializer implements IVersionedSerializer<Mutation>
     {
         public void serialize(Mutation mutation, DataOutputPlus out, int version) throws IOException
         {
@@ -279,10 +283,10 @@ public class Mutation implements IMutation
             ByteBufferUtil.writeWithShortLength(mutation.key(), out);
 
             /* serialize the modifications in the mutation */
-            int size = mutation.modifications.size();
+            int size = mutation.getModifications().size();
             out.writeInt(size);
             assert size > 0;
-            for (Map.Entry<UUID, ColumnFamily> entry : mutation.modifications.entrySet())
+            for (Map.Entry<UUID, ColumnFamily> entry : mutation.getModifications().entrySet())
                 ColumnFamily.serializer.serialize(entry.getValue(), out, version);
         }
 
@@ -341,8 +345,8 @@ public class Mutation implements IMutation
             int keySize = mutation.key().remaining();
             size += sizes.sizeof((short) keySize) + keySize;
 
-            size += sizes.sizeof(mutation.modifications.size());
-            for (Map.Entry<UUID,ColumnFamily> entry : mutation.modifications.entrySet())
+            size += sizes.sizeof(mutation.getModifications().size());
+            for (Map.Entry<UUID,ColumnFamily> entry : mutation.getModifications().entrySet())
                 size += ColumnFamily.serializer.serializedSize(entry.getValue(), TypeSizes.NATIVE, version);
 
             return size;

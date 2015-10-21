@@ -32,7 +32,7 @@ public class ViewManagerController implements Runnable {
 
 	public ViewManagerController(ViewManager vm,Cluster cluster, TaskDistributor td) {	
 		
-		System.out.println("I'm up");
+		System.out.println("Delta Controller is up");
 		retrieveLoadXmlHandlers();
 		parseXmlMapping();
 		stream = new Stream();
@@ -723,7 +723,7 @@ public class ViewManagerController implements Runnable {
 			}
 			
 			try {
-		        Thread.sleep(3000);
+		        Thread.sleep(1000);
 		    } catch (InterruptedException e) {
 		        // We've been interrupted: no more messages.
 		        return;

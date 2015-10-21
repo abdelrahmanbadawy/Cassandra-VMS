@@ -19,7 +19,7 @@
 			</Preagg>
 
 			<Preagg>
-				<name>preagg_agg_courses_faculty_ects_ectsEQ4</name>
+				<name>preagg_agg_courses_faculty_ects_ects_eq4</name>
 				<AggKey>faculty</AggKey>
 				<AggKeyType>text</AggKeyType>
 				<AggCol>ects</AggCol>

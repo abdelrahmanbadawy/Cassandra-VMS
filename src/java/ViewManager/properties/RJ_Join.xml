@@ -5,7 +5,7 @@
 		<nrUnit>1</nrUnit>
 		
 		<unit>
-			<reverseJoin>RJ_courses_student_faculty_faculty</reverseJoin>
+			<reverseJoin>rj_courses_student_faculty_faculty</reverseJoin>
 			<nrJoin>1</nrJoin>
 			<join>
 				<innerJoin>inner_join_courses_student_faculty_faculty</innerJoin>

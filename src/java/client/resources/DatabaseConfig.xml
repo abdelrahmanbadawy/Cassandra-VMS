@@ -78,7 +78,7 @@
 			<name>courses</name>
 			<columnNumber>3</columnNumber>
 			<primaryKey>
-				<type>varint</type>
+				<type>int</type>
 				<name>id</name>
 			</primaryKey>
 			<clusteringKey>

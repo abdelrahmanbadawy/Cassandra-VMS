@@ -5,7 +5,7 @@
 		<nrUnit>1</nrUnit>
 
 		<unit>
-			<reverseJoin>RJ_courses_student_faculty_faculty</reverseJoin>
+			<reverseJoin>rj_courses_student_faculty_faculty</reverseJoin>
 			<joinKey>faculty</joinKey>
 			<joinKeyType>text</joinKeyType>
 			<LeftTable>courses</LeftTable>
@@ -73,7 +73,7 @@
 					<index>0</index>
 
 					<inner>
-						<name> innerjoin_agg_courses_faculty_age</name>
+						<name>innerjoin_agg_courses_faculty_age</name>
 						<nrHaving>0</nrHaving>
 						<Having>
 						</Having>

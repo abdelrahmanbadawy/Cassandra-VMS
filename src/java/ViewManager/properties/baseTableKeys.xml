@@ -7,13 +7,13 @@
 		<table>
 			<name>courses</name>
 			<pkName>id</pkName>
-			<pkType>varint</pkType>
+			<pkType>int</pkType>
 		</table>
 		
 		<table>
 			<name>student</name>
 			<pkName>id</pkName>
-			<pkType>varint</pkType>
+			<pkType>int</pkType>
 		</table>
 	</tableSchema>
 </setup>

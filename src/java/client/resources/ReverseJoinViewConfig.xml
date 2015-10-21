@@ -8,7 +8,7 @@
 
 			<columnNumber>5</columnNumber>
 			<keyspace>test</keyspace>
-			<name>RJ_courses_student_faculty_faculty</name>
+			<name>rj_courses_student_faculty_faculty</name>
 
 			<primaryKey>
 				<type>text</type>
@@ -50,7 +50,7 @@
 
 			<columnNumber>5</columnNumber>
 			<keyspace>test</keyspace>
-			<name>RJ_courses_student_faculty_faculty_left_ectsEQ4</name>
+			<name>rj_courses_student_faculty_faculty_left_ects_eq4</name>
 
 			<primaryKey>
 				<type>text</type>

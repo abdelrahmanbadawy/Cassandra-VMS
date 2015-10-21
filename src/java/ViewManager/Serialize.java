@@ -38,7 +38,6 @@ public class Serialize {
 			e.printStackTrace();
 		}
 
-		System.out.println("size "+Bytes.toHexString(b.toByteArray()).length());
 		return Bytes.toHexString(b.toByteArray());
 
 	}
@@ -48,7 +47,6 @@ public class Serialize {
 
 		Stream stream = null;
 		bufferString = bufferString.trim();
-		System.out.println("size "+bufferString.length());
 		ByteBuffer buffer = Bytes.fromHexString(bufferString);
 
 		byte[] bytes = new byte[buffer.remaining()];

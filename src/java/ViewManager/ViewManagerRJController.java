@@ -59,7 +59,7 @@ public class ViewManagerRJController implements Runnable{
 		pkType = baseTableKeysConfig.getList("tableSchema.table.pkType");
 		rj_joinTables = VmXmlHandler.getInstance().getDeltaReverseJoinMapping()
 				.getList("mapping.unit.Join.name");
-
+		
 		rj_joinKeys = VmXmlHandler.getInstance().getDeltaReverseJoinMapping()
 				.getList("mapping.unit.Join.JoinKey");
 
@@ -74,10 +74,10 @@ public class ViewManagerRJController implements Runnable{
 		reverseTablesNames_AggJoinGroupBy = VmXmlHandler.getInstance()
 				.getRJAggJoinGroupByMapping()
 				.getList("mapping.unit.reverseJoin");
-		
+
 		reverseTablesNames_Join = VmXmlHandler.getInstance().getRjJoinMapping()
 				.getList("mapping.unit.reverseJoin");
-		
+
 		reverseTablesNames_AggJoin = VmXmlHandler.getInstance()
 				.getRjJoinMapping().getList("mapping.unit.reverseJoin");
 
@@ -668,14 +668,13 @@ public class ViewManagerRJController implements Runnable{
 
 
 	public boolean propagateRJ(JSONObject rjjson) {
-		
+
 		String type = rjjson.get("type").toString();
-		JSONObject data;
+		JSONObject data = null;
+		
 		if(type.equalsIgnoreCase("insert"))
 			data = (JSONObject) rjjson.get("data");
-		else
-			data = (JSONObject) rjjson.get("set_data");
-
+		
 		String bufferString = data.get("stream").toString();
 
 		stream = Serialize.deserializeStream(bufferString);
@@ -1104,7 +1103,7 @@ public class ViewManagerRJController implements Runnable{
 			}
 
 			try {
-				Thread.sleep(3000);
+				Thread.sleep(1000);
 			} catch (InterruptedException e) {
 				// We've been interrupted: no more messages.
 				return;
@@ -1119,20 +1118,9 @@ public class ViewManagerRJController implements Runnable{
 		String type = json.get("type").toString();
 		String table = json.get("table").toString();
 
-		if (table.contains("RJ_")) {
+		if (table.toLowerCase().contains("rj_")) {
 			if (type.equalsIgnoreCase("insert")){
 				JSONObject data = (JSONObject) json.get("data");
-				String bufferString = data.get("stream").toString();
-				Stream s = Serialize.deserializeStream(bufferString);
-				if(s.isDeleteOperation())
-					propagateDeleteRJ(json);
-				else
-					propagateRJ(json);
-			}
-
-			if (type.equalsIgnoreCase("update")){
-
-				JSONObject data = (JSONObject) json.get("set_data");
 				String bufferString = data.get("stream").toString();
 				Stream s = Serialize.deserializeStream(bufferString);
 				if(s.isDeleteOperation())

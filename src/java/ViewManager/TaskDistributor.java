@@ -64,7 +64,7 @@ public class TaskDistributor {
 
 	public void fillQueue(JSONObject json,int n){
 
-		
+
 
 		if(n==1){
 			rJ.add(json);
@@ -78,18 +78,18 @@ public class TaskDistributor {
 	}
 
 	public void processRequest(JSONObject json,String type,String table, long readPtr){
-		
+
 		json.put("readPtr", readPtr);
 
-		if (table.contains("groupby")) {
+		if (table.toLowerCase().contains("groupby")) {
 			if (type.equalsIgnoreCase("insert")||type.equalsIgnoreCase("update")){
 				fillQueue(json, 3);
 			}
-		}else if (table.contains("preagg_agg")) {
+		}else if (table.toLowerCase().contains("preagg_agg")) {
 			if (type.equalsIgnoreCase("insert")||type.equalsIgnoreCase("update")){
 				fillQueue(json, 2);
 			}
-		} else if (table.contains("RJ_")) {
+		} else if (table.toLowerCase().contains("rj_")) {
 			if (type.equalsIgnoreCase("insert")||type.equalsIgnoreCase("update")){
 				fillQueue(json, 1);
 			}

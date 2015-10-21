@@ -16,7 +16,7 @@ public class ViewManagerPreaggController implements Runnable{
 	TaskDistributor td;
 
 	public ViewManagerPreaggController(ViewManager vm,Cluster cluster,TaskDistributor td) {	
-		System.out.println("up preag");
+		System.out.println("Preagg Controller is up");
 		this.vm = vm;
 		this.cluster = cluster;
 		this.td = td;
@@ -222,7 +222,7 @@ public class ViewManagerPreaggController implements Runnable{
 			}
 
 			try {
-				Thread.sleep(3000);
+				Thread.sleep(1000);
 			} catch (InterruptedException e) {
 				// We've been interrupted: no more messages.
 				return;

@@ -15,7 +15,7 @@ public class ViewManagerGroupByController implements Runnable {
 	TaskDistributor td;
 
 	public ViewManagerGroupByController(ViewManager vm,Cluster cluster,TaskDistributor td) {	
-		System.out.println("up group by");
+		System.out.println("Group by Controller is up");
 		this.vm = vm;
 		this.cluster = cluster;
 		this.td = td;
@@ -182,7 +182,7 @@ public class ViewManagerGroupByController implements Runnable {
 			}
 			
 			try {
-		        Thread.sleep(3000);
+		        Thread.sleep(1000);
 		    } catch (InterruptedException e) {
 		        // We've been interrupted: no more messages.
 		        return;

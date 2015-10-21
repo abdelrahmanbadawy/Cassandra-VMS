@@ -10,7 +10,7 @@
 			<name>delta_courses</name>
 			 
 			<primaryKey>
-				<type>varint</type>
+				<type>int</type>
 				<name>id</name>
 			</primaryKey>
 			<column>
@@ -44,7 +44,7 @@
 			<name>delta_student</name>
 			 
 			<primaryKey>
-				<type>varint</type>
+				<type>int</type>
 				<name>id</name>
 			</primaryKey>
 			<column>

@@ -6,7 +6,7 @@
 		<unit>
 			<nrDelta>2</nrDelta>
 			<Join>
-				<name>RJ_courses_student_faculty_faculty_left_ectsEQ4</name>
+				<name>rj_courses_student_faculty_faculty_left_ects_eq4</name>
 				<JoinKey>faculty</JoinKey>
 				<JoinKey>faculty</JoinKey>
 				<type>text</type>
@@ -34,7 +34,7 @@
 		<unit>
 			<nrDelta>2</nrDelta>
 			<Join>
-				<name>RJ_courses_student_faculty_faculty</name>
+				<name>rj_courses_student_faculty_faculty</name>
 				<JoinKey>faculty</JoinKey>
 				<JoinKey>faculty</JoinKey>
 				<type>text</type>

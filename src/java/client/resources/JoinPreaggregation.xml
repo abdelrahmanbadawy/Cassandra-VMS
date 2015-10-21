@@ -4,7 +4,7 @@
 		<tableNumber>7</tableNumber>
 
 		<tableDefinition>
-			<baseTable>RJ_courses_student_faculty_faculty</baseTable>
+			<baseTable>rj_courses_student_faculty_faculty</baseTable>
 
 			<columnNumber>8</columnNumber>
 			<keyspace>test</keyspace>
@@ -67,7 +67,7 @@
 		</tableDefinition>
 		
 		<tableDefinition>
-			<baseTable>RJ_courses_student_faculty_faculty</baseTable>
+			<baseTable>rj_courses_student_faculty_faculty</baseTable>
 
 			<columnNumber>8</columnNumber>
 			<keyspace>test</keyspace>
@@ -132,7 +132,7 @@
 				
 
 		<tableDefinition>
-			<baseTable>RJ_courses_student_faculty_faculty</baseTable>
+			<baseTable>rj_courses_student_faculty_faculty</baseTable>
 
 			<columnNumber>6</columnNumber>
 			<keyspace>test</keyspace>
@@ -184,7 +184,7 @@
 		</tableDefinition>
 		
 		<tableDefinition>
-			<baseTable>RJ_courses_student_faculty_faculty</baseTable>
+			<baseTable>rj_courses_student_faculty_faculty</baseTable>
 
 			<columnNumber>6</columnNumber>
 			<keyspace>test</keyspace>
@@ -237,7 +237,7 @@
 		</tableDefinition>
 		
 		<tableDefinition>
-			<baseTable>RJ_courses_student_faculty_faculty</baseTable>
+			<baseTable>rj_courses_student_faculty_faculty</baseTable>
 
 			<columnNumber>6</columnNumber>
 			<keyspace>test</keyspace>
@@ -291,7 +291,7 @@
 		
 		
 		<tableDefinition>
-			<baseTable>RJ_courses_student_faculty_faculty</baseTable>
+			<baseTable>rj_courses_student_faculty_faculty</baseTable>
 
 			<columnNumber>6</columnNumber>
 			<keyspace>test</keyspace>
@@ -343,7 +343,7 @@
 		</tableDefinition>
 		
 		<tableDefinition>
-			<baseTable>RJ_courses_student_faculty_faculty</baseTable>
+			<baseTable>rj_courses_student_faculty_faculty</baseTable>
 
 			<columnNumber>6</columnNumber>
 			<keyspace>test</keyspace>

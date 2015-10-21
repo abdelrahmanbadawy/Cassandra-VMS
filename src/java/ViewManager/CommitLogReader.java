@@ -61,7 +61,7 @@ public class CommitLogReader {
 
 	private static void readCL() {
 
-		System.out.println("on change");
+		System.out.println("CL file has changed");
 		
 		String raw;
 		int counter = 0;
@@ -88,10 +88,8 @@ public class CommitLogReader {
 				String type = json.get("type").toString();
 				String table = json.get("table").toString();
 
-				System.out.println(table);
 				td.processRequest(json,type,table, readPtr);
-				System.out.println("back");
-
+				
 				if(counter<10){
 					raw = raf.readLine();
 					readPtr = raf.getFilePointer();

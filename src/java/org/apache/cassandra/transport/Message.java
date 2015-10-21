@@ -406,8 +406,8 @@ public abstract class Message {
 				QueryState qstate = connection.validateNewMessage(request.type,
 						connection.getVersion(), request.getStreamId());
 
-				logger.debug("Received: {}, v={}", request,
-						connection.getVersion());
+				/*logger.debug("Received: {}, v={}", request,
+						connection.getVersion());*/
 
 				response = request.execute(qstate);
 				response.setStreamId(request.getStreamId());
@@ -415,7 +415,7 @@ public abstract class Message {
 				connection.applyStateTransition(request.type, response.type);
 
 
-				boolean applied = true;
+				/*boolean applied = true;
 
 
 				if(response.toString().contains("[applied]") && response.toString().split("\n")[1].split(" ")[2].equals("false")){
@@ -437,15 +437,15 @@ public abstract class Message {
 								.contains("update") || (request
 										.toString().toLowerCase().contains("delete")))) {
 
-					this.parseInputForViewMaintenance(request.toString() + '\n');
+					//this.parseInputForViewMaintenance(request.toString() + '\n');
 
 				}
 
 				if(applied && request.toString().toLowerCase().contains("groupby") && (request.toString().toLowerCase().contains("insert")
 						|| request.toString().toLowerCase()
 						.contains("update") || (request
-								.toString().toLowerCase().contains("delete"))))
-					this.parseInputForViewMaintenance(request.toString() + '\n');
+								.toString().toLowerCase().contains("delete"))));
+					//this.parseInputForViewMaintenance(request.toString() + '\n');*/
 
 
 			} catch (Throwable t) {
@@ -458,12 +458,12 @@ public abstract class Message {
 				return;
 			}
 
-			logger.debug("Responding: {}, v={}", response,
-					connection.getVersion());
+			/*logger.debug("Responding: {}, v={}", response,
+					connection.getVersion());*/
 			flush(new FlushItem(ctx, response, request.getSourceFrame()));
 		}
 
-		private void parseInputForViewMaintenance(String rawInput) {
+		/*private void parseInputForViewMaintenance(String rawInput) {
 
 			transactionId++;
 
@@ -480,13 +480,13 @@ public abstract class Message {
 
 				String[] splitRaw = rawInput.split(" WHERE ");
 				String rawSetString = splitRaw[0].split(" SET ")[1];
-				
+
 				String[] splitRawSetString = rawSetString.split(", ");
 
 				String[] set_data_columns = new String[splitRawSetString.length];
 				String[] set_data_values = new String[splitRawSetString.length];
 
-		
+
 				for (int i = 0; i < splitRawSetString.length; i++) {
 					String[] set = splitRawSetString[i].split("= ");
 					set_data_columns[i] = set[0];
@@ -604,7 +604,7 @@ public abstract class Message {
 		/*
 		 * Converts Insert query to JSON Object
 		 */
-		private JSONObject convertInsertToJSON(String type, String ks,
+		/*	private JSONObject convertInsertToJSON(String type, String ks,
 				String table, String[] columns, String[] values, long tid) {
 			JSONObject jsonObject = new JSONObject();
 
@@ -625,7 +625,7 @@ public abstract class Message {
 		/*
 		 * Converts Update query to JSON Object
 		 */
-		private JSONObject convertUpdateToJSON(String type, String ks,
+		/*private JSONObject convertUpdateToJSON(String type, String ks,
 				String table, String[] condition_columns,
 				String[] condition_values, String[] set_data_columns,
 				String[] set_data_values, long tid) {
@@ -649,12 +649,12 @@ public abstract class Message {
 			jsonObject.put("condition", condition);
 
 			return jsonObject;
-		}
+		}*/
 
 		/*
 		 * Converts delete query to JSON Object
 		 */
-		private JSONObject convertDeleteToJSON(String type, String ks,
+		/*	private JSONObject convertDeleteToJSON(String type, String ks,
 				String table, String[] condition_columns,
 				String inValues, long tid) {
 
@@ -673,7 +673,7 @@ public abstract class Message {
 
 			return jsonObject;
 
-		}
+		}*/
 
 		private void flush(FlushItem item) {
 			EventLoop loop = item.ctx.channel().eventLoop();
