@@ -56,6 +56,7 @@ public class ViewManagerGroupByController implements Runnable {
 		JSONObject deltaJSON = stream.getDeltaJSON();
 
 		deltaJSON.put("readPtr", ptr);
+		deltaJSON.put("recovery_mode", json.get("recovery_mode").toString());
 
 		if(!stream.isDeleteOperation()){
 			propagateGroupByUpdate(deltaJSON,table, ptr);

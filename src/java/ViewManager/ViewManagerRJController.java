@@ -245,6 +245,7 @@ public class ViewManagerRJController implements Runnable{
 		JSONObject json = stream.getDeltaJSON();
 		
 		json.put("readPtr", rjjson.get("readPtr"));
+		json.put("recovery_mode", rjjson.get("recovery_mode").toString());
 
 		String tableName = stream.getBaseTable();
 		int indexBaseTableName = baseTableName.indexOf(stream.getBaseTable());
@@ -701,7 +702,7 @@ public class ViewManagerRJController implements Runnable{
 		JSONObject json = stream.getDeltaJSON();
 
 		json.put("readPtr", rjjson.get("readPtr"));
-		
+		json.put("recovery_mode", rjjson.get("recovery_mode").toString());
 		
 		String tableName = stream.getBaseTable();
 		int indexBaseTableName = baseTableName.indexOf(stream.getBaseTable());

@@ -38,6 +38,15 @@ public class JoinAggGroupByHelper {
 		String aggKeyType = row.getType(0);
 		String aggKeyValue = Utils.getColumnValueFromDeltaStream(row, aggKeyName, aggKeyType, "");
 
+		if(json.get("recovery_mode").equals("on")){
+			Row rs = selectStatement( joinAggTable, aggKeyName, aggKeyValue,json);
+			
+			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier))
+					>= Long.parseLong(json.get("readPtr").toString()))
+				return ;
+			
+		}
+		
 		List<Float> myList = new ArrayList<Float>();
 		myList.addAll(row.getList("agg_list"));
 
@@ -77,6 +86,15 @@ public class JoinAggGroupByHelper {
 		String aggKeyName = row.getName(0);
 		String aggKeyType = row.getType(0);
 		String aggKeyValue = Utils.getColumnValueFromDeltaStream(row, aggKeyName, aggKeyType, "");
+		
+		if(json.get("recovery_mode").equals("on")){
+			Row rs = selectStatement( joinAggTable, aggKeyName, aggKeyValue,json);
+			
+			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier))
+					>= Long.parseLong(json.get("readPtr").toString()))
+				return ;
+			
+		}
 
 		List<Float> myList = new ArrayList<Float>();
 		myList.addAll(row.getList("agg_list"));
@@ -113,6 +131,15 @@ public class JoinAggGroupByHelper {
 
 	public static boolean updateStatement(Float sum, int count, Float avg, Float min, Float max, List<Float> myList, String key, String keyValue,
 			String preaggTable, JSONObject json, Float oldSum, String blob, String identifier){
+		
+		if(json.get("recovery_mode").equals("on")){
+			Row rs = selectStatement( preaggTable, key, keyValue,json);
+			
+			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier))
+					>= Long.parseLong(json.get("readPtr").toString()))
+				return true;
+			
+		}
 
 		StringBuilder updateQuery = new StringBuilder("UPDATE ");
 		updateQuery.append((String) json.get("keyspace"))
@@ -152,9 +179,10 @@ public class JoinAggGroupByHelper {
 	public static Row selectStatement(String joinAggTable,String aggKeyName,String aggKeyValue,JSONObject json){
 
 		StringBuilder selectQuery1 = new StringBuilder("SELECT ").append(aggKeyName+", ").append("agg_list")
-				.append(", sum, count,average, min, max ").append(" FROM ").append((String) json.get("keyspace")).append(".")
+				.append(", sum, count,average, min, max, signature").append(" FROM ").append((String) json.get("keyspace")).append(".")
 				.append(joinAggTable).append(" where ").append(aggKeyName + " = ").append(aggKeyValue).append(";");
 
+		System.out.println(selectQuery1);
 		Row theRow = null;
 		try {
 			Session session = currentCluster.connect();

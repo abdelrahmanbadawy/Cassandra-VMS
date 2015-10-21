@@ -240,6 +240,8 @@ public class ViewManager {
 
 		Row theRow = PreaggregationHelper.selectStatement(json, preaggTable,
 				aggKey, aggKeyValue).one();
+		
+		
 
 		if (theRow != null) {
 
@@ -461,6 +463,8 @@ public class ViewManager {
 			else
 				aggColValue_old = Float.valueOf(temp);
 		}
+
+		
 
 		// 2. if AggKey hasnt been updated or first insertion
 		if (sameKeyValue || override) {
