@@ -65,7 +65,7 @@ public class DeleteJoinHelper {
 
 				}
 
-				if (fromDelete) {
+				/*if (fromDelete) {
 					JSONObject condition = (JSONObject) json.get("condition");
 					Object[] hm = condition.keySet().toArray();
 
@@ -73,7 +73,7 @@ public class DeleteJoinHelper {
 						//myMap1.remove(entry.getKey());
 						continue;
 					}
-				}
+				}*/
 
 				String tuple = "(" + leftPkValue + "," + 0 + ")";
 
@@ -126,7 +126,7 @@ public class DeleteJoinHelper {
 
 				}
 
-				if (fromDelete) {
+				/*if (fromDelete) {
 					JSONObject condition = (JSONObject) json.get("condition");
 					Object[] hm = condition.keySet().toArray();
 
@@ -134,7 +134,7 @@ public class DeleteJoinHelper {
 			//			myMap2.remove(entry.getKey());
 						continue;
 					}
-				}
+				}*/
 
 				String tuple = "(" + 0 + "," + rightPkValue + ")";
 

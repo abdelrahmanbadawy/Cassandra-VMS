@@ -15,6 +15,7 @@ import com.datastax.driver.core.Row;
 public class Stream implements Serializable {
 
 	//JoinAggGroupBy
+	private CustomizedRow updatedJoinAggGroupByRowOldState;
 	private CustomizedRow updatedJoinAggGroupByRow;
 	private CustomizedRow updatedJoinAggGroupByRowDeleted;
 
@@ -288,6 +289,17 @@ public class Stream implements Serializable {
 
 	public void setUpdatedPreaggRowOldState(CustomizedRow updatedPreaggRowOldState) {
 		this.updatedPreaggRowOldState = updatedPreaggRowOldState;
+	}
+
+
+	public CustomizedRow getUpdatedJoinAggGroupByRowOldState() {
+		return updatedJoinAggGroupByRowOldState;
+	}
+
+
+	public void setUpdatedJoinAggGroupByRowOldState(
+			CustomizedRow updatedJoinAggGroupByRowOldState) {
+		this.updatedJoinAggGroupByRowOldState = updatedJoinAggGroupByRowOldState;
 	}
 
 }

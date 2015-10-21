@@ -22,7 +22,7 @@ public class ViewManagerGroupByController implements Runnable {
 		this.vm = vm;
 		this.cluster = cluster;
 		this.td = td;
-		
+
 		parseXML();	
 	}
 
@@ -38,7 +38,7 @@ public class ViewManagerGroupByController implements Runnable {
 	public void decideGroupBy(JSONObject json) {
 
 		String table = json.get("table").toString();
-		
+
 		JSONObject data = (JSONObject) json.get("data");
 		if(data==null)
 			data = (JSONObject) json.get("set_data");
@@ -54,7 +54,7 @@ public class ViewManagerGroupByController implements Runnable {
 
 		stream = Serialize.deserializeStream(bufferString);
 		JSONObject deltaJSON = stream.getDeltaJSON();
-		
+
 		deltaJSON.put("readPtr", ptr);
 
 		if(!stream.isDeleteOperation()){
@@ -108,21 +108,26 @@ public class ViewManagerGroupByController implements Runnable {
 						if(result){
 							JoinAggGroupByHelper.insertStatement(json, havingTableName.get(j), stream.getUpdatedJoinAggGroupByRow(), vm.getIdentifier());
 						}else{
-							String pkName = stream.getUpdatedJoinAggGroupByRow().getName(0);
-							String pkType = stream.getUpdatedJoinAggGroupByRow().getType(0);
-							String pkValue = Utils.getColumnValueFromDeltaStream(stream.getUpdatedJoinAggGroupByRow(), pkName, pkType, "");
-							Utils.deleteEntireRowWithPK((String)json.get("keyspace"), havingTableName.get(j), pkName,pkValue);
+							if(!CustomizedRow.rowIsNull(stream.getUpdatedJoinAggGroupByRowOldState())){
+								boolean result_old = Utils.evalueJoinAggConditions(stream.getUpdatedJoinAggGroupByRowOldState(), aggFct.get(j), operation.get(j), value.get(j));
+								if(result_old){
+									String pkName = stream.getUpdatedJoinAggGroupByRow().getName(0);
+									String pkType = stream.getUpdatedJoinAggGroupByRow().getType(0);
+									String pkValue = Utils.getColumnValueFromDeltaStream(stream.getUpdatedJoinAggGroupByRow(), pkName, pkType, "");
+									Utils.deleteEntireRowWithPK((String)json.get("keyspace"), havingTableName.get(j), pkName,pkValue);
+								}
+							}
 						}
 					}
 				}
 			}
 		}
 		System.out.println("saving execPtrGB "+ ptr);
-		
-		
+
+
 		VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtrGB", ptr);
 		try {
-			
+
 			VmXmlHandler.getInstance().getVMProperties().save(VmXmlHandler.getInstance().getVMProperties().getFile());
 		} catch (ConfigurationException e) {
 			// TODO Auto-generated catch block
@@ -174,21 +179,26 @@ public class ViewManagerGroupByController implements Runnable {
 						if(result){
 							JoinAggGroupByHelper.insertStatement(json, havingTableName.get(j), stream.getUpdatedJoinAggGroupByRow(), vm.getIdentifier());
 						}else{
-							String pkName = stream.getUpdatedJoinAggGroupByRow().getName(0);
-							String pkType = stream.getUpdatedJoinAggGroupByRow().getType(0);
-							String pkValue = Utils.getColumnValueFromDeltaStream(stream.getUpdatedJoinAggGroupByRow(), pkName, pkType, "");
-							Utils.deleteEntireRowWithPK((String)json.get("keyspace"), havingTableName.get(j), pkName,pkValue);
+							if(!CustomizedRow.rowIsNull(stream.getUpdatedJoinAggGroupByRowOldState())){
+								boolean result_old = Utils.evalueJoinAggConditions(stream.getUpdatedJoinAggGroupByRowOldState(), aggFct.get(j), operation.get(j), value.get(j));
+								if(result_old){
+									String pkName = stream.getUpdatedJoinAggGroupByRow().getName(0);
+									String pkType = stream.getUpdatedJoinAggGroupByRow().getType(0);
+									String pkValue = Utils.getColumnValueFromDeltaStream(stream.getUpdatedJoinAggGroupByRow(), pkName, pkType, "");
+									Utils.deleteEntireRowWithPK((String)json.get("keyspace"), havingTableName.get(j), pkName,pkValue);
+								}
+							}
 						}
 					}
 				}
 			}
 		}
 		System.out.println("saving execPtrGB "+ ptr);
-		
-		
+
+
 		VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtrGB", ptr);
 		try {
-			
+
 			VmXmlHandler.getInstance().getVMProperties().save(VmXmlHandler.getInstance().getVMProperties().getFile());
 		} catch (ConfigurationException e) {
 			// TODO Auto-generated catch block
@@ -199,23 +209,23 @@ public class ViewManagerGroupByController implements Runnable {
 	}
 
 
-	
+
 	@Override
 	public void run() {
-		
+
 		while(true){
-			
+
 			while(!td.groupBy.isEmpty()){
 				JSONObject head = td.groupBy.remove();
 				decideGroupBy(head);
 			}
-			
+
 			try {
-		        Thread.sleep(1000);
-		    } catch (InterruptedException e) {
-		        // We've been interrupted: no more messages.
-		        return;
-		    }
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// We've been interrupted: no more messages.
+				return;
+			}
 		}	
 	}
 

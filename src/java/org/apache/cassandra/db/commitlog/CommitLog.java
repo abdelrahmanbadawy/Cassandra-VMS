@@ -293,19 +293,21 @@ public class CommitLog implements CommitLogMBean
 
 			if( table.toLowerCase().contains("selection")
 					||  table.toLowerCase().contains("delta_")
-					||  table.toLowerCase().contains("inner_")
+					||  table.toLowerCase().contains("inner_join")
 					||  table.toLowerCase().contains("having_")
-					||  table.toLowerCase().contains("leftjoin_")
-					||  table.toLowerCase().contains("rightjoin_")
-					||  table.toLowerCase().contains("left_")
-					||  table.toLowerCase().contains("right_")
-					||  table.toLowerCase().contains("join_agg"))
+					||  (table.toLowerCase().contains("leftjoin_") && !(table.toLowerCase().contains("groupby")))
+					||  (table.toLowerCase().contains("rightjoin_")  && !(table.toLowerCase().contains("groupby")))
+					||  (table.toLowerCase().contains("innerjoin_")  && !(table.toLowerCase().contains("groupby")))
+					||  table.toLowerCase().contains("left_join")
+					||  table.toLowerCase().contains("right_join"))
+				//					||  table.toLowerCase().contains("join_agg"))
 				return;
 
 
 			if(cf.deletionInfo().getTopLevelDeletion().markedForDeleteAt>0)
 				delete = true;
 
+			
 			if(delete){
 				if(table.contains("preagg_agg") || table.contains("rj") || table.contains("groupby"))
 					return;
@@ -354,11 +356,19 @@ public class CommitLog implements CommitLogMBean
 			values.add(pkValue);
 
 			int i = 0;
+			
+			if(cf.getColumnCount()==1)
+				return;
+
+			logger.info("zeft "+table+" "+cf.getColumnCount());
+			
 			for (Cell cell : cf){
 				try {
+
 					if(!cell.name().equals(pkName) && i!=0){
 
-						if(cfm.comparator.getString(cell.name()).equals("signature") && cf.getColumnCount()==2)
+						int oba = cf.getColumnCount(); 
+						if(cfm.comparator.getString(cell.name()).contains("signature") && cf.getColumnCount()==2)
 							return;
 
 						columns.add(cfm.comparator.getString(cell.name()));
@@ -377,13 +387,12 @@ public class CommitLog implements CommitLogMBean
 					logger.error("Exception={}.", e.getMessage());
 				}
 			}
+
+			if(!delete)
+				commitLogger.info(convertInsertUpdateToJSON(keyspace, table, columns, values, tid).toJSONString());
+			else if(delete)
+				commitLogger.info(convertDeleteToJSON(keyspace,table,pkName,pkValue,tid).toJSONString());
 		}
-
-
-		if(!delete)
-			commitLogger.info(convertInsertUpdateToJSON(keyspace, table, columns, values, tid).toJSONString());
-		else
-			commitLogger.info(convertDeleteToJSON(keyspace,table,pkName,pkValue,tid).toJSONString());
 
 	}
 

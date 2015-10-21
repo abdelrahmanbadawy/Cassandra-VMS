@@ -204,6 +204,9 @@ public class JoinAggGroupByHelper {
 
 		Row theRow = Utils.selectAllStatement((String) json.get("keyspace"), joinAggTable, aggKeyName, aggKeyValue);
 
+		stream.setUpdatedJoinAggGroupByRowOldState(new CustomizedRow(theRow));
+
+		
 		if(theRow==null){
 			return true;
 		}else if(theRow.getInt("count")==1){
@@ -286,6 +289,8 @@ public class JoinAggGroupByHelper {
 			e.printStackTrace();
 
 		}
+
+		stream.setUpdatedJoinAggGroupByRowOldState(new CustomizedRow(theRow));
 
 		//First Insertion
 		if(theRow==null){
@@ -386,7 +391,8 @@ public class JoinAggGroupByHelper {
 
 		}
 
-
+		stream.setUpdatedJoinAggGroupByRowOldState(new CustomizedRow(theRow));
+		
 		//First Insertion
 		if(theRow==null){
 			if(!aggColValue.equals("null") ){
@@ -500,6 +506,7 @@ public class JoinAggGroupByHelper {
 
 		}
 
+		stream.setUpdatedJoinAggGroupByRowOldState(new CustomizedRow(theRow));
 
 		//Update
 		myList.addAll(theRow.getList("agg_list", Float.class));
