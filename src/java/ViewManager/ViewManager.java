@@ -222,7 +222,7 @@ public class ViewManager {
 		float average = 0;
 		float min = Float.MAX_VALUE;
 		float max = -Float.MAX_VALUE;
-		
+
 		if(stream.getDeltaDeletedRow()==null){
 			stream.setDeltaDeletedRow(stream.getDeltaUpdatedRow());
 		}
@@ -267,7 +267,7 @@ public class ViewManager {
 
 				deleteEntireRowWithPK((String) json.get("keyspace"),
 						preaggTable, aggKey, aggKeyValue);
-				
+
 				stream.setDeleteOperation(false);
 
 			} else {
@@ -483,6 +483,9 @@ public class ViewManager {
 				Row theRow1 = rs.one();
 				HashMap<String, String> myMap = new HashMap<>();
 
+				CustomizedRow crowOld = new CustomizedRow(theRow1);
+				stream.setUpdatedPreaggRowOldState(crowOld);
+
 				// 2.c If row retrieved is null, then this is the first
 				// insertion
 				// for this given Agg key
@@ -529,6 +532,10 @@ public class ViewManager {
 					preaggTable, aggKey, aggKeyValue_old);
 
 			Row theRow = PreAggMap.one();
+
+			CustomizedRow crowOld = new CustomizedRow(theRow);
+			stream.setUpdatedPreaggRowOldState(crowOld);
+
 			if (theRow != null) {
 
 				// 3.check size of map for given old agg key
@@ -674,7 +681,7 @@ public class ViewManager {
 		myList.remove(0);
 		// myList.remove(joinKeyValue);
 		myMap.put(pk, myList.toString());
-		
+
 		int counter;
 
 		// already exists
@@ -687,7 +694,7 @@ public class ViewManager {
 
 			myMap.putAll(tempMapImmutable);
 			myMap.put(pk, myList.toString());
-			
+
 			counter = theRow.getInt("counter");
 
 		}
@@ -700,201 +707,201 @@ public class ViewManager {
 				&& !joinKeyValue.equals(oldJoinKeyValue)) {
 
 			int counter2 ;
-			
+
 			boolean loop = true;
 			while(loop){
-				
-			// The row that contains the old join key value
-			Row row_old_join_value = Utils.selectAllStatement(keyspace,
-					joinTable, joinKeyName, oldJoinKeyValue);
-			CustomizedRow crow = new CustomizedRow(row_old_join_value);
-			if(row_old_join_value==null){
-				crow = CustomizedRow.constructRJRow(joinKeyName, oldJoinKeyValue,joinKeyType,
-						new HashMap<String, String>(), new HashMap<String, String>());
-				counter2 = -1;
+
+				// The row that contains the old join key value
+				Row row_old_join_value = Utils.selectAllStatement(keyspace,
+						joinTable, joinKeyName, oldJoinKeyValue);
+				CustomizedRow crow = new CustomizedRow(row_old_join_value);
+				if(row_old_join_value==null){
+					crow = CustomizedRow.constructRJRow(joinKeyName, oldJoinKeyValue,joinKeyType,
+							new HashMap<String, String>(), new HashMap<String, String>());
+					counter2 = -1;
+				}
+				else
+					counter2 = row_old_join_value.getInt("counter");
+
+				stream.setReverseJoinUpadteOldRow(crow);
+
+				HashMap<String, String> myMap2 = new HashMap<String, String>();
+
+				if(row_old_join_value!=null){
+					Map<String, String> tempMapImmutable2 = row_old_join_value.getMap(
+							"list_item" + column, String.class, String.class);
+
+
+
+					myMap2.putAll(tempMapImmutable2);
+					// delete this from the other row
+					myMap2.remove(pk);
+
+
+				}
+
+				// new updated row
+				CustomizedRow newcr = null;
+
+				if (column == 1)
+					newcr = CustomizedRow.constructRJRow(joinKeyName, oldJoinKeyValue,joinKeyType,
+							myMap2, crow.getMap("list_item2"));
+				else
+					newcr = CustomizedRow.constructRJRow(joinKeyName, oldJoinKeyValue,joinKeyType,
+							crow.getMap("list_item1"), myMap2);
+
+				stream.setReverseJoinUpdateNewRow(newcr);
+
+
+				boolean tempBool = ReverseJoinHelper.insertStatement(joinTable, keyspace, joinKeyName,
+						oldJoinKeyValue, column, myMap2, stream, counter2);
+
+				if(!tempBool)
+					continue;
+				else
+					loop = false;
+
+
+				// check if all maps are empty --> remove the row
+				boolean allNull = true;
+
+				if (myMap2.size() == 0 && row_old_join_value!=null) {
+
+					for (int k = 0; k < baseTables.size() && allNull; k++) {
+						if (column != k + 1
+								&& row_old_join_value.getMap("list_item" + (k + 1),
+										String.class, String.class).size() != 0) {
+							allNull = false;
+
+						}
+					}
+				} else{
+					if(row_old_join_value!=null){
+						allNull = false;
+					}
+				}
+
+				// all entries are nulls
+				if (allNull) {
+					Utils.deleteEntireRowWithPK(keyspace, joinTable, joinKeyName,
+							oldJoinKeyValue, counter+1);
+				}
 			}
-			else
-				counter2 = row_old_join_value.getInt("counter");
 
-			stream.setReverseJoinUpadteOldRow(crow);
+		}
+		boolean loop = true;
+		while(loop){
+			CustomizedRow crow2;
+			if (theRow != null) {
+				crow2 = new CustomizedRow(theRow);
 
-			HashMap<String, String> myMap2 = new HashMap<String, String>();
-
-			if(row_old_join_value!=null){
-				Map<String, String> tempMapImmutable2 = row_old_join_value.getMap(
-						"list_item" + column, String.class, String.class);
-
-
-
-				myMap2.putAll(tempMapImmutable2);
-				// delete this from the other row
-				myMap2.remove(pk);
-				
-				
+			} else {
+				crow2 = CustomizedRow.constructRJRow(joinKeyName,joinKeyValue ,joinKeyType,
+						new HashMap<String, String>(),
+						new HashMap<String, String>());
 			}
+			stream.setReverseJoinUpadteOldRow(crow2);
 
+
+
+			// Set the rj updated row for join updates
 			// new updated row
 			CustomizedRow newcr = null;
 
-			if (column == 1)
-				newcr = CustomizedRow.constructRJRow(joinKeyName, oldJoinKeyValue,joinKeyType,
-						myMap2, crow.getMap("list_item2"));
-			else
-				newcr = CustomizedRow.constructRJRow(joinKeyName, oldJoinKeyValue,joinKeyType,
-						crow.getMap("list_item1"), myMap2);
+			if (theRow != null) {
+				if (column == 1)
+					newcr = CustomizedRow.constructRJRow(joinKeyName, joinKeyValue,joinKeyType,
+							myMap, crow2.getMap("list_item2"));
+				else
+					newcr = CustomizedRow.constructRJRow(joinKeyName, joinKeyValue,joinKeyType,
+							crow2.getMap("list_item1"), myMap);
+			} else {
+				if (column == 1)
+					newcr = CustomizedRow.constructRJRow(joinKeyName, joinKeyValue,joinKeyType,
+							myMap, new HashMap<String, String>());
+				else
+					newcr = CustomizedRow.constructRJRow(joinKeyName, joinKeyValue,joinKeyType,
+							new HashMap<String, String>(), myMap);
+			}
 
 			stream.setReverseJoinUpdateNewRow(newcr);
 
 
-			boolean tempBool = ReverseJoinHelper.insertStatement(joinTable, keyspace, joinKeyName,
-					oldJoinKeyValue, column, myMap2, stream, counter2);
-			
-			if(!tempBool)
-				continue;
-			else
+			if(ReverseJoinHelper.insertStatement(joinTable, keyspace, joinKeyName,
+					joinKeyValue, column, myMap, stream, counter)){
 				loop = false;
-			
-
-			// check if all maps are empty --> remove the row
-			boolean allNull = true;
-
-			if (myMap2.size() == 0 && row_old_join_value!=null) {
-
-				for (int k = 0; k < baseTables.size() && allNull; k++) {
-					if (column != k + 1
-							&& row_old_join_value.getMap("list_item" + (k + 1),
-									String.class, String.class).size() != 0) {
-						allNull = false;
-
-					}
-				}
-			} else{
-				if(row_old_join_value!=null){
-					allNull = false;
-				}
 			}
+			else{
 
-			// all entries are nulls
-			if (allNull) {
-				Utils.deleteEntireRowWithPK(keyspace, joinTable, joinKeyName,
-						oldJoinKeyValue, counter+1);
-			}
-		}
+				theRow = Utils.selectAllStatement(keyspace, joinTable, joinKeyName,
+						joinKeyValue);
 
-	}
-		boolean loop = true;
-		while(loop){
-		CustomizedRow crow2;
-		if (theRow != null) {
-			crow2 = new CustomizedRow(theRow);
+				myList = new ArrayList<String>();
 
-		} else {
-			crow2 = CustomizedRow.constructRJRow(joinKeyName,joinKeyValue ,joinKeyType,
-					new HashMap<String, String>(),
-					new HashMap<String, String>());
-		}
-		stream.setReverseJoinUpadteOldRow(crow2);
+				for (int i = 0; i < deltaUpdatedRow.colDefSize; i++) {
 
-		
+					switch (deltaUpdatedRow.getType(i)) {
 
-		// Set the rj updated row for join updates
-		// new updated row
-		CustomizedRow newcr = null;
+					case "text":
+						if (!deltaUpdatedRow.getName(i).contains("_old")) {
+							myList.add("'" + deltaUpdatedRow.getString(i) + "'");
+						}
 
-		if (theRow != null) {
-			if (column == 1)
-				newcr = CustomizedRow.constructRJRow(joinKeyName, joinKeyValue,joinKeyType,
-						myMap, crow2.getMap("list_item2"));
-			else
-				newcr = CustomizedRow.constructRJRow(joinKeyName, joinKeyValue,joinKeyType,
-						crow2.getMap("list_item1"), myMap);
-		} else {
-			if (column == 1)
-				newcr = CustomizedRow.constructRJRow(joinKeyName, joinKeyValue,joinKeyType,
-						myMap, new HashMap<String, String>());
-			else
-				newcr = CustomizedRow.constructRJRow(joinKeyName, joinKeyValue,joinKeyType,
-						new HashMap<String, String>(), myMap);
-		}
+						break;
 
-		stream.setReverseJoinUpdateNewRow(newcr);
+					case "int":
+						if (!deltaUpdatedRow.getName(i).contains("_old")) {
+							myList.add("" + deltaUpdatedRow.getInt(i));
+						}
+						break;
 
+					case "varint":
+						if (!deltaUpdatedRow.getName(i).contains("_old")) {
+							myList.add("" + deltaUpdatedRow.getVarint(i));
+						}
+						break;
 
-		if(ReverseJoinHelper.insertStatement(joinTable, keyspace, joinKeyName,
-				joinKeyValue, column, myMap, stream, counter)){
-			loop = false;
-		}
-		else{
-			
-			 theRow = Utils.selectAllStatement(keyspace, joinTable, joinKeyName,
-					joinKeyValue);
+					case "varchar":
+						if (!deltaUpdatedRow.getName(i).contains("_old")) {
+							myList.add("'" + deltaUpdatedRow.getString(i) + "'");
+						}
+						break;
 
-			 myList = new ArrayList<String>();
-
-			for (int i = 0; i < deltaUpdatedRow.colDefSize; i++) {
-
-				switch (deltaUpdatedRow.getType(i)) {
-
-				case "text":
-					if (!deltaUpdatedRow.getName(i).contains("_old")) {
-						myList.add("'" + deltaUpdatedRow.getString(i) + "'");
+					case "float":
+						if (!deltaUpdatedRow.getName(i).contains("_old")) {
+							myList.add("" + deltaUpdatedRow.getFloat(i));
+						}
+						break;
 					}
 
-					break;
-
-				case "int":
-					if (!deltaUpdatedRow.getName(i).contains("_old")) {
-						myList.add("" + deltaUpdatedRow.getInt(i));
-					}
-					break;
-
-				case "varint":
-					if (!deltaUpdatedRow.getName(i).contains("_old")) {
-						myList.add("" + deltaUpdatedRow.getVarint(i));
-					}
-					break;
-
-				case "varchar":
-					if (!deltaUpdatedRow.getName(i).contains("_old")) {
-						myList.add("'" + deltaUpdatedRow.getString(i) + "'");
-					}
-					break;
-
-				case "float":
-					if (!deltaUpdatedRow.getName(i).contains("_old")) {
-						myList.add("" + deltaUpdatedRow.getFloat(i));
-					}
-					break;
 				}
 
-			}
-
-			 myMap = new HashMap<String, String>();
-			 pk = myList.get(0);
-			myList.remove(0);
-			// myList.remove(joinKeyValue);
-			myMap.put(pk, myList.toString());
-			
-			
-
-			// already exists
-			if (theRow != null) {
-
-				Map<String, String> tempMapImmutable = theRow.getMap("list_item"
-						+ column, String.class, String.class);
-
-				System.out.println(tempMapImmutable);
-
-				myMap.putAll(tempMapImmutable);
+				myMap = new HashMap<String, String>();
+				pk = myList.get(0);
+				myList.remove(0);
+				// myList.remove(joinKeyValue);
 				myMap.put(pk, myList.toString());
-				
-				counter = theRow.getInt("counter");
+
+
+
+				// already exists
+				if (theRow != null) {
+
+					Map<String, String> tempMapImmutable = theRow.getMap("list_item"
+							+ column, String.class, String.class);
+
+					System.out.println(tempMapImmutable);
+
+					myMap.putAll(tempMapImmutable);
+					myMap.put(pk, myList.toString());
+
+					counter = theRow.getInt("counter");
+
+				}
+				else
+					counter = -1;
 
 			}
-			else
-				counter = -1;
-			
-		}
 
 		}
 
@@ -1425,108 +1432,108 @@ public class ViewManager {
 			String joinKeyType, int column) {
 
 		setReverseJoinTableName(joinTable);
-		
+
 		if(stream.getDeltaDeletedRow()==null){
 			stream.setDeltaDeletedRow(stream.getDeltaUpdatedRow());
 		}
 
 		String joinKeyValue = Utils.getColumnValueFromDeltaStream(
 				stream.getDeltaDeletedRow(), joinKeyName, joinKeyType, "_new");
-		
+
 		boolean loop = true;
-		
+
 		while(loop){
-			
-
-		Row theRow = Utils.selectAllStatement(keyspace, joinTable, joinKeyName,
-				joinKeyValue);
 
 
-		CustomizedRow crow = new CustomizedRow(theRow);
-		stream.setRevereJoinDeleteOldRow(crow);
+			Row theRow = Utils.selectAllStatement(keyspace, joinTable, joinKeyName,
+					joinKeyValue);
 
-		HashMap<String, String> myMap = null;
 
-		String pkType = stream.getDeltaDeletedRow().getType(0);
-		String pkName = stream.getDeltaDeletedRow().getName(0);
-		String pk = Utils.getColumnValueFromDeltaStream(
-				stream.getDeltaDeletedRow(), pkName, pkType, "");
+			CustomizedRow crow = new CustomizedRow(theRow);
+			stream.setRevereJoinDeleteOldRow(crow);
 
-		// already exists
-		if (theRow != null) {
+			HashMap<String, String> myMap = null;
 
-			Map<String, String> tempMapImmutable = theRow.getMap("list_item"
-					+ column, String.class, String.class);
+			String pkType = stream.getDeltaDeletedRow().getType(0);
+			String pkName = stream.getDeltaDeletedRow().getName(0);
+			String pk = Utils.getColumnValueFromDeltaStream(
+					stream.getDeltaDeletedRow(), pkName, pkType, "");
 
-			System.out.println(tempMapImmutable);
-			
-			int counter = theRow.getInt("counter");
+			// already exists
+			if (theRow != null) {
 
-			if (tempMapImmutable.size() > 1) {
-				myMap = new HashMap<String, String>();
-				myMap.putAll(tempMapImmutable);
-				myMap.remove(pk);
-			}
+				Map<String, String> tempMapImmutable = theRow.getMap("list_item"
+						+ column, String.class, String.class);
 
-			// new updated row
-			CustomizedRow newcr = null;
+				System.out.println(tempMapImmutable);
 
-			if (column == 1){
-				if(myMap==null){
-					newcr = CustomizedRow.constructRJRow(joinKeyName, joinKeyValue,joinKeyType,
-							new HashMap<String, String>(), crow.getMap("list_item2"));
-				}else{
-					newcr = CustomizedRow.constructRJRow(joinKeyName, joinKeyValue,joinKeyType,
-							myMap, crow.getMap("list_item2"));
+				int counter = theRow.getInt("counter");
+
+				if (tempMapImmutable.size() > 1) {
+					myMap = new HashMap<String, String>();
+					myMap.putAll(tempMapImmutable);
+					myMap.remove(pk);
 				}
-			}else{
-				if(myMap==null){
-					newcr = CustomizedRow.constructRJRow(joinKeyName, joinKeyValue,joinKeyType,
-							crow.getMap("list_item1"), new HashMap<String, String>());
+
+				// new updated row
+				CustomizedRow newcr = null;
+
+				if (column == 1){
+					if(myMap==null){
+						newcr = CustomizedRow.constructRJRow(joinKeyName, joinKeyValue,joinKeyType,
+								new HashMap<String, String>(), crow.getMap("list_item2"));
+					}else{
+						newcr = CustomizedRow.constructRJRow(joinKeyName, joinKeyValue,joinKeyType,
+								myMap, crow.getMap("list_item2"));
+					}
 				}else{
-					newcr = CustomizedRow.constructRJRow(joinKeyName, joinKeyValue,joinKeyType,
-							crow.getMap("list_item1"), myMap);
-				}
-			}
-
-			stream.setReverseJoinDeleteNewRow(newcr);
-
-			stream.setDeleteOperation(true);
-
-			boolean tempBool = ReverseJoinHelper.insertStatement(joinTable, keyspace, joinKeyName,
-					joinKeyValue, column, myMap, stream, counter);
-			
-			if(!tempBool)
-				continue;
-			else
-				loop = false;
-
-			
-			// checking if all list items are null --> delete the whole row
-			boolean allNull = true;
-			if (myMap == null) {
-
-				for (int k = 0; k < baseTables.size() && allNull; k++) {
-					if (column != k + 1
-							&& theRow.getMap("list_item" + (k + 1),
-									String.class, String.class).size() != 0) {
-						allNull = false;
-
+					if(myMap==null){
+						newcr = CustomizedRow.constructRJRow(joinKeyName, joinKeyValue,joinKeyType,
+								crow.getMap("list_item1"), new HashMap<String, String>());
+					}else{
+						newcr = CustomizedRow.constructRJRow(joinKeyName, joinKeyValue,joinKeyType,
+								crow.getMap("list_item1"), myMap);
 					}
 				}
-			} else {
-				allNull = false;
-			}
 
-			// all entries are nulls
-			if (allNull) {
-				Utils.deleteEntireRowWithPK(keyspace, joinTable, joinKeyName,
-						joinKeyValue, counter+1);
+				stream.setReverseJoinDeleteNewRow(newcr);
+
+				stream.setDeleteOperation(true);
+
+				boolean tempBool = ReverseJoinHelper.insertStatement(joinTable, keyspace, joinKeyName,
+						joinKeyValue, column, myMap, stream, counter);
+
+				if(!tempBool)
+					continue;
+				else
+					loop = false;
+
+
+				// checking if all list items are null --> delete the whole row
+				boolean allNull = true;
+				if (myMap == null) {
+
+					for (int k = 0; k < baseTables.size() && allNull; k++) {
+						if (column != k + 1
+								&& theRow.getMap("list_item" + (k + 1),
+										String.class, String.class).size() != 0) {
+							allNull = false;
+
+						}
+					}
+				} else {
+					allNull = false;
+				}
+
+				// all entries are nulls
+				if (allNull) {
+					Utils.deleteEntireRowWithPK(keyspace, joinTable, joinKeyName,
+							joinKeyValue, counter+1);
+				}
+
 			}
 
 		}
-		
-	}
 
 	}
 
@@ -1539,7 +1546,7 @@ public class ViewManager {
 		CustomizedRow theRow = stream.getRevereJoinDeleteOldRow();
 		HashMap<String, String> myMap2  = new HashMap<String, String>();
 		HashMap<String, String> myMap1  = new HashMap<String, String>();
-		
+
 		if(theRow!=null) {
 			// 1.a get columns item_1, item_2
 			Map<String, String> tempMapImmutable1 = theRow.getMap("list_item1");
@@ -2511,7 +2518,7 @@ public class ViewManager {
 				stream.getDeltaUpdatedRow(), aggKey, aggKeyType, "_new");
 		String oldAggKeyValue = getColumnValueFromDeltaStream(
 				stream.getDeltaUpdatedRow(), aggKey, aggKeyType, "_old");
-		
+
 		String joinKeyValue = getColumnValueFromDeltaStream(
 				stream.getDeltaUpdatedRow(), joinKeyName, joinKeyType, "_new");
 		String oldjoinKeyValue = getColumnValueFromDeltaStream(
@@ -2524,7 +2531,7 @@ public class ViewManager {
 
 		CustomizedRow newRJRow = stream.getReverseJoinUpdateNewRow();
 		CustomizedRow oldRJRow = stream.getReverseJoinUpadteOldRow();
-		
+
 		boolean changeJK = !oldjoinKeyValue.equals(joinKeyValue) && !oldjoinKeyValue.equals("'null'");
 
 		// ==================================================
@@ -2687,7 +2694,7 @@ public class ViewManager {
 				stream.getDeltaUpdatedRow(), aggKey, aggKeyType, "_new");
 		String oldAggKeyValue = getColumnValueFromDeltaStream(
 				stream.getDeltaUpdatedRow(), aggKey, aggKeyType, "_old");
-		
+
 		String joinKeyValue = getColumnValueFromDeltaStream(
 				stream.getDeltaUpdatedRow(), joinKeyName, joinKeyType, "_new");
 		String oldjoinKeyValue = getColumnValueFromDeltaStream(
@@ -2700,7 +2707,7 @@ public class ViewManager {
 
 		CustomizedRow newRJRow = stream.getReverseJoinUpdateNewRow();
 		CustomizedRow oldRJRow = stream.getReverseJoinUpadteOldRow();
-		
+
 		boolean changeJK = !oldjoinKeyValue.equals(joinKeyValue) && oldjoinKeyValue.equals("'null'");
 
 		// ==================================================
@@ -3394,65 +3401,7 @@ public class ViewManager {
 		return true;
 	}
 
-	public void deleteElementFromHaving(Stream stream, JSONObject json,
-			String havingTable, String aggKey, String aggKeyType,
-			String pkVAlue, String aggCol, String aggColType) {
-
-		String aggKeyValue = Utils.getColumnValueFromDeltaStream(
-				stream.getDeltaUpdatedRow(), aggKey, aggKeyType, "_old");
-		String aggColValue = Utils.getColumnValueFromDeltaStream(
-				stream.getDeltaUpdatedRow(), aggCol, aggColType, "_old");
-
-		ResultSet rs = PreaggregationHelper.selectStatement(json, havingTable,
-				aggKey, aggKeyValue);
-		Row row = rs.one();
-		Map<String, String> temp = row.getMap("list_item", String.class,
-				String.class);
-
-		Map<String, String> map = new HashMap<String, String>();
-		map.putAll(temp);
-
-		if (map.size() == 1) {
-			Utils.deleteEntireRowWithPK((String) json.get("keyspace"),
-					havingTable, aggKey, aggKeyValue);
-		} else {
-
-			int aggColIndexInList = 0;
-
-			for (int i = 0; i < stream.getDeltaDeletedRow().colDefSize; i++) {
-				if (stream.getDeltaDeletedRow().getName(i)
-						.contentEquals(aggCol + "_new")) {
-					break;
-				}
-				if (stream.getDeltaDeletedRow().getName(i).contains("_new"))
-					aggColIndexInList++;
-			}
-
-			map.remove(pkVAlue);
-			float sum = row.getFloat("sum") - Float.valueOf(aggColValue);
-			int count = row.getInt("count") - 1;
-			float average = sum / count;
-
-			float max = -Float.MAX_VALUE;
-			float min = Float.MAX_VALUE;
-
-			for (Map.Entry<String, String> entry : map.entrySet()) {
-				String list = entry.getValue().replaceAll("\\[", "")
-						.replaceAll("\\]", "");
-				String[] listArray = list.split(",");
-				if (Float.valueOf(listArray[aggColIndexInList - 1]) < min)
-					min = Float.valueOf(listArray[aggColIndexInList - 1]);
-
-				if (Float.valueOf(listArray[aggColIndexInList - 1]) > max)
-					max = Float.valueOf(listArray[aggColIndexInList - 1]);
-			}
-
-			PreaggregationHelper.insertStatement(json, havingTable, aggKey,
-					aggKeyValue, map, sum, count, min, max, average, identifier);
-
-		}
-	}
-
+	
 	public String getReverseJoinTableName() {
 		return reverseJoinTableName;
 	}

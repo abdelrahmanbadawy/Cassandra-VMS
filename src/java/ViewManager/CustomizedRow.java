@@ -220,6 +220,16 @@ public class CustomizedRow implements Serializable{
 
 		return crow;
 	}
-
+	
+	
+	public static boolean rowIsNull(CustomizedRow crow){
+		
+		if(crow.colNames == null && crow.colValues == null && crow.colValues == null)
+			return true;
+		else
+			return false;
+		
+	}
+	
 
 }

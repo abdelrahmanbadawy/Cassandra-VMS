@@ -17,7 +17,7 @@ public class ViewManagerPreaggController implements Runnable{
 	TaskDistributor td;
 	List<String> vm_identifiers;
 	int identifier_index;
-	
+
 	public ViewManagerPreaggController(ViewManager vm,Cluster cluster,TaskDistributor td) {	
 		System.out.println("Preagg Controller is up");
 		this.vm = vm;
@@ -50,13 +50,13 @@ public class ViewManagerPreaggController implements Runnable{
 			bufferString = data.get("stream ").toString();
 		else
 			bufferString = buffer.toString();
-		
+
 		String ptr = json.get("readPtr").toString();
 
 
 		stream = Serialize.deserializeStream(bufferString);
 		JSONObject deltaJSON = stream.getDeltaJSON();
-		
+
 		deltaJSON.put("readPtr", ptr);
 
 		if(!stream.isDeleteOperation()){
@@ -96,7 +96,9 @@ public class ViewManagerPreaggController implements Runnable{
 						.getString(s1 + ".nrAnd");
 
 				boolean eval1 = true;
+				boolean eval_old = true;
 				CustomizedRow PreagRow = stream.getUpdatedPreaggRow();
+				CustomizedRow PreagRowOldState = stream.getUpdatedPreaggRowOldState();
 
 				if(PreagRow!=null){
 
@@ -117,6 +119,8 @@ public class ViewManagerPreaggController implements Runnable{
 								.getString(s11 + ".value");
 
 
+						if(!CustomizedRow.rowIsNull(PreagRowOldState))
+							eval_old&= Utils.evalueJoinAggConditions(PreagRowOldState, aggFct, operation, value);
 
 						eval1&= Utils.evalueJoinAggConditions(PreagRow, aggFct, operation, value);
 					}
@@ -128,8 +132,10 @@ public class ViewManagerPreaggController implements Runnable{
 								json,havingTable, PreagRow);
 						// if not matching now
 					} else if (!eval1) {
-						vm.deleteRowHaving((String) json.get("keyspace"),
-								havingTable, PreagRow);
+						if(!CustomizedRow.rowIsNull(PreagRowOldState) && eval_old){
+							vm.deleteRowHaving((String) json.get("keyspace"),
+									havingTable, PreagRow);
+						}
 						// if not matching now & not before, ignore
 					}
 				}
@@ -145,13 +151,13 @@ public class ViewManagerPreaggController implements Runnable{
 			.println("No Having table for this joinpreaggregation Table "
 					+ preaggTable + " available");
 		}
-		
+
 		System.out.println("saving execPtrPreagg "+ ptr);
-		
-		
+
+
 		VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtrPreagg", ptr);
 		try {
-			
+
 			VmXmlHandler.getInstance().getVMProperties().save(VmXmlHandler.getInstance().getVMProperties().getFile());
 		} catch (ConfigurationException e) {
 			// TODO Auto-generated catch block
@@ -188,6 +194,9 @@ public class ViewManagerPreaggController implements Runnable{
 						.getString(s1 + ".nrAnd");
 
 				boolean eval1 = true;
+				boolean eval_old = true;
+
+				CustomizedRow crow_old = stream.getUpdatedPreaggRowOldState();
 
 				if(stream.getUpdatedPreaggRow()!=null){
 
@@ -208,6 +217,9 @@ public class ViewManagerPreaggController implements Runnable{
 								.getString(s11 + ".value");
 
 
+						if(!CustomizedRow.rowIsNull(crow_old))
+							eval_old&= Utils.evalueJoinAggConditions(stream.getUpdatedPreaggRowOldState(), aggFct, operation, value);
+
 						eval1&= Utils.evalueJoinAggConditions(stream.getUpdatedPreaggRow(), aggFct, operation, value);
 
 					}
@@ -216,8 +228,11 @@ public class ViewManagerPreaggController implements Runnable{
 						vm.updateHaving(stream.getDeltaDeletedRow(),
 								json,havingTable, stream.getUpdatedPreaggRow());
 					} else {
-						vm.deleteRowHaving((String) json.get("keyspace"),
-								havingTable, stream.getUpdatedPreaggRow());
+						if(!CustomizedRow.rowIsNull(crow_old) && eval_old){
+
+							vm.deleteRowHaving((String) json.get("keyspace"),
+									havingTable, stream.getUpdatedPreaggRow());
+						}
 					}
 				}
 
@@ -230,11 +245,11 @@ public class ViewManagerPreaggController implements Runnable{
 			}
 		}
 		System.out.println("saving execPtrPreagg "+ ptr);
-		
-		
+
+
 		VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtrPreagg", ptr);
 		try {
-			
+
 			VmXmlHandler.getInstance().getVMProperties().save(VmXmlHandler.getInstance().getVMProperties().getFile());
 		} catch (ConfigurationException e) {
 			// TODO Auto-generated catch block

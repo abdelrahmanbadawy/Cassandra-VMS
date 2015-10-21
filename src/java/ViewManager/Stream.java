@@ -34,6 +34,7 @@ public class Stream implements Serializable {
 
 	//Preaggregation
 	private CustomizedRow updatedPreaggRow;
+	private CustomizedRow updatedPreaggRowOldState;
 	private CustomizedRow updatedPreaggRowDeleted;
 
 	//Reverse Join
@@ -277,6 +278,16 @@ public class Stream implements Serializable {
 	public void setUpdatedJoinAggGroupByRowDeleted(
 			CustomizedRow updatedJoinAggGroupByRowDeleted) {
 		this.updatedJoinAggGroupByRowDeleted = updatedJoinAggGroupByRowDeleted;
+	}
+
+
+	public CustomizedRow getUpdatedPreaggRowOldState() {
+		return updatedPreaggRowOldState;
+	}
+
+
+	public void setUpdatedPreaggRowOldState(CustomizedRow updatedPreaggRowOldState) {
+		this.updatedPreaggRowOldState = updatedPreaggRowOldState;
 	}
 
 }
