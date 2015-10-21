@@ -20,6 +20,8 @@ public class VmXmlHandler {
 	private static XMLConfiguration rjAggJoinMapping;
 	private static XMLConfiguration rjAggJoinGroupByMapping;
 	private static XMLConfiguration rjAggJoinGroupByHavingMapping;
+	
+	private static XMLConfiguration vmProperties;
 
 
 	private static VmXmlHandler _instance = null;
@@ -66,6 +68,9 @@ public class VmXmlHandler {
 
 		rjAggJoinGroupByHavingMapping = new XMLConfiguration();
 		rjAggJoinGroupByHavingMapping.setDelimiterParsingDisabled(true);
+		
+		vmProperties = new XMLConfiguration();
+		vmProperties.setDelimiterParsingDisabled(true);
 
 		try {
 			deltaPreaggMapping.load("ViewManager/properties/Delta_PreAgg_mapping.xml");
@@ -82,6 +87,9 @@ public class VmXmlHandler {
 			rjAggJoinMapping.load("ViewManager/properties/RJ_AggJoin.xml");
 			rjAggJoinGroupByMapping.load("ViewManager/properties/RJ_Join_GroupBy.xml");
 			rjAggJoinGroupByHavingMapping.load("ViewManager/properties/Having_GroupBy.xml");
+			vmProperties.load("vm_prop/vm_properties.xml");
+			
+			
 		} catch (ConfigurationException e) {
 			e.printStackTrace();
 		}
@@ -150,6 +158,10 @@ public class VmXmlHandler {
 
 	public  XMLConfiguration getRJAggJoinGroupByHavingMapping() {
 		return rjAggJoinGroupByHavingMapping;
+	}
+	
+	public  XMLConfiguration getVMProperties() {
+		return vmProperties;
 	}
 
 

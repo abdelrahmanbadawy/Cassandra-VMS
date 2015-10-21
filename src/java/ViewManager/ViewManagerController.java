@@ -26,6 +26,8 @@ public class ViewManagerController implements Runnable {
 	List<String> rj_nrDelta;
 	int rjoins;
 	List<String> pkType;
+	List<String> vm_identifiers;
+	int identifier_index;
 	Stream stream = null;
 	TaskDistributor td;
 
@@ -34,9 +36,10 @@ public class ViewManagerController implements Runnable {
 		
 		System.out.println("Delta Controller is up");
 		retrieveLoadXmlHandlers();
+		this.vm = vm;
 		parseXmlMapping();
 		stream = new Stream();
-		this.vm = vm;
+		
 		currentCluster = cluster;
 		this.td = td; 
 		
@@ -75,6 +78,10 @@ public class ViewManagerController implements Runnable {
 
 		rjoins = VmXmlHandler.getInstance().getDeltaReverseJoinMapping()
 				.getInt("mapping.nrUnit");
+		
+		vm_identifiers = VmXmlHandler.getInstance().getVMProperties().getList("vm.identifier");
+		identifier_index = vm_identifiers.indexOf(vm.getIdentifier());
+		
 	}
 
 
@@ -475,6 +482,18 @@ public class ViewManagerController implements Runnable {
 		}
 
 		stream.resetDeltaRows();
+		
+		System.out.println("saving execPtr "+ json.get("readPtr").toString());
+		
+		
+		VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtr1", json.get("readPtr").toString());
+		try {
+			
+			VmXmlHandler.getInstance().getVMProperties().save(VmXmlHandler.getInstance().getVMProperties().getFile());
+		} catch (ConfigurationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	
@@ -675,6 +694,18 @@ public class ViewManagerController implements Runnable {
 			// ==========================================================================================================================
 
 			stream.resetDeltaRows();
+		}
+		
+		System.out.println("saving execPtr "+ json.get("readPtr").toString());
+		
+		
+		VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtr1", json.get("readPtr").toString());
+		try {
+			
+			VmXmlHandler.getInstance().getVMProperties().save(VmXmlHandler.getInstance().getVMProperties().getFile());
+		} catch (ConfigurationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 

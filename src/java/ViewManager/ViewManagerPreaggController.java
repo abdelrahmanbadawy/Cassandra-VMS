@@ -2,6 +2,7 @@ package ViewManager;
 
 import java.util.List;
 
+import org.apache.commons.configuration.ConfigurationException;
 import org.json.simple.JSONObject;
 
 import com.datastax.driver.core.Cluster;
@@ -14,7 +15,9 @@ public class ViewManagerPreaggController implements Runnable{
 	List<String> havingJoinGroupBy;
 	List<String> preaggTableNames;
 	TaskDistributor td;
-
+	List<String> vm_identifiers;
+	int identifier_index;
+	
 	public ViewManagerPreaggController(ViewManager vm,Cluster cluster,TaskDistributor td) {	
 		System.out.println("Preagg Controller is up");
 		this.vm = vm;
@@ -28,6 +31,8 @@ public class ViewManagerPreaggController implements Runnable{
 	private void parseXML() {
 		preaggTableNames = VmXmlHandler.getInstance().getHavingPreAggMapping()
 				.getList("mapping.unit.preaggTable");
+		vm_identifiers = VmXmlHandler.getInstance().getVMProperties().getList("vm.identifier");
+		identifier_index = vm_identifiers.indexOf(vm.getIdentifier());
 	}
 
 
@@ -45,19 +50,23 @@ public class ViewManagerPreaggController implements Runnable{
 			bufferString = data.get("stream ").toString();
 		else
 			bufferString = buffer.toString();
+		
+		String ptr = json.get("readPtr").toString();
 
 
 		stream = Serialize.deserializeStream(bufferString);
 		JSONObject deltaJSON = stream.getDeltaJSON();
+		
+		deltaJSON.put("readPtr", ptr);
 
 		if(!stream.isDeleteOperation()){
-			propagatePreaggUpdate(deltaJSON,table);
+			propagatePreaggUpdate(deltaJSON,table, ptr);
 		}else{
-			propagatePreaggDelete(deltaJSON,table);
+			propagatePreaggDelete(deltaJSON,table, ptr);
 		}
 	}
 
-	public void propagatePreaggUpdate(JSONObject json, String table) {
+	public void propagatePreaggUpdate(JSONObject json, String table, String ptr) {
 
 		String preaggTable = table;
 
@@ -136,9 +145,21 @@ public class ViewManagerPreaggController implements Runnable{
 			.println("No Having table for this joinpreaggregation Table "
 					+ preaggTable + " available");
 		}
+		
+		System.out.println("saving execPtrPreagg "+ ptr);
+		
+		
+		VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtrPreagg", ptr);
+		try {
+			
+			VmXmlHandler.getInstance().getVMProperties().save(VmXmlHandler.getInstance().getVMProperties().getFile());
+		} catch (ConfigurationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
-	private void propagatePreaggDelete(JSONObject json, String table) {
+	private void propagatePreaggDelete(JSONObject json, String table , String ptr) {
 
 		// update the corresponding preagg wih having clause
 
@@ -207,6 +228,17 @@ public class ViewManagerPreaggController implements Runnable{
 							havingTable, DeletedPreagRow);
 				}
 			}
+		}
+		System.out.println("saving execPtrPreagg "+ ptr);
+		
+		
+		VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtrPreagg", ptr);
+		try {
+			
+			VmXmlHandler.getInstance().getVMProperties().save(VmXmlHandler.getInstance().getVMProperties().getFile());
+		} catch (ConfigurationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 
 	}

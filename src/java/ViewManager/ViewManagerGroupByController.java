@@ -2,6 +2,7 @@ package ViewManager;
 
 import java.util.List;
 
+import org.apache.commons.configuration.ConfigurationException;
 import org.json.simple.JSONObject;
 
 import com.datastax.driver.core.Cluster;
@@ -13,6 +14,8 @@ public class ViewManagerGroupByController implements Runnable {
 	Cluster cluster;
 	List<String> havingJoinGroupBy;
 	TaskDistributor td;
+	List<String> vm_identifiers;
+	int identifier_index;
 
 	public ViewManagerGroupByController(ViewManager vm,Cluster cluster,TaskDistributor td) {	
 		System.out.println("Group by Controller is up");
@@ -28,6 +31,8 @@ public class ViewManagerGroupByController implements Runnable {
 
 		havingJoinGroupBy =  VmXmlHandler.getInstance().getRJAggJoinGroupByHavingMapping()
 				.getList("mapping.unit.name");
+		vm_identifiers = VmXmlHandler.getInstance().getVMProperties().getList("vm.identifier");
+		identifier_index = vm_identifiers.indexOf(vm.getIdentifier());
 	}
 
 	public void decideGroupBy(JSONObject json) {
@@ -45,18 +50,21 @@ public class ViewManagerGroupByController implements Runnable {
 		else
 			bufferString = buffer.toString();
 
+		String ptr = json.get("readPtr").toString();
 
 		stream = Serialize.deserializeStream(bufferString);
 		JSONObject deltaJSON = stream.getDeltaJSON();
+		
+		deltaJSON.put("readPtr", ptr);
 
 		if(!stream.isDeleteOperation()){
-			propagateGroupByUpdate(deltaJSON,table);
+			propagateGroupByUpdate(deltaJSON,table, ptr);
 		}else{
-			propagateGroupByDelete(deltaJSON,table);
+			propagateGroupByDelete(deltaJSON,table, ptr);
 		}
 	}
 
-	private void propagateGroupByUpdate(JSONObject json, String table) {
+	private void propagateGroupByUpdate(JSONObject json, String table, String ptr) {
 
 		String groupByTable = table;
 
@@ -109,10 +117,20 @@ public class ViewManagerGroupByController implements Runnable {
 				}
 			}
 		}
-
+		System.out.println("saving execPtrGB "+ ptr);
+		
+		
+		VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtrGB", ptr);
+		try {
+			
+			VmXmlHandler.getInstance().getVMProperties().save(VmXmlHandler.getInstance().getVMProperties().getFile());
+		} catch (ConfigurationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
-	private void propagateGroupByDelete(JSONObject json, String table) {
+	private void propagateGroupByDelete(JSONObject json, String table, String ptr) {
 
 		String groupByTable = table;
 
@@ -164,6 +182,17 @@ public class ViewManagerGroupByController implements Runnable {
 					}
 				}
 			}
+		}
+		System.out.println("saving execPtrGB "+ ptr);
+		
+		
+		VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtrGB", ptr);
+		try {
+			
+			VmXmlHandler.getInstance().getVMProperties().save(VmXmlHandler.getInstance().getVMProperties().getFile());
+		} catch (ConfigurationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 
 
