@@ -44,6 +44,7 @@ public class TaskDistributor {
 	public TaskDistributor(ArrayList<String> vm_identifiers){
 		
 		connectToCluster();
+
 		
 		//initialize the lists
 		viewManagers = new ArrayList<ViewManager>();
@@ -102,7 +103,6 @@ public class TaskDistributor {
 			
 			
 		}
-		
 
 
 	}
