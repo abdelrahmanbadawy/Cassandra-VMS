@@ -379,7 +379,7 @@ public class CommitLog implements CommitLogMBean
 			}
 
 			if(!delete)
-				commitLogger.info(convertInsertUpdateToJSON(keyspace, table, columns, values, tid).toJSONString());
+				commitLogger.info(convertInsertUpdateToJSON(keyspace, table, columns, values, tid,pkValue).toJSONString());
 			else if(delete)
 				commitLogger.info(convertDeleteToJSON(keyspace,table,pkName,pkValue,tid).toJSONString());
 		}
@@ -390,13 +390,14 @@ public class CommitLog implements CommitLogMBean
 	//Customized Function to convert insert statement into JSONObject
 	@SuppressWarnings({ "unused", "unchecked" })
 	private JSONObject convertInsertUpdateToJSON(String ks,
-			String table, ArrayList<String> columns, ArrayList<String> values, long tid) {
+			String table, ArrayList<String> columns, ArrayList<String> values, long tid, String pkValue) {
 		JSONObject jsonObject = new JSONObject();
 
 		jsonObject.put("type", "insert");
 		jsonObject.put("tid", tid);
 		jsonObject.put("keyspace", ks);
 		jsonObject.put("table", table);
+		jsonObject.put("pk", pkValue.replace("'",""));
 
 		JSONObject set_data = new JSONObject();
 		for (int i = 0; i < columns.size(); i++) {
@@ -421,6 +422,7 @@ public class CommitLog implements CommitLogMBean
 		jsonObject.put("tid", tid);
 		jsonObject.put("keyspace", ks);
 		jsonObject.put("table", table);
+		jsonObject.put("pk", inValues.replace("'",""));
 
 		JSONObject condition = new JSONObject();
 
