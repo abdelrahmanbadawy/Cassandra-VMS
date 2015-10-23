@@ -307,7 +307,7 @@ public class CommitLog implements CommitLogMBean
 			if(cf.deletionInfo().getTopLevelDeletion().markedForDeleteAt>0)
 				delete = true;
 
-			
+
 			if(delete){
 				if(table.contains("preagg_agg") || table.contains("rj") || table.contains("groupby"))
 					return;
@@ -356,20 +356,10 @@ public class CommitLog implements CommitLogMBean
 			values.add(pkValue);
 
 			int i = 0;
-			
-			if(cf.getColumnCount()==1)
-				return;
-
-			logger.info("zeft "+table+" "+cf.getColumnCount());
-			
 			for (Cell cell : cf){
 				try {
 
 					if(!cell.name().equals(pkName) && i!=0){
-
-						int oba = cf.getColumnCount(); 
-						if(cfm.comparator.getString(cell.name()).contains("signature") && cf.getColumnCount()==2)
-							return;
 
 						columns.add(cfm.comparator.getString(cell.name()));
 						String cellType = cfm.getColumnDefinition(cell.name()).type.toString();
@@ -389,7 +379,7 @@ public class CommitLog implements CommitLogMBean
 			}
 
 			if(!delete)
-				commitLogger.info(convertInsertUpdateToJSON(keyspace, table, columns, values, tid).toJSONString());
+				commitLogger.info(convertInsertUpdateToJSON(keyspace, table, columns, values, tid,pkValue).toJSONString());
 			else if(delete)
 				commitLogger.info(convertDeleteToJSON(keyspace,table,pkName,pkValue,tid).toJSONString());
 		}
@@ -400,13 +390,14 @@ public class CommitLog implements CommitLogMBean
 	//Customized Function to convert insert statement into JSONObject
 	@SuppressWarnings({ "unused", "unchecked" })
 	private JSONObject convertInsertUpdateToJSON(String ks,
-			String table, ArrayList<String> columns, ArrayList<String> values, long tid) {
+			String table, ArrayList<String> columns, ArrayList<String> values, long tid, String pkValue) {
 		JSONObject jsonObject = new JSONObject();
 
 		jsonObject.put("type", "insert");
 		jsonObject.put("tid", tid);
 		jsonObject.put("keyspace", ks);
 		jsonObject.put("table", table);
+		jsonObject.put("pk", pkValue.replace("'",""));
 
 		JSONObject set_data = new JSONObject();
 		for (int i = 0; i < columns.size(); i++) {
@@ -431,6 +422,7 @@ public class CommitLog implements CommitLogMBean
 		jsonObject.put("tid", tid);
 		jsonObject.put("keyspace", ks);
 		jsonObject.put("table", table);
+		jsonObject.put("pk", inValues.replace("'",""));
 
 		JSONObject condition = new JSONObject();
 

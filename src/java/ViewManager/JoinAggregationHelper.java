@@ -31,27 +31,24 @@ public class JoinAggregationHelper {
 
 	public static boolean insertStatement(Float sum, int count, Float avg, Float min, Float max, String key, String keyValue,
 			String joinAggTable, JSONObject json, String identifier){
-		
+
 		if(json.get("recovery_mode").equals("on")){
 			Row rs = selectStatement(key, keyValue, joinAggTable, json);
-			
+
 			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier))
 					>= Long.parseLong(json.get("readPtr").toString()))
 				return true;
-			
-		}
-		
 
-		StringBuilder insertQueryAgg = new StringBuilder(
-				"INSERT INTO ");
+		}
+
+		StringBuilder insertQueryAgg = new StringBuilder("UPDATE ");
 		insertQueryAgg.append((String) json.get("keyspace"))
-		.append(".").append(joinAggTable).append(" ( ")
-		.append(key + ", ")
-		.append("sum, count, average, min, max")
-		.append(") VALUES (").append(keyValue + ", ")
-		.append(sum).append(", ").append(count)
-		.append(", ").append(avg).append(", ").append(min)
-		.append(", ").append(max).append(");");
+		.append(".").append(joinAggTable).append(" SET sum = ").append(sum)
+		.append(", count = ").append(count).append(", average = ").append(avg).append(", min = ")
+		.append(min).append(", max = ").append(max).append(", signature['").append(identifier).append("']= '").append(json.get("readPtr").toString()).append("' WHERE ").append(key).append(" = ").append(keyValue)
+		.append(";");
+
+		System.out.println(insertQueryAgg);
 
 		try {
 
@@ -62,8 +59,7 @@ public class JoinAggregationHelper {
 			e.printStackTrace();
 			return false;
 		}
-		
-		Utils.updateSignature(key, keyValue, joinAggTable, json, identifier, json.get("readPtr").toString());
+
 
 		return true;
 
@@ -72,22 +68,18 @@ public class JoinAggregationHelper {
 
 	public static boolean insertStatement(JSONObject json, String joinAggTable,CustomizedRow row, String identifier){
 
-		
-		
-		
 		String aggKeyName = row.getName(0);
 		String aggKeyType = row.getType(0);
 		String aggKeyValue = Utils.getColumnValueFromDeltaStream(row, aggKeyName, aggKeyType, "");
-		
+
 		if(json.get("recovery_mode").equals("on")){
 			Row rs = selectStatement(aggKeyName, aggKeyValue, joinAggTable, json);
-			
+
 			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier))
 					>= Long.parseLong(json.get("readPtr").toString()))
 				return true;
-			
+
 		}
-		
 
 		float sum = row.getFloat("sum");
 		float avg = row.getFloat("average");
@@ -95,29 +87,16 @@ public class JoinAggregationHelper {
 		float max = row.getFloat("max");
 		int count = row.getInt("count");
 
-
-		StringBuilder insertQueryAgg = new StringBuilder(
-				"INSERT INTO ");
+		StringBuilder insertQueryAgg = new StringBuilder("UPDATE ");
 		insertQueryAgg.append((String) json.get("keyspace"))
-		.append(".").append(joinAggTable).append(" ( ")
-		.append(aggKeyName + ", ")
-		.append("sum, count, average, min, max")
-		.append(") VALUES (").append(aggKeyValue + ", ")
-		.append(sum).append(", ").append(count)
-		.append(", ").append(avg).append(", ").append(min)
-		.append(", ").append(max).append(");");
+		.append(".").append(joinAggTable).append(" SET sum = ").append(sum)
+		.append(", count = ").append(count).append(", average = ").append(avg).append(", min = ")
+		.append(min).append(", max = ").append(max).append(", signature['").append(identifier).append("']= '")
+		.append(json.get("readPtr").toString()).append("' WHERE ").append(aggKeyName).append(" = ").append(aggKeyValue)
+		.append(";");
 
-		try {
+		System.out.println(insertQueryAgg);
 
-			Session session = currentCluster.connect();
-			session.execute(insertQueryAgg.toString());
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			return false;
-		}
-
-		Utils.updateSignature(aggKeyName, aggKeyValue, joinAggTable, json, identifier, json.get("readPtr").toString());
 		return true;
 
 	}
@@ -127,14 +106,14 @@ public class JoinAggregationHelper {
 
 		if(json.get("recovery_mode").equals("on")){
 			Row rs = selectStatement(key, keyValue, joinAggTable, json);
-			
+
 			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier))
 					>= Long.parseLong(json.get("readPtr").toString()))
 				return true;
-			
+
 		}
-		
-		
+
+
 		StringBuilder updateQuery = new StringBuilder("UPDATE ");
 		updateQuery.append((String) json.get("keyspace"))
 		.append(".").append(joinAggTable).append(" SET sum = ").append(sum)
@@ -268,34 +247,8 @@ public class JoinAggregationHelper {
 
 			}
 
-			/*
-			StringBuilder insertQueryAgg = new StringBuilder(
-					"INSERT INTO ");
-			insertQueryAgg.append((String) json.get("keyspace"))
-			.append(".").append(joinAggTable).append(" ( ")
-			.append(joinKey + ", ")
-			.append("sum, count, average, min, max")
-			.append(") VALUES (")
-			.append(joinKeyValue + ", ").append(sum)
-			.append(", ").append(count).append(", ")
-			.append(avg).append(", ").append(min).append(", ")
-			.append(max).append(");");
-
-
-
-			try {
-				Session session = currentCluster.connect();
-				session.execute(insertQueryAgg.toString());
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-
-			 */
-
 			if(!updateStatement(sum, count, avg, min, max, joinKey , joinKeyValue, joinAggTable, json, theRow.getFloat("sum"), identifier))
 				return false;
-
-
 		}
 
 		if(joinAggTable.contains("inner")){
@@ -313,7 +266,6 @@ public class JoinAggregationHelper {
 	public static boolean updateNewRowByAddingNewElement(Stream stream,String joinKeyName,String joinKeyValue, JSONObject json,String joinAggTable,String aggColValue, String identifier){
 
 		Row theRow = selectStatement(joinKeyName, joinKeyValue, joinAggTable, json);
-
 
 		Float sum = theRow.getFloat("sum");
 		sum += Float.parseFloat(aggColValue);
@@ -339,28 +291,7 @@ public class JoinAggregationHelper {
 			max = Float.parseFloat(aggColValue);
 		}
 
-		/*
-		StringBuilder insertQueryAgg = new StringBuilder("INSERT INTO ");
-		insertQueryAgg.append((String) json.get("keyspace"))
-		.append(".").append(joinAggTable).append(" ( ")
-		.append(joinKeyName + ", ")
-		.append("sum, count, average, min, max")
-		.append(") VALUES (").append(joinKeyValue + ", ")
-		.append(sum).append(", ").append(count)
-		.append(", ").append(avg).append(", ").append(min)
-		.append(", ").append(max).append(");");
-
-		System.out.println(insertQueryAgg);
-
-		try {
-			Session session = currentCluster.connect();
-			session.execute(insertQueryAgg.toString());
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		 */
-
+		
 		if(!updateStatement(sum, count, avg, min, max, joinKeyName , joinKeyValue, joinAggTable, json, theRow.getFloat("sum"), identifier))
 			return false;
 
@@ -379,37 +310,15 @@ public class JoinAggregationHelper {
 
 		Row theRow = selectStatement(joinKeyName, joinKeyValue, joinAggTable, json);
 
-		/*		Map<String, String> mapNew = newRJRow.getMap(listItem, String.class,String.class);
-		Map<String, String> mapOld = oldRJRow.getMap(listItem, String.class,String.class);
-
 		Float sum = theRow.getFloat("sum");
-		int count = theRow.getInt("count");
 
-		//havent taken into account the case where aggcolnew is null, shouldnt reach this case aslan
-		if(mapNew.size()>mapOld.size()){
-			sum += Float.parseFloat(aggColValue);
-			count++;
-		}else if(mapNew.size()==mapOld.size()){
-			sum += Float.parseFloat(aggColValue)-Float.parseFloat(oldAggColValue);
-		}
-		 */
-		
-		
-		Float sum = theRow.getFloat("sum");
-		
-		
 		if (!aggColValue.equals("null"))
 			sum += Float.parseFloat(aggColValue);
 
 		if (!oldAggColValue.equals("null"))
 			sum -= Float.parseFloat(oldAggColValue);
-		
-		
-		
+
 		int count = theRow.getInt("count");
-		
-		
-		
 
 		// old = null and new != null
 		if (oldAggColValue.equals("null")
@@ -421,8 +330,6 @@ public class JoinAggregationHelper {
 					&& aggColValue.equals("null"))
 				count--;
 
-	
-		
 		Float avg = sum / (float) count;
 
 		Float min = theRow.getFloat("min");
@@ -505,8 +412,6 @@ public class JoinAggregationHelper {
 			}
 
 		}
-
-		//insertStatement(sum, count, avg, min, max, joinKeyName, joinKeyValue, joinAggTable, json);
 
 		if(!updateStatement(sum, count, avg, min, max, joinKeyName, joinKeyValue, joinAggTable, json, theRow.getFloat("sum"), identifier))
 			return false;

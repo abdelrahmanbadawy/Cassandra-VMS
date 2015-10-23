@@ -212,7 +212,7 @@ public class CommitLogReader {
 
 				String responsibleVM = consistentHashing.get(json.get("pk").toString());
 				
-				System.out.println("responsible vm is "+ responsibleVM);
+				System.out.println("responsible vm is "+ responsibleVM +" for key "+json.get("pk").toString());
 				
 				int vm_index = vm_identifiers.indexOf(responsibleVM);
 				
