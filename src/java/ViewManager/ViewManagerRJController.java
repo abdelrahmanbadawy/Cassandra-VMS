@@ -32,9 +32,10 @@ public class ViewManagerRJController implements Runnable{
 
 	int rjoins;
 
-	public ViewManagerRJController(ViewManager vm,Cluster cluster, TaskDistributor taskDistributor) {	
+	public ViewManagerRJController(ViewManager vm,Cluster cluster, TaskDistributor taskDistributor, int identifier_index) {	
 		System.out.println("RJ Controller is up");
 		this.vm = vm;
+		this.identifier_index=identifier_index;
 		parseXML();	
 		
 		this.cluster = cluster;
@@ -1130,8 +1131,8 @@ public class ViewManagerRJController implements Runnable{
 		while(true){
 
 
-			if(!td.rJ.isEmpty()){
-				JSONObject head = td.rJ.remove();
+			if(!td.rjQueues.get(identifier_index).isEmpty()){
+				JSONObject head = td.rjQueues.get(identifier_index).remove();
 				decide(head);
 			}
 

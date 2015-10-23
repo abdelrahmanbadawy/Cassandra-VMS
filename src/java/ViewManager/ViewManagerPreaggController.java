@@ -18,9 +18,10 @@ public class ViewManagerPreaggController implements Runnable{
 	List<String> vm_identifiers;
 	int identifier_index;
 
-	public ViewManagerPreaggController(ViewManager vm,Cluster cluster,TaskDistributor td) {	
+	public ViewManagerPreaggController(ViewManager vm,Cluster cluster,TaskDistributor td, int identifier_index) {	
 		System.out.println("Preagg Controller is up");
 		this.vm = vm;
+		this.identifier_index=identifier_index;
 		this.cluster = cluster;
 		this.td = td;
 
@@ -264,8 +265,8 @@ public class ViewManagerPreaggController implements Runnable{
 	public void run() {
 		while(true){
 
-			while(!td.preAgg.isEmpty()){
-				JSONObject head = td.preAgg.remove();
+			while(!td.preaggQueues.get(identifier_index).isEmpty()){
+				JSONObject head = td.preaggQueues.get(identifier_index).remove();
 				decidePreagg(head);
 			}
 

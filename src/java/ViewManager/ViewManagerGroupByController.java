@@ -17,9 +17,10 @@ public class ViewManagerGroupByController implements Runnable {
 	List<String> vm_identifiers;
 	int identifier_index;
 
-	public ViewManagerGroupByController(ViewManager vm,Cluster cluster,TaskDistributor td) {	
+	public ViewManagerGroupByController(ViewManager vm,Cluster cluster,TaskDistributor td, int identifier_index) {	
 		System.out.println("Group by Controller is up");
 		this.vm = vm;
+		this.identifier_index =identifier_index;
 		this.cluster = cluster;
 		this.td = td;
 
@@ -216,8 +217,8 @@ public class ViewManagerGroupByController implements Runnable {
 
 		while(true){
 
-			while(!td.groupBy.isEmpty()){
-				JSONObject head = td.groupBy.remove();
+			while(!td.groupbyQueues.get(identifier_index).isEmpty()){
+				JSONObject head = td.groupbyQueues.get(identifier_index).remove();
 				decideGroupBy(head);
 			}
 
