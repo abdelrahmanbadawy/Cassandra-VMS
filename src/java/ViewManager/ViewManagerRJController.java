@@ -36,7 +36,7 @@ public class ViewManagerRJController implements Runnable{
 		System.out.println("RJ Controller is up");
 		this.vm = vm;
 		parseXML();	
-		
+
 		this.cluster = cluster;
 		stream = new Stream();
 		td = taskDistributor;
@@ -62,7 +62,7 @@ public class ViewManagerRJController implements Runnable{
 		pkType = baseTableKeysConfig.getList("tableSchema.table.pkType");
 		rj_joinTables = VmXmlHandler.getInstance().getDeltaReverseJoinMapping()
 				.getList("mapping.unit.Join.name");
-		
+
 		rj_joinKeys = VmXmlHandler.getInstance().getDeltaReverseJoinMapping()
 				.getList("mapping.unit.Join.JoinKey");
 
@@ -154,8 +154,8 @@ public class ViewManagerRJController implements Runnable{
 			}
 
 		}	
-		
-		
+
+
 	}
 
 
@@ -223,8 +223,8 @@ public class ViewManagerRJController implements Runnable{
 			}
 
 		}
-		
-		
+
+
 	}
 
 
@@ -243,7 +243,7 @@ public class ViewManagerRJController implements Runnable{
 
 
 		JSONObject json = stream.getDeltaJSON();
-		
+
 		json.put("readPtr", rjjson.get("readPtr"));
 		json.put("recovery_mode", rjjson.get("recovery_mode").toString());
 
@@ -672,16 +672,12 @@ public class ViewManagerRJController implements Runnable{
 
 		}
 		System.out.println("saving execPtrRJ "+ rjjson.get("readPtr").toString());
-		
-		
+
+
 		VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtrRJ", rjjson.get("readPtr").toString());
-		try {
-			
-			VmXmlHandler.getInstance().getVMProperties().save(VmXmlHandler.getInstance().getVMProperties().getFile());
-		} catch (ConfigurationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+
+		VmXmlHandler.getInstance().save(VmXmlHandler.getInstance().getVMProperties().getFile());
+
 
 		return true;
 	}
@@ -691,10 +687,10 @@ public class ViewManagerRJController implements Runnable{
 
 		String type = rjjson.get("type").toString();
 		JSONObject data = null;
-		
+
 		if(type.equalsIgnoreCase("insert"))
 			data = (JSONObject) rjjson.get("data");
-		
+
 		String bufferString = data.get("stream").toString();
 
 		stream = Serialize.deserializeStream(bufferString);
@@ -703,7 +699,7 @@ public class ViewManagerRJController implements Runnable{
 
 		json.put("readPtr", rjjson.get("readPtr"));
 		json.put("recovery_mode", rjjson.get("recovery_mode").toString());
-		
+
 		String tableName = stream.getBaseTable();
 		int indexBaseTableName = baseTableName.indexOf(stream.getBaseTable());
 		String baseTablePrimaryKey = pkName.get(indexBaseTableName);
@@ -1111,16 +1107,12 @@ public class ViewManagerRJController implements Runnable{
 		//===============================================
 
 		System.out.println("saving execPtrRJ "+ rjjson.get("readPtr").toString());
-		
-		
+
+
 		VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtrRJ", rjjson.get("readPtr").toString());
-		try {
-			
-			VmXmlHandler.getInstance().getVMProperties().save(VmXmlHandler.getInstance().getVMProperties().getFile());
-		} catch (ConfigurationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+
+		VmXmlHandler.getInstance().save(VmXmlHandler.getInstance().getVMProperties().getFile());
+
 		return true;
 	}
 

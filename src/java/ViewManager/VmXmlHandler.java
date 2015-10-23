@@ -1,7 +1,11 @@
 package ViewManager;
 
+import java.io.File;
+
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.XMLConfiguration;
+import org.apache.commons.configuration.*;
+
 
 public class VmXmlHandler {
 
@@ -71,7 +75,8 @@ public class VmXmlHandler {
 		
 		vmProperties = new XMLConfiguration();
 		vmProperties.setDelimiterParsingDisabled(true);
-
+		
+			
 		try {
 			deltaPreaggMapping.load("ViewManager/properties/Delta_PreAgg_mapping.xml");
 			deltaSelectionMapping.load("ViewManager/properties/Delta_Selection_mapping.xml");
@@ -88,6 +93,7 @@ public class VmXmlHandler {
 			rjAggJoinGroupByMapping.load("ViewManager/properties/RJ_Join_GroupBy.xml");
 			rjAggJoinGroupByHavingMapping.load("ViewManager/properties/Having_GroupBy.xml");
 			vmProperties.load("vm_prop/vm_properties.xml");
+			
 			
 			
 		} catch (ConfigurationException e) {
@@ -164,5 +170,13 @@ public class VmXmlHandler {
 		return vmProperties;
 	}
 
+	
+	public synchronized void save(File file){
+		try {
+			getVMProperties().save(file);
+		} catch (ConfigurationException e) {
+			e.printStackTrace();
+		}	
+	}
 
 }

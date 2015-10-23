@@ -127,13 +127,9 @@ public class ViewManagerGroupByController implements Runnable {
 
 
 		VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtrGB", ptr);
-		try {
+		VmXmlHandler.getInstance().save(VmXmlHandler.getInstance().getVMProperties().getFile());
 
-			VmXmlHandler.getInstance().getVMProperties().save(VmXmlHandler.getInstance().getVMProperties().getFile());
-		} catch (ConfigurationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+
 	}
 
 	private void propagateGroupByDelete(JSONObject json, String table, String ptr) {
@@ -198,14 +194,7 @@ public class ViewManagerGroupByController implements Runnable {
 
 
 		VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtrGB", ptr);
-		try {
-
-			VmXmlHandler.getInstance().getVMProperties().save(VmXmlHandler.getInstance().getVMProperties().getFile());
-		} catch (ConfigurationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
+		VmXmlHandler.getInstance().save(VmXmlHandler.getInstance().getVMProperties().getFile());
 
 	}
 

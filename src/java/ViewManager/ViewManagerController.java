@@ -487,13 +487,8 @@ public class ViewManagerController implements Runnable {
 		
 		
 		VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtr1", json.get("readPtr").toString());
-		try {
-			
-			VmXmlHandler.getInstance().getVMProperties().save(VmXmlHandler.getInstance().getVMProperties().getFile());
-		} catch (ConfigurationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		VmXmlHandler.getInstance().save(VmXmlHandler.getInstance().getVMProperties().getFile());
+		
 	}
 
 	
@@ -700,13 +695,8 @@ public class ViewManagerController implements Runnable {
 		
 		
 		VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtr1", json.get("readPtr").toString());
-		try {
-			
-			VmXmlHandler.getInstance().getVMProperties().save(VmXmlHandler.getInstance().getVMProperties().getFile());
-		} catch (ConfigurationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		VmXmlHandler.getInstance().save(VmXmlHandler.getInstance().getVMProperties().getFile());
+		
 	}
 
 	public boolean cascadeDeleteReverseJoin(JSONObject json, int j, int cursor){
