@@ -1,6 +1,8 @@
 package ViewManager;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 
 import client.client.XmlHandler;
@@ -14,95 +16,136 @@ import com.datastax.driver.core.policies.TokenAwarePolicy;
 
 public class TaskDistributor {
 
-	ViewManagerController vmc;
-	ViewManagerGroupByController vmgb;
-	ViewManagerPreaggController vmp;
-	ViewManagerRJController vmr;
-	ViewManager vm;
+	
+	
+	List<ViewManager> viewManagers;
+	
+	List<ViewManagerController> viewManagerControllers;
+	List<ViewManagerGroupByController> viewManagerGroupByControllers;
+	List<ViewManagerPreaggController> viewManagerPreaggControllers;
+	List<ViewManagerRJController> viewManagerRJControllers;
+	
+	
 	private Cluster currentCluster;
-	Queue<JSONObject> rJ;
-	Queue<JSONObject> preAgg;
-	Queue<JSONObject> groupBy;
-	Queue<JSONObject> delta;
-	Thread rjThread;
-	Thread preaggThread;
-	Thread groupByThread;
-	Thread deltaThread;
 
+	
+	List<Thread> rjThreads;
+	List<Thread> preaggThreads;
+	List<Thread> groupbyThreads;
+	List<Thread> deltaThreads;
+	
+	List<Queue<JSONObject>> rjQueues;
+	List<Queue<JSONObject>> preaggQueues;
+	List<Queue<JSONObject>> groupbyQueues;
+	List<Queue<JSONObject>> deltaQueues;
 
-	public TaskDistributor(){
+	
 
+	public TaskDistributor(ArrayList<String> vm_identifiers){
+		
 		connectToCluster();
-		vm = new ViewManager(getCurrentCluster(), "vm1");
 
-		rJ = new LinkedList<JSONObject>();
-		preAgg = new LinkedList<JSONObject>();
-		groupBy = new LinkedList<JSONObject>();
-		delta = new LinkedList<JSONObject>();
+		
+		//initialize the lists
+		viewManagers = new ArrayList<ViewManager>();
+		viewManagerControllers = new ArrayList<ViewManagerController>();
+		viewManagerGroupByControllers = new ArrayList<ViewManagerGroupByController>();
+		viewManagerPreaggControllers = new ArrayList<ViewManagerPreaggController>();
+		viewManagerRJControllers = new ArrayList<ViewManagerRJController>();
+		
+		rjQueues = new ArrayList<Queue<JSONObject>>();
+		preaggQueues = new ArrayList<Queue<JSONObject>>();
+		groupbyQueues = new ArrayList<Queue<JSONObject>>();
+		deltaQueues = new ArrayList<Queue<JSONObject>>();
+		
+		preaggThreads = new ArrayList<Thread>();
+		groupbyThreads = new ArrayList<Thread>();
+		deltaThreads = new ArrayList<Thread>();
+		rjThreads = new ArrayList<Thread>();
+		
+		for(int i = 0;i < vm_identifiers.size();i++){
+			
+			//view manager
+			ViewManager vm = new ViewManager(getCurrentCluster(), vm_identifiers.get(i));
+			viewManagers.add(vm);
+			
+			//Queues
+			rjQueues.add(new LinkedList<JSONObject>());
+			preaggQueues.add(new LinkedList<JSONObject>());
+			deltaQueues.add(new LinkedList<JSONObject>());
+			groupbyQueues.add(new LinkedList<JSONObject>());
+			
+			//Controllers and Threads
+			ViewManagerGroupByController vmgb= new ViewManagerGroupByController(vm, currentCluster,this, i);
+			Thread groupByThread = new Thread(vmgb);
+			groupByThread.setName("groupByThread");
+			groupByThread.start();
+			groupbyThreads.add(groupByThread);
 
-	/*	vmgb= new ViewManagerGroupByController(vm, currentCluster,this);
-		groupByThread = new Thread(vmgb);
-		groupByThread.setName("groupByThread");
-		groupByThread.start();
+			ViewManagerPreaggController vmp = new ViewManagerPreaggController(vm, currentCluster,this, i);
+			Thread preaggThread = new Thread(vmp);
+			preaggThread.setName("preaggThread");
+			preaggThread.start();
+			preaggThreads.add(preaggThread);
 
-		vmp = new ViewManagerPreaggController(vm, currentCluster,this);
-		preaggThread = new Thread(vmp);
-		preaggThread.setName("preaggThread");
-		preaggThread.start(); */
+			ViewManagerController vmc = new ViewManagerController(vm, currentCluster,this, i);
+			Thread deltaThread = new Thread(vmc);
+			deltaThread.setName("deltaThread");
+			deltaThread.start();
+			deltaThreads.add(deltaThread);
 
-		vmc = new ViewManagerController(vm, currentCluster,this);
-		deltaThread = new Thread(vmc);
-		deltaThread.setName("deltaThread");
-		deltaThread.start();
+			ViewManagerRJController vmr = new ViewManagerRJController(vm, currentCluster,this, i);
+			Thread rjThread = new Thread(vmr);
+			rjThread.setName("rjThread");
+			rjThread.start();
+			rjThreads.add(rjThread);
+			
+			
+			
+		}
 
-	/*	vmr = new ViewManagerRJController(vm, currentCluster,this);
-		rjThread = new Thread(vmr);
-		rjThread.setName("rjThread");
-		rjThread.start();*/
 
 	}
 
-	public void fillQueue(JSONObject json,int n){
-
-
+	public void fillQueue(JSONObject json,int n, int vmIndex){
 
 		if(n==1){
-			rJ.add(json);
+			rjQueues.get(vmIndex).add(json);
 		}else if(n==2){
-			preAgg.add(json);
+			preaggQueues.get(vmIndex).add(json);
 		}else if(n==3){
-			groupBy.add(json);
+			groupbyQueues.get(vmIndex).add(json);
 		}else if(n==4){
-			delta.add(json);
+			deltaQueues.get(vmIndex).add(json);
 		}
 	}
 
-	public void processRequest(JSONObject json,String type,String table, long readPtr){
+	public void processRequest(JSONObject json,String type,String table, long readPtr, int vmIndex){
 
 		json.put("readPtr", readPtr);
 		
 
 		if (table.toLowerCase().contains("groupby")) {
 			if (type.equalsIgnoreCase("insert")||type.equalsIgnoreCase("update")){
-				fillQueue(json, 3);
+				fillQueue(json, 3, vmIndex);
 			}
 		}else if (table.toLowerCase().contains("preagg_agg")) {
 			if (type.equalsIgnoreCase("insert")||type.equalsIgnoreCase("update")){
-				fillQueue(json, 2);
+				fillQueue(json, 2, vmIndex);
 			}
 		} else if (table.toLowerCase().contains("rj_")) {
 			if (type.equalsIgnoreCase("insert")||type.equalsIgnoreCase("update")){
-				fillQueue(json, 1);
+				fillQueue(json, 1, vmIndex);
 			}
 		} else {
 			if (type.equals("insert")) {
-				fillQueue(json, 4);
+				fillQueue(json, 4, vmIndex);
 			}
 			if (type.equals("update")) {
-				fillQueue(json, 4);
+				fillQueue(json, 4, vmIndex);
 			}
 			if (type.equals("delete-row")) {
-				fillQueue(json, 4);
+				fillQueue(json, 4, vmIndex);
 			}
 		}
 	}

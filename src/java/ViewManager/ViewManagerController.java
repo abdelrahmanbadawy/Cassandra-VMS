@@ -32,11 +32,12 @@ public class ViewManagerController implements Runnable {
 	TaskDistributor td;
 
 
-	public ViewManagerController(ViewManager vm,Cluster cluster, TaskDistributor td) {	
+	public ViewManagerController(ViewManager vm,Cluster cluster, TaskDistributor td, int identifier_index) {	
 		
 		System.out.println("Delta Controller is up");
 		retrieveLoadXmlHandlers();
 		this.vm = vm;
+		this.identifier_index = identifier_index;
 		parseXmlMapping();
 		stream = new Stream();
 		
@@ -738,8 +739,8 @@ public class ViewManagerController implements Runnable {
 
 		while(true){
 
-			if(!td.delta.isEmpty()){
-				JSONObject head = td.delta.remove();
+			if(!td.deltaQueues.get(identifier_index).isEmpty()){
+				JSONObject head = td.deltaQueues.get(identifier_index).remove();
 				decide(head);
 			}
 			

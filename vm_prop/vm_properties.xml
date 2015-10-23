@@ -1,11 +1,32 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <properties>
-<number>1</number>
-<vm>
+	<number>4</number>
+	<vm>
 		<identifier>vm1</identifier>
-		<execPtr>1197392</execPtr>
-		<execPtrRJ>1197392</execPtrRJ>
-		<execPtrGB>1197392</execPtrGB>
-		<execPtrPreagg>1197392</execPtrPreagg>
+		<execPtr1>0</execPtr1>
+		<execPtrRJ>0</execPtrRJ>
+		<execPtrGB>0</execPtrGB>
+		<execPtrPreagg>0</execPtrPreagg>
+	</vm>
+	<vm>
+		<identifier>vm2</identifier>
+		<execPtr1>0</execPtr1>
+		<execPtrRJ>0</execPtrRJ>
+		<execPtrGB>0</execPtrGB>
+		<execPtrPreagg>0</execPtrPreagg>
+	</vm>
+	<vm>
+		<identifier>vm3</identifier>
+		<execPtr1>0</execPtr1>
+		<execPtrRJ>0</execPtrRJ>
+		<execPtrGB>0</execPtrGB>
+		<execPtrPreagg>0</execPtrPreagg>
+	</vm>
+	<vm>
+		<identifier>vm4</identifier>
+		<execPtr1>0</execPtr1>
+		<execPtrRJ>0</execPtrRJ>
+		<execPtrGB>0</execPtrGB>
+		<execPtrPreagg>0</execPtrPreagg>
 	</vm>
 </properties>
