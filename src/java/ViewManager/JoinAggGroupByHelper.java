@@ -40,13 +40,13 @@ public class JoinAggGroupByHelper {
 
 		if(json.get("recovery_mode").equals("on")){
 			Row rs = selectStatement( joinAggTable, aggKeyName, aggKeyValue,json);
-			
+
 			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier))
 					>= Long.parseLong(json.get("readPtr").toString()))
 				return ;
-			
+
 		}
-		
+
 		List<Float> myList = new ArrayList<Float>();
 		myList.addAll(row.getList("agg_list"));
 
@@ -56,28 +56,27 @@ public class JoinAggGroupByHelper {
 		float max = row.getFloat("max");
 		int count = row.getInt("count");
 
-		StringBuilder insertQueryAgg = new StringBuilder("INSERT INTO ").append((String) json.get("keyspace"))
-				.append(".").append(joinAggTable).append(" ( ")
-				.append(aggKeyName + ", ").append("agg_list, sum, count, average, min, max")
-				.append(") VALUES (")
-				.append(aggKeyValue + ", ").append("?"+", ").append(sum).append(", ").append(count).append(", ")
-				.append(avg).append(", ").append(min).append(", ").append(max).append(");");
+		StringBuilder updateQuery = new StringBuilder("UPDATE ");
+		updateQuery.append((String) json.get("keyspace"))
+		.append(".").append(joinAggTable).append(" SET sum = ").append(sum).append(", count = ").append(count).append(", average = ").append(avg).append(", min = ")
+		.append(min).append(", max = ").append(max)
+		.append(", agg_list = ").append("?, signature['").append(identifier).append("']= '").append(json.get("readPtr").toString())
+		.append("' WHERE ").append(aggKeyName).append(" = ").append(aggKeyValue)
+		.append(";");
 
-		System.out.println(insertQueryAgg);
+		System.out.println(updateQuery);
 
 		try {
 			Session session = currentCluster.connect();
-
-			PreparedStatement statement1 = session.prepare(insertQueryAgg.toString());
+			PreparedStatement statement1 = session.prepare(updateQuery
+					.toString());
 			BoundStatement boundStatement = new BoundStatement(statement1);
 			System.out.println(boundStatement.toString());
-			session.execute(boundStatement.bind(myList)).one();
+			session.execute(boundStatement.bind(myList));
 
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
-		Utils.updateSignature(aggKeyName, aggKeyValue, joinAggTable, json, identifier, json.get("readPtr").toString());
 
 	}
 
@@ -86,14 +85,14 @@ public class JoinAggGroupByHelper {
 		String aggKeyName = row.getName(0);
 		String aggKeyType = row.getType(0);
 		String aggKeyValue = Utils.getColumnValueFromDeltaStream(row, aggKeyName, aggKeyType, "");
-		
+
 		if(json.get("recovery_mode").equals("on")){
 			Row rs = selectStatement( joinAggTable, aggKeyName, aggKeyValue,json);
-			
+
 			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier))
 					>= Long.parseLong(json.get("readPtr").toString()))
 				return ;
-			
+
 		}
 
 		List<Float> myList = new ArrayList<Float>();
@@ -105,40 +104,41 @@ public class JoinAggGroupByHelper {
 		float max = row.getFloat("max");
 		int count = row.getInt("count");
 
-		StringBuilder insertQueryAgg = new StringBuilder("INSERT INTO ").append((String) json.get("keyspace"))
-				.append(".").append(joinAggTable).append(" ( ")
-				.append(aggKeyName + ", ").append("agg_list, sum, count, average, min, max, stream ")
-				.append(") VALUES (")
-				.append(aggKeyValue + ", ").append("?, ").append(sum).append(", ").append(count).append(", ")
-				.append(avg).append(", ").append(min).append(", ").append(max).append(", ").append(blob).append(");");
+		StringBuilder updateQuery = new StringBuilder("UPDATE ");
+		updateQuery.append((String) json.get("keyspace"))
+		.append(".").append(joinAggTable).append(" SET sum = ").append(sum).append(", count = ").append(count).append(", average = ").append(avg).append(", min = ")
+		.append(min).append(", max = ").append(max)
+		.append(", stream = ").append(blob)
+		.append(", agg_list = ").append("?, signature['").append(identifier).append("']= '").append(json.get("readPtr").toString())
+		.append("' WHERE ").append(aggKeyName).append(" = ").append(aggKeyValue)
+		.append(";");
 
-		System.out.println(insertQueryAgg);
+		System.out.println(updateQuery);
 
 		try {
 			Session session = currentCluster.connect();
-			PreparedStatement statement1 = session.prepare(insertQueryAgg.toString());
+			PreparedStatement statement1 = session.prepare(updateQuery
+					.toString());
 			BoundStatement boundStatement = new BoundStatement(statement1);
 			System.out.println(boundStatement.toString());
-			session.execute(boundStatement.bind(myList)).one();
-
+			session.execute(boundStatement.bind(myList));
 
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
-		Utils.updateSignature(aggKeyName, aggKeyValue, joinAggTable, json, identifier, json.get("readPtr").toString());
 	}
 
 	public static boolean updateStatement(Float sum, int count, Float avg, Float min, Float max, List<Float> myList, String key, String keyValue,
 			String preaggTable, JSONObject json, Float oldSum, String blob, String identifier){
-		
+
 		if(json.get("recovery_mode").equals("on")){
 			Row rs = selectStatement( preaggTable, key, keyValue,json);
-			
+
 			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier))
 					>= Long.parseLong(json.get("readPtr").toString()))
 				return true;
-			
+
 		}
 
 		StringBuilder updateQuery = new StringBuilder("UPDATE ");
@@ -234,7 +234,7 @@ public class JoinAggGroupByHelper {
 
 		stream.setUpdatedJoinAggGroupByRowOldState(new CustomizedRow(theRow));
 
-		
+
 		if(theRow==null){
 			return true;
 		}else if(theRow.getInt("count")==1){
@@ -420,7 +420,7 @@ public class JoinAggGroupByHelper {
 		}
 
 		stream.setUpdatedJoinAggGroupByRowOldState(new CustomizedRow(theRow));
-		
+
 		//First Insertion
 		if(theRow==null){
 			if(!aggColValue.equals("null") ){

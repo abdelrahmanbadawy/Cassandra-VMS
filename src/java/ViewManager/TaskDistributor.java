@@ -40,7 +40,7 @@ public class TaskDistributor {
 		groupBy = new LinkedList<JSONObject>();
 		delta = new LinkedList<JSONObject>();
 
-		vmgb= new ViewManagerGroupByController(vm, currentCluster,this);
+	/*	vmgb= new ViewManagerGroupByController(vm, currentCluster,this);
 		groupByThread = new Thread(vmgb);
 		groupByThread.setName("groupByThread");
 		groupByThread.start();
@@ -48,17 +48,17 @@ public class TaskDistributor {
 		vmp = new ViewManagerPreaggController(vm, currentCluster,this);
 		preaggThread = new Thread(vmp);
 		preaggThread.setName("preaggThread");
-		preaggThread.start();
+		preaggThread.start(); */
 
 		vmc = new ViewManagerController(vm, currentCluster,this);
 		deltaThread = new Thread(vmc);
 		deltaThread.setName("deltaThread");
 		deltaThread.start();
 
-		vmr = new ViewManagerRJController(vm, currentCluster,this);
+	/*	vmr = new ViewManagerRJController(vm, currentCluster,this);
 		rjThread = new Thread(vmr);
 		rjThread.setName("rjThread");
-		rjThread.start();
+		rjThread.start();*/
 
 	}
 

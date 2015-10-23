@@ -57,7 +57,7 @@ public class PreaggregationHelper {
 
 		return PreAggMap;
 	}
-	
+
 	public static ResultSet selectStatementSignature(JSONObject json,String preaggTable,String aggKey,String aggKeyValue){
 
 		StringBuilder selectPreaggQuery1 = new StringBuilder("SELECT ")
@@ -117,13 +117,10 @@ public class PreaggregationHelper {
 		.append("?, ").append(sum+", ").append((int) count+", ").append(average+", ").append(min+", ")
 		.append(blob+", ").append(max).append(", {'").append(identifier).append("': '").append(json.get("readPtr").toString())
 		.append("'} ) IF NOT EXISTS ;");
-		//.append("?, ?, ?, ?, ?, ?,?) IF NOT EXISTS ;");
 
 		System.out.println(insertQueryAgg.toString());
 
 		try{
-			/*Session session1 = currentCluster.connect();
-			rs = session1.execute(insertQueryAgg.toString());		*/	
 			Session session1 = currentCluster.connect();
 
 			PreparedStatement statement1 = session1.prepare(insertQueryAgg
@@ -150,20 +147,20 @@ public class PreaggregationHelper {
 
 		if(json.get("recovery_mode").equals("on")){
 			Row rs = selectStatementSignature(json, preaggTable, aggKey, aggKeyValue).one();
-			
+
 			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier))
 					>= Long.parseLong(json.get("readPtr").toString()))
 				return ;
-			
-		}
-		
-		// 3. execute the insertion
 
-		StringBuilder insertQueryAgg = new StringBuilder("INSERT INTO ");
+		}
+
+		// 3. execute the insertion
+		StringBuilder insertQueryAgg = new StringBuilder("UPDATE ");
 		insertQueryAgg.append((String) json.get("keyspace"))
-		.append(".").append(preaggTable).append(" ( ")
-		.append(aggKey ).append(", stream").append(") VALUES (").append(aggKeyValue + ", ")
-		.append(blob).append(" );");
+		.append(".").append(preaggTable).append(" SET stream = ").append(blob).append(", signature['").append(identifier).append("']= '")
+		.append(json.get("readPtr")).append("' WHERE ").append(aggKey).append(" = ").append(aggKeyValue).append(";");
+
+		System.out.println(insertQueryAgg);
 
 		try{
 			Session session = currentCluster.connect();
@@ -171,45 +168,42 @@ public class PreaggregationHelper {
 		}catch (Exception e) {
 			e.printStackTrace();
 		}
-		
-		Utils.updateSignature(aggKey, aggKeyValue, preaggTable, json, identifier, json.get("readPtr").toString());
 	}
 
 	public static void insertStatement(JSONObject json,String preaggTable,String aggKey,String aggKeyValue,Map<String, String> myMap,float sum,float count,float min,float max,float average, String identifier){
 
 		if(json.get("recovery_mode").equals("on")){
 			Row rs = selectStatementSignature(json, preaggTable, aggKey, aggKeyValue).one();
-			
+
 			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier))
 					>= Long.parseLong(json.get("readPtr").toString()))
 				return ;
-			
+
 		}
-		
-		// 3. execute the insertion
-		StringBuilder insertQueryAgg = new StringBuilder("INSERT INTO ");
-		insertQueryAgg.append((String) json.get("keyspace"))
-		.append(".").append(preaggTable).append(" ( ")
-		.append(aggKey + ", ").append("list_item, ")
-		.append("sum, count, average, min, max")
-		.append(") VALUES (").append(aggKeyValue + ", ")
-		.append("?, ?, ?, ?, ?, ?);");
 
-		try{
-			Session session1 = currentCluster.connect();
+		StringBuilder updateQuery = new StringBuilder("UPDATE ");
+		updateQuery.append((String) json.get("keyspace"))
+		.append(".").append(preaggTable).append(" SET list_item = ?, sum = ").append(sum)
+		.append(", count = ").append((int)count).append(", average = ").append(average).append(", min = ")
+		.append(min).append(", max = ").append(max).append(", signature['").append(identifier).append("']= '")
+		.append(json.get("readPtr")).append("' WHERE ").append(aggKey).append(" = ").append(aggKeyValue)
+		.append(";");
 
-			PreparedStatement statement1 = session1.prepare(insertQueryAgg
+
+		System.out.println(updateQuery);
+
+		try {
+			Session session = currentCluster.connect();
+			PreparedStatement statement1 = session.prepare(updateQuery
 					.toString());
 			BoundStatement boundStatement = new BoundStatement(statement1);
-			session1.execute(boundStatement.bind(myMap, sum, (int) count,
-					average, min, max));
-
 			System.out.println(boundStatement.toString());
+			session.execute(boundStatement.bind(myMap));
 
-		}catch (Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		Utils.updateSignature(aggKey, aggKeyValue, preaggTable, json, identifier, json.get("readPtr").toString());
+		
 	}
 
 	public static boolean updateStatement(Float sum, int count, Float avg, Float min, Float max, Map<String, String> myMap, String key, String keyValue,
@@ -217,13 +211,13 @@ public class PreaggregationHelper {
 
 		if(json.get("recovery_mode").equals("on")){
 			Row rs = selectStatementSignature(json, preaggTable, key, keyValue).one();
-			
+
 			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier))
 					>= Long.parseLong(json.get("readPtr").toString()))
 				return true;
-			
+
 		}
-		
+
 		StringBuilder updateQuery = new StringBuilder("UPDATE ");
 		updateQuery.append((String) json.get("keyspace"))
 		.append(".").append(preaggTable).append(" SET list_item = ?, sum = ").append(sum)

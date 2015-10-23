@@ -307,7 +307,7 @@ public class CommitLog implements CommitLogMBean
 			if(cf.deletionInfo().getTopLevelDeletion().markedForDeleteAt>0)
 				delete = true;
 
-			
+
 			if(delete){
 				if(table.contains("preagg_agg") || table.contains("rj") || table.contains("groupby"))
 					return;
@@ -356,20 +356,10 @@ public class CommitLog implements CommitLogMBean
 			values.add(pkValue);
 
 			int i = 0;
-			
-			if(cf.getColumnCount()==1)
-				return;
-
-			logger.info("zeft "+table+" "+cf.getColumnCount());
-			
 			for (Cell cell : cf){
 				try {
 
 					if(!cell.name().equals(pkName) && i!=0){
-
-						int oba = cf.getColumnCount(); 
-						if(cfm.comparator.getString(cell.name()).contains("signature") && cf.getColumnCount()==2)
-							return;
 
 						columns.add(cfm.comparator.getString(cell.name()));
 						String cellType = cfm.getColumnDefinition(cell.name()).type.toString();
