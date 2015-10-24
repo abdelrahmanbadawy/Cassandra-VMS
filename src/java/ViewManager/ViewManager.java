@@ -178,6 +178,7 @@ public class ViewManager {
 
 		Row row = Utils.selectAllStatement(keyspace, "delta_" + table,
 				baseTablePrimaryKey, data.get(baseTablePrimaryKey).toString());
+	
 		CustomizedRow crow = new CustomizedRow(row);
 
 		// TO BE REMOVED
@@ -1653,69 +1654,7 @@ public class ViewManager {
 		return true;
 	}
 
-	public boolean updateJoinHaving(String keyspace, String havingTable,
-			Row preagRow) {
-
-		float min = preagRow.getFloat("min");
-		float max = preagRow.getFloat("max");
-		float average = preagRow.getFloat("average");
-		int count = preagRow.getInt("count");
-		float sum = preagRow.getInt("sum");
-
-		List<Definition> def = preagRow.getColumnDefinitions().asList();
-		String pkName = def.get(0).getName();
-		String pkType = def.get(0).getType().toString();
-		String pkVAlue = "";
-
-		switch (pkType) {
-
-		case "int":
-			pkVAlue = "" + (preagRow.getFloat(pkName));
-			break;
-
-		case "float":
-			pkVAlue = Float.toString(preagRow.getFloat(pkName));
-			break;
-
-		case "varint":
-			pkVAlue = preagRow.getVarint(pkName).toString();
-			break;
-
-		case "varchar":
-			pkVAlue = preagRow.getString(pkName);
-			break;
-
-		case "text":
-			pkVAlue = preagRow.getString(pkName);
-			break;
-		}
-
-		try {
-			// 1. execute the insertion
-			StringBuilder insertQuery = new StringBuilder("INSERT INTO ");
-			insertQuery.append(keyspace).append(".").append(havingTable)
-			.append(" (").append(pkName + ", ").append("sum, ")
-			.append("count, average, min, max ").append(") VALUES (")
-			.append("?, ?, ?, ?, ?, ?);");
-
-			System.out.println(insertQuery);
-
-			Session session1 = currentCluster.connect();
-
-			PreparedStatement statement1 = session1.prepare(insertQuery
-					.toString());
-			BoundStatement boundStatement = new BoundStatement(statement1);
-			session1.execute(boundStatement.bind(pkVAlue, sum, (int) count,
-					average, min, max));
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			return false;
-		}
-
-		return true;
-	}
-
+	
 	public boolean deleteRowHaving(String keyspace, String havingTable,
 			CustomizedRow preagRow) {
 
@@ -1729,176 +1668,8 @@ public class ViewManager {
 		return true;
 	}
 
-	public boolean deleteRowJoinHaving(String keyspace, String havingTable,
-			Row preagRow) {
-
-		List<Definition> def = preagRow.getColumnDefinitions().asList();
-
-		String pkName = def.get(0).getName();
-		String pkType = def.get(0).getType().toString();
-		String pkVAlue = "";
-
-		switch (pkType) {
-
-		case "int":
-			pkVAlue = Integer.toString(preagRow.getInt(pkName));
-			break;
-
-		case "float":
-			pkVAlue = Float.toString(preagRow.getFloat(pkName));
-			break;
-
-		case "varint":
-			pkVAlue = preagRow.getVarint(pkName).toString();
-			break;
-
-		case "varchar":
-			pkVAlue = "'" + preagRow.getString(pkName) + "'";
-			break;
-
-		case "text":
-			pkVAlue = "'" + preagRow.getString(pkName) + "'";
-			break;
-		}
-
-		StringBuilder deleteQuery = new StringBuilder("delete from ");
-		deleteQuery.append(keyspace).append(".").append(havingTable)
-		.append(" WHERE ").append(pkName + " = ").append(pkVAlue)
-		.append(";");
-
-		System.out.println(deleteQuery);
-
-		try {
-
-			Session session = currentCluster.connect();
-			session.execute(deleteQuery.toString());
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			return false;
-		}
-
-		return true;
-	}
-
-	public boolean updateInnerJoinAgg(Row deltaUpdatedRow, JSONObject json,
-			String joinAggTableName, String aggKey, String aggKeyType,
-			String aggCol, String aggColType, Row oldReverseRow,
-			Row newReverseRow, Boolean leftUpdateHappened, boolean override,
-			boolean mapSize1, String basetable) {
-
-		// Select statement
-		StringBuilder select = new StringBuilder();
-		select.append("Select * FROM ").append((String) (json.get("keyspace")))
-		.append(".").append(joinAggTableName).append(" WHERE ")
-		.append(aggKey + " = ");
-
-		String aggKeyValue = "";
-
-		switch (aggKeyType) {
-		case "int":
-			aggKeyValue = "" + newReverseRow.getInt(aggKey);
-
-		case "varint":
-			aggKeyValue = "" + newReverseRow.getVarint(aggKey);
-		case "float":
-			aggKeyValue = "" + newReverseRow.getFloat(aggKey);
-		case "varchar":
-			aggKeyValue = "'" + newReverseRow.getString(aggKey) + "'";
-		case "text":
-			aggKeyValue = "'" + newReverseRow.getString(aggKey) + "'";
-		}
-
-		select.append(aggKeyValue + " ;");
-		Row theRow = null;
-		ResultSet rs = null;
-
-		try {
-
-			Session session = currentCluster.connect();
-			// I only need to check if there is one row
-			// theRow = session.execute(select.toString()).one();
-			rs = session.execute(select.toString());
-			theRow = rs.one();
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			return false;
-		}
-
-		// no need to update inner join agg table
-		if (theRow != null) {
-			return true;
-		} else {
-
-			List<String> tableNames = VmXmlHandler.getInstance()
-					.getInnerJoinMap().getList("mapping.unit.tableName");
-			int index = tableNames.indexOf(joinAggTableName);
-
-			if (index != -1) {
-
-				String temp = "mapping.unit(" + index + ")";
-
-				int positionInMaps = VmXmlHandler.getInstance()
-						.getInnerJoinMap().getInt(temp + ".positionInMap");
-
-				Map<String, String> myMap = new HashMap<String, String>();
-
-				if (leftUpdateHappened) {
-					myMap.putAll(newReverseRow.getMap("list_item2",
-							String.class, String.class));
-				} else if (!leftUpdateHappened) {
-					myMap.putAll(newReverseRow.getMap("list_item1",
-							String.class, String.class));
-				}
-
-				float sum = 0;
-				float max = -99999999;
-				float min = 999999999;
-
-				for (Map.Entry<String, String> entry : myMap.entrySet()) {
-					String list = entry.getValue().replaceAll("\\[", "")
-							.replaceAll("\\]", "");
-					String[] listArray = list.split(",");
-
-					sum += Float.valueOf(listArray[positionInMaps]);
-
-					if (Float.valueOf(listArray[positionInMaps]) < min)
-						min = Float.valueOf(listArray[positionInMaps]);
-
-					if (Float.valueOf(listArray[positionInMaps]) > max)
-						max = Float.valueOf(listArray[positionInMaps]);
-				}
-
-				// Insertion
-				int count = myMap.size();
-				float average = sum / count;
-
-				StringBuilder insertQueryAgg = new StringBuilder("INSERT INTO ");
-				insertQueryAgg.append((String) json.get("keyspace"))
-				.append(".").append(joinAggTableName).append(" ( ")
-				.append(aggKey + ", ")
-				.append("sum, count, average, min, max")
-				.append(") VALUES (").append(aggKeyValue + ", ")
-				.append("?, ?, ?, ?, ?);");
-
-				Session session1 = currentCluster.connect();
-
-				PreparedStatement statement1 = session1.prepare(insertQueryAgg
-						.toString());
-				BoundStatement boundStatement = new BoundStatement(statement1);
-				session1.execute(boundStatement.bind((int) sum, (int) count,
-						average, min, max));
-
-				System.out.println(boundStatement.toString());
-
-			}
-		}
-
-		return true;
-
-	}
-
+	
+	
 	public boolean updateJoinAgg_UpdateLeft_AggColLeftSide(Stream stream,
 			String innerJoinAggTable, String leftJoinAggTable, JSONObject json,
 			String joinKeyType, String joinKeyName, String aggColName,
@@ -2488,63 +2259,26 @@ public class ViewManager {
 
 	}
 
-	public String getColumnValueFromDeltaStream(CustomizedRow stream,
-			String name, String type, String suffix) {
-
-		String value = "";
-
-		switch (type) {
-
-		case "text":
-
-			value = ("'" + stream.getString(name + suffix) + "'");
-			break;
-
-		case "int":
-
-			value = ("" + stream.getInt(name + suffix));
-			break;
-
-		case "varint":
-
-			value = ("" + stream.getVarint(name + suffix));
-			break;
-
-		case "varchar":
-
-			value = ("'" + stream.getString(name + suffix) + "'");
-			break;
-
-		case "float":
-
-			value = ("" + stream.getFloat(name + suffix));
-			break;
-
-		}
-
-		return value;
-
-	}
-
+	
 	public Boolean updateJoinAgg_UpdateLeft_AggColLeftSide_GroupBy(
 			Stream stream, String innerJoinAggTable, String leftJoinAggTable,
 			JSONObject json, String aggKeyType, String aggKey,
 			String aggColName, String aggColType, String joinKeyName,
 			String joinKeyType) {
 
-		String aggKeyValue = getColumnValueFromDeltaStream(
+		String aggKeyValue = Utils.getColumnValueFromDeltaStream(
 				stream.getDeltaUpdatedRow(), aggKey, aggKeyType, "_new");
-		String oldAggKeyValue = getColumnValueFromDeltaStream(
+		String oldAggKeyValue = Utils.getColumnValueFromDeltaStream(
 				stream.getDeltaUpdatedRow(), aggKey, aggKeyType, "_old");
 
-		String joinKeyValue = getColumnValueFromDeltaStream(
+		String joinKeyValue = Utils.getColumnValueFromDeltaStream(
 				stream.getDeltaUpdatedRow(), joinKeyName, joinKeyType, "_new");
-		String oldjoinKeyValue = getColumnValueFromDeltaStream(
+		String oldjoinKeyValue = Utils.getColumnValueFromDeltaStream(
 				stream.getDeltaUpdatedRow(), joinKeyName, joinKeyType, "_old");
 
-		String aggColValue = getColumnValueFromDeltaStream(
+		String aggColValue = Utils.getColumnValueFromDeltaStream(
 				stream.getDeltaUpdatedRow(), aggColName, aggColType, "_new");
-		String oldAggColValue = getColumnValueFromDeltaStream(
+		String oldAggColValue = Utils.getColumnValueFromDeltaStream(
 				stream.getDeltaUpdatedRow(), aggColName, aggColType, "_old");
 
 		CustomizedRow newRJRow = stream.getReverseJoinUpdateNewRow();
@@ -2708,19 +2442,19 @@ public class ViewManager {
 			String aggColName, String aggColType, String joinKeyName,
 			String joinKeyType) {
 
-		String aggKeyValue = getColumnValueFromDeltaStream(
+		String aggKeyValue = Utils.getColumnValueFromDeltaStream(
 				stream.getDeltaUpdatedRow(), aggKey, aggKeyType, "_new");
-		String oldAggKeyValue = getColumnValueFromDeltaStream(
+		String oldAggKeyValue = Utils.getColumnValueFromDeltaStream(
 				stream.getDeltaUpdatedRow(), aggKey, aggKeyType, "_old");
 
-		String joinKeyValue = getColumnValueFromDeltaStream(
+		String joinKeyValue = Utils.getColumnValueFromDeltaStream(
 				stream.getDeltaUpdatedRow(), joinKeyName, joinKeyType, "_new");
-		String oldjoinKeyValue = getColumnValueFromDeltaStream(
+		String oldjoinKeyValue = Utils.getColumnValueFromDeltaStream(
 				stream.getDeltaUpdatedRow(), joinKeyName, joinKeyType, "_old");
 
-		String aggColValue = getColumnValueFromDeltaStream(
+		String aggColValue = Utils.getColumnValueFromDeltaStream(
 				stream.getDeltaUpdatedRow(), aggColName, aggColType, "_new");
-		String oldAggColValue = getColumnValueFromDeltaStream(
+		String oldAggColValue = Utils.getColumnValueFromDeltaStream(
 				stream.getDeltaUpdatedRow(), aggColName, aggColType, "_old");
 
 		CustomizedRow newRJRow = stream.getReverseJoinUpdateNewRow();
@@ -3246,9 +2980,9 @@ public class ViewManager {
 			JSONObject json, String aggKeyType, String aggkey,
 			String aggColName, String aggColType, int index) {
 
-		String aggColValue = getColumnValueFromDeltaStream(
+		String aggColValue = Utils.getColumnValueFromDeltaStream(
 				stream.getDeltaDeletedRow(), aggColName, aggColType, "_new");
-		String aggKeyValue = getColumnValueFromDeltaStream(
+		String aggKeyValue = Utils.getColumnValueFromDeltaStream(
 				stream.getDeltaDeletedRow(), aggkey, aggKeyType, "_new");
 
 		CustomizedRow newRJRow = stream.getReverseJoinDeleteNewRow();
@@ -3314,9 +3048,9 @@ public class ViewManager {
 			JSONObject json, String aggKeyType, String aggKey,
 			String aggColName, String aggColType, int index) {
 
-		String aggColValue = getColumnValueFromDeltaStream(
+		String aggColValue = Utils.getColumnValueFromDeltaStream(
 				stream.getDeltaDeletedRow(), aggColName, aggColType, "_new");
-		String aggKeyValue = getColumnValueFromDeltaStream(
+		String aggKeyValue = Utils.getColumnValueFromDeltaStream(
 				stream.getDeltaDeletedRow(), aggKey, aggKeyType, "_new");
 
 		CustomizedRow newRJRow = stream.getReverseJoinDeleteNewRow();

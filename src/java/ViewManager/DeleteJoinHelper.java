@@ -65,16 +65,6 @@ public class DeleteJoinHelper {
 
 				}
 
-				/*if (fromDelete) {
-					JSONObject condition = (JSONObject) json.get("condition");
-					Object[] hm = condition.keySet().toArray();
-
-					if (!leftPkValue.equals(condition.get(hm[0]))) {
-						//myMap1.remove(entry.getKey());
-						continue;
-					}
-				}*/
-
 				String tuple = "(" + leftPkValue + "," + 0 + ")";
 
 				Utils.deleteEntireRowWithPK((String) json.get("keyspace"), leftJName, leftPkName, tuple);
@@ -125,16 +115,6 @@ public class DeleteJoinHelper {
 					break;
 
 				}
-
-				/*if (fromDelete) {
-					JSONObject condition = (JSONObject) json.get("condition");
-					Object[] hm = condition.keySet().toArray();
-
-					if (!rightPkValue.equals(condition.get(hm[0]))) {
-			//			myMap2.remove(entry.getKey());
-						continue;
-					}
-				}*/
 
 				String tuple = "(" + 0 + "," + rightPkValue + ")";
 

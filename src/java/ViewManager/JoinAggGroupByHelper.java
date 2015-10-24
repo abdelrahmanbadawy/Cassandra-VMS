@@ -537,40 +537,46 @@ public class JoinAggGroupByHelper {
 
 		}
 
-		stream.setUpdatedJoinAggGroupByRowOldState(new CustomizedRow(theRow));
-
-		//Update
-		myList.addAll(theRow.getList("agg_list", Float.class));
-		sum = theRow.getFloat("sum");
-		count = theRow.getInt("count");
-
-		count --;
-		sum-=Float.parseFloat(aggColValue);
-		myList.remove(Float.parseFloat(aggColValue));
-
-		average = sum/count;
+		if(theRow==null){
+			stream.setUpdatedJoinAggGroupByRowOldState(new CustomizedRow());
+			stream.setUpdatedJoinAggGroupByRow(null);
+		}else{
 
 
-		min = Float.MAX_VALUE;
-		max = -Float.MAX_VALUE;
+			stream.setUpdatedJoinAggGroupByRowOldState(new CustomizedRow(theRow));
 
-		for(int i=0;i<myList.size();i++){
-			if(myList.get(i)<min){
-				min = myList.get(i);
+			//Update
+			myList.addAll(theRow.getList("agg_list", Float.class));
+			sum = theRow.getFloat("sum");
+			count = theRow.getInt("count");
+
+			count --;
+			sum-=Float.parseFloat(aggColValue);
+			myList.remove(Float.parseFloat(aggColValue));
+
+			average = sum/count;
+
+
+			min = Float.MAX_VALUE;
+			max = -Float.MAX_VALUE;
+
+			for(int i=0;i<myList.size();i++){
+				if(myList.get(i)<min){
+					min = myList.get(i);
+				}
+
+				if(myList.get(i)>max){
+					max = myList.get(i);
+				}
 			}
 
-			if(myList.get(i)>max){
-				max = myList.get(i);
-			}
+			CustomizedRow crow = CustomizedRow.constructJoinAggGroupBy(aggKey, aggKeyValue, myList, sum, count, average, min, max, Serialize.serializeStream2(stream));
+			stream.setUpdatedJoinAggGroupByRow(crow);
+			String blob = Serialize.serializeStream2(stream);
+
+			if(!updateStatement(sum, count, average, min, max, myList, aggKey, aggKeyValue, joinTable, json, theRow.getFloat("sum"),blob, identifier))
+				return false;
 		}
-
-		CustomizedRow crow = CustomizedRow.constructJoinAggGroupBy(aggKey, aggKeyValue, myList, sum, count, average, min, max, Serialize.serializeStream2(stream));
-		stream.setUpdatedJoinAggGroupByRow(crow);
-		String blob = Serialize.serializeStream2(stream);
-
-		if(!updateStatement(sum, count, average, min, max, myList, aggKey, aggKeyValue, joinTable, json, theRow.getFloat("sum"),blob, identifier))
-			return false;
-
 
 		return true;
 
