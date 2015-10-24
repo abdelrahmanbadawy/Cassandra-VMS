@@ -16,65 +16,65 @@ import com.datastax.driver.core.policies.TokenAwarePolicy;
 
 public class TaskDistributor {
 
-	
-	
+
+
 	List<ViewManager> viewManagers;
-	
+
 	List<ViewManagerController> viewManagerControllers;
 	List<ViewManagerGroupByController> viewManagerGroupByControllers;
 	List<ViewManagerPreaggController> viewManagerPreaggControllers;
 	List<ViewManagerRJController> viewManagerRJControllers;
-	
-	
+
+
 	private Cluster currentCluster;
 
-	
+
 	List<Thread> rjThreads;
 	List<Thread> preaggThreads;
 	List<Thread> groupbyThreads;
 	List<Thread> deltaThreads;
-	
+
 	List<Queue<JSONObject>> rjQueues;
 	List<Queue<JSONObject>> preaggQueues;
 	List<Queue<JSONObject>> groupbyQueues;
 	List<Queue<JSONObject>> deltaQueues;
 
-	
+
 
 	public TaskDistributor(ArrayList<String> vm_identifiers){
-		
+
 		connectToCluster();
 
-		
+
 		//initialize the lists
 		viewManagers = new ArrayList<ViewManager>();
 		viewManagerControllers = new ArrayList<ViewManagerController>();
 		viewManagerGroupByControllers = new ArrayList<ViewManagerGroupByController>();
 		viewManagerPreaggControllers = new ArrayList<ViewManagerPreaggController>();
 		viewManagerRJControllers = new ArrayList<ViewManagerRJController>();
-		
+
 		rjQueues = new ArrayList<Queue<JSONObject>>();
 		preaggQueues = new ArrayList<Queue<JSONObject>>();
 		groupbyQueues = new ArrayList<Queue<JSONObject>>();
 		deltaQueues = new ArrayList<Queue<JSONObject>>();
-		
+
 		preaggThreads = new ArrayList<Thread>();
 		groupbyThreads = new ArrayList<Thread>();
 		deltaThreads = new ArrayList<Thread>();
 		rjThreads = new ArrayList<Thread>();
-		
+
 		for(int i = 0;i < vm_identifiers.size();i++){
-			
+
 			//view manager
 			ViewManager vm = new ViewManager(getCurrentCluster(), vm_identifiers.get(i));
 			viewManagers.add(vm);
-			
+
 			//Queues
 			rjQueues.add(new LinkedList<JSONObject>());
 			preaggQueues.add(new LinkedList<JSONObject>());
 			deltaQueues.add(new LinkedList<JSONObject>());
 			groupbyQueues.add(new LinkedList<JSONObject>());
-			
+
 			//Controllers and Threads
 			ViewManagerGroupByController vmgb= new ViewManagerGroupByController(vm, currentCluster,this, i);
 			Thread groupByThread = new Thread(vmgb);
@@ -99,9 +99,9 @@ public class TaskDistributor {
 			rjThread.setName("rjThread");
 			rjThread.start();
 			rjThreads.add(rjThread);
-			
-			
-			
+
+
+
 		}
 
 
@@ -123,7 +123,7 @@ public class TaskDistributor {
 	public void processRequest(JSONObject json,String type,String table, long readPtr, int vmIndex){
 
 		json.put("readPtr", readPtr);
-		
+
 
 		if (table.toLowerCase().contains("groupby")) {
 			if (type.equalsIgnoreCase("insert")||type.equalsIgnoreCase("update")){

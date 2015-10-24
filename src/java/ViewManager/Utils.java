@@ -27,6 +27,38 @@ public class Utils {
 							new TokenAwarePolicy(new DCAwareRoundRobinPolicy()))
 							.build();
 
+	
+	public static boolean deleteEntireRowWithPK(String keyspace, String tableName,
+			String pk, String pkValue,CustomizedRow crow) {
+	
+		Row updated;
+		
+		StringBuilder deleteQuery = new StringBuilder("delete from ");
+		deleteQuery.append(keyspace).append(".").append(tableName)
+		.append(" WHERE ").append(pk + " = ").append(pkValue)
+		.append(" IF count = ").append(crow.getInt("count"))
+		.append(" and sum = ").append(crow.getFloat("sum"))
+		.append(";");
+
+		System.out.println(deleteQuery.toString());
+		try {
+
+			Session session = currentCluster.connect();
+			updated = session.execute(deleteQuery.toString()).one();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+
+		if(updated.getBool("[applied]"))
+			return true;
+		else
+			return false;
+	}
+	
+	
+	
 	//delete row from a table with primary key
 	public static boolean deleteEntireRowWithPK(String keyspace, String tableName,
 			String pk, String pkValue) {

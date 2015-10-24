@@ -240,17 +240,20 @@ public class JoinAggGroupByHelper {
 		}else if(theRow.getInt("count")==1){
 
 			CustomizedRow crow = new CustomizedRow(theRow);
-			stream.setUpdatedJoinAggGroupByRowDeleted(crow);
-			stream.setDeleteOperation(true);
-			String blob = Serialize.serializeStream2(stream);
-			JoinAggGroupByHelper.insertStatement(json, joinAggTable, crow,blob, identifier);
+
+			if(Utils.deleteEntireRowWithPK((String) json.get("keyspace"), joinAggTable, aggKeyName, aggKeyValue,crow)){
+				stream.setUpdatedJoinAggGroupByRowDeleted(crow);
+				stream.setDeleteOperation(true);
+				String blob = Serialize.serializeStream2(stream);
+				JoinAggGroupByHelper.insertStatement(json, joinAggTable, crow,blob, identifier);
+
+			}
 
 			// Reseting the stream
 			stream.setDeleteOperation(false);
 			stream.setUpdatedJoinAggGroupByRowDeleted(null);
 
 
-			Utils.deleteEntireRowWithPK((String) json.get("keyspace"), joinAggTable, aggKeyName, aggKeyValue);
 		}else{
 
 			Float sum = theRow.getFloat("sum");
