@@ -83,15 +83,13 @@ public class PreaggregationHelper {
 		return PreAggMap;
 	}
 
-	public static boolean firstInsertion(String aggKeyType,Stream stream,ArrayList<String> colValues, float aggColValue, JSONObject json, String preaggTable, String aggKey, String aggKeyValue, String identifier){
+	public static boolean firstInsertion(String aggKeyType,Stream stream,ArrayList<String> colValues, float aggColValue, JSONObject json, String preaggTable, String aggKey, String aggKeyValue, String identifier,String pk){
 
 		// 2.c.1 create a map, add pk and list with delta _new values
 		// 2.c.2 set the agg col values
 
 		HashMap<String, String> myMap = new HashMap<>();
-
-		String pk = colValues.get(0);
-		colValues.remove(0);
+		
 		myMap.put(pk, colValues.toString());
 
 		float sum = aggColValue;
@@ -203,7 +201,6 @@ public class PreaggregationHelper {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
 	}
 
 	public static boolean updateStatement(Float sum, int count, Float avg, Float min, Float max, Map<String, String> myMap, String key, String keyValue,
@@ -252,7 +249,7 @@ public class PreaggregationHelper {
 
 	}
 
-	public static boolean updateAggColValue(String aggKeyType,Stream stream, ArrayList<String> myList,float aggColValue,float aggColValue_old,Row theRow, int aggColIndexInList,JSONObject json, String preaggTable,String aggKey,String aggKeyValue, ByteBuffer buffer_old, String identifier){
+	public static boolean updateAggColValue(String aggKeyType,Stream stream, ArrayList<String> myList,float aggColValue,float aggColValue_old,Row theRow, int aggColIndexInList,JSONObject json, String preaggTable,String aggKey,String aggKeyValue, ByteBuffer buffer_old, String identifier,String pk){
 
 		float sum = 0;
 		int count = 0;
@@ -265,9 +262,6 @@ public class PreaggregationHelper {
 		myMap.putAll(tempMapImmutable);
 
 		int prev_count = myMap.keySet().size();
-
-		String pk = myList.get(0);
-		myList.remove(0);
 		myMap.put(pk, myList.toString());
 
 		// 2.e set agg col values
@@ -291,6 +285,7 @@ public class PreaggregationHelper {
 				String list = entry.getValue().replaceAll("\\[", "")
 						.replaceAll("\\]", "");
 				String[] listArray = list.split(",");
+				
 				if (Float.valueOf(listArray[aggColIndexInList - 1]) < min)
 					min = Float
 					.valueOf(listArray[aggColIndexInList - 1]);

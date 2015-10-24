@@ -415,6 +415,7 @@ public class ViewManager {
 			case "text":
 				if (!deltaUpdatedRow.getName(i).contains("_old")) {
 					myList.add(deltaUpdatedRow.getString(i));
+					System.out.println("adding"+deltaUpdatedRow.getString(i));
 				}
 
 				break;
@@ -422,24 +423,28 @@ public class ViewManager {
 			case "int":
 				if (!deltaUpdatedRow.getName(i).contains("_old")) {
 					myList.add("" + deltaUpdatedRow.getInt(i) + "");
+					System.out.println("adding"+deltaUpdatedRow.getInt(i));
 				}
 				break;
 
 			case "varint":
 				if (!deltaUpdatedRow.getName(i).contains("_old")) {
 					myList.add("" + deltaUpdatedRow.getVarint(i) + "");
+					System.out.println("adding"+deltaUpdatedRow.getVarint(i));
 				}
 				break;
 
 			case "varchar":
 				if (!deltaUpdatedRow.getName(i).contains("_old")) {
 					myList.add(deltaUpdatedRow.getString(i));
+					System.out.println("adding"+deltaUpdatedRow.getString(i));
 				}
 				break;
 
 			case "float":
 				if (!deltaUpdatedRow.getName(i).contains("_old")) {
 					myList.add("" + deltaUpdatedRow.getFloat(i) + "");
+					System.out.println("adding"+deltaUpdatedRow.getFloat(i));
 				}
 				break;
 			}
@@ -473,6 +478,9 @@ public class ViewManager {
 
 			boolean loop = false;
 
+			String pk = myList.get(0);
+			myList.remove(0);
+			
 			do {
 
 				if (!override) {
@@ -500,7 +508,7 @@ public class ViewManager {
 
 					if (PreaggregationHelper
 							.firstInsertion(aggKeyType,stream, myList, aggColValue, json,
-									preaggTable, aggKey, aggKeyValue, identifier)) {
+									preaggTable, aggKey, aggKeyValue, identifier,pk)) {
 						loop = false;
 					} else {
 						loop = true;
@@ -513,10 +521,12 @@ public class ViewManager {
 
 					ByteBuffer blob_old = theRow1.getBytes("stream");
 
+					System.out.println("sameKeyValue "+sameKeyValue);
+					
 					if (PreaggregationHelper.updateAggColValue(aggKeyType,stream, myList,
 							aggColValue, aggColValue_old, theRow1,
 							aggColIndexInList, json, preaggTable, aggKey,
-							aggKeyValue, blob_old, identifier)) {
+							aggKeyValue, blob_old, identifier,pk)) {
 						loop = false;
 					} else {
 						loop = true;
@@ -599,6 +609,7 @@ public class ViewManager {
 						blob_old = theRow.getBytes("stream");
 					}
 
+					System.out.println("sameKeyVale "+sameKeyValue);
 					//					// perform a new insertion for the new aggkey given in json
 					updatePreaggregation(stream, aggKey, aggKeyType, json,
 							preaggTable, baseTablePrimaryKey, aggCol,
