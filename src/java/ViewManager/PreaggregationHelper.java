@@ -140,7 +140,7 @@ public class PreaggregationHelper {
 
 	}
 
-	public static void insertStatementToDelete(JSONObject json,String preaggTable,String aggKey,String aggKeyValue,String blob, String identifier){
+	public static boolean insertStatementToDelete(JSONObject json,String preaggTable,String aggKey,String aggKeyValue,String blob, String identifier,CustomizedRow crow){
 
 
 		if(json.get("recovery_mode").equals("on")){
@@ -148,7 +148,7 @@ public class PreaggregationHelper {
 
 			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier))
 					>= Long.parseLong(json.get("readPtr").toString()))
-				return ;
+				return true;
 
 		}
 
@@ -156,16 +156,26 @@ public class PreaggregationHelper {
 		StringBuilder insertQueryAgg = new StringBuilder("UPDATE ");
 		insertQueryAgg.append((String) json.get("keyspace"))
 		.append(".").append(preaggTable).append(" SET stream = ").append(blob).append(", signature['").append(identifier).append("']= '")
-		.append(json.get("readPtr")).append("' WHERE ").append(aggKey).append(" = ").append(aggKeyValue).append(";");
+		.append(json.get("readPtr")).append("' WHERE ").append(aggKey).append(" = ").append(aggKeyValue)
+		.append("IF sum =").append(crow.getFloat("sum")).append("and count = ").append(crow.getInt("count"))
+		.append(";");
 
 		System.out.println(insertQueryAgg);
 
+		Row updated;
+		
 		try{
 			Session session = currentCluster.connect();
-			session.execute(insertQueryAgg.toString());
+			updated = session.execute(insertQueryAgg.toString()).one();
 		}catch (Exception e) {
 			e.printStackTrace();
+			return false;
 		}
+		
+		if(updated.getBool("[applied]"))
+			return true;
+		else
+			return false;
 	}
 
 	public static void insertStatement(JSONObject json,String preaggTable,String aggKey,String aggKeyValue,Map<String, String> myMap,float sum,float count,float min,float max,float average, String identifier){

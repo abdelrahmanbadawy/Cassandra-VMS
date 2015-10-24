@@ -240,8 +240,8 @@ public class ViewManager {
 
 		Row theRow = PreaggregationHelper.selectStatement(json, preaggTable,
 				aggKey, aggKeyValue).one();
-		
-		
+
+
 
 		if (theRow != null) {
 
@@ -264,11 +264,13 @@ public class ViewManager {
 				stream.setUpdatedPreaggRowDeleted(crow);
 				stream.setDeleteOperation(true);
 				String blob = Serialize.serializeStream2(stream);
-				PreaggregationHelper.insertStatementToDelete(json, preaggTable,
-						aggKey, aggKeyValue, blob, identifier);
 
-				deleteEntireRowWithPK((String) json.get("keyspace"),
-						preaggTable, aggKey, aggKeyValue);
+				if(PreaggregationHelper.insertStatementToDelete(json, preaggTable,
+						aggKey, aggKeyValue, blob, identifier,crow)){
+
+					deleteEntireRowWithPK((String) json.get("keyspace"),
+							preaggTable, aggKey, aggKeyValue);
+				}
 
 				stream.setDeleteOperation(false);
 
@@ -469,7 +471,7 @@ public class ViewManager {
 				aggColValue_old = Float.valueOf(temp);
 		}
 
-		
+
 
 		// 2. if AggKey hasnt been updated or first insertion
 		if (sameKeyValue || override) {
@@ -480,7 +482,7 @@ public class ViewManager {
 
 			String pk = myList.get(0);
 			myList.remove(0);
-			
+
 			do {
 
 				if (!override) {
@@ -522,7 +524,7 @@ public class ViewManager {
 					ByteBuffer blob_old = theRow1.getBytes("stream");
 
 					System.out.println("sameKeyValue "+sameKeyValue);
-					
+
 					if (PreaggregationHelper.updateAggColValue(aggKeyType,stream, myList,
 							aggColValue, aggColValue_old, theRow1,
 							aggColIndexInList, json, preaggTable, aggKey,
@@ -572,13 +574,14 @@ public class ViewManager {
 					stream.setUpdatedPreaggRowDeleted(crow);
 					stream.setDeleteOperation(true);
 					String blob = Serialize.serializeStream2(stream);
-					PreaggregationHelper.insertStatementToDelete(json,
-							preaggTable, aggKey, aggKeyValue_old, blob, identifier);
+					if(PreaggregationHelper.insertStatementToDelete(json,
+							preaggTable, aggKey, aggKeyValue_old, blob, identifier,crow)){
 
-					// 4. delete the whole row
-					Utils.deleteEntireRowWithPK((String) json.get("keyspace"),
-							preaggTable, aggKey, aggKeyValue_old);
+						// 4. delete the whole row
+						Utils.deleteEntireRowWithPK((String) json.get("keyspace"),
+								preaggTable, aggKey, aggKeyValue_old);
 
+					}
 					// Reseting the stream
 					stream.setDeleteOperation(false);
 					stream.setUpdatedPreaggRowDeleted(null);
@@ -3416,7 +3419,7 @@ public class ViewManager {
 		return true;
 	}
 
-	
+
 	public String getReverseJoinTableName() {
 		return reverseJoinTableName;
 	}
