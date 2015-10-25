@@ -42,6 +42,13 @@ public class CustomizedRow implements Serializable{
 					colValues.add("null");
 					continue;
 				}
+				
+				if(row.getColumnDefinitions().getName(i).contains("signature")){
+					colNames.add("signature");
+					colTypes.add("Map<String.class,String.class>");
+					colValues.add("null");
+					continue;
+				}
 
 				colNames.add(row.getColumnDefinitions().getName(i));
 				colTypes.add(row.getColumnDefinitions().getType(i).toString());
