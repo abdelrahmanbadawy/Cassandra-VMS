@@ -202,7 +202,7 @@ public class CommitLogReader{
 			String type = json.get("type").toString();
 			String table = json.get("table").toString();
 
-			json.put("recovery_mode", "on");
+			json.put("recovery_mode", "last_recovery_line");
 			
 			String responsibleVM = consistentHashing.get(json.get("pk").toString());
 			
@@ -241,7 +241,7 @@ public class CommitLogReader{
 							String type = json.get("type").toString();
 							String table = json.get("table").toString();
 
-							json.put("recovery_mode", "on");
+							json.put("recovery_mode", "last_recovery_line");
 							
 							String responsibleVM = consistentHashing.get(json.get("pk").toString());
 							

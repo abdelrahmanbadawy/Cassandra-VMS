@@ -486,9 +486,12 @@ public class ViewManagerController implements Runnable {
 		
 		System.out.println("saving execPtr "+ json.get("readPtr").toString());
 		
+		if(json.get("recovery_mode").equals("off") || json.get("recovery_mode").equals("last_recovery_line")){
+		
 		
 		VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtr1", json.get("readPtr").toString());
 		VmXmlHandler.getInstance().save(VmXmlHandler.getInstance().getVMProperties().getFile());
+		}
 		
 	}
 
@@ -695,8 +698,10 @@ public class ViewManagerController implements Runnable {
 		System.out.println("saving execPtr "+ json.get("readPtr").toString());
 		
 		
+		if(json.get("recovery_mode").equals("off") || json.get("recovery_mode").equals("last_recovery_line")){
 		VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtr1", json.get("readPtr").toString());
 		VmXmlHandler.getInstance().save(VmXmlHandler.getInstance().getVMProperties().getFile());
+		}
 		
 	}
 

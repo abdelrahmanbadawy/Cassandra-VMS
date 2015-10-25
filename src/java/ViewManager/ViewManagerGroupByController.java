@@ -126,10 +126,10 @@ public class ViewManagerGroupByController implements Runnable {
 		}
 		System.out.println("saving execPtrGB "+ ptr);
 
-
+		if(json.get("recovery_mode").equals("off") || json.get("recovery_mode").equals("last_recovery_line")){
 		VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtrGB", ptr);
 		VmXmlHandler.getInstance().save(VmXmlHandler.getInstance().getVMProperties().getFile());
-
+		}
 
 	}
 
@@ -193,10 +193,10 @@ public class ViewManagerGroupByController implements Runnable {
 		}
 		System.out.println("saving execPtrGB "+ ptr);
 
-
+		if(json.get("recovery_mode").equals("off") || json.get("recovery_mode").equals("last_recovery_line")){
 		VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtrGB", ptr);
 		VmXmlHandler.getInstance().save(VmXmlHandler.getInstance().getVMProperties().getFile());
-
+		}
 	}
 
 

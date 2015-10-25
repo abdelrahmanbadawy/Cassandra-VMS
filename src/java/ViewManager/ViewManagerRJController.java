@@ -674,11 +674,11 @@ public class ViewManagerRJController implements Runnable{
 		}
 		System.out.println("saving execPtrRJ "+ rjjson.get("readPtr").toString());
 
-
+		if(rjjson.get("recovery_mode").equals("off") || rjjson.get("recovery_mode").equals("last_recovery_line")){
 		VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtrRJ", rjjson.get("readPtr").toString());
 
 		VmXmlHandler.getInstance().save(VmXmlHandler.getInstance().getVMProperties().getFile());
-
+		}
 
 		return true;
 	}
@@ -1109,10 +1109,11 @@ public class ViewManagerRJController implements Runnable{
 
 		System.out.println("saving execPtrRJ "+ rjjson.get("readPtr").toString());
 
-
+		if(rjjson.get("recovery_mode").equals("off") || rjjson.get("recovery_mode").equals("last_recovery_line")){
 		VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtrRJ", rjjson.get("readPtr").toString());
 
 		VmXmlHandler.getInstance().save(VmXmlHandler.getInstance().getVMProperties().getFile());
+		}
 
 		return true;
 	}

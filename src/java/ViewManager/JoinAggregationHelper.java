@@ -32,7 +32,7 @@ public class JoinAggregationHelper {
 	public static boolean insertStatement(Float sum, int count, Float avg, Float min, Float max, String key, String keyValue,
 			String joinAggTable, JSONObject json, String identifier){
 
-		if(json.get("recovery_mode").equals("on")){
+		if(json.get("recovery_mode").equals("on") || json.get("recovery_mode").equals("last_recovery_line")){
 			Row rs = selectStatement(key, keyValue, joinAggTable, json);
 
 			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier).split(":")[1])
@@ -72,7 +72,7 @@ public class JoinAggregationHelper {
 		String aggKeyType = row.getType(0);
 		String aggKeyValue = Utils.getColumnValueFromDeltaStream(row, aggKeyName, aggKeyType, "");
 
-		if(json.get("recovery_mode").equals("on")){
+		if(json.get("recovery_mode").equals("on") || json.get("recovery_mode").equals("last_recovery_line")){
 			Row rs = selectStatement(aggKeyName, aggKeyValue, joinAggTable, json);
 
 			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier).split(":")[1])
@@ -104,7 +104,7 @@ public class JoinAggregationHelper {
 	public static boolean updateStatement(Float sum, int count, Float avg, Float min, Float max, String key, String keyValue,
 			String joinAggTable, JSONObject json, Float oldSum, String identifier){
 
-		if(json.get("recovery_mode").equals("on")){
+		if(json.get("recovery_mode").equals("on") || json.get("recovery_mode").equals("last_recovery_line")){
 			Row rs = selectStatement(key, keyValue, joinAggTable, json);
 
 			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier).split(":")[1])

@@ -155,9 +155,10 @@ public class ViewManagerPreaggController implements Runnable{
 		}
 
 		System.out.println("saving execPtrPreagg "+ ptr);
-
+		if(json.get("recovery_mode").equals("off") || json.get("recovery_mode").equals("last_recovery_line")){
 		VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtrPreagg", ptr);
 		VmXmlHandler.getInstance().save(VmXmlHandler.getInstance().getVMProperties().getFile());
+		}
 	}
 
 	private void propagatePreaggDelete(JSONObject json, String table , String ptr) {
@@ -241,9 +242,10 @@ public class ViewManagerPreaggController implements Runnable{
 		}
 		System.out.println("saving execPtrPreagg "+ ptr);
 
-
+		if(json.get("recovery_mode").equals("off") || json.get("recovery_mode").equals("last_recovery_line")){
 		VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtrPreagg", ptr);
 		VmXmlHandler.getInstance().save(VmXmlHandler.getInstance().getVMProperties().getFile());
+		}
 	}
 
 

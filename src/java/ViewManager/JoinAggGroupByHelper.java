@@ -38,7 +38,7 @@ public class JoinAggGroupByHelper {
 		String aggKeyType = row.getType(0);
 		String aggKeyValue = Utils.getColumnValueFromDeltaStream(row, aggKeyName, aggKeyType, "");
 
-		if(json.get("recovery_mode").equals("on")){
+		if(json.get("recovery_mode").equals("on") || json.get("recovery_mode").equals("last_recovery_line")){
 			Row rs = selectStatement( joinAggTable, aggKeyName, aggKeyValue,json);
 
 			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier).split(":")[1])
@@ -87,7 +87,7 @@ public class JoinAggGroupByHelper {
 		String aggKeyType = row.getType(0);
 		String aggKeyValue = Utils.getColumnValueFromDeltaStream(row, aggKeyName, aggKeyType, "");
 
-		if(json.get("recovery_mode").equals("on")){
+		if(json.get("recovery_mode").equals("on") || json.get("recovery_mode").equals("last_recovery_line")){
 			Row rs = selectStatement( joinAggTable, aggKeyName, aggKeyValue,json);
 
 			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier).split(":")[1])
@@ -134,7 +134,7 @@ public class JoinAggGroupByHelper {
 	public static boolean updateStatement(Float sum, int count, Float avg, Float min, Float max, List<Float> myList, String key, String keyValue,
 			String preaggTable, JSONObject json, Float oldSum, String blob, String identifier){
 
-		if(json.get("recovery_mode").equals("on")){
+		if(json.get("recovery_mode").equals("on") || json.get("recovery_mode").equals("last_recovery_line")){
 			Row rs = selectStatement( preaggTable, key, keyValue,json);
 
 			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier).split(":")[1])
@@ -589,7 +589,7 @@ public class JoinAggGroupByHelper {
 		String aggKeyType = row.getType(0);
 		String aggKeyValue = Utils.getColumnValueFromDeltaStream(row, aggKeyName, aggKeyType, "");
 
-		if(json.get("recovery_mode").equals("on")){
+		if(json.get("recovery_mode").equals("on") || json.get("recovery_mode").equals("last_recovery_line")){
 			Row rs = selectStatement( joinAggTable, aggKeyName, aggKeyValue,json);
 
 			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier).split(":")[1])

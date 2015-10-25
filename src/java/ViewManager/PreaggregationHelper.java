@@ -143,7 +143,7 @@ public class PreaggregationHelper {
 	public static boolean insertStatementToDelete(JSONObject json,String preaggTable,String aggKey,String aggKeyValue,String blob, String identifier,CustomizedRow crow){
 
 
-		if(json.get("recovery_mode").equals("on")){
+		if(json.get("recovery_mode").equals("on") || json.get("recovery_mode").equals("last_recovery_line")){
 			Row rs = selectStatementSignature(json, preaggTable, aggKey, aggKeyValue).one();
 
 			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier).split(":")[1])
@@ -180,7 +180,7 @@ public class PreaggregationHelper {
 
 	public static void insertStatement(JSONObject json,String preaggTable,String aggKey,String aggKeyValue,Map<String, String> myMap,float sum,float count,float min,float max,float average, String identifier){
 
-		if(json.get("recovery_mode").equals("on")){
+		if(json.get("recovery_mode").equals("on") || json.get("recovery_mode").equals("last_recovery_line")){
 			Row rs = selectStatementSignature(json, preaggTable, aggKey, aggKeyValue).one();
 
 			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier).split(":")[1])
@@ -216,7 +216,7 @@ public class PreaggregationHelper {
 	public static boolean updateStatement(Float sum, int count, Float avg, Float min, Float max, Map<String, String> myMap, String key, String keyValue,
 			String preaggTable, JSONObject json, ByteBuffer blob_old,String blob_new, String identifier){
 
-		if(json.get("recovery_mode").equals("on")){
+		if(json.get("recovery_mode").equals("on") || json.get("recovery_mode").equals("last_recovery_line")){
 			Row rs = selectStatementSignature(json, preaggTable, key, keyValue).one();
 
 			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier).split(":")[1])
