@@ -1522,6 +1522,8 @@ public class ViewManager {
 				boolean tempBool = ReverseJoinHelper.insertStatement(joinTable, keyspace, joinKeyName,
 						joinKeyValue, column, myMap, stream, counter);
 
+				stream.setDeleteOperation(false);
+				
 				if(!tempBool)
 					continue;
 				else

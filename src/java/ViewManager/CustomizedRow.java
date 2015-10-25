@@ -42,7 +42,7 @@ public class CustomizedRow implements Serializable{
 					colValues.add("null");
 					continue;
 				}
-				
+
 				if(row.getColumnDefinitions().getName(i).contains("signature")){
 					colNames.add("signature");
 					colTypes.add("Map<String.class,String.class>");
@@ -176,7 +176,7 @@ public class CustomizedRow implements Serializable{
 	}
 
 	public static CustomizedRow constructUpdatedPreaggRow(String aggKey, String aggKeyValue,String aggKeyType, Map<String,String> myList, float sum, int count, float average, float min, float max,String blob){
-		
+
 		CustomizedRow crow = new CustomizedRow();
 		List<String> names = new ArrayList<String>(Arrays.asList(aggKey,"list_item","sum","average","min","max","count","stream"));
 		crow.setColNames(names);
@@ -194,7 +194,7 @@ public class CustomizedRow implements Serializable{
 
 	public static CustomizedRow constructRJRow(String aggKey, String aggKeyValue,String aggKeyType, Map<String,String> myList1, Map<String,String> myList2){
 
-			
+
 		CustomizedRow crow = new CustomizedRow();
 		List<String> names = new ArrayList<String>(Arrays.asList(aggKey,"list_item1","list_item2"));
 		crow.setColNames(names);
@@ -227,16 +227,15 @@ public class CustomizedRow implements Serializable{
 
 		return crow;
 	}
-	
-	
+
+
 	public static boolean rowIsNull(CustomizedRow crow){
-		
+
 		if(crow.colNames == null && crow.colValues == null && crow.colValues == null)
 			return true;
 		else
 			return false;
-		
+
 	}
-	
 
 }
