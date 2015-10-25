@@ -1,16 +1,13 @@
 package ViewManager;
 
-import java.io.File;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+
 
 public class BootVMS {
-
+	
 	public static void main(String [] args){
 		
+		//Utils.getFiles();
 		System.out.println("Booting VMS ...");
 		
 		// vm names
@@ -22,21 +19,22 @@ public class BootVMS {
 		// virtual nodes replicas 50
 		ConsistentHash<String> consistentHashing = new ConsistentHash<String>(hf, 50, vm_identifiers);
 		
-		 final CommitLogReader cmr = new CommitLogReader(consistentHashing,  vm_identifiers);
+		  final CommitLogReader cmr = new CommitLogReader(consistentHashing,  vm_identifiers);
 		
 		//recovery mode
 	
 		//recoveryMode();
 		
-		// monitor a single file
-		TimerTask task = new FileWatcher(new File(cmr.fileName)) {
-			protected void onChange(File file) {
-				cmr.readCL();
+		  while(true){
+			  
+			  cmr.run();
+			  try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-		};
-
-		Timer timer = new Timer();
-		timer.schedule(task,new Date(),1000);
+		  }
 		
 	}
 	

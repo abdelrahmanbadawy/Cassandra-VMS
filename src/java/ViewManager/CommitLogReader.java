@@ -9,6 +9,7 @@ import java.io.RandomAccessFile;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Timer;
@@ -20,23 +21,28 @@ import org.json.simple.parser.ParseException;
 
 import client.client.Client;
 
-public class CommitLogReader {
+public class CommitLogReader extends TimerTask{
 
-	BufferedReader br;
-	 TaskDistributor td;
-	static RandomAccessFile raf;
-	static ViewManagerController vmc;
-	static String fileName = "logs//output.log";
-	static long readPtr;
+	
+	TaskDistributor td;
+	RandomAccessFile raf;
+	ViewManagerController vmc;
+	String fileName;
+	long readPtr;
 	ConsistentHash<String> consistentHashing;
 	ArrayList<String> vm_identifiers;
 
 	public CommitLogReader(ConsistentHash<String> ch, ArrayList<String> vm_identifiers) {
 
 		try {
-			raf = new RandomAccessFile(fileName, "rw");
-			br = new BufferedReader(new FileReader("logs//output.log"));
-			readPtr = -1;
+			
+			String [] ep = get_Execution_Pointer_At_StartUp();
+			
+			fileName = ep[0];
+			
+			raf = new RandomAccessFile("logs//"+fileName, "rw");
+		
+			readPtr = Long.parseLong(ep[1]);
 			td = new TaskDistributor(vm_identifiers);
 			this.consistentHashing = ch;
 			this.vm_identifiers = vm_identifiers;
@@ -159,29 +165,21 @@ public class CommitLogReader {
 //	}
 
 
-//	public static void main(String[] args) {
-//
-//		CommitLogReader cmr = new CommitLogReader();
-//		
-//		//recovery mode
-//	
-//		//recoveryMode();
-//		
-//		// monitor a single file
-//		TimerTask task = new FileWatcher(new File(fileName)) {
-//			protected void onChange(File file) {
-//				readCL();
-//			}
-//		};
-//
-//		Timer timer = new Timer();
-//		timer.schedule(task,new Date(),1000);
-//
-//	}
 
-	public void readCL() {
 
-		System.out.println("CL file has changed");
+	private String getFirstFileName() {
+		// TODO Auto-generated method stub
+		
+		File[] files = Utils.getFilesInDirectory();
+		//fileName = files[0].getName();
+		//System.out.println("The first file is "+files[0].getName());
+		return files[0].getName();
+		
+	}
+
+	public boolean readCL() {
+
+	//	System.out.println("CL file has changed");
 		
 		String raw;
 		int counter = 0;
@@ -216,7 +214,7 @@ public class CommitLogReader {
 				
 				int vm_index = vm_identifiers.indexOf(responsibleVM);
 				
-				td.processRequest(json,type,table, readPtr, vm_index);
+				td.processRequest(json,type,table, readPtr, vm_index, fileName);
 				
 				if(counter<10){
 					raw = raf.readLine();
@@ -225,6 +223,24 @@ public class CommitLogReader {
 					raw = null;
 				}
 			}
+			
+			//check eof because no more updates or move to another file
+			File [] files = Utils.getFilesInDirectory();
+			
+			int filePosition = Arrays.asList(files).indexOf(new File("logs//"+fileName));
+			
+			
+			if(filePosition < files.length-1){
+				
+				fileName = files[filePosition+1].getName();
+				readPtr = -1;
+				raf = new RandomAccessFile("logs//"+fileName, "rw");
+				
+				return true;
+			}
+			
+			
+			
 
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -232,6 +248,8 @@ public class CommitLogReader {
 		} catch (ParseException e) {
 			e.printStackTrace();
 		}
+		
+		return false;
 	}
 
 	public void closeCLREader(){
@@ -241,6 +259,93 @@ public class CommitLogReader {
 			e.printStackTrace();
 		}
 		Client.getClusterInstance().close();
+	}
+
+	@Override
+	public void run() {
+		// TODO Auto-generated method stub
+	//	System.out.println("here");
+		
+		readCL();
+		
+	}
+	
+	public String[] get_Execution_Pointer_At_StartUp(){
+		
+		List<String> pointers = VmXmlHandler.getInstance().getVMProperties().getList("vm.execPtr1");
+		List<String> pointersRJ =  VmXmlHandler.getInstance().getVMProperties().getList("vm.execPtrRJ");
+		List<String> pointersPreagg =  VmXmlHandler.getInstance().getVMProperties().getList("vm.execPtrPreagg");
+		List<String> pointersGB =  VmXmlHandler.getInstance().getVMProperties().getList("vm.execPtrGB");
+		
+		String []  max = {"","-1"};
+		
+		
+		for(int i = 0; i < pointers.size(); i++){
+			String [] c =  pointers.get(i).split(":");
+			
+			if(c.length==1)
+				continue;
+		
+			long p = Long.parseLong(c[1]);
+			
+			
+			
+			if(c[0].compareTo(max[0])>0 || (c[0].compareTo(max[0])==0 && p >  Long.parseLong(max[1])))
+				max = c;
+		}
+		
+		for(int i =0; i < pointersRJ.size(); i++){
+			String [] c =  pointersRJ.get(i).split(":");
+			
+			if(c.length==1)
+				continue;
+			
+			long p = Long.parseLong(c[1]);
+			
+			if(c[0].compareTo(max[0])>0 || (c[0].compareTo(max[0])==0 && p >  Long.parseLong(max[1])))
+				max = c;
+		}
+		
+		for(int i =0; i < pointersGB.size(); i++){
+			String [] c =  pointersGB.get(i).split(":");
+			
+			if(c.length==1)
+				continue;
+			
+			
+			long p = Long.parseLong(c[1]);
+			
+			
+			if(c[0].compareTo(max[0])>0 || (c[0].compareTo(max[0])==0 && p >  Long.parseLong(max[1])))
+				max = c;
+		}
+		
+		for(int i =0; i < pointersPreagg.size(); i++){
+			String [] c =  pointersPreagg.get(i).split(":");
+			
+			if(c.length==1)
+				continue;
+			long p = Long.parseLong(c[1]);
+			
+			
+			
+			if(c[0].compareTo(max[0])>0 || (c[0].compareTo(max[0])==0 && p >  Long.parseLong(max[1])))
+				max = c;
+		}
+		
+		if(max[0]==""){
+			
+			 String [] x = {getFirstFileName(),"-1"};
+			 System.out.println("Execution pointer "+x[0]+ ":"+x[1]);
+			return  x;
+		}
+		else{
+			System.out.println("Execution pointer "+max[0] + ":"+max[1]);
+			return max;
+		}
+		
+
+		
 	}
 
 }
