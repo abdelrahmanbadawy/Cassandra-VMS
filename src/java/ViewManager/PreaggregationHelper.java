@@ -146,8 +146,8 @@ public class PreaggregationHelper {
 		if(json.get("recovery_mode").equals("on")){
 			Row rs = selectStatementSignature(json, preaggTable, aggKey, aggKeyValue).one();
 
-			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier))
-					>= Long.parseLong(json.get("readPtr").toString()))
+			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier).split(":")[1])
+					>= Long.parseLong(json.get("readPtr").toString().split(":")[1]))
 				return true;
 
 		}
@@ -183,8 +183,8 @@ public class PreaggregationHelper {
 		if(json.get("recovery_mode").equals("on")){
 			Row rs = selectStatementSignature(json, preaggTable, aggKey, aggKeyValue).one();
 
-			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier))
-					>= Long.parseLong(json.get("readPtr").toString()))
+			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier).split(":")[1])
+					>= Long.parseLong(json.get("readPtr").toString().split(":")[1]))
 				return ;
 
 		}
@@ -219,8 +219,8 @@ public class PreaggregationHelper {
 		if(json.get("recovery_mode").equals("on")){
 			Row rs = selectStatementSignature(json, preaggTable, key, keyValue).one();
 
-			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier))
-					>= Long.parseLong(json.get("readPtr").toString()))
+			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier).split(":")[1])
+					>= Long.parseLong(json.get("readPtr").toString().split(":")[1]))
 				return true;
 
 		}

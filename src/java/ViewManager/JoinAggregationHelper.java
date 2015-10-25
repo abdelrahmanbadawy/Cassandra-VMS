@@ -35,8 +35,8 @@ public class JoinAggregationHelper {
 		if(json.get("recovery_mode").equals("on")){
 			Row rs = selectStatement(key, keyValue, joinAggTable, json);
 
-			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier))
-					>= Long.parseLong(json.get("readPtr").toString()))
+			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier).split(":")[1])
+					>= Long.parseLong(json.get("readPtr").toString().split(":")[1]))
 				return true;
 
 		}
@@ -75,8 +75,8 @@ public class JoinAggregationHelper {
 		if(json.get("recovery_mode").equals("on")){
 			Row rs = selectStatement(aggKeyName, aggKeyValue, joinAggTable, json);
 
-			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier))
-					>= Long.parseLong(json.get("readPtr").toString()))
+			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier).split(":")[1])
+					>= Long.parseLong(json.get("readPtr").toString().split(":")[1]))
 				return true;
 
 		}
@@ -107,8 +107,8 @@ public class JoinAggregationHelper {
 		if(json.get("recovery_mode").equals("on")){
 			Row rs = selectStatement(key, keyValue, joinAggTable, json);
 
-			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier))
-					>= Long.parseLong(json.get("readPtr").toString()))
+			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier).split(":")[1])
+					>= Long.parseLong(json.get("readPtr").toString().split(":")[1]))
 				return true;
 
 		}

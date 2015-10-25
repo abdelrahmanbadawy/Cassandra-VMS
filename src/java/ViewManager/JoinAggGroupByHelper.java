@@ -41,8 +41,9 @@ public class JoinAggGroupByHelper {
 		if(json.get("recovery_mode").equals("on")){
 			Row rs = selectStatement( joinAggTable, aggKeyName, aggKeyValue,json);
 
-			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier))
-					>= Long.parseLong(json.get("readPtr").toString()))
+			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier).split(":")[1])
+					>= Long.parseLong(json.get("readPtr").toString().split(":")[1]))
+
 				return ;
 
 		}
@@ -89,8 +90,9 @@ public class JoinAggGroupByHelper {
 		if(json.get("recovery_mode").equals("on")){
 			Row rs = selectStatement( joinAggTable, aggKeyName, aggKeyValue,json);
 
-			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier))
-					>= Long.parseLong(json.get("readPtr").toString()))
+			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier).split(":")[1])
+					>= Long.parseLong(json.get("readPtr").toString().split(":")[1]))
+
 				return ;
 
 		}
@@ -135,8 +137,9 @@ public class JoinAggGroupByHelper {
 		if(json.get("recovery_mode").equals("on")){
 			Row rs = selectStatement( preaggTable, key, keyValue,json);
 
-			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier))
-					>= Long.parseLong(json.get("readPtr").toString()))
+			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier).split(":")[1])
+					>= Long.parseLong(json.get("readPtr").toString().split(":")[1]))
+
 				return true;
 
 		}
@@ -589,8 +592,9 @@ public class JoinAggGroupByHelper {
 		if(json.get("recovery_mode").equals("on")){
 			Row rs = selectStatement( joinAggTable, aggKeyName, aggKeyValue,json);
 
-			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier))
-					>= Long.parseLong(json.get("readPtr").toString()))
+			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier).split(":")[1])
+					>= Long.parseLong(json.get("readPtr").toString().split(":")[1]))
+
 				return ;
 
 		}
