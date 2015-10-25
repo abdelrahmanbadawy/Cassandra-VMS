@@ -240,15 +240,13 @@ public class JoinAggGroupByHelper {
 		}else if(theRow.getInt("count")==1){
 
 			CustomizedRow crow = new CustomizedRow(theRow);
-
-			if(Utils.deleteEntireRowWithPK((String) json.get("keyspace"), joinAggTable, aggKeyName, aggKeyValue,crow)){
-				stream.setUpdatedJoinAggGroupByRowDeleted(crow);
-				stream.setDeleteOperation(true);
-				String blob = Serialize.serializeStream2(stream);
-				JoinAggGroupByHelper.insertStatement(json, joinAggTable, crow,blob, identifier);
-
-			}
-
+			stream.setUpdatedJoinAggGroupByRowDeleted(crow);
+			stream.setDeleteOperation(true);
+			String blob = Serialize.serializeStream2(stream);
+			JoinAggGroupByHelper.insertToDelete(json, joinAggTable, crow,blob, identifier);
+			Utils.deleteEntireRowWithPK((String) json.get("keyspace"), joinAggTable, aggKeyName, aggKeyValue, 0, 0);
+			
+			
 			// Reseting the stream
 			stream.setDeleteOperation(false);
 			stream.setUpdatedJoinAggGroupByRowDeleted(null);
@@ -581,6 +579,55 @@ public class JoinAggGroupByHelper {
 		return true;
 
 	}
+	
+	public static void insertToDelete(JSONObject json, String joinAggTable,CustomizedRow row, String blob, String identifier){
+
+		String aggKeyName = row.getName(0);
+		String aggKeyType = row.getType(0);
+		String aggKeyValue = Utils.getColumnValueFromDeltaStream(row, aggKeyName, aggKeyType, "");
+
+		if(json.get("recovery_mode").equals("on")){
+			Row rs = selectStatement( joinAggTable, aggKeyName, aggKeyValue,json);
+
+			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier))
+					>= Long.parseLong(json.get("readPtr").toString()))
+				return ;
+
+		}
+
+		List<Float> myList = new ArrayList<Float>();
+		
+		float sum = 0;
+		float avg = 0;
+		float min = 0;
+		float max = 0;
+		int count = 0;
+
+		StringBuilder updateQuery = new StringBuilder("UPDATE ");
+		updateQuery.append((String) json.get("keyspace"))
+		.append(".").append(joinAggTable).append(" SET sum = ").append(sum).append(", count = ").append(count).append(", average = ").append(avg).append(", min = ")
+		.append(min).append(", max = ").append(max)
+		.append(", stream = ").append(blob)
+		.append(", agg_list = ").append("?, signature['").append(identifier).append("']= '").append(json.get("readPtr").toString())
+		.append("' WHERE ").append(aggKeyName).append(" = ").append(aggKeyValue)
+		.append(";");
+
+		System.out.println(updateQuery);
+
+		try {
+			Session session = currentCluster.connect();
+			PreparedStatement statement1 = session.prepare(updateQuery
+					.toString());
+			BoundStatement boundStatement = new BoundStatement(statement1);
+			System.out.println(boundStatement.toString());
+			session.execute(boundStatement.bind(myList));
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+	}
+
 
 
 }

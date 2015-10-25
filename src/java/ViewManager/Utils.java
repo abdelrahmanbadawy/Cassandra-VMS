@@ -31,15 +31,15 @@ public class Utils {
 
 	
 	public static boolean deleteEntireRowWithPK(String keyspace, String tableName,
-			String pk, String pkValue,CustomizedRow crow) {
+			String pk, String pkValue,int count,float sum) {
 	
 		Row updated;
 		
 		StringBuilder deleteQuery = new StringBuilder("delete from ");
 		deleteQuery.append(keyspace).append(".").append(tableName)
 		.append(" WHERE ").append(pk + " = ").append(pkValue)
-		.append(" IF count = ").append(crow.getInt("count"))
-		.append(" and sum = ").append(crow.getFloat("sum"))
+		.append(" IF count = ").append(count)
+		.append(" and sum = ").append(sum)
 		.append(";");
 
 		System.out.println(deleteQuery.toString());
