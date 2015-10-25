@@ -64,11 +64,11 @@
 						<KeyType>text</KeyType>
 						<aggKeyIndex>2</aggKeyIndex>
 						<inner>
-							<name>innerjoin_agg_courses_faculty_ects_eq4_groupby_name</name>
+							<name>innerjoin_agg_courses_faculty_ects_eq4_gb_name</name>
 						</inner>
 
 						<left>
-							<name>leftjoin_agg_courses_faculty_ects_eq4_groupby_name</name>
+							<name>leftjoin_agg_courses_faculty_ects_eq4_gb_name</name>
 						</left>
 					</Agg>
 				</c>

@@ -8,7 +8,7 @@
 
 			<columnNumber>8</columnNumber>
 			<keyspace>test</keyspace>
-			<name>innerjoin_agg_courses_faculty_ects_eq4_groupby_name</name>
+			<name>innerjoin_agg_courses_faculty_ects_eq4_gb_name</name>
 
 			<primaryKey>
 				<type>text</type>
@@ -72,7 +72,7 @@
 
 			<columnNumber>8</columnNumber>
 			<keyspace>test</keyspace>
-			<name>leftjoin_agg_courses_faculty_ects_eq4_groupby_name</name>
+			<name>leftjoin_agg_courses_faculty_ects_eq4_gb_name</name>
 
 			<primaryKey>
 				<type>text</type>
