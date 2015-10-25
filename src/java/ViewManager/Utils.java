@@ -1,5 +1,7 @@
 package ViewManager;
 
+import java.io.File;
+import java.io.FilenameFilter;
 import java.math.BigInteger;
 import java.util.HashMap;
 
@@ -507,5 +509,19 @@ public class Utils {
 
 		return true;
 
+	}
+	
+	public static File[] getFilesInDirectory(){
+		File folder = new File("logs/");
+		
+		
+		File [] listOfFiles = folder.listFiles(new FilenameFilter() {
+		    @Override
+		    public boolean accept(File dir, String name) {
+		        return name.endsWith(".log") && name.startsWith("output");
+		    }
+		});  
+		
+		return listOfFiles;
 	}
 }

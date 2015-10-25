@@ -120,9 +120,10 @@ public class TaskDistributor {
 		}
 	}
 
-	public void processRequest(JSONObject json,String type,String table, long readPtr, int vmIndex){
+	public void processRequest(JSONObject json,String type,String table, long readPtr, int vmIndex, String fileName){
 
-		json.put("readPtr", readPtr);
+		json.put("readPtr", fileName+":"+readPtr);
+		
 
 
 		if (table.toLowerCase().contains("groupby")) {
