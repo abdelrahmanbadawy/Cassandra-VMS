@@ -53,7 +53,7 @@
 				<type>map&lt;text,text&gt;</type>
 				<name>signature</name>
 			</column>
-			
+
 
 			<aggCol>
 				<type>varint</type>
@@ -112,8 +112,8 @@
 				<type>map&lt;text,text&gt;</type>
 				<name>signature</name>
 			</column>
-			
-			
+
+
 			<aggCol>
 				<type>varint</type>
 				<name>ects</name>
@@ -121,7 +121,66 @@
 
 		</tableDefinition>
 
+		<tableDefinition>
+			<baseTable>delta_courses</baseTable>
+			<preaggTable>preagg_agg_courses_faculty_ects_eq4</preaggTable>
+
+			<columnNumber>7</columnNumber>
+			<keyspace>test</keyspace>
+			<name>having_preagg_agg_courses_faculty_ects_eq4_cond1</name>
+
+			<primaryKey>
+				<type>text</type>
+				<name>faculty</name>
+			</primaryKey>
+
+			<column>
+				<family>colfam1</family>
+				<type>map&lt;text,text&gt;</type>
+				<name>list_item</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>sum</name>
+			</column>
+
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>average</name>
+			</column>
+
+			<column>
+				<family>colfam1</family>
+				<type>int</type>
+				<name>count</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>min</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>max</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>map&lt;text,text&gt;</type>
+				<name>signature</name>
+			</column>
+
+
+			<aggCol>
+				<type>varint</type>
+				<name>ects</name>
+			</aggCol>
+
+		</tableDefinition>
+
+
 	</dbSchema>
-
-
+	
 </setup>

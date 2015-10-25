@@ -2,10 +2,10 @@
 
 <setup>
 	<mapping>
-		
+
 		<unit>
 			<preaggTable>preagg_agg_courses_faculty_ects</preaggTable>
-			
+
 			<nrCond>2</nrCond>
 			<Cond>
 				<name>having_preagg_agg_courses_faculty_ects_cond1</name>
@@ -30,6 +30,24 @@
 				</And>
 			</Cond>
 		</unit>
-		
+
+		<unit>
+			<preaggTable>preagg_agg_courses_faculty_ects_eq4</preaggTable>
+
+			<nrCond>2</nrCond>
+			<Cond>
+				<name>having_preagg_agg_courses_faculty_ects_eq4_cond1</name>
+				<nrAnd>1</nrAnd>
+				<And>
+					<selectionCol>ects</selectionCol>
+					<aggFct>sum</aggFct>
+					<type>varint</type>
+					<operation>></operation>
+					<value>4</value>
+				</And>
+			</Cond>
+
+		</unit>
+
 	</mapping>
 </setup>
