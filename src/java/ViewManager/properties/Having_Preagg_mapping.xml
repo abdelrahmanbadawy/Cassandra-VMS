@@ -34,7 +34,7 @@
 		<unit>
 			<preaggTable>preagg_agg_courses_faculty_ects_eq4</preaggTable>
 
-			<nrCond>2</nrCond>
+			<nrCond>1</nrCond>
 			<Cond>
 				<name>having_preagg_agg_courses_faculty_ects_eq4_cond1</name>
 				<nrAnd>1</nrAnd>

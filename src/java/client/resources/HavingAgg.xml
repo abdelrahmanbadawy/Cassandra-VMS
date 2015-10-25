@@ -1,7 +1,7 @@
 <?xml version="1.1" encoding="UTF-8"?>
 <setup>
 	<dbSchema>
-		<tableNumber>2</tableNumber>
+		<tableNumber>3</tableNumber>
 
 		<tableDefinition>
 			<baseTable>delta_courses</baseTable>
