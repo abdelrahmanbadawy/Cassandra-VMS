@@ -38,9 +38,20 @@
     </encoder>
   </appender>
   
-  <appender name="COMMITLOGFILE" class="ch.qos.logback.core.FileAppender">
-        <file>logs/output.log</file>
+  <appender name="COMMITLOGFILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <!--      <file>logs/output.log</file>   -->
         <append>true</append>
+ 
+  <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+    <fileNamePattern>logs/output%d{yyyy-MM-dd}%i.log</fileNamePattern>
+    <maxHistory>30</maxHistory>
+    <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+      <maxFileSize>50MB</maxFileSize>
+    </timeBasedFileNamingAndTriggeringPolicy>
+  </rollingPolicy>
+     <prudent>true</prudent>
+     
+     
         <encoder>
             <pattern>%date{ISO8601} - %msg %n</pattern>
         </encoder>
