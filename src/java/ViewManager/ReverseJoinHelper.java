@@ -83,23 +83,6 @@ public class ReverseJoinHelper {
 
 	}
 
-	public static void insertStatement(String joinTable,String keyspace,String joinKeyName,String joinKeyValue, int column,HashMap<String, String> myMap, Stream stream){
 
-
-		StringBuilder insertQuery = new StringBuilder("INSERT INTO ")
-		.append(keyspace).append(".").append(joinTable).append(" (")
-		.append(joinKeyName).append(", ").append("list_item" + column)
-		.append(", stream, counter) VALUES (").append(joinKeyValue).append(", ?, ").append(Serialize.serializeStream2(stream))
-		.append(");");
-
-		Session session = currentCluster.connect();
-		PreparedStatement statement = session.prepare(insertQuery.toString());
-		BoundStatement boundStatement = new BoundStatement(statement);
-		Row inserted = session.execute(boundStatement.bind(myMap)).one();
-
-		System.out.println(insertQuery);
-
-
-	}
 
 }

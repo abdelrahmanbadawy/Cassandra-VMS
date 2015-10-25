@@ -803,7 +803,7 @@ public class ViewManager {
 				// all entries are nulls
 				if (allNull) {
 					Utils.deleteEntireRowWithPK(keyspace, joinTable, joinKeyName,
-							oldJoinKeyValue, counter+1);
+							oldJoinKeyValue, counter2+1);
 				}
 			}
 
