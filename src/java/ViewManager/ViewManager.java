@@ -277,6 +277,10 @@ public class ViewManager {
 
 			} else {
 
+				
+				CustomizedRow crow = new CustomizedRow(theRow);
+				stream.setUpdatedPreaggRowOldState(crow);
+				
 				// 5.a remove entry from map with that pk
 				myMap.remove(pk);
 
