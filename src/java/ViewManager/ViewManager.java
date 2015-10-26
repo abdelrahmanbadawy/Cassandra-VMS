@@ -3043,6 +3043,17 @@ public class ViewManager {
 			}
 
 			if (!newRJRow.getMap("list_item1").isEmpty()
+					&& newRJRow.getMap("list_item2").isEmpty()) {
+
+				if (!leftJoinAggTable.equals("false")) {
+					while (!JoinAggGroupByHelper.deleteElementFromRow(stream,
+							json, leftJoinAggTable, aggkey, aggKeyValue,
+							aggColValue, identifier))
+						;
+				}
+			}
+
+			if (!newRJRow.getMap("list_item1").isEmpty()
 					&& !newRJRow.getMap("list_item2").isEmpty()) {
 
 				if (!leftJoinAggTable.equals("false")) {
@@ -3109,6 +3120,19 @@ public class ViewManager {
 				}
 
 			}
+
+
+			if (!newRJRow.getMap("list_item2").isEmpty()
+					&& newRJRow.getMap("list_item1").isEmpty()) {
+
+				if (!rightJoinAggTable.equals("false")) {
+					while (!JoinAggGroupByHelper.deleteElementFromRow(stream,
+							json, rightJoinAggTable, aggKey, aggKeyValue,
+							aggColValue, identifier))
+						;
+				}
+			}
+
 
 			if (!newRJRow.getMap("list_item2").isEmpty()
 					&& !newRJRow.getMap("list_item1").isEmpty()) {
