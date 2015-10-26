@@ -178,7 +178,7 @@ public class ViewManager {
 
 		Row row = Utils.selectAllStatement(keyspace, "delta_" + table,
 				baseTablePrimaryKey, data.get(baseTablePrimaryKey).toString());
-	
+
 		CustomizedRow crow = new CustomizedRow(row);
 
 		// TO BE REMOVED
@@ -223,6 +223,7 @@ public class ViewManager {
 		float average = 0;
 		float min = Float.MAX_VALUE;
 		float max = -Float.MAX_VALUE;
+		float old_aggColValue = 0;
 
 		if(stream.getDeltaDeletedRow()==null){
 			stream.setDeltaDeletedRow(stream.getDeltaUpdatedRow());
@@ -277,10 +278,10 @@ public class ViewManager {
 
 			} else {
 
-				
+
 				CustomizedRow crow = new CustomizedRow(theRow);
 				stream.setUpdatedPreaggRowOldState(crow);
-				
+
 				// 5.a remove entry from map with that pk
 				myMap.remove(pk);
 
@@ -290,9 +291,23 @@ public class ViewManager {
 								stream.getDeltaDeletedRow(), aggCol,
 								aggColType, "_new"));
 
+				String oldAggColValue = Utils.getColumnValueFromDeltaStream(
+						stream.getDeltaDeletedRow(), aggCol,
+						aggColType, "_old");
+
+				if(!oldAggColValue.equals("null"))
+					old_aggColValue = Float.valueOf(Utils
+							.getColumnValueFromDeltaStream(
+									stream.getDeltaDeletedRow(), aggCol,
+									aggColType, "_old"));
+				else
+					old_aggColValue = aggColValue;
+
+
+
 				// 5.c adjust sum,count,average values
 				count = myMap.size();
-				sum = theRow.getFloat("sum") - aggColValue;
+				sum = theRow.getFloat("sum") - old_aggColValue;
 				average = sum / count;
 
 				max = -Float.MAX_VALUE;
@@ -1527,7 +1542,7 @@ public class ViewManager {
 						joinKeyValue, column, myMap, stream, counter);
 
 				stream.setDeleteOperation(false);
-				
+
 				if(!tempBool)
 					continue;
 				else
@@ -1660,7 +1675,7 @@ public class ViewManager {
 		return true;
 	}
 
-	
+
 	public boolean deleteRowHaving(String keyspace, String havingTable,
 			CustomizedRow preagRow) {
 
@@ -1674,8 +1689,8 @@ public class ViewManager {
 		return true;
 	}
 
-	
-	
+
+
 	public boolean updateJoinAgg_UpdateLeft_AggColLeftSide(Stream stream,
 			String innerJoinAggTable, String leftJoinAggTable, JSONObject json,
 			String joinKeyType, String joinKeyName, String aggColName,
@@ -2265,7 +2280,7 @@ public class ViewManager {
 
 	}
 
-	
+
 	public Boolean updateJoinAgg_UpdateLeft_AggColLeftSide_GroupBy(
 			Stream stream, String innerJoinAggTable, String leftJoinAggTable,
 			JSONObject json, String aggKeyType, String aggKey,
