@@ -786,7 +786,7 @@ public class ViewManager {
 							myMap2, crow.getMap("list_item2"));
 					if(crow.getMap("list_item2").isEmpty())
 						stream.setOppositeSizeZero(true);
-					
+
 				}
 				else{
 					newcr = CustomizedRow.constructRJRow(joinKeyName, oldJoinKeyValue,joinKeyType,
@@ -796,7 +796,7 @@ public class ViewManager {
 				}
 
 				stream.setReverseJoinUpdateNewRow(newcr);
-				
+
 				stream.setChangeInJoinKey(true);
 
 
@@ -836,8 +836,8 @@ public class ViewManager {
 			}
 
 		}
-		
-		
+
+
 		boolean loop = true;
 		while(loop){
 			CustomizedRow crow2;
@@ -1032,7 +1032,7 @@ public class ViewManager {
 								rightJName, json, false);
 					}
 
-					
+
 					if (!leftJName.equals("false") && stream.isChangeInJoinKey() && stream.isOppositeSizeZero()) {
 
 						JSONObject data;
@@ -1058,8 +1058,8 @@ public class ViewManager {
 						Utils.deleteEntireRowWithPK(json.get("keyspace")
 								.toString(), leftJName, joinTablePk, pkValue);
 					}
-					
-					
+
+
 				}
 				// dercrease
 				else {
@@ -1142,8 +1142,8 @@ public class ViewManager {
 						DeleteJoinHelper.deleteFromLeftJoinTable(myMap1,
 								leftJName, json, false);
 					}
-					
-					
+
+
 					if (!rightJName.equals("false") && stream.isChangeInJoinKey() && stream.isOppositeSizeZero()) {
 
 						JSONObject data;
@@ -1652,7 +1652,7 @@ public class ViewManager {
 		CustomizedRow theRow = stream.getRevereJoinDeleteOldRow();
 		HashMap<String, String> myMap2  = new HashMap<String, String>();
 		HashMap<String, String> myMap1  = new HashMap<String, String>();
-		
+
 		if(theRow!=null) {
 			// 1.a get columns item_1, item_2
 			Map<String, String> tempMapImmutable1 = theRow.getMap("list_item1");
@@ -3108,7 +3108,17 @@ public class ViewManager {
 
 			}
 
-			if (!newRJRow.getMap("list_item1").isEmpty()
+			if (newRJRow.getMap("list_item1").size() == 1
+					&& newRJRow.getMap("list_item2").isEmpty()) {
+				while (!JoinAggGroupByHelper
+						.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
+								leftJoinAggTable, aggkey, aggKeyValue,
+								aggColValue, identifier))
+					;
+
+			}
+
+			if (!newRJRow.getMap("list_item1").isEmpty() && !(newRJRow.getMap("list_item1").size() == 1)
 					&& newRJRow.getMap("list_item2").isEmpty()) {
 
 				if (!leftJoinAggTable.equals("false")) {
@@ -3188,7 +3198,18 @@ public class ViewManager {
 			}
 
 
-			if (!newRJRow.getMap("list_item2").isEmpty()
+			if (newRJRow.getMap("list_item2").size() == 1
+					&& newRJRow.getMap("list_item1").isEmpty()) {
+				while (!JoinAggGroupByHelper
+						.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
+								rightJoinAggTable, aggKey, aggKeyValue,
+								aggColValue, identifier))
+					;
+
+			}
+
+
+			if (!newRJRow.getMap("list_item2").isEmpty() &&  !(newRJRow.getMap("list_item2").size() == 1)
 					&& newRJRow.getMap("list_item1").isEmpty()) {
 
 				if (!rightJoinAggTable.equals("false")) {
