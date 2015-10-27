@@ -1028,7 +1028,7 @@ public class ViewManager {
 							&& !rightJName.equals("false")) {
 						HashMap<String, String> myMap2 = new HashMap<String, String>();
 						myMap2.putAll(tempMapImmutable2_new);
-						DeleteJoinHelper.deleteFromRightJoinTable(myMap2,
+						DeleteJoinHelper.deleteFromRightJoinTable(stream,myMap2,
 								rightJName, json, false);
 					}
 
@@ -1652,7 +1652,7 @@ public class ViewManager {
 		CustomizedRow theRow = stream.getRevereJoinDeleteOldRow();
 		HashMap<String, String> myMap2  = new HashMap<String, String>();
 		HashMap<String, String> myMap1  = new HashMap<String, String>();
-
+		
 		if(theRow!=null) {
 			// 1.a get columns item_1, item_2
 			Map<String, String> tempMapImmutable1 = theRow.getMap("list_item1");
@@ -1666,7 +1666,7 @@ public class ViewManager {
 		// Case 1 : delete from left join table if item_list2 is empty
 		// !leftJName.equals(false) meaning : no left join wanted, only right
 		if (updateLeft && myMap2.size() == 0 && !leftJName.equals("false")) {
-			DeleteJoinHelper.deleteFromLeftJoinTable(myMap1, leftJName, json,
+			DeleteJoinHelper.deleteElementFromLeftJoinTable(stream,myMap1, leftJName, json,
 					true);
 			return true;
 		}
@@ -1674,7 +1674,7 @@ public class ViewManager {
 		// Case 2: delete from right join table if item_list1 is empty
 		// !rightName.equals(false) meaning : no right join wanted, only left
 		if (updateRight && myMap1.size() == 0 && !rightJName.equals("false")) {
-			DeleteJoinHelper.deleteFromRightJoinTable(myMap2, rightJName, json,
+			DeleteJoinHelper.deleteElementFromRightJoinTable(stream,myMap2, rightJName, json,
 					true);
 			return true;
 		}
