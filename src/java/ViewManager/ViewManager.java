@@ -781,14 +781,23 @@ public class ViewManager {
 				// new updated row
 				CustomizedRow newcr = null;
 
-				if (column == 1)
+				if (column == 1){
 					newcr = CustomizedRow.constructRJRow(joinKeyName, oldJoinKeyValue,joinKeyType,
 							myMap2, crow.getMap("list_item2"));
-				else
+					if(crow.getMap("list_item2").isEmpty())
+						stream.setOppositeSizeZero(true);
+					
+				}
+				else{
 					newcr = CustomizedRow.constructRJRow(joinKeyName, oldJoinKeyValue,joinKeyType,
 							crow.getMap("list_item1"), myMap2);
+					if(crow.getMap("list_item1").isEmpty())
+						stream.setOppositeSizeZero(true);
+				}
 
 				stream.setReverseJoinUpdateNewRow(newcr);
+				
+				stream.setChangeInJoinKey(true);
 
 
 				boolean tempBool = ReverseJoinHelper.insertStatement(joinTable, keyspace, joinKeyName,
@@ -827,6 +836,8 @@ public class ViewManager {
 			}
 
 		}
+		
+		
 		boolean loop = true;
 		while(loop){
 			CustomizedRow crow2;
@@ -976,7 +987,7 @@ public class ViewManager {
 				// decrease --> item removed
 				else {
 
-					if (!leftJName.equals("false")) {
+					if (!leftJName.equals("false") && !stream.isChangeInJoinKey()) {
 
 						JSONObject data;
 						if (json.get("type").equals("insert")) {
@@ -1021,6 +1032,34 @@ public class ViewManager {
 								rightJName, json, false);
 					}
 
+					
+					if (!leftJName.equals("false") && stream.isChangeInJoinKey() && stream.isOppositeSizeZero()) {
+
+						JSONObject data;
+						if (json.get("type").equals("insert")) {
+							data = (JSONObject) json.get("data");
+						} else
+							data = (JSONObject) json.get("set_data");
+
+						String pkValue = "(" + data.get(pkName) + ",0)";
+
+						int position = VmXmlHandler.getInstance().getlJSchema()
+								.getList("dbSchema.tableDefinition.name")
+								.indexOf(leftJName);
+
+						String temp = "dbSchema.tableDefinition(";
+						temp += Integer.toString(position);
+						temp += ")";
+
+						String joinTablePk = VmXmlHandler.getInstance()
+								.getlJSchema()
+								.getString(temp + ".primaryKey.name");
+
+						Utils.deleteEntireRowWithPK(json.get("keyspace")
+								.toString(), leftJName, joinTablePk, pkValue);
+					}
+					
+					
 				}
 				// dercrease
 				else {
@@ -1059,7 +1098,7 @@ public class ViewManager {
 				// decrease --> item removed
 				else {
 
-					if (!rightJName.equals("false")) {
+					if (!rightJName.equals("false") && !stream.isChangeInJoinKey()) {
 
 						JSONObject data;
 						if (json.get("type").equals("insert")) {
@@ -1102,6 +1141,33 @@ public class ViewManager {
 						myMap1.putAll(tempMapImmutable1_new);
 						DeleteJoinHelper.deleteFromLeftJoinTable(myMap1,
 								leftJName, json, false);
+					}
+					
+					
+					if (!rightJName.equals("false") && stream.isChangeInJoinKey() && stream.isOppositeSizeZero()) {
+
+						JSONObject data;
+						if (json.get("type").equals("insert")) {
+							data = (JSONObject) json.get("data");
+						} else
+							data = (JSONObject) json.get("set_data");
+
+						String pkValue = "(0," + data.get(pkName) + ")";
+
+						int position = VmXmlHandler.getInstance().getrJSchema()
+								.getList("dbSchema.tableDefinition.name")
+								.indexOf(rightJName);
+
+						String temp = "dbSchema.tableDefinition(";
+						temp += Integer.toString(position);
+						temp += ")";
+
+						String joinTablePk = VmXmlHandler.getInstance()
+								.getrJSchema()
+								.getString(temp + ".primaryKey.name");
+
+						Utils.deleteEntireRowWithPK(json.get("keyspace")
+								.toString(), rightJName, joinTablePk, pkValue);
 					}
 
 				}

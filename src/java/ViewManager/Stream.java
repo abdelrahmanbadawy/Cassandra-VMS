@@ -49,6 +49,11 @@ public class Stream implements Serializable {
 	private boolean isDeleteOperation;
 
 	private JSONObject deltaJSON;
+	
+	private boolean changeInJoinKey;
+	
+	//case change in join key --> determines if the opposite listitem of the old join key value is empty
+	private boolean oppositeSizeZero;
 
 
 	public Stream() {
@@ -300,6 +305,26 @@ public class Stream implements Serializable {
 	public void setUpdatedJoinAggGroupByRowOldState(
 			CustomizedRow updatedJoinAggGroupByRowOldState) {
 		this.updatedJoinAggGroupByRowOldState = updatedJoinAggGroupByRowOldState;
+	}
+
+
+	public boolean isChangeInJoinKey() {
+		return changeInJoinKey;
+	}
+
+
+	public void setChangeInJoinKey(boolean changeInJoinKey) {
+		this.changeInJoinKey = changeInJoinKey;
+	}
+
+
+	public boolean isOppositeSizeZero() {
+		return oppositeSizeZero;
+	}
+
+
+	public void setOppositeSizeZero(boolean oppositeSizeZero) {
+		this.oppositeSizeZero = oppositeSizeZero;
 	}
 
 }
