@@ -99,7 +99,7 @@ public class DeleteJoinHelper {
 			// 4. for each entry in item_list2, create insert statement for each
 			// entry to add a new row
 
-			rightPkValue = Utils.getColumnValueFromDeltaStream(stream.getDeltaDeletedRow(), rightPkName, rightPkType, "");
+			rightPkValue = Utils.getColumnValueFromDeltaStream(stream.getDeltaUpdatedRow(), rightPkName, rightPkType, "");
 
 			String tuple = "(" + 0 + "," + rightPkValue + ")";
 
@@ -169,7 +169,7 @@ public class DeleteJoinHelper {
 			// entry to add a new row
 
 
-			rightPkValue = Utils.getColumnValueFromDeltaStream(stream.getDeltaDeletedRow(), rightPkName, rightPkType, "");
+			rightPkValue = Utils.getColumnValueFromDeltaStream(stream.getDeltaUpdatedRow(), rightPkName, rightPkType, "");
 
 
 			for (Map.Entry<String, String> entry : myMap2.entrySet()) {
