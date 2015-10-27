@@ -437,7 +437,6 @@ public class ViewManager {
 			case "text":
 				if (!deltaUpdatedRow.getName(i).contains("_old")) {
 					myList.add(deltaUpdatedRow.getString(i));
-					System.out.println("adding"+deltaUpdatedRow.getString(i));
 				}
 
 				break;
@@ -445,28 +444,24 @@ public class ViewManager {
 			case "int":
 				if (!deltaUpdatedRow.getName(i).contains("_old")) {
 					myList.add("" + deltaUpdatedRow.getInt(i) + "");
-					System.out.println("adding"+deltaUpdatedRow.getInt(i));
 				}
 				break;
 
 			case "varint":
 				if (!deltaUpdatedRow.getName(i).contains("_old")) {
 					myList.add("" + deltaUpdatedRow.getVarint(i) + "");
-					System.out.println("adding"+deltaUpdatedRow.getVarint(i));
 				}
 				break;
 
 			case "varchar":
 				if (!deltaUpdatedRow.getName(i).contains("_old")) {
 					myList.add(deltaUpdatedRow.getString(i));
-					System.out.println("adding"+deltaUpdatedRow.getString(i));
 				}
 				break;
 
 			case "float":
 				if (!deltaUpdatedRow.getName(i).contains("_old")) {
 					myList.add("" + deltaUpdatedRow.getFloat(i) + "");
-					System.out.println("adding"+deltaUpdatedRow.getFloat(i));
 				}
 				break;
 			}
