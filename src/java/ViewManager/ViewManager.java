@@ -1962,7 +1962,7 @@ public class ViewManager {
 					}
 
 				} else {
-					if(leftJoinAggTable.equals("false")){
+					if(!leftJoinAggTable.equals("false")){
 						while (!JoinAggregationHelper
 								.UpdateOldRowBySubtracting(stream,
 										"list_item1",
@@ -1973,7 +1973,7 @@ public class ViewManager {
 							;
 					}
 
-					if(innerJoinAggTable.equals("false")){
+					if(!innerJoinAggTable.equals("false")){
 						while (!JoinAggregationHelper
 								.UpdateOldRowBySubtracting(stream,
 										"list_item1",
