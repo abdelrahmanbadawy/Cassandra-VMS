@@ -73,13 +73,16 @@
 					<index>0</index>
 
 					<inner>
-						<name>innerjoin_agg_courses_faculty_age</name>
+						<name>innerjoin_agg_student_faculty_age</name>
 						<nrHaving>0</nrHaving>
 						<Having>
 						</Having>
 					</inner>
 					<right>
-						<name>false</name>
+						<name>rightjoin_agg_student_faculty_age</name>
+						<nrHaving>0</nrHaving>
+						<Having>
+						</Having>
 					</right>
 				</c>
 
