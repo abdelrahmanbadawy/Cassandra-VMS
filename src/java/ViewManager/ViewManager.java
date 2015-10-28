@@ -1633,6 +1633,8 @@ public class ViewManager {
 				}
 
 			}
+			else 
+				loop = false;
 
 		}
 
