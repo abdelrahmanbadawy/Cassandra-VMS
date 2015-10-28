@@ -248,8 +248,8 @@ public class JoinAggGroupByHelper {
 			String blob = Serialize.serializeStream2(stream);
 			JoinAggGroupByHelper.insertToDelete(json, joinAggTable, crow,blob, identifier);
 			Utils.deleteEntireRowWithPK((String) json.get("keyspace"), joinAggTable, aggKeyName, aggKeyValue, 0, 0);
-			
-			
+
+
 			// Reseting the stream
 			stream.setDeleteOperation(false);
 			stream.setUpdatedJoinAggGroupByRowDeleted(null);
@@ -541,8 +541,9 @@ public class JoinAggGroupByHelper {
 		if(theRow==null){
 			stream.setUpdatedJoinAggGroupByRowOldState(new CustomizedRow());
 			stream.setUpdatedJoinAggGroupByRow(null);
+		}else if(theRow.getInt("count")==1){
+			JoinAggGroupByHelper.searchAndDeleteRowFromJoinAggGroupBy(stream, json, joinTable, aggKey, aggKeyValue, aggColValue, identifier);
 		}else{
-
 
 			stream.setUpdatedJoinAggGroupByRowOldState(new CustomizedRow(theRow));
 
@@ -582,7 +583,7 @@ public class JoinAggGroupByHelper {
 		return true;
 
 	}
-	
+
 	public static void insertToDelete(JSONObject json, String joinAggTable,CustomizedRow row, String blob, String identifier){
 
 		String aggKeyName = row.getName(0);
@@ -600,7 +601,7 @@ public class JoinAggGroupByHelper {
 		}
 
 		List<Float> myList = new ArrayList<Float>();
-		
+
 		float sum = 0;
 		float avg = 0;
 		float min = 0;
