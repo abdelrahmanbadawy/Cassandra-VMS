@@ -307,6 +307,8 @@ public class JoinAggGroupByHelper {
 		float average = 0;
 		List<Float> myList = new ArrayList<Float>();
 
+		aggKeyValue = aggKeyValue.trim();
+		
 		StringBuilder selectQuery1 = new StringBuilder("SELECT ")
 		.append("agg_list, sum, count, average, min, max FROM ")
 		.append((String) json.get("keyspace")).append(".").append(innerJoinAggTable)
