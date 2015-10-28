@@ -638,14 +638,14 @@ public class ViewManagerRJController implements Runnable{
 							.getRJAggJoinGroupByMapping()
 							.getString(
 									temp + ".rightAggColumns.c(" + e
-									+ ").Agg(" + i + ").name.inner");
+									+ ").Agg(" + i + ").inner.name");
 
 					String rightJoinAggTable = VmXmlHandler
 							.getInstance()
 							.getRJAggJoinGroupByMapping()
 							.getString(
 									temp + ".rightAggColumns.c(" + e
-									+ ").Agg(" + i + ").name.right");
+									+ ").Agg(" + i + ").right.name");
 
 					int AggKeyIndex = VmXmlHandler
 							.getInstance()
