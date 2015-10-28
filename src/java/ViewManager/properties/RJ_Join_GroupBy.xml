@@ -48,9 +48,9 @@
 							<name>innerjoin_agg_student_faculty_age_groupby_name</name>
 						</inner>
 
-						<left>
+						<right>
 							<name>rightjoin_agg_student_faculty_age_groupby_name</name>
-						</left>
+						</right>
 					</Agg>
 				</c>
 			</rightAggColumns>
