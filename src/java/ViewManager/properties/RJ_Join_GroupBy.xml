@@ -34,13 +34,24 @@
 			</leftAggColumns>
 
 			<rightAggColumns>
-				<nr>0</nr>
+				<nr>1</nr>
 				<c>
 					<name>age</name>
 					<type>int</type>
 					<index>3</index>
-					<inner>innerjoin_agg_courses_faculty_age</inner>
-					<right>false</right>
+					<nrAgg>1</nrAgg>
+					<Agg>
+						<Key>name</Key>
+						<KeyType>text</KeyType>
+						<aggKeyIndex>2</aggKeyIndex>
+						<inner>
+							<name>innerjoin_agg_student_faculty_age_groupby_name</name>
+						</inner>
+
+						<left>
+							<name>rightjoin_agg_student_faculty_age_groupby_name</name>
+						</left>
+					</Agg>
 				</c>
 			</rightAggColumns>
 		</unit>
