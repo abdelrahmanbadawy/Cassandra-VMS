@@ -2681,7 +2681,7 @@ public class ViewManager {
 			}
 		}
 
-		if (newRJRow.getMap("list_item1").size() == 1 && oldRJRow.getMap("list_item1").size() == 1
+		if (newRJRow.getMap("list_item1").size() == 1 && oldRJRow.getMap("list_item1").size() == 0
 				&& !newRJRow.getMap("list_item2").isEmpty()) {
 			if (!innerJoinAggTable.equals("false")) {
 				JoinAggGroupByHelper.addListItem2toInnerJoinGroupBy(stream,

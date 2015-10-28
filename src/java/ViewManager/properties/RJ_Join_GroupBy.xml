@@ -38,12 +38,12 @@
 				<c>
 					<name>age</name>
 					<type>int</type>
-					<index>3</index>
+					<index>0</index>
 					<nrAgg>1</nrAgg>
 					<Agg>
 						<Key>name</Key>
 						<KeyType>text</KeyType>
-						<aggKeyIndex>2</aggKeyIndex>
+						<aggKeyIndex>3</aggKeyIndex>
 						<inner>
 							<name>innerjoin_agg_student_faculty_age_groupby_name</name>
 						</inner>
@@ -55,9 +55,10 @@
 				</c>
 			</rightAggColumns>
 		</unit>
-		
+
 		<unit>
-			<reverseJoin>rj_courses_student_faculty_faculty_left_ects_eq4</reverseJoin>
+			<reverseJoin>rj_courses_student_faculty_faculty_left_ects_eq4
+			</reverseJoin>
 			<joinKey>faculty</joinKey>
 			<joinKeyType>text</joinKeyType>
 			<LeftTable>courses</LeftTable>
@@ -88,17 +89,13 @@
 			<rightAggColumns>
 				<nr>0</nr>
 				<c>
-					<name>age</name>
-					<type>int</type>
-					<index>3</index>
-					<inner>innerjoin_agg_courses_faculty_age</inner>
-					<right>false</right>
+
 				</c>
 			</rightAggColumns>
 
 
 		</unit>
-		
-		
+
+
 	</mapping>
 </setup>
