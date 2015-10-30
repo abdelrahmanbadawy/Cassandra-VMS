@@ -22,6 +22,8 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.Cluster;
@@ -37,6 +39,8 @@ public class ViewManager {
 	Cluster currentCluster = null;
 	private String reverseJoinTableName;
 	private String identifier;
+	
+	
 
 	public ViewManager(Cluster currenCluster, String identifier) {
 		this.currentCluster = currenCluster;

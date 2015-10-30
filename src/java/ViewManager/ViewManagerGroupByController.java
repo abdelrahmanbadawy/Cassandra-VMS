@@ -4,6 +4,8 @@ import java.util.List;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.datastax.driver.core.Cluster;
 
@@ -16,6 +18,8 @@ public class ViewManagerGroupByController implements Runnable {
 	TaskDistributor td;
 	List<String> vm_identifiers;
 	int identifier_index;
+	
+	static Logger timestamps = LoggerFactory.getLogger("timestamps");
 
 	public ViewManagerGroupByController(ViewManager vm,Cluster cluster,TaskDistributor td, int identifier_index) {	
 		System.out.println("Group by Controller is up");
@@ -127,6 +131,8 @@ public class ViewManagerGroupByController implements Runnable {
 		System.out.println("saving execPtrGB "+ ptr);
 
 		if(json.get("recovery_mode").equals("off") || json.get("recovery_mode").equals("last_recovery_line")){
+			
+			timestamps.info(vm.getIdentifier()+"-"+"gb");
 		VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtrGB", ptr);
 		VmXmlHandler.getInstance().save(VmXmlHandler.getInstance().getVMProperties().getFile());
 		}
@@ -194,6 +200,7 @@ public class ViewManagerGroupByController implements Runnable {
 		System.out.println("saving execPtrGB "+ ptr);
 
 		if(json.get("recovery_mode").equals("off") || json.get("recovery_mode").equals("last_recovery_line")){
+			timestamps.info(vm.getIdentifier()+"-"+"gb");
 		VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtrGB", ptr);
 		VmXmlHandler.getInstance().save(VmXmlHandler.getInstance().getVMProperties().getFile());
 		}

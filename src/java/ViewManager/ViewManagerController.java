@@ -7,6 +7,8 @@ import java.util.List;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Row;
@@ -30,6 +32,11 @@ public class ViewManagerController implements Runnable {
 	int identifier_index;
 	Stream stream = null;
 	TaskDistributor td;
+	
+	boolean firstOperation = true;
+	
+	static Logger timestamps = LoggerFactory.getLogger("timestamps");
+	
 
 
 	public ViewManagerController(ViewManager vm,Cluster cluster, TaskDistributor td, int identifier_index) {	
@@ -43,6 +50,9 @@ public class ViewManagerController implements Runnable {
 		
 		currentCluster = cluster;
 		this.td = td; 
+		
+		System.out.println(timestamps.isInfoEnabled());
+		timestamps.info("test");
 		
 	}
 
@@ -87,7 +97,14 @@ public class ViewManagerController implements Runnable {
 
 
 	public void update(JSONObject json) {
-
+		//print time of very first operation
+		if(firstOperation){
+			System.out.println("here   +++++++++++"+timestamps.getName());
+			timestamps.info("");
+			timestamps.info(vm.getIdentifier()+"-"+"delta");
+			firstOperation= false;
+		}
+		
 		// ===================================================================================
 
 		// get position of basetable from xml list
@@ -486,11 +503,16 @@ public class ViewManagerController implements Runnable {
 		
 		System.out.println("saving execPtr "+ json.get("readPtr").toString());
 		
+		
 		if(json.get("recovery_mode").equals("off") || json.get("recovery_mode").equals("last_recovery_line")){
 		
-		
+			
+			timestamps.info(vm.getIdentifier()+"-"+"delta");
+			
 		VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtr1", json.get("readPtr").toString());
 		VmXmlHandler.getInstance().save(VmXmlHandler.getInstance().getVMProperties().getFile());
+		
+		
 		}
 		
 	}
@@ -511,6 +533,13 @@ public class ViewManagerController implements Runnable {
 
 	public void cascadeDelete(JSONObject json, boolean deleteOperation) {
 
+		//print time of very first operation
+		if(firstOperation){
+			timestamps.info("");
+			timestamps.info(vm.getIdentifier()+"-"+"delta");
+			firstOperation= false;
+		}
+		
 		// boolean deleteOperation is set to false if this method is called from
 		// the update method
 		// i.e WHERE clause condition evaluates to fasle
@@ -699,6 +728,9 @@ public class ViewManagerController implements Runnable {
 		
 		
 		if(json.get("recovery_mode").equals("off") || json.get("recovery_mode").equals("last_recovery_line")){
+			
+			timestamps.info(vm.getIdentifier()+"-"+"delta");
+			
 		VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtr1", json.get("readPtr").toString());
 		VmXmlHandler.getInstance().save(VmXmlHandler.getInstance().getVMProperties().getFile());
 		}
