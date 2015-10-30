@@ -56,6 +56,25 @@
             <pattern>%date{ISO8601} - %msg %n</pattern>
         </encoder>
     </appender>
+    
+      <appender name="TIMESTAMPSFILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <!--      <file>logs/output.log</file>   -->
+        <append>true</append>
+ 
+  <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+    <fileNamePattern>experiment_logs/timestamps%d{yyyy-MM-dd}%i.log</fileNamePattern>
+    <maxHistory>30</maxHistory>
+    <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+      <maxFileSize>50MB</maxFileSize>
+    </timeBasedFileNamingAndTriggeringPolicy>
+  </rollingPolicy>
+     <prudent>true</prudent>
+     
+     
+        <encoder>
+            <pattern>%date{ISO8601} - %msg %n</pattern>
+        </encoder>
+    </appender>
   
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
@@ -72,6 +91,10 @@
   
   <logger name="commitLogger" level="INFO" additivity="false">
         <appender-ref ref="COMMITLOGFILE"/>
+    </logger>
+    
+     <logger name="timestamps" level="INFO" additivity="false">
+        <appender-ref ref="TIMESTAMPSFILE"/>
     </logger>
   
   <logger name="com.thinkaurelius.thrift" level="ERROR"/>
