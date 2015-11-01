@@ -2,12 +2,11 @@ package ViewManager;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Logger;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.json.simple.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.datastax.driver.core.Cluster;
 
@@ -31,8 +30,8 @@ public class ViewManagerRJController implements Runnable{
 	List<String> vm_identifiers;
 	int identifier_index;
 	int rjoins;
-	
-	static Logger timestamps = LoggerFactory.getLogger("timestamps");
+
+	final static Logger timestamps = Logger.getLogger("BootVMS");  
 
 	public ViewManagerRJController(ViewManager vm,Cluster cluster, TaskDistributor taskDistributor, int identifier_index) {	
 		System.out.println("RJ Controller is up");
@@ -677,10 +676,10 @@ public class ViewManagerRJController implements Runnable{
 		System.out.println("saving execPtrRJ "+ rjjson.get("readPtr").toString());
 
 		if(rjjson.get("recovery_mode").equals("off") || rjjson.get("recovery_mode").equals("last_recovery_line")){
-			timestamps.info(vm.getIdentifier()+"-"+"rj");
-		VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtrRJ", rjjson.get("readPtr").toString());
+			timestamps.info(vm.getIdentifier()+" - "+"rj");
+			VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtrRJ", rjjson.get("readPtr").toString());
 
-		VmXmlHandler.getInstance().save(VmXmlHandler.getInstance().getVMProperties().getFile());
+			VmXmlHandler.getInstance().save(VmXmlHandler.getInstance().getVMProperties().getFile());
 		}
 
 		return true;
@@ -1113,10 +1112,10 @@ public class ViewManagerRJController implements Runnable{
 		System.out.println("saving execPtrRJ "+ rjjson.get("readPtr").toString());
 
 		if(rjjson.get("recovery_mode").equals("off") || rjjson.get("recovery_mode").equals("last_recovery_line")){
-			timestamps.info(vm.getIdentifier()+"-"+"rj");
-		VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtrRJ", rjjson.get("readPtr").toString());
+			timestamps.info(vm.getIdentifier()+" - "+"rj");
+			VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtrRJ", rjjson.get("readPtr").toString());
 
-		VmXmlHandler.getInstance().save(VmXmlHandler.getInstance().getVMProperties().getFile());
+			VmXmlHandler.getInstance().save(VmXmlHandler.getInstance().getVMProperties().getFile());
 		}
 
 		return true;

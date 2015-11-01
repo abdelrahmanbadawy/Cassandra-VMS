@@ -3,12 +3,11 @@ package ViewManager;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Logger;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.json.simple.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Row;
@@ -32,28 +31,24 @@ public class ViewManagerController implements Runnable {
 	int identifier_index;
 	Stream stream = null;
 	TaskDistributor td;
-	
-	boolean firstOperation = true;
-	
-	static Logger timestamps = LoggerFactory.getLogger("timestamps");
-	
 
+	boolean firstOperation = true;
+
+
+	final static Logger timestamps = Logger.getLogger("BootVMS");  
 
 	public ViewManagerController(ViewManager vm,Cluster cluster, TaskDistributor td, int identifier_index) {	
-		
+
 		System.out.println("Delta Controller is up");
 		retrieveLoadXmlHandlers();
 		this.vm = vm;
 		this.identifier_index = identifier_index;
 		parseXmlMapping();
 		stream = new Stream();
-		
+
 		currentCluster = cluster;
 		this.td = td; 
-		
-		System.out.println(timestamps.isInfoEnabled());
-		timestamps.info("test");
-		
+
 	}
 
 	private void retrieveLoadXmlHandlers() {
@@ -89,22 +84,20 @@ public class ViewManagerController implements Runnable {
 
 		rjoins = VmXmlHandler.getInstance().getDeltaReverseJoinMapping()
 				.getInt("mapping.nrUnit");
-		
+
 		vm_identifiers = VmXmlHandler.getInstance().getVMProperties().getList("vm.identifier");
 		identifier_index = vm_identifiers.indexOf(vm.getIdentifier());
-		
+
 	}
 
 
 	public void update(JSONObject json) {
 		//print time of very first operation
 		if(firstOperation){
-			System.out.println("here   +++++++++++"+timestamps.getName());
-			timestamps.info("");
 			timestamps.info(vm.getIdentifier()+"-"+"delta");
 			firstOperation= false;
 		}
-		
+
 		// ===================================================================================
 
 		// get position of basetable from xml list
@@ -500,24 +493,24 @@ public class ViewManagerController implements Runnable {
 		}
 
 		stream.resetDeltaRows();
-		
+
 		System.out.println("saving execPtr "+ json.get("readPtr").toString());
-		
-		
+
+
 		if(json.get("recovery_mode").equals("off") || json.get("recovery_mode").equals("last_recovery_line")){
-		
-			
-			timestamps.info(vm.getIdentifier()+"-"+"delta");
-			
-		VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtr1", json.get("readPtr").toString());
-		VmXmlHandler.getInstance().save(VmXmlHandler.getInstance().getVMProperties().getFile());
-		
-		
+
+
+			timestamps.info(vm.getIdentifier()+" - "+"delta");
+
+			VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtr1", json.get("readPtr").toString());
+			VmXmlHandler.getInstance().save(VmXmlHandler.getInstance().getVMProperties().getFile());
+
+
 		}
-		
+
 	}
 
-	
+
 
 	private boolean checkIfAggIsNull(String aggKey, CustomizedRow deltaUpdatedRow) {
 
@@ -535,11 +528,10 @@ public class ViewManagerController implements Runnable {
 
 		//print time of very first operation
 		if(firstOperation){
-			timestamps.info("");
-			timestamps.info(vm.getIdentifier()+"-"+"delta");
+			timestamps.info(vm.getIdentifier()+" - "+"delta");
 			firstOperation= false;
 		}
-		
+
 		// boolean deleteOperation is set to false if this method is called from
 		// the update method
 		// i.e WHERE clause condition evaluates to fasle
@@ -723,18 +715,18 @@ public class ViewManagerController implements Runnable {
 
 			stream.resetDeltaRows();
 		}
-		
+
 		System.out.println("saving execPtr "+ json.get("readPtr").toString());
-		
-		
+
+
 		if(json.get("recovery_mode").equals("off") || json.get("recovery_mode").equals("last_recovery_line")){
-			
-			timestamps.info(vm.getIdentifier()+"-"+"delta");
-			
-		VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtr1", json.get("readPtr").toString());
-		VmXmlHandler.getInstance().save(VmXmlHandler.getInstance().getVMProperties().getFile());
+
+			timestamps.info(vm.getIdentifier()+" - "+"delta");
+
+			VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtr1", json.get("readPtr").toString());
+			VmXmlHandler.getInstance().save(VmXmlHandler.getInstance().getVMProperties().getFile());
 		}
-		
+
 	}
 
 	public boolean cascadeDeleteReverseJoin(JSONObject json, int j, int cursor){
@@ -780,13 +772,13 @@ public class ViewManagerController implements Runnable {
 				JSONObject head = td.deltaQueues.get(identifier_index).remove();
 				decide(head);
 			}
-			
+
 			try {
-		        Thread.sleep(1000);
-		    } catch (InterruptedException e) {
-		        // We've been interrupted: no more messages.
-		        return;
-		    }
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// We've been interrupted: no more messages.
+				return;
+			}
 		}
 
 
