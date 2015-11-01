@@ -54,6 +54,7 @@ public class JoinAggregationHelper {
 
 			Session session = currentCluster.connect();
 			session.execute(insertQueryAgg.toString());
+			session.close();
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -129,7 +130,7 @@ public class JoinAggregationHelper {
 
 			Session session = currentCluster.connect();
 			updated = session.execute(updateQuery.toString()).one();
-
+			session.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
@@ -161,6 +162,7 @@ public class JoinAggregationHelper {
 			Session session = currentCluster.connect();
 			theRow = session.execute(
 					selectQuery1.toString()).one();
+			session.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

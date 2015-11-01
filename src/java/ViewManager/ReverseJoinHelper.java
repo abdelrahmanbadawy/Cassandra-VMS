@@ -38,7 +38,7 @@ public class ReverseJoinHelper {
 			PreparedStatement statement = session.prepare(insertQuery.toString());
 			BoundStatement boundStatement = new BoundStatement(statement);
 			Row inserted = session.execute(boundStatement.bind(myMap)).one();
-
+			session.close();
 			System.out.println(insertQuery);
 
 
@@ -67,7 +67,7 @@ public class ReverseJoinHelper {
 				PreparedStatement statement = session.prepare(updateQuery.toString());
 				BoundStatement boundStatement = new BoundStatement(statement);
 				updated = session.execute(boundStatement.bind(myMap)).one();
-
+				session.close();
 			} catch (Exception e) {
 				e.printStackTrace();
 				return false;

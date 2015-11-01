@@ -47,7 +47,7 @@ public class Utils {
 
 			Session session = currentCluster.connect();
 			updated = session.execute(deleteQuery.toString()).one();
-
+			session.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
@@ -75,7 +75,7 @@ public class Utils {
 
 			Session session = currentCluster.connect();
 			session.execute(deleteQuery.toString());
-
+			session.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
@@ -97,7 +97,7 @@ public class Utils {
 
 			Session session = currentCluster.connect();
 			session.execute(deleteQuery.toString());
-
+			session.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
@@ -120,6 +120,7 @@ public class Utils {
 		try {
 			Session session = currentCluster.connect();
 			rs = session.execute(selectQuery1.toString());
+			session.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 
@@ -145,6 +146,7 @@ public class Utils {
 		try {
 			Session session = currentCluster.connect();
 			result = session.execute(selectQuery.toString());
+			session.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 
@@ -168,6 +170,7 @@ public class Utils {
 		try {
 			Session session = currentCluster.connect();
 			session.execute(insertQueryAgg.toString());
+			session.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -501,7 +504,7 @@ public class Utils {
 
 			Session session = currentCluster.connect();
 			session.execute(updateQuery.toString()).one();
-
+			session.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;

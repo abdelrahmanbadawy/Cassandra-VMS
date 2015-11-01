@@ -74,7 +74,7 @@ public class JoinAggGroupByHelper {
 			BoundStatement boundStatement = new BoundStatement(statement1);
 			System.out.println(boundStatement.toString());
 			session.execute(boundStatement.bind(myList));
-
+			session.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -124,7 +124,7 @@ public class JoinAggGroupByHelper {
 			BoundStatement boundStatement = new BoundStatement(statement1);
 			System.out.println(boundStatement.toString());
 			session.execute(boundStatement.bind(myList));
-
+			session.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -164,7 +164,7 @@ public class JoinAggGroupByHelper {
 			BoundStatement boundStatement = new BoundStatement(statement1);
 			System.out.println(boundStatement.toString());
 			updated = session.execute(boundStatement.bind(myList)).one();
-
+			session.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
@@ -190,6 +190,7 @@ public class JoinAggGroupByHelper {
 		try {
 			Session session = currentCluster.connect();
 			theRow = session.execute(selectQuery1.toString()).one();
+			session.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -319,6 +320,7 @@ public class JoinAggGroupByHelper {
 			Session session = currentCluster.connect();
 			theRow = session.execute(
 					selectQuery1.toString()).one();
+			session.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 
@@ -420,6 +422,7 @@ public class JoinAggGroupByHelper {
 			Session session = currentCluster.connect();
 			theRow = session.execute(
 					selectQuery1.toString()).one();
+			session.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 
@@ -535,6 +538,7 @@ public class JoinAggGroupByHelper {
 			Session session = currentCluster.connect();
 			theRow = session.execute(
 					selectQuery1.toString()).one();
+			session.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 
@@ -628,7 +632,7 @@ public class JoinAggGroupByHelper {
 			BoundStatement boundStatement = new BoundStatement(statement1);
 			System.out.println(boundStatement.toString());
 			session.execute(boundStatement.bind(myList));
-
+			session.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
