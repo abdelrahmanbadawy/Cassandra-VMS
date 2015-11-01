@@ -13,17 +13,14 @@ public class Vm_Prop_Restart_Conf {
 	
 	public static void main(String [] args){
 		
-		System.out.println("Enter number of view managers:");
-		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-		
+		//System.out.println("Enter number of view managers:");
+		//BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+	
 		int vms= 0;
 		try {
-			 vms = Integer.parseInt(br.readLine());
+			 vms = Integer.parseInt(args[0]);
 			
 		} catch (NumberFormatException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
