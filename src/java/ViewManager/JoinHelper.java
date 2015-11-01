@@ -46,6 +46,7 @@ public class JoinHelper {
 
 			Session session = currentCluster.connect();
 			session.execute(insertQuery.toString());
+			session.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 
@@ -358,6 +359,7 @@ public class JoinHelper {
 
 				Session session = currentCluster.connect();
 				session.execute(insertQuery.toString());
+				session.close();
 			} catch (Exception e) {
 				e.printStackTrace();
 				return false;
@@ -456,6 +458,7 @@ public class JoinHelper {
 
 					Session session = currentCluster.connect();
 					session.execute(deleteQuery.toString());
+					session.close();
 				} catch (Exception e) {
 					e.printStackTrace();
 					return false;
@@ -549,6 +552,7 @@ public class JoinHelper {
 
 					Session session = currentCluster.connect();
 					session.execute(insertQuery.toString());
+					session.close();
 				} catch (Exception e) {
 					e.printStackTrace();
 					return false;

@@ -380,11 +380,14 @@ public class ViewManager {
 
 			Session session = currentCluster.connect();
 			session.execute(deleteQuery.toString());
+			session.close();
 
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
 		}
+		
+		
 
 		return true;
 	}
@@ -1403,6 +1406,7 @@ public class ViewManager {
 
 					Session session = currentCluster.connect();
 					session.execute(insertQuery.toString());
+					session.close();
 				} catch (Exception e) {
 					e.printStackTrace();
 					return false;
@@ -1516,6 +1520,7 @@ public class ViewManager {
 
 					Session session = currentCluster.connect();
 					session.execute(insertQuery.toString());
+					session.close();
 				} catch (Exception e) {
 					e.printStackTrace();
 					return false;

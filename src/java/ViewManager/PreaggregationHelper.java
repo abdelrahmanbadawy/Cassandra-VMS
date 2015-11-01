@@ -50,7 +50,7 @@ public class PreaggregationHelper {
 
 			Session session = currentCluster.connect();
 			PreAggMap = session.execute(selectPreaggQuery1.toString());
-
+			session.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -75,7 +75,7 @@ public class PreaggregationHelper {
 
 			Session session = currentCluster.connect();
 			PreAggMap = session.execute(selectPreaggQuery1.toString());
-
+			session.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -127,7 +127,7 @@ public class PreaggregationHelper {
 			rs = session1.execute(boundStatement.bind(myMap));
 
 			System.out.println(boundStatement.toString());
-
+			session1.close();
 		}catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -167,6 +167,7 @@ public class PreaggregationHelper {
 		try{
 			Session session = currentCluster.connect();
 			updated = session.execute(insertQueryAgg.toString()).one();
+			session.close();
 		}catch (Exception e) {
 			e.printStackTrace();
 			return false;
@@ -207,7 +208,7 @@ public class PreaggregationHelper {
 			BoundStatement boundStatement = new BoundStatement(statement1);
 			System.out.println(boundStatement.toString());
 			session.execute(boundStatement.bind(myMap));
-
+			session.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -245,7 +246,7 @@ public class PreaggregationHelper {
 			BoundStatement boundStatement = new BoundStatement(statement1);
 			System.out.println(boundStatement.toString());
 			updated = session.execute(boundStatement.bind(myMap,blob_old)).one();
-
+			session.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
