@@ -1,0 +1,78 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<setup>
+	<dbSchema>
+		<tableNumber>2</tableNumber>
+		<tableDefinition>
+		    <baseTable>courses</baseTable>
+			
+		    <columnNumber>3</columnNumber>
+			<keyspace>test</keyspace>
+			<name>delta_courses</name>
+			 
+			<primaryKey>
+				<type>int</type>
+				<name>id</name>
+			</primaryKey>
+			<column>
+				<family>colfam3</family>
+				<type>text</type>
+				<name>name</name>
+			</column>
+			
+			<column>
+				<family>colfam3</family>
+				<type>varint</type>
+				<name>ects</name>
+			</column>
+			
+			<column>
+				<family>colfam3</family>
+				<type>text</type>
+				<name>faculty</name>
+			</column>
+			
+			
+			
+		</tableDefinition>
+		
+		
+		<tableDefinition>
+		    <baseTable>student</baseTable>
+			
+		    <columnNumber>4</columnNumber>
+			<keyspace>test</keyspace>
+			<name>delta_student</name>
+			 
+			<primaryKey>
+				<type>int</type>
+				<name>id</name>
+			</primaryKey>
+			<column>
+				<family>colfam2</family>
+				<type>text</type>
+				<name>name</name>
+			</column>
+			<column>
+				<family>colfam2</family>
+				<type>float</type>
+				<name>gpa</name>
+			</column>
+			<column>
+				<family>colfam2</family>
+				<type>text</type>
+				<name>faculty</name>
+			</column>
+			<column>
+				<family>colfam2</family>
+				<type>int</type>
+				<name>age</name>
+			</column>
+			
+			
+		</tableDefinition>
+		
+		
+	</dbSchema>
+
+
+</setup>

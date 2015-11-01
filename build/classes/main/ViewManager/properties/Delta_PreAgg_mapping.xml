@@ -1,0 +1,42 @@
+<?xml version="1.1" encoding="UTF-8"?>
+
+<setup>
+	<mapping>
+		<nrUnit>1</nrUnit>
+		<unit>
+			<deltaTable>delta_courses</deltaTable>
+			<nrPreagg>2</nrPreagg>
+
+			<Preagg>
+				<name>preagg_agg_courses_faculty_ects</name>
+				<AggKey>faculty</AggKey>
+				<AggKeyType>text</AggKeyType>
+				<AggCol>ects</AggCol>
+				<AggColType>varint</AggColType>
+				<Cond>
+					<name>none</name>
+				</Cond>
+			</Preagg>
+
+			<Preagg>
+				<name>preagg_agg_courses_faculty_ects_eq4</name>
+				<AggKey>faculty</AggKey>
+				<AggKeyType>text</AggKeyType>
+				<AggCol>ects</AggCol>
+				<AggColType>varint</AggColType>
+				<Cond>
+					<name>ectsEQ4</name>
+					<nrAnd>1</nrAnd>
+					<And>
+						<selectionCol>ects</selectionCol>
+						<type>varint</type>
+						<operation>></operation>
+						<value>4</value>
+					</And>
+				</Cond>
+			</Preagg>
+
+		</unit>
+		
+	</mapping>
+</setup>
