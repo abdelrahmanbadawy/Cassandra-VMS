@@ -1,0 +1,15 @@
+<?xml version="1.1" encoding="UTF-8"?>
+
+<setup>
+	<mapping>
+		<nrUnit>1</nrUnit>
+		
+		<unit>
+			<tableName>innerjoin_agg_courses_faculty_ects</tableName>
+			<aggCol>ects</aggCol>
+			<table>left</table>
+			<positionInMap>0</positionInMap>	
+		</unit>	
+		
+	</mapping>
+</setup>

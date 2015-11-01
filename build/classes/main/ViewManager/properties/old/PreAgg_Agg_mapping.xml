@@ -1,0 +1,20 @@
+<?xml version="1.1" encoding="UTF-8"?>
+
+<setup>
+	<mapping>
+
+		<unit>
+			<deltaTable>delta_courses</deltaTable>
+			<Preagg>preaggregation_courses_faculty_ECTS</Preagg>
+			<Agg>
+				<name>agg_courses_faculty_ects</name>
+				<AggKey>faculty</AggKey>
+				<AggKeyType>text</AggKeyType>
+				<AggCol>ects</AggCol>
+				<AggColType>varint</AggColType>
+			</Agg>
+		</unit>
+
+
+	</mapping>
+</setup>

@@ -1,0 +1,57 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<setup>
+	<dbSchema>
+		<tableNumber>1</tableNumber>
+
+		<tableDefinition>
+			<baseTable>rj_courses_student_faculty_faculty</baseTable>
+
+			<columnNumber>8</columnNumber>
+			<keyspace>test</keyspace>
+			<name>right_join_courses_student_faculty_faculty</name>
+
+			<primaryKey>
+				<type>tuple&lt;int,int&gt;</type>
+				<name>id</name>
+			</primaryKey>
+
+			<column>
+				<type>text</type>
+				<name>courses_faculty</name>
+			</column>
+			<column>
+				<type>text</type>
+				<name>courses_name</name>
+			</column>
+			<column>
+				<type>varint</type>
+				<name>courses_ects</name>
+			</column>
+			<column>
+				<type>text</type>
+				<name>student_faculty</name>
+			</column>
+			<column>
+				<type>int</type>
+				<name>student_age</name>
+			</column>
+			<column>
+				<type>float</type>
+				<name>student_gpa</name>
+			</column>
+			<column>
+				<type>text</type>
+				<name>student_name</name>
+			</column>
+			<column>
+				<type>map&lt;text,text&gt;</type>
+				<name>signature</name>
+			</column>
+			
+		
+		</tableDefinition>
+
+	</dbSchema>
+
+
+</setup>

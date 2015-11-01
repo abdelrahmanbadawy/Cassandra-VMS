@@ -1,0 +1,672 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<setup>
+	<dbSchema>
+		<tableNumber>11</tableNumber>
+
+		<tableDefinition>
+			<baseTable>rj_courses_student_faculty_faculty_left_ects_eq4
+			</baseTable>
+
+			<columnNumber>8</columnNumber>
+			<keyspace>test</keyspace>
+			<name>innerjoin_agg_courses_faculty_ects_eq4_gb_name</name>
+
+			<primaryKey>
+				<type>text</type>
+				<name>name</name>
+			</primaryKey>
+
+			<column>
+				<family>colfam1</family>
+				<type>list&lt;float&gt;</type>
+				<name>agg_list</name>
+			</column>
+
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>sum</name>
+			</column>
+
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>average</name>
+			</column>
+
+			<column>
+				<family>colfam1</family>
+				<type>int</type>
+				<name>count</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>min</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>max</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>blob</type>
+				<name>stream</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>map&lt;text,text&gt;</type>
+				<name>signature</name>
+			</column>
+
+			<aggCol>
+				<type>varint</type>
+				<name>ects</name>
+			</aggCol>
+
+		</tableDefinition>
+
+
+		<tableDefinition>
+			<baseTable>rj_courses_student_faculty_faculty_left_ects_eq4
+			</baseTable>
+
+			<columnNumber>8</columnNumber>
+			<keyspace>test</keyspace>
+			<name>leftjoin_agg_courses_faculty_ects_eq4_gb_name</name>
+
+			<primaryKey>
+				<type>text</type>
+				<name>name</name>
+			</primaryKey>
+
+			<column>
+				<family>colfam1</family>
+				<type>list&lt;float&gt;</type>
+				<name>agg_list</name>
+			</column>
+
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>sum</name>
+			</column>
+
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>average</name>
+			</column>
+
+			<column>
+				<family>colfam1</family>
+				<type>int</type>
+				<name>count</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>min</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>max</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>blob</type>
+				<name>stream</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>map&lt;text,text&gt;</type>
+				<name>signature</name>
+			</column>
+
+			<aggCol>
+				<type>varint</type>
+				<name>ects</name>
+			</aggCol>
+
+		</tableDefinition>
+
+		<tableDefinition>
+			<baseTable>rj_courses_student_faculty_faculty</baseTable>
+
+			<columnNumber>8</columnNumber>
+			<keyspace>test</keyspace>
+			<name>leftjoin_agg_courses_faculty_ects_groupby_name</name>
+
+			<primaryKey>
+				<type>text</type>
+				<name>name</name>
+			</primaryKey>
+
+			<column>
+				<family>colfam1</family>
+				<type>list&lt;float&gt;</type>
+				<name>agg_list</name>
+			</column>
+
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>sum</name>
+			</column>
+
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>average</name>
+			</column>
+
+			<column>
+				<family>colfam1</family>
+				<type>int</type>
+				<name>count</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>min</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>max</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>blob</type>
+				<name>stream</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>map&lt;text,text&gt;</type>
+				<name>signature</name>
+			</column>
+
+			<aggCol>
+				<type>varint</type>
+				<name>ects</name>
+			</aggCol>
+
+		</tableDefinition>
+
+		<tableDefinition>
+			<baseTable>rj_courses_student_faculty_faculty</baseTable>
+
+			<columnNumber>8</columnNumber>
+			<keyspace>test</keyspace>
+			<name>innerjoin_agg_courses_faculty_ects_groupby_name</name>
+
+			<primaryKey>
+				<type>text</type>
+				<name>name</name>
+			</primaryKey>
+
+			<column>
+				<family>colfam1</family>
+				<type>list&lt;float&gt;</type>
+				<name>agg_list</name>
+			</column>
+
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>sum</name>
+			</column>
+
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>average</name>
+			</column>
+
+			<column>
+				<family>colfam1</family>
+				<type>int</type>
+				<name>count</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>min</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>max</name>
+			</column>
+
+			<column>
+				<family>colfam1</family>
+				<type>blob</type>
+				<name>stream</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>map&lt;text,text&gt;</type>
+				<name>signature</name>
+			</column>
+
+			<aggCol>
+				<type>varint</type>
+				<name>ects</name>
+			</aggCol>
+
+		</tableDefinition>
+
+
+		<tableDefinition>
+			<baseTable>rj_courses_student_faculty_faculty</baseTable>
+
+			<columnNumber>6</columnNumber>
+			<keyspace>test</keyspace>
+			<name>leftjoin_agg_courses_faculty_ects</name>
+
+			<primaryKey>
+				<type>text</type>
+				<name>faculty</name>
+			</primaryKey>
+
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>sum</name>
+			</column>
+
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>average</name>
+			</column>
+
+			<column>
+				<family>colfam1</family>
+				<type>int</type>
+				<name>count</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>min</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>max</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>map&lt;text,text&gt;</type>
+				<name>signature</name>
+			</column>
+
+			<aggCol>
+				<type>varint</type>
+				<name>ects</name>
+			</aggCol>
+
+		</tableDefinition>
+
+		<tableDefinition>
+			<baseTable>rj_courses_student_faculty_faculty</baseTable>
+
+			<columnNumber>6</columnNumber>
+			<keyspace>test</keyspace>
+			<name>innerjoin_agg_courses_faculty_ects</name>
+
+			<primaryKey>
+				<type>text</type>
+				<name>faculty</name>
+			</primaryKey>
+
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>sum</name>
+			</column>
+
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>average</name>
+			</column>
+
+			<column>
+				<family>colfam1</family>
+				<type>int</type>
+				<name>count</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>min</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>max</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>map&lt;text,text&gt;</type>
+				<name>signature</name>
+			</column>
+
+
+			<aggCol>
+				<type>varint</type>
+				<name>ects</name>
+			</aggCol>
+
+		</tableDefinition>
+
+		<tableDefinition>
+			<baseTable>rj_courses_student_faculty_faculty</baseTable>
+
+			<columnNumber>6</columnNumber>
+			<keyspace>test</keyspace>
+			<name>rightjoin_agg_student_faculty_age</name>
+
+			<primaryKey>
+				<type>text</type>
+				<name>faculty</name>
+			</primaryKey>
+
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>sum</name>
+			</column>
+
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>average</name>
+			</column>
+
+			<column>
+				<family>colfam1</family>
+				<type>int</type>
+				<name>count</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>min</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>max</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>map&lt;text,text&gt;</type>
+				<name>signature</name>
+			</column>
+
+
+			<aggCol>
+				<type>int</type>
+				<name>age</name>
+			</aggCol>
+
+		</tableDefinition>
+
+
+		<tableDefinition>
+			<baseTable>rj_courses_student_faculty_faculty</baseTable>
+
+			<columnNumber>6</columnNumber>
+			<keyspace>test</keyspace>
+			<name>innerjoin_agg_courses_name_ects</name>
+
+			<primaryKey>
+				<type>text</type>
+				<name>name</name>
+			</primaryKey>
+
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>sum</name>
+			</column>
+
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>average</name>
+			</column>
+
+			<column>
+				<family>colfam1</family>
+				<type>int</type>
+				<name>count</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>min</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>max</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>map&lt;text,text&gt;</type>
+				<name>signature</name>
+			</column>
+
+			<aggCol>
+				<type>int</type>
+				<name>age</name>
+			</aggCol>
+
+		</tableDefinition>
+
+		<tableDefinition>
+			<baseTable>rj_courses_student_faculty_faculty</baseTable>
+
+			<columnNumber>6</columnNumber>
+			<keyspace>test</keyspace>
+			<name>innerjoin_agg_student_faculty_age</name>
+
+			<primaryKey>
+				<type>text</type>
+				<name>faculty</name>
+			</primaryKey>
+
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>sum</name>
+			</column>
+
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>average</name>
+			</column>
+
+			<column>
+				<family>colfam1</family>
+				<type>int</type>
+				<name>count</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>min</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>max</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>map&lt;text,text&gt;</type>
+				<name>signature</name>
+			</column>
+
+
+			<aggCol>
+				<type>int</type>
+				<name>age</name>
+			</aggCol>
+
+		</tableDefinition>
+
+		<tableDefinition>
+			<baseTable>rj_courses_student_faculty_faculty</baseTable>
+
+			<columnNumber>8</columnNumber>
+			<keyspace>test</keyspace>
+			<name>innerjoin_agg_student_faculty_age_groupby_name</name>
+
+			<primaryKey>
+				<type>text</type>
+				<name>name</name>
+			</primaryKey>
+
+			<primaryKey>
+				<type>text</type>
+				<name>name</name>
+			</primaryKey>
+
+			<column>
+				<family>colfam1</family>
+				<type>list&lt;float&gt;</type>
+				<name>agg_list</name>
+			</column>
+
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>sum</name>
+			</column>
+
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>average</name>
+			</column>
+
+			<column>
+				<family>colfam1</family>
+				<type>int</type>
+				<name>count</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>min</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>max</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>blob</type>
+				<name>stream</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>map&lt;text,text&gt;</type>
+				<name>signature</name>
+			</column>
+
+
+
+			<aggCol>
+				<type>int</type>
+				<name>age</name>
+			</aggCol>
+
+		</tableDefinition>
+
+		<tableDefinition>
+			<baseTable>rj_courses_student_faculty_faculty</baseTable>
+
+			<columnNumber>8</columnNumber>
+			<keyspace>test</keyspace>
+			<name>rightjoin_agg_student_faculty_age_groupby_name</name>
+
+			<primaryKey>
+				<type>text</type>
+				<name>name</name>
+			</primaryKey>
+
+			<primaryKey>
+				<type>text</type>
+				<name>name</name>
+			</primaryKey>
+
+			<column>
+				<family>colfam1</family>
+				<type>list&lt;float&gt;</type>
+				<name>agg_list</name>
+			</column>
+
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>sum</name>
+			</column>
+
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>average</name>
+			</column>
+
+			<column>
+				<family>colfam1</family>
+				<type>int</type>
+				<name>count</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>min</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>float</type>
+				<name>max</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>blob</type>
+				<name>stream</name>
+			</column>
+			<column>
+				<family>colfam1</family>
+				<type>map&lt;text,text&gt;</type>
+				<name>signature</name>
+			</column>
+
+
+
+			<aggCol>
+				<type>int</type>
+				<name>age</name>
+			</aggCol>
+
+		</tableDefinition>
+
+
+
+	</dbSchema>
+
+
+</setup>
