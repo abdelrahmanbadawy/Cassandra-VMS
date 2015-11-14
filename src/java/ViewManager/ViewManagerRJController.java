@@ -31,7 +31,7 @@ public class ViewManagerRJController implements Runnable{
 	int identifier_index;
 	int rjoins;
 
-	final static Logger timestamps = Logger.getLogger("BootVMS");  
+	final static Logger timestamps = Logger.getLogger("ViewManagerRJController");  
 
 	public ViewManagerRJController(ViewManager vm,Cluster cluster, TaskDistributor taskDistributor, int identifier_index) {	
 		System.out.println("RJ Controller is up");

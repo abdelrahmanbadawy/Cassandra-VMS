@@ -18,7 +18,7 @@ public class ViewManagerGroupByController implements Runnable {
 	List<String> vm_identifiers;
 	int identifier_index;
 
-	final static Logger timestamps = Logger.getLogger("BootVMS");  
+	final static Logger timestamps = Logger.getLogger("ViewManagerGroupByController");  
 
 	public ViewManagerGroupByController(ViewManager vm,Cluster cluster,TaskDistributor td, int identifier_index) {	
 		System.out.println("Group by Controller is up");
