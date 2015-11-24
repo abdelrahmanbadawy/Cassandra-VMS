@@ -92,7 +92,7 @@ public class VmXmlHandler {
 			rjAggJoinMapping.load("ViewManager/properties/RJ_AggJoin.xml");
 			rjAggJoinGroupByMapping.load("ViewManager/properties/RJ_Join_GroupBy.xml");
 			rjAggJoinGroupByHavingMapping.load("ViewManager/properties/Having_GroupBy.xml");
-			vmProperties.load("vm_prop/vm_properties.xml");
+			vmProperties.load("ViewManager/vm_prop/vm_properties.xml");
 			
 			
 			
