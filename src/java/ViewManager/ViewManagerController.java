@@ -35,7 +35,7 @@ public class ViewManagerController implements Runnable {
 	boolean firstOperation = true;
 
 
-	final static Logger timestamps = Logger.getLogger("ViewManagerController");  
+	final static Logger timestamps = Logger.getLogger("BootVMS");  
 
 	public ViewManagerController(ViewManager vm,Cluster cluster, TaskDistributor td, int identifier_index) {	
 

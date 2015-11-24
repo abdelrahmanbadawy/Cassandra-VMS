@@ -19,7 +19,7 @@ public class ViewManagerPreaggController implements Runnable{
 	List<String> vm_identifiers;
 	int identifier_index;
 
-	final static Logger timestamps = Logger.getLogger("ViewManagerPreaggController");  
+	final static Logger timestamps = Logger.getLogger("BootVMS");  
 
 	public ViewManagerPreaggController(ViewManager vm,Cluster cluster,TaskDistributor td, int identifier_index) {	
 		System.out.println("Preagg Controller is up");
