@@ -20,26 +20,8 @@
 			</Cond>
 		</unit>
 		
-		<unit>
-			<preaggTable>leftjoin_agg_courses_faculty_ects</preaggTable>
-			
-			<nrCond>1</nrCond>
-			<Cond>
-				<name>having_leftjoin_agg_courses_faculty_ects_cond1</name>
-				<nrAnd>1</nrAnd>
-				<And>
-					<selectionCol>ects</selectionCol>
-					<aggFct>sum</aggFct>
-					<type>varint</type>
-					<operation>></operation>
-					<value>4</value>
-				</And>
-			</Cond>
-		</unit>
-
+	
 		
 		
-
-
 	</mapping>
 </setup>

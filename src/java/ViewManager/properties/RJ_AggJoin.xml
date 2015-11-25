@@ -45,19 +45,8 @@
 
 					<left>
 						<name>leftjoin_agg_courses_faculty_ects</name>
-						<nrHaving>1</nrHaving>
-						<Having>
-							<name>having_leftjoin_agg_courses_faculty_ects_cond1
-							</name>
-							<nrAnd>1</nrAnd>
-							<And>
-								<selectionCol>ects</selectionCol>
-								<aggFct>sum</aggFct>
-								<type>varint</type>
-								<operation>></operation>
-								<value>4</value>
-							</And>
-						</Having>
+						<nrHaving>0</nrHaving>
+						
 					</left>
 				</c>
 
@@ -65,27 +54,9 @@
 			</leftAggColumns>
 
 			<rightAggColumns>
-				<nr>1</nr>
+				<nr>0</nr>
 
-				<c>
-					<name>age</name>
-					<type>int</type>
-					<index>0</index>
-
-					<inner>
-						<name>innerjoin_agg_student_faculty_age</name>
-						<nrHaving>0</nrHaving>
-						<Having>
-						</Having>
-					</inner>
-					<right>
-						<name>rightjoin_agg_student_faculty_age</name>
-						<nrHaving>0</nrHaving>
-						<Having>
-						</Having>
-					</right>
-				</c>
-
+			
 
 			</rightAggColumns>
 

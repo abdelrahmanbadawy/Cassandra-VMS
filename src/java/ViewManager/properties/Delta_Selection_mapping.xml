@@ -5,7 +5,7 @@
 
 		<unit>
 			<deltaTable>delta_courses</deltaTable>
-			<nrCond>3</nrCond>
+			<nrCond>1</nrCond>
 			<Cond>
 				<name>selection_courses_cond1</name>
 				<nrAnd>2</nrAnd>
@@ -16,26 +16,6 @@
 					<value>3</value>
 				</And>
 
-				<And>
-					<selectionCol>faculty</selectionCol>
-					<type>text</type>
-					<operation>=</operation>
-					<value>Informatics</value>
-				</And>
-			</Cond>
-			<Cond>
-				<name>selection_courses_cond2</name>
-				<nrAnd>1</nrAnd>
-				<And>
-					<selectionCol>ects</selectionCol>
-					<type>varint</type>
-					<operation>=</operation>
-					<value>4</value>
-				</And>
-			</Cond>
-			<Cond>
-				<name>selection_courses_cond3</name>
-				<nrAnd>1</nrAnd>
 				<And>
 					<selectionCol>faculty</selectionCol>
 					<type>text</type>

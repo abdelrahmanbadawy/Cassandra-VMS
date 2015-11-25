@@ -2,7 +2,7 @@
 
 <setup>
 	<mapping>
-		<nrUnit>2</nrUnit>
+		<nrUnit>1</nrUnit>
 
 		<unit>
 			<reverseJoin>rj_courses_student_faculty_faculty</reverseJoin>
@@ -34,68 +34,11 @@
 			</leftAggColumns>
 
 			<rightAggColumns>
-				<nr>1</nr>
-				<c>
-					<name>age</name>
-					<type>int</type>
-					<index>0</index>
-					<nrAgg>1</nrAgg>
-					<Agg>
-						<Key>name</Key>
-						<KeyType>text</KeyType>
-						<aggKeyIndex>3</aggKeyIndex>
-						<inner>
-							<name>innerjoin_agg_student_faculty_age_groupby_name</name>
-						</inner>
-
-						<right>
-							<name>rightjoin_agg_student_faculty_age_groupby_name</name>
-						</right>
-					</Agg>
-				</c>
-			</rightAggColumns>
-		</unit>
-
-		<unit>
-			<reverseJoin>rj_courses_student_faculty_faculty_left_ects_eq4
-			</reverseJoin>
-			<joinKey>faculty</joinKey>
-			<joinKeyType>text</joinKeyType>
-			<LeftTable>courses</LeftTable>
-			<RightTable>student</RightTable>
-
-			<leftAggColumns>
-				<nr>1</nr>
-				<c>
-					<name>ects</name>
-					<type>varint</type>
-					<index>0</index>
-					<nrAgg>1</nrAgg>
-					<Agg>
-						<Key>name</Key>
-						<KeyType>text</KeyType>
-						<aggKeyIndex>2</aggKeyIndex>
-						<inner>
-							<name>innerjoin_agg_courses_faculty_ects_eq4_gb_name</name>
-						</inner>
-
-						<left>
-							<name>leftjoin_agg_courses_faculty_ects_eq4_gb_name</name>
-						</left>
-					</Agg>
-				</c>
-			</leftAggColumns>
-
-			<rightAggColumns>
 				<nr>0</nr>
-				<c>
-
-				</c>
 			</rightAggColumns>
-
-
 		</unit>
 
+		
 
 	</mapping>
 </setup>
