@@ -101,6 +101,8 @@ public class ViewManagerGroupByController implements Runnable {
 					if(stream.getUpdatedJoinAggGroupByRowDeleted()!=null){
 						//boolean result = Utils.evalueJoinAggConditions(stream.getInnerJoinAggGroupByDeleteOldRow(), aggFct.get(j), operation.get(j), value.get(j));
 						//if(result){
+						timestamps.info(vm.getIdentifier()+" - "+"exec");
+
 						String pkName = stream.getUpdatedJoinAggGroupByRowDeleted().getName(0);
 						String pkType = stream.getUpdatedJoinAggGroupByRowDeleted().getType(0);
 						String pkValue = Utils.getColumnValueFromDeltaStream(stream.getUpdatedJoinAggGroupByRowDeleted(), pkName, pkType, "");
@@ -111,11 +113,15 @@ public class ViewManagerGroupByController implements Runnable {
 					if(stream.getUpdatedJoinAggGroupByRow()!=null){
 						boolean result = Utils.evalueJoinAggConditions(stream.getUpdatedJoinAggGroupByRow(), aggFct.get(j), operation.get(j), value.get(j));
 						if(result){
+							timestamps.info(vm.getIdentifier()+" - "+"exec");
+
 							JoinAggGroupByHelper.insertStatement(json, havingTableName.get(j), stream.getUpdatedJoinAggGroupByRow(), vm.getIdentifier());
 						}else{
 							if(!CustomizedRow.rowIsNull(stream.getUpdatedJoinAggGroupByRowOldState())){
 								boolean result_old = Utils.evalueJoinAggConditions(stream.getUpdatedJoinAggGroupByRowOldState(), aggFct.get(j), operation.get(j), value.get(j));
 								if(result_old){
+									timestamps.info(vm.getIdentifier()+" - "+"exec");
+
 									String pkName = stream.getUpdatedJoinAggGroupByRow().getName(0);
 									String pkType = stream.getUpdatedJoinAggGroupByRow().getType(0);
 									String pkValue = Utils.getColumnValueFromDeltaStream(stream.getUpdatedJoinAggGroupByRow(), pkName, pkType, "");
@@ -170,6 +176,8 @@ public class ViewManagerGroupByController implements Runnable {
 					if(stream.getUpdatedJoinAggGroupByRowDeleted()!=null){
 						//boolean result = Utils.evalueJoinAggConditions(stream.getInnerJoinAggGroupByDeleteOldRow(), aggFct.get(j), operation.get(j), value.get(j));
 						//if(result){
+						timestamps.info(vm.getIdentifier()+" - "+"exec");
+
 						String pkName = stream.getUpdatedJoinAggGroupByRowDeleted().getName(0);
 						String pkType = stream.getUpdatedJoinAggGroupByRowDeleted().getType(0);
 						String pkValue = Utils.getColumnValueFromDeltaStream(stream.getUpdatedJoinAggGroupByRowDeleted(), pkName, pkType, "");
@@ -180,11 +188,15 @@ public class ViewManagerGroupByController implements Runnable {
 					if(stream.getUpdatedJoinAggGroupByRow()!=null){
 						boolean result = Utils.evalueJoinAggConditions(stream.getUpdatedJoinAggGroupByRow(), aggFct.get(j), operation.get(j), value.get(j));
 						if(result){
+							timestamps.info(vm.getIdentifier()+" - "+"exec");
+
 							JoinAggGroupByHelper.insertStatement(json, havingTableName.get(j), stream.getUpdatedJoinAggGroupByRow(), vm.getIdentifier());
 						}else{
 							if(!CustomizedRow.rowIsNull(stream.getUpdatedJoinAggGroupByRowOldState())){
 								boolean result_old = Utils.evalueJoinAggConditions(stream.getUpdatedJoinAggGroupByRowOldState(), aggFct.get(j), operation.get(j), value.get(j));
 								if(result_old){
+									timestamps.info(vm.getIdentifier()+" - "+"exec");
+
 									String pkName = stream.getUpdatedJoinAggGroupByRow().getName(0);
 									String pkType = stream.getUpdatedJoinAggGroupByRow().getType(0);
 									String pkValue = Utils.getColumnValueFromDeltaStream(stream.getUpdatedJoinAggGroupByRow(), pkName, pkType, "");

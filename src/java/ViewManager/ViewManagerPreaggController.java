@@ -133,11 +133,13 @@ public class ViewManagerPreaggController implements Runnable{
 					// if matching now & not matching before
 					// if condition matching now & matched before
 					if (eval1) {
+						timestamps.info(vm.getIdentifier()+" - "+"exec");
 						vm.updateHaving(stream.getDeltaUpdatedRow(),
 								json,havingTable, PreagRow);
 						// if not matching now
 					} else if (!eval1) {
 						if(!CustomizedRow.rowIsNull(PreagRowOldState) && eval_old){
+							timestamps.info(vm.getIdentifier()+" - "+"exec");
 							vm.deleteRowHaving((String) json.get("keyspace"),
 									havingTable, PreagRow);
 						}
@@ -147,6 +149,7 @@ public class ViewManagerPreaggController implements Runnable{
 
 				CustomizedRow deletedRow = stream.getUpdatedPreaggRowDeleted();
 				if (deletedRow != null) {
+					timestamps.info(vm.getIdentifier()+" - "+"exec");
 					vm.deleteRowHaving((String) json.get("keyspace"),
 							havingTable, deletedRow);
 				}
@@ -225,11 +228,12 @@ public class ViewManagerPreaggController implements Runnable{
 					}
 
 					if (eval1) {
+						timestamps.info(vm.getIdentifier()+" - "+"exec");
 						vm.updateHaving(stream.getDeltaDeletedRow(),
 								json,havingTable, stream.getUpdatedPreaggRow());
 					} else {
 						if(!CustomizedRow.rowIsNull(crow_old) && eval_old){
-
+							timestamps.info(vm.getIdentifier()+" - "+"exec");
 							vm.deleteRowHaving((String) json.get("keyspace"),
 									havingTable, stream.getUpdatedPreaggRow());
 						}
@@ -239,6 +243,7 @@ public class ViewManagerPreaggController implements Runnable{
 				CustomizedRow DeletedPreagRow = stream.getUpdatedPreaggRowDeleted();
 
 				if (DeletedPreagRow != null) {
+					timestamps.info(vm.getIdentifier()+" - "+"exec");
 					vm.deleteRowHaving((String) json.get("keyspace"),
 							havingTable, DeletedPreagRow);
 				}

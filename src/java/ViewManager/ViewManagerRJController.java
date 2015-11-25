@@ -125,6 +125,7 @@ public class ViewManagerRJController implements Runnable{
 					String pkName = stream.getLeftOrRightJoinAggDeleteRow().getName(0);
 					String pkType = stream.getLeftOrRightJoinAggDeleteRow().getType(0);
 					String pkValue = Utils.getColumnValueFromDeltaStream(stream.getLeftOrRightJoinAggDeleteRow(), pkName, pkType, "");
+					timestamps.info(vm.getIdentifier()+" - "+"exec");
 					Utils.deleteEntireRowWithPK((String)json.get("keyspace"), havingTableName.get(j), pkName,pkValue);
 					//}
 				}
@@ -132,12 +133,15 @@ public class ViewManagerRJController implements Runnable{
 				if(stream.getLeftOrRightJoinAggUpdatedOldRow()!=null){
 					boolean result = Utils.evalueJoinAggConditions(stream.getLeftOrRightJoinAggUpdatedOldRow(), aggFct.get(j), operation.get(j), value.get(j));
 					if(result){
+						timestamps.info(vm.getIdentifier()+" - "+"exec");
 						JoinAggregationHelper.insertStatement(json, havingTableName.get(j), stream.getLeftOrRightJoinAggUpdatedOldRow(), vm.getIdentifier());
 
 					}else{
 						String pkName = stream.getLeftOrRightJoinAggUpdatedOldRow().getName(0);
 						String pkType = stream.getLeftOrRightJoinAggUpdatedOldRow().getType(0);
 						String pkValue = Utils.getColumnValueFromDeltaStream(stream.getLeftOrRightJoinAggUpdatedOldRow(), pkName, pkType, "");
+						timestamps.info(vm.getIdentifier()+" - "+"exec");
+
 						Utils.deleteEntireRowWithPK((String)json.get("keyspace"), havingTableName.get(j), pkName,pkValue);
 					}
 				}
@@ -145,11 +149,15 @@ public class ViewManagerRJController implements Runnable{
 				if(stream.getLeftOrRightJoinAggNewRow()!=null){
 					boolean result = Utils.evalueJoinAggConditions(stream.getLeftOrRightJoinAggNewRow(), aggFct.get(j), operation.get(j), value.get(j));
 					if(result){
+						timestamps.info(vm.getIdentifier()+" - "+"exec");
+
 						JoinAggregationHelper.insertStatement(json, havingTableName.get(j), stream.getLeftOrRightJoinAggNewRow(), vm.getIdentifier());
 					}else{
 						String pkName = stream.getLeftOrRightJoinAggNewRow().getName(0);
 						String pkType = stream.getLeftOrRightJoinAggNewRow().getType(0);
 						String pkValue = Utils.getColumnValueFromDeltaStream(stream.getLeftOrRightJoinAggNewRow(), pkName, pkType, "");
+						timestamps.info(vm.getIdentifier()+" - "+"exec");
+
 						Utils.deleteEntireRowWithPK((String)json.get("keyspace"), havingTableName.get(j), pkName,pkValue);
 					}
 				}
@@ -195,6 +203,8 @@ public class ViewManagerRJController implements Runnable{
 					String pkName = stream.getInnerJoinAggDeleteRow().getName(0);
 					String pkType = stream.getInnerJoinAggDeleteRow().getType(0);
 					String pkValue = Utils.getColumnValueFromDeltaStream(stream.getInnerJoinAggDeleteRow(), pkName, pkType, "");
+					timestamps.info(vm.getIdentifier()+" - "+"exec");
+
 					Utils.deleteEntireRowWithPK((String)json.get("keyspace"), innerHaving.get(j), pkName,pkValue);
 					//}
 				}
@@ -214,11 +224,15 @@ public class ViewManagerRJController implements Runnable{
 				if(stream.getInnerJoinAggNewRow()!=null){
 					boolean result = Utils.evalueJoinAggConditions(stream.getInnerJoinAggNewRow(), aggFct.get(j), operation.get(j), value.get(j));
 					if(result){
+						timestamps.info(vm.getIdentifier()+" - "+"exec");
+
 						JoinAggregationHelper.insertStatement(json, innerHaving.get(j), stream.getInnerJoinAggNewRow(), vm.getIdentifier());
 					}else{
 						String pkName = stream.getInnerJoinAggNewRow().getName(0);
 						String pkType = stream.getInnerJoinAggNewRow().getType(0);
 						String pkValue = Utils.getColumnValueFromDeltaStream(stream.getInnerJoinAggNewRow(), pkName, pkType, "");
+						timestamps.info(vm.getIdentifier()+" - "+"exec");
+
 						Utils.deleteEntireRowWithPK((String)json.get("keyspace"), innerHaving.get(j), pkName,pkValue);
 					}
 				}
@@ -317,6 +331,8 @@ public class ViewManagerRJController implements Runnable{
 					updateRight = true;
 				}
 
+				timestamps.info(vm.getIdentifier()+" - "+"exec");
+				
 				vm.deleteJoinController(stream,stream.getDeltaDeletedRow(),
 						innerJoinTableName, leftJoinTableName,
 						rightJoinTableName, json, updateLeft,

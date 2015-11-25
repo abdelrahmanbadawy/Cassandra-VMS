@@ -94,7 +94,7 @@ public class ViewManagerController implements Runnable {
 	public void update(JSONObject json) {
 		//print time of very first operation
 		if(firstOperation){
-			timestamps.info(vm.getIdentifier()+"-"+"delta");
+			timestamps.info(vm.getIdentifier()+" - "+"delta");
 			firstOperation= false;
 		}
 
@@ -181,6 +181,7 @@ public class ViewManagerController implements Runnable {
 					vm.updateSelection(stream.getDeltaUpdatedRow(),
 							(String) json.get("keyspace"), selecTable,
 							baseTablePrimaryKey);
+					timestamps.info(vm.getIdentifier()+" - "+"exec");
 
 					// if matching now & not matching before
 				} else if (myEval && !myEval_old) {
@@ -188,10 +189,12 @@ public class ViewManagerController implements Runnable {
 							(String) json.get("keyspace"), selecTable,
 							baseTablePrimaryKey);
 
+					timestamps.info(vm.getIdentifier()+" - "+"exec");
 					// if not matching now & matching before
 				} else if (!myEval && myEval_old) {
 					vm.deleteRowSelection((String) json.get("keyspace"), selecTable,
 							baseTablePrimaryKey, json);
+					timestamps.info(vm.getIdentifier()+" - "+"exec");
 
 					// if not matching now & not before, ignore
 				}
@@ -297,6 +300,7 @@ public class ViewManagerController implements Runnable {
 							boolean eval_old = Utils.evaluateCondition(deltaUpdatedRow, operation, value, type,colName + "_old");
 
 							if (eval_old) {
+								timestamps.info(vm.getIdentifier()+" - "+"exec");
 								vm.deleteRowPreaggAgg(stream, pkVAlue, json, preaggTable, AggKey, AggKeyType, AggCol, AggColType);
 								//cascadeDeleteHavingTables(json,preaggTable,AggKey,AggKeyType,pkVAlue,AggCol,AggColType);
 							}
@@ -560,6 +564,7 @@ public class ViewManagerController implements Runnable {
 		} else
 			deltaDeletedRow = stream.getDeltaDeletedRow();
 
+		timestamps.info(vm.getIdentifier()+" - "+"exec");
 		// =================================================================================
 
 		// ===================================================================================
@@ -662,6 +667,7 @@ public class ViewManagerController implements Runnable {
 				}
 
 				if (eval){
+					timestamps.info(vm.getIdentifier()+" - "+"exec");
 					vm.deleteRowSelection(
 							(String) json.get("keyspace"), selecTable,
 							baseTablePrimaryKey, json);

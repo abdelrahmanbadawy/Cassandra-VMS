@@ -1,5 +1,6 @@
 package ViewManager;
 
+import java.util.logging.Logger;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.math.BigInteger;
@@ -22,8 +23,8 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+//import org.slf4j.Logger;
+//import org.slf4j.LoggerFactory;
 
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.Cluster;
@@ -39,8 +40,8 @@ public class ViewManager {
 	Cluster currentCluster = null;
 	private String reverseJoinTableName;
 	private String identifier;
-	
-	
+
+	final static Logger timestamps = Logger.getLogger("BootVMS");  
 
 	public ViewManager(Cluster currenCluster, String identifier) {
 		this.currentCluster = currenCluster;
@@ -105,6 +106,7 @@ public class ViewManager {
 			Utils.insertStatement(keyspace, "delta_" + table,
 					selectStatement_new.toString(), selectStatement_new_values
 					.toString().replace("[", "").replace("]", ""));
+			timestamps.info(this.getIdentifier()+" - "+"exec");
 
 		} else {
 
@@ -172,6 +174,8 @@ public class ViewManager {
 					"delta_" + table,
 					selectStatement_new.toString() + ", " + selectStatement_old,
 					insertQueryAgg.toString());
+
+			timestamps.info(this.getIdentifier()+" - "+"exec");
 
 		}
 
@@ -274,6 +278,9 @@ public class ViewManager {
 				if(PreaggregationHelper.insertStatementToDelete(json, preaggTable,
 						aggKey, aggKeyValue, blob, identifier,crow)){
 
+					timestamps.info(this.getIdentifier()+" - "+"exec");
+					timestamps.info(this.getIdentifier()+" - "+"exec");
+
 					deleteEntireRowWithPK((String) json.get("keyspace"),
 							preaggTable, aggKey, aggKeyValue);
 				}
@@ -352,6 +359,7 @@ public class ViewManager {
 				stream.setUpdatedPreaggRow(constructedRow);
 				String buffer_new = Serialize.serializeStream2(stream);
 
+				timestamps.info(this.getIdentifier()+" - "+"exec");
 				while (!PreaggregationHelper.updateStatement(sum, (int) count,
 						average, min, max, myMap, aggKey, aggKeyValue,
 						preaggTable, json, blob_old, buffer_new, identifier)) {
@@ -386,8 +394,8 @@ public class ViewManager {
 			e.printStackTrace();
 			return false;
 		}
-		
-		
+
+
 
 		return true;
 	}
@@ -529,6 +537,7 @@ public class ViewManager {
 					// 2.c.1 create a map, add pk and list with delta _new
 					// values
 					// 2.c.2 set the agg col values
+					timestamps.info(this.getIdentifier()+" - "+"exec");
 
 					if (PreaggregationHelper
 							.firstInsertion(aggKeyType,stream, myList, aggColValue, json,
@@ -547,6 +556,7 @@ public class ViewManager {
 
 					System.out.println("sameKeyValue "+sameKeyValue);
 
+					timestamps.info(this.getIdentifier()+" - "+"exec");
 					if (PreaggregationHelper.updateAggColValue(aggKeyType,stream, myList,
 							aggColValue, aggColValue_old, theRow1,
 							aggColIndexInList, json, preaggTable, aggKey,
@@ -599,6 +609,8 @@ public class ViewManager {
 					if(PreaggregationHelper.insertStatementToDelete(json,
 							preaggTable, aggKey, aggKeyValue_old, blob, identifier,crow)){
 
+						timestamps.info(this.getIdentifier()+" - "+"exec");
+						timestamps.info(this.getIdentifier()+" - "+"exec");
 						// 4. delete the whole row
 						Utils.deleteEntireRowWithPK((String) json.get("keyspace"),
 								preaggTable, aggKey, aggKeyValue_old);
@@ -624,10 +636,12 @@ public class ViewManager {
 
 					ByteBuffer blob_old = theRow.getBytes("stream");
 
+					timestamps.info(this.getIdentifier()+" - "+"exec");
 					while (!PreaggregationHelper.subtractOldAggColValue(aggKeyType,stream,
 							myList, aggColValue_old, myMap, theRow,
 							aggColIndexInList, json, preaggTable, aggKey,
 							aggKeyValue_old, blob_old, identifier)) {
+
 						PreAggMap = PreaggregationHelper.selectStatement(json,
 								preaggTable, aggKey, aggKeyValue_old);
 						theRow = PreAggMap.one();
@@ -810,6 +824,9 @@ public class ViewManager {
 				else
 					loop = false;
 
+				if(loop==false)
+					timestamps.info(this.getIdentifier()+" - "+"exec");
+
 
 				// check if all maps are empty --> remove the row
 				boolean allNull = true;
@@ -832,6 +849,7 @@ public class ViewManager {
 
 				// all entries are nulls
 				if (allNull) {
+					timestamps.info(this.getIdentifier()+" - "+"exec");
 					Utils.deleteEntireRowWithPK(keyspace, joinTable, joinKeyName,
 							oldJoinKeyValue, counter2+1);
 				}
@@ -881,6 +899,7 @@ public class ViewManager {
 			if(ReverseJoinHelper.insertStatement(joinTable, keyspace, joinKeyName,
 					joinKeyValue, column, myMap, stream, counter)){
 				loop = false;
+				timestamps.info(this.getIdentifier()+" - "+"exec");
 			}
 			else{
 
@@ -982,6 +1001,7 @@ public class ViewManager {
 				// increase/same --> item added/updated
 				if (tempMapImmutable1_new.size() >= tempMapImmutable1_old
 						.size()) {
+					timestamps.info(this.getIdentifier()+" - "+"exec");
 					if (!leftJName.equals("false"))
 						JoinHelper.updateLeftJoinTable(stream, leftJName,
 								newRow, json);
@@ -1011,6 +1031,8 @@ public class ViewManager {
 								.getlJSchema()
 								.getString(temp + ".primaryKey.name");
 
+						timestamps.info(this.getIdentifier()+" - "+"exec");
+
 						Utils.deleteEntireRowWithPK(json.get("keyspace")
 								.toString(), leftJName, joinTablePk, pkValue);
 					}
@@ -1023,6 +1045,8 @@ public class ViewManager {
 				// increase/same --> item added/updated
 				if (tempMapImmutable1_new.size() >= tempMapImmutable1_old
 						.size()) {
+					timestamps.info(this.getIdentifier()+" - "+"exec");
+
 					leftCrossRight(stream, json, innerJName);
 
 					if (tempMapImmutable1_new.size() == 1
@@ -1030,6 +1054,8 @@ public class ViewManager {
 							&& !rightJName.equals("false")) {
 						HashMap<String, String> myMap2 = new HashMap<String, String>();
 						myMap2.putAll(tempMapImmutable2_new);
+						timestamps.info(this.getIdentifier()+" - "+"exec");
+
 						DeleteJoinHelper.deleteFromRightJoinTable(stream,myMap2,
 								rightJName, json, false);
 					}
@@ -1056,6 +1082,8 @@ public class ViewManager {
 						String joinTablePk = VmXmlHandler.getInstance()
 								.getlJSchema()
 								.getString(temp + ".primaryKey.name");
+						
+						timestamps.info(this.getIdentifier()+" - "+"exec");
 
 						Utils.deleteEntireRowWithPK(json.get("keyspace")
 								.toString(), leftJName, joinTablePk, pkValue);
@@ -1065,10 +1093,14 @@ public class ViewManager {
 				}
 				// dercrease
 				else {
+					timestamps.info(this.getIdentifier()+" - "+"exec");
+
 					JoinHelper.removeLeftCrossRight(stream, json, innerJName);
 
 					if (tempMapImmutable1_new.isEmpty()
 							&& !rightJName.equals("false")) {
+						timestamps.info(this.getIdentifier()+" - "+"exec");
+
 						JoinHelper.addAllToRightJoinTable(rightJName,
 								newRow.getMap("list_item2"), json);
 					}
@@ -1093,6 +1125,8 @@ public class ViewManager {
 				// increase/same --> item added/updated
 				if (tempMapImmutable2_new.size() >= tempMapImmutable2_old
 						.size()) {
+					timestamps.info(this.getIdentifier()+" - "+"exec");
+
 					if (!rightJName.equals("false"))
 						JoinHelper.updateRightJoinTable(stream, rightJName,
 								newRow, json);
@@ -1122,6 +1156,8 @@ public class ViewManager {
 								.getrJSchema()
 								.getString(temp + ".primaryKey.name");
 
+						timestamps.info(this.getIdentifier()+" - "+"exec");
+
 						Utils.deleteEntireRowWithPK(json.get("keyspace")
 								.toString(), rightJName, joinTablePk, pkValue);
 					}
@@ -1141,6 +1177,8 @@ public class ViewManager {
 							&& !leftJName.equals("false")) {
 						HashMap<String, String> myMap1 = new HashMap<String, String>();
 						myMap1.putAll(tempMapImmutable1_new);
+						timestamps.info(this.getIdentifier()+" - "+"exec");
+
 						DeleteJoinHelper.deleteFromLeftJoinTable(myMap1,
 								leftJName, json, false);
 					}
@@ -1168,6 +1206,8 @@ public class ViewManager {
 								.getrJSchema()
 								.getString(temp + ".primaryKey.name");
 
+						timestamps.info(this.getIdentifier()+" - "+"exec");
+
 						Utils.deleteEntireRowWithPK(json.get("keyspace")
 								.toString(), rightJName, joinTablePk, pkValue);
 					}
@@ -1175,10 +1215,14 @@ public class ViewManager {
 				}
 				// dercrease
 				else {
+					timestamps.info(this.getIdentifier()+" - "+"exec");
+
 					JoinHelper.removeRightCrossLeft(stream, json, innerJName);
 
 					if (tempMapImmutable2_new.isEmpty()
 							&& !leftJName.equals("false")) {
+						timestamps.info(this.getIdentifier()+" - "+"exec");
+
 						JoinHelper.addAllToLeftJoinTable(leftJName,
 								newRow.getMap("list_item1"), json);
 					}
@@ -1618,6 +1662,9 @@ public class ViewManager {
 				else
 					loop = false;
 
+				if(loop==false)
+					timestamps.info(this.getIdentifier()+" - "+"exec");
+
 
 				// checking if all list items are null --> delete the whole row
 				boolean allNull = true;
@@ -1639,6 +1686,7 @@ public class ViewManager {
 				if (allNull) {
 					Utils.deleteEntireRowWithPK(keyspace, joinTable, joinKeyName,
 							joinKeyValue, counter+1);
+					timestamps.info(this.getIdentifier()+" - "+"exec");
 				}
 
 			}
@@ -1674,6 +1722,7 @@ public class ViewManager {
 		if (updateLeft && myMap2.size() == 0 && !leftJName.equals("false")) {
 			DeleteJoinHelper.deleteElementFromLeftJoinTable(stream,myMap1, leftJName, json,
 					true);
+			timestamps.info(this.getIdentifier()+" - "+"exec");
 			return true;
 		}
 
@@ -1682,6 +1731,8 @@ public class ViewManager {
 		if (updateRight && myMap1.size() == 0 && !rightJName.equals("false")) {
 			DeleteJoinHelper.deleteElementFromRightJoinTable(stream,myMap2, rightJName, json,
 					true);
+			timestamps.info(this.getIdentifier()+" - "+"exec");
+			
 			return true;
 		}
 
@@ -1806,6 +1857,7 @@ public class ViewManager {
 						String avg = aggColValue;
 						String min = aggColValue;
 						String max = aggColValue;
+						timestamps.info(this.getIdentifier()+" - "+"exec");
 
 						JoinAggregationHelper.insertStatement(
 								Float.valueOf(sum), count,
@@ -1823,8 +1875,11 @@ public class ViewManager {
 					else {
 
 						if (!leftJoinAggTable.equals("false")) {
+							timestamps.info(this.getIdentifier()+" - "+"exec");
+
 							if(newRJRow.getMap("list_item1").size() == oldRJRow.getMap(
 									"list_item1").size())
+								
 								while (!JoinAggregationHelper
 										.updateAggColValueOfNewRow(stream,
 												"list_item1", newRJRow, json,
@@ -1859,6 +1914,8 @@ public class ViewManager {
 						String max = aggColValue;
 
 						if (!leftJoinAggTable.equals("false")) {
+							timestamps.info(this.getIdentifier()+" - "+"exec");
+
 							JoinAggregationHelper.insertStatement(
 									Float.valueOf(sum), count,
 									Float.valueOf(avg), Float.valueOf(min),
@@ -1872,6 +1929,8 @@ public class ViewManager {
 						}
 
 						if (!innerJoinAggTable.equals("false")) {
+							timestamps.info(this.getIdentifier()+" - "+"exec");
+
 							JoinAggregationHelper.insertStatement(
 									Float.valueOf(sum), count,
 									Float.valueOf(avg), Float.valueOf(min),
@@ -1889,6 +1948,8 @@ public class ViewManager {
 					else {
 
 						if (!leftJoinAggTable.equals("false")) {
+							timestamps.info(this.getIdentifier()+" - "+"exec");
+
 							if(newRJRow.getMap("list_item1").size() == oldRJRow.getMap(
 									"list_item1").size())
 								while (!JoinAggregationHelper
@@ -1906,6 +1967,8 @@ public class ViewManager {
 						}
 
 						if (!innerJoinAggTable.equals("false")) {
+							timestamps.info(this.getIdentifier()+" - "+"exec");
+
 							if(newRJRow.getMap("list_item1").size() == oldRJRow.getMap(
 									"list_item1").size())
 								while (!JoinAggregationHelper
@@ -1937,6 +2000,8 @@ public class ViewManager {
 					// delete it from left
 
 					if(!leftJoinAggTable.equals("false")) {
+						timestamps.info(this.getIdentifier()+" - "+"exec");
+
 						Utils.deleteEntireRowWithPK(json.get("keyspace")
 								.toString(), leftJoinAggTable, joinKeyName,
 								joinKeyValue);
@@ -1944,6 +2009,8 @@ public class ViewManager {
 
 				} else {
 					if(!leftJoinAggTable.equals("false")) {
+						timestamps.info(this.getIdentifier()+" - "+"exec");
+
 						while (!JoinAggregationHelper
 								.UpdateOldRowBySubtracting(stream,
 										"list_item1",
@@ -1960,7 +2027,9 @@ public class ViewManager {
 			else {
 
 				if (newRJRow.getMap("list_item1").isEmpty()) {
-					// delete it from left
+					// delete it from lefty
+					timestamps.info(this.getIdentifier()+" - "+"exec");
+
 					if(!leftJoinAggTable.equals("false")){
 						Utils.deleteEntireRowWithPK(json.get("keyspace")
 								.toString(), leftJoinAggTable, joinKeyName,
@@ -1974,6 +2043,8 @@ public class ViewManager {
 
 				} else {
 					if(!leftJoinAggTable.equals("false")){
+						timestamps.info(this.getIdentifier()+" - "+"exec");
+
 						while (!JoinAggregationHelper
 								.UpdateOldRowBySubtracting(stream,
 										"list_item1",
@@ -1985,6 +2056,8 @@ public class ViewManager {
 					}
 
 					if(!innerJoinAggTable.equals("false")){
+						timestamps.info(this.getIdentifier()+" - "+"exec");
+
 						while (!JoinAggregationHelper
 								.UpdateOldRowBySubtracting(stream,
 										"list_item1",
@@ -2320,6 +2393,8 @@ public class ViewManager {
 			if (newRJRow.getMap("list_item2").size() == 1
 					&& oldRJRow.getMap("list_item2").size() == 0
 					&& !newRJRow.getMap("list_item1").isEmpty()) {
+				timestamps.info(this.getIdentifier()+" - "+"exec");
+
 
 				if (!innerJoinAggTable.equals("false")
 						&& !leftJoinAggTable.equals("false")) {
@@ -2339,6 +2414,8 @@ public class ViewManager {
 
 			if (newRJRow.getMap("list_item2").size() == 0
 					&& !newRJRow.getMap("list_item1").isEmpty()) {
+
+				timestamps.info(this.getIdentifier()+" - "+"exec");
 
 				if(!innerJoinAggTable.equals("false")){
 					Utils.deleteEntireRowWithPK((String) json.get("keyspace"),
@@ -2387,6 +2464,8 @@ public class ViewManager {
 						"list_item1").size()) {
 
 			if (!leftJoinAggTable.equals("false")) {
+				timestamps.info(this.getIdentifier()+" - "+"exec");
+
 				while (!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(stream,
 						json, leftJoinAggTable, aggKey, aggKeyValue,
 						aggColValue, oldAggColValue, oldAggKeyValue,changeJK, identifier))
@@ -2395,6 +2474,8 @@ public class ViewManager {
 
 			if (newRJRow.getMap("list_item2").size() > 0) {
 				if (!innerJoinAggTable.equals("false")) {
+					timestamps.info(this.getIdentifier()+" - "+"exec");
+
 					while (!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(
 							stream, json, innerJoinAggTable, aggKey,
 							aggKeyValue, aggColValue, oldAggColValue,
@@ -2410,6 +2491,8 @@ public class ViewManager {
 						"list_item1").size()) {
 
 			if (!leftJoinAggTable.equals("false")) {
+				timestamps.info(this.getIdentifier()+" - "+"exec");
+
 				while (!JoinAggGroupByHelper
 						.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
 								leftJoinAggTable, aggKey, oldAggKeyValue,
@@ -2419,6 +2502,8 @@ public class ViewManager {
 
 			if (newRJRow.getMap("list_item2").size() > 0) {
 				if (!innerJoinAggTable.equals("false")) {
+					timestamps.info(this.getIdentifier()+" - "+"exec");
+
 					while (!JoinAggGroupByHelper
 							.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
 									innerJoinAggTable, aggKey, oldAggKeyValue,
@@ -2433,6 +2518,8 @@ public class ViewManager {
 			if (!oldAggKeyValue.equals(aggKeyValue)) {
 
 				if (!leftJoinAggTable.equals("false")) {
+					timestamps.info(this.getIdentifier()+" - "+"exec");
+
 					while (!JoinAggGroupByHelper
 							.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
 									leftJoinAggTable, aggKey, oldAggKeyValue,
@@ -2451,6 +2538,8 @@ public class ViewManager {
 				}
 
 				if (!leftJoinAggTable.equals("false")) {
+					timestamps.info(this.getIdentifier()+" - "+"exec");
+
 					while (!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(
 							stream, json, leftJoinAggTable, aggKey,
 							aggKeyValue, aggColValue, oldAggColValue,
@@ -2459,6 +2548,8 @@ public class ViewManager {
 				}
 
 				if (newRJRow.getMap("list_item2").size() > 0) {
+					timestamps.info(this.getIdentifier()+" - "+"exec");
+
 					if (!innerJoinAggTable.equals("false")) {
 						while (!JoinAggGroupByHelper
 								.JoinAggGroupByChangeAddRow(stream, json,
@@ -2473,6 +2564,8 @@ public class ViewManager {
 			if(!oldAggColValue.equals(aggColValue) && oldAggKeyValue.equals(aggKeyValue)){
 
 				if (!leftJoinAggTable.equals("false")) {
+					timestamps.info(this.getIdentifier()+" - "+"exec");
+
 					while (!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(
 							stream, json, leftJoinAggTable, aggKey,
 							aggKeyValue, aggColValue, oldAggColValue,
@@ -2482,6 +2575,8 @@ public class ViewManager {
 
 				if (newRJRow.getMap("list_item2").size() > 0) {
 					if (!innerJoinAggTable.equals("false")) {
+						timestamps.info(this.getIdentifier()+" - "+"exec");
+
 						while (!JoinAggGroupByHelper
 								.JoinAggGroupByChangeAddRow(stream, json,
 										innerJoinAggTable, aggKey, aggKeyValue,
@@ -2509,6 +2604,8 @@ public class ViewManager {
 		if (newRJRow.getMap("list_item2").isEmpty()
 				&& !newRJRow.getMap("list_item1").isEmpty()) {
 			if (!innerJoinAggTable.equals("false")) {
+				timestamps.info(this.getIdentifier()+" - "+"exec");
+
 				JoinAggGroupByHelper.deleteListItem1FromGroupBy(stream,
 						oldRJRow, index, keyType, key, json, innerJoinAggTable,
 						aggKeyIndex, identifier);
@@ -2518,6 +2615,8 @@ public class ViewManager {
 		if (newRJRow.getMap("list_item2").size() == 1 && oldRJRow.getMap("list_item2").size() == 0
 				&& !newRJRow.getMap("list_item1").isEmpty()) {
 			if (!innerJoinAggTable.equals("false")) {
+				timestamps.info(this.getIdentifier()+" - "+"exec");
+
 				JoinAggGroupByHelper.addListItem1toInnerJoinGroupBy(stream,
 						stream.getDeltaUpdatedRow(), aggColName,
 						leftJoinAggTable, newRJRow, index, keyType, key, json,
@@ -2563,6 +2662,8 @@ public class ViewManager {
 						"list_item2").size()) {
 
 			if (!rightJoinAggTable.equals("false")) {
+				timestamps.info(this.getIdentifier()+" - "+"exec");
+
 				while (!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(stream,
 						json, rightJoinAggTable, aggKey, aggKeyValue,
 						aggColValue, oldAggColValue, oldAggKeyValue,changeJK, identifier))
@@ -2571,6 +2672,8 @@ public class ViewManager {
 
 			if (newRJRow.getMap("list_item1").size() > 0) {
 				if (!innerJoinAggTable.equals("false")) {
+					timestamps.info(this.getIdentifier()+" - "+"exec");
+
 					while (!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(
 							stream, json, innerJoinAggTable, aggKey,
 							aggKeyValue, aggColValue, oldAggColValue,
@@ -2586,6 +2689,8 @@ public class ViewManager {
 						"list_item2").size()) {
 
 			if (!rightJoinAggTable.equals("false")) {
+				timestamps.info(this.getIdentifier()+" - "+"exec");
+
 				while (!JoinAggGroupByHelper
 						.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
 								rightJoinAggTable, aggKey, oldAggKeyValue,
@@ -2595,6 +2700,8 @@ public class ViewManager {
 
 			if (newRJRow.getMap("list_item1").size() > 0) {
 				if (!innerJoinAggTable.equals("false")) {
+					timestamps.info(this.getIdentifier()+" - "+"exec");
+
 					while (!JoinAggGroupByHelper
 							.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
 									innerJoinAggTable, aggKey, oldAggKeyValue,
@@ -2607,6 +2714,7 @@ public class ViewManager {
 				"list_item2").size()) {
 
 			if (!oldAggKeyValue.equals(aggKeyValue)) {
+				timestamps.info(this.getIdentifier()+" - "+"exec");
 
 				if (!rightJoinAggTable.equals("false")) {
 					while (!JoinAggGroupByHelper
@@ -2617,6 +2725,8 @@ public class ViewManager {
 				}
 
 				if (newRJRow.getMap("list_item1").size() > 0) {
+					timestamps.info(this.getIdentifier()+" - "+"exec");
+
 					if (!innerJoinAggTable.equals("false")) {
 						while (!JoinAggGroupByHelper
 								.searchAndDeleteRowFromJoinAggGroupBy(stream,
@@ -2627,6 +2737,8 @@ public class ViewManager {
 				}
 
 				if (!rightJoinAggTable.equals("false")) {
+					timestamps.info(this.getIdentifier()+" - "+"exec");
+
 					while (!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(
 							stream, json, rightJoinAggTable, aggKey,
 							aggKeyValue, aggColValue, oldAggColValue,
@@ -2635,6 +2747,8 @@ public class ViewManager {
 				}
 
 				if (newRJRow.getMap("list_item1").size() > 0) {
+					timestamps.info(this.getIdentifier()+" - "+"exec");
+
 					if (!innerJoinAggTable.equals("false")) {
 						while (!JoinAggGroupByHelper
 								.JoinAggGroupByChangeAddRow(stream, json,
@@ -2649,6 +2763,8 @@ public class ViewManager {
 			if( !oldAggColValue.equals(aggColValue) && oldAggKeyValue.equals(aggKeyValue)){
 
 				if (!rightJoinAggTable.equals("false")) {
+					timestamps.info(this.getIdentifier()+" - "+"exec");
+
 					while (!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(
 							stream, json, rightJoinAggTable, aggKey,
 							aggKeyValue, aggColValue, oldAggColValue,
@@ -2658,6 +2774,8 @@ public class ViewManager {
 
 				if (newRJRow.getMap("list_item1").size() > 0) {
 					if (!innerJoinAggTable.equals("false")) {
+						timestamps.info(this.getIdentifier()+" - "+"exec");
+
 						while (!JoinAggGroupByHelper
 								.JoinAggGroupByChangeAddRow(stream, json,
 										innerJoinAggTable, aggKey, aggKeyValue,
@@ -2686,6 +2804,8 @@ public class ViewManager {
 		if (newRJRow.getMap("list_item1").isEmpty()
 				&& !newRJRow.getMap("list_item2").isEmpty()) {
 			if (!innerJoinAggTable.equals("false")) {
+				timestamps.info(this.getIdentifier()+" - "+"exec");
+
 				JoinAggGroupByHelper.deleteListItem2FromGroupBy(stream,
 						oldRJRow, index, keyType, key, json, innerJoinAggTable,
 						aggKeyIndex, identifier);
@@ -2695,6 +2815,8 @@ public class ViewManager {
 		if (newRJRow.getMap("list_item1").size() == 1 && oldRJRow.getMap("list_item1").size() == 0
 				&& !newRJRow.getMap("list_item2").isEmpty()) {
 			if (!innerJoinAggTable.equals("false")) {
+				timestamps.info(this.getIdentifier()+" - "+"exec");
+
 				JoinAggGroupByHelper.addListItem2toInnerJoinGroupBy(stream,
 						stream.getDeltaUpdatedRow(), aggColName,
 						rightJoinAggTable, newRJRow, index, keyType, key, json,
@@ -2865,6 +2987,8 @@ public class ViewManager {
 								joinKeyValue, rightJoinAggTable, json));
 
 				stream.setLeftOrRightJoinAggDeleteRow(crow);
+				timestamps.info(this.getIdentifier()+" - "+"exec");
+				
 				Utils.deleteEntireRowWithPK(json.get("keyspace").toString(),
 						rightJoinAggTable, joinKeyName, joinKeyValue);
 			}
@@ -2874,6 +2998,8 @@ public class ViewManager {
 								joinKeyValue, innerJoinAggTable, json));
 
 				stream.setInnerJoinAggDeleteRow(crow);
+				timestamps.info(this.getIdentifier()+" - "+"exec");
+				
 				Utils.deleteEntireRowWithPK(json.get("keyspace").toString(),
 						innerJoinAggTable, joinKeyName, joinKeyValue);
 			}
@@ -2894,6 +3020,8 @@ public class ViewManager {
 									joinKeyValue, rightJoinAggTable, json));
 
 					stream.setLeftOrRightJoinAggDeleteRow(crow);
+					timestamps.info(this.getIdentifier()+" - "+"exec");
+					
 					Utils.deleteEntireRowWithPK(
 							json.get("keyspace").toString(), rightJoinAggTable,
 							joinKeyName, joinKeyValue);
@@ -2903,6 +3031,8 @@ public class ViewManager {
 				if (!rightJoinAggTable.equals("false") && aggColValue != null
 						&& !aggColValue.equals("null")
 						&& !aggColValue.equals("'null'")) {
+					timestamps.info(this.getIdentifier()+" - "+"exec");
+					
 					while (!JoinAggregationHelper.UpdateOldRowBySubtracting(
 							stream, "list_item2", stream.getDeltaDeletedRow(),
 							json, rightJoinAggTable, joinKeyName, joinKeyValue,
@@ -2924,6 +3054,8 @@ public class ViewManager {
 							JoinAggregationHelper.selectStatement(joinKeyName,
 									joinKeyValue, rightJoinAggTable, json));
 					stream.setLeftOrRightJoinAggDeleteRow(crow);
+					timestamps.info(this.getIdentifier()+" - "+"exec");
+					
 					Utils.deleteEntireRowWithPK(
 							json.get("keyspace").toString(), rightJoinAggTable,
 							joinKeyName, joinKeyValue);
@@ -2934,6 +3066,8 @@ public class ViewManager {
 							JoinAggregationHelper.selectStatement(joinKeyName,
 									joinKeyValue, innerJoinAggTable, json));
 					stream.setInnerJoinAggDeleteRow(crow);
+					timestamps.info(this.getIdentifier()+" - "+"exec");
+					
 					Utils.deleteEntireRowWithPK(
 							json.get("keyspace").toString(), innerJoinAggTable,
 							joinKeyName, joinKeyValue);
@@ -2949,6 +3083,8 @@ public class ViewManager {
 						&& !aggColValue.equals("'null'")) {
 
 					if (!rightJoinAggTable.equals("false")) {
+						timestamps.info(this.getIdentifier()+" - "+"exec");
+						
 						while (!JoinAggregationHelper
 								.UpdateOldRowBySubtracting(stream,
 										"list_item2",
@@ -2964,6 +3100,8 @@ public class ViewManager {
 					}
 
 					if (!innerJoinAggTable.equals("false")) {
+						timestamps.info(this.getIdentifier()+" - "+"exec");
+						
 						while (!JoinAggregationHelper
 								.UpdateOldRowBySubtracting(stream,
 										"list_item2",
@@ -3000,6 +3138,8 @@ public class ViewManager {
 						JoinAggregationHelper.selectStatement(joinKeyName,
 								joinKeyValue, rightJoinAggTable, json));
 
+				timestamps.info(this.getIdentifier()+" - "+"exec");
+				
 				stream.setLeftOrRightJoinAggDeleteRow(crow);
 				Utils.deleteEntireRowWithPK(json.get("keyspace").toString(),
 						rightJoinAggTable, joinKeyName, joinKeyValue);
@@ -3019,6 +3159,8 @@ public class ViewManager {
 						JoinAggregationHelper.selectStatement(joinKeyName,
 								joinKeyValue, innerJoinAggTable, json));
 				stream.setInnerJoinAggDeleteRow(crow);
+				timestamps.info(this.getIdentifier()+" - "+"exec");
+				
 				Utils.deleteEntireRowWithPK(json.get("keyspace").toString(),
 						innerJoinAggTable, joinKeyName, joinKeyValue);
 			}
@@ -3084,6 +3226,8 @@ public class ViewManager {
 
 			// remove from left and inner
 			if (!leftJoinAggTable.equals("false")) {
+				timestamps.info(this.getIdentifier()+" - "+"exec");
+				
 				while (!JoinAggGroupByHelper
 						.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
 								leftJoinAggTable, aggkey, aggKeyValue,
@@ -3091,6 +3235,8 @@ public class ViewManager {
 					;
 			}
 			if (!innerJoinAggTable.equals("false")) {
+				timestamps.info(this.getIdentifier()+" - "+"exec");
+				
 				while (!JoinAggGroupByHelper
 						.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
 								innerJoinAggTable, aggkey, aggKeyValue,
@@ -3105,6 +3251,8 @@ public class ViewManager {
 				// remove from left: if count == 1, then delete entire row, else
 				// substract & update row
 				if (!innerJoinAggTable.equals("false")) { //
+					timestamps.info(this.getIdentifier()+" - "+"exec");
+					
 					while (!JoinAggGroupByHelper
 							.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
 									innerJoinAggTable, aggkey, aggKeyValue,
@@ -3116,6 +3264,8 @@ public class ViewManager {
 
 			if (newRJRow.getMap("list_item1").size() == 1
 					&& newRJRow.getMap("list_item2").isEmpty()) {
+				timestamps.info(this.getIdentifier()+" - "+"exec");
+				
 				while (!JoinAggGroupByHelper
 						.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
 								leftJoinAggTable, aggkey, aggKeyValue,
@@ -3126,8 +3276,11 @@ public class ViewManager {
 
 			if (!newRJRow.getMap("list_item1").isEmpty() && !(newRJRow.getMap("list_item1").size() == 1)
 					&& newRJRow.getMap("list_item2").isEmpty()) {
+				
+				
 
 				if (!leftJoinAggTable.equals("false")) {
+					timestamps.info(this.getIdentifier()+" - "+"exec");
 					while (!JoinAggGroupByHelper.deleteElementFromRow(stream,
 							json, leftJoinAggTable, aggkey, aggKeyValue,
 							aggColValue, identifier))
@@ -3137,14 +3290,20 @@ public class ViewManager {
 
 			if (!newRJRow.getMap("list_item1").isEmpty()
 					&& !newRJRow.getMap("list_item2").isEmpty()) {
+			
+				
 
 				if (!leftJoinAggTable.equals("false")) {
+					timestamps.info(this.getIdentifier()+" - "+"exec");
+					
 					while (!JoinAggGroupByHelper.deleteElementFromRow(stream,
 							json, leftJoinAggTable, aggkey, aggKeyValue,
 							aggColValue, identifier))
 						;
 				}
 				if (!innerJoinAggTable.equals("false")) {
+					timestamps.info(this.getIdentifier()+" - "+"exec");
+					
 					while (!JoinAggGroupByHelper.deleteElementFromRow(stream,
 							json, innerJoinAggTable, aggkey, aggKeyValue,
 							aggColValue, identifier))
@@ -3173,6 +3332,8 @@ public class ViewManager {
 
 			// remove from left and inner
 			if (!rightJoinAggTable.equals("false")) {
+				timestamps.info(this.getIdentifier()+" - "+"exec");
+
 				while (!JoinAggGroupByHelper
 						.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
 								rightJoinAggTable, aggKey, aggKeyValue,
@@ -3180,6 +3341,8 @@ public class ViewManager {
 					;
 			}
 			if (!innerJoinAggTable.equals("false")) {
+				timestamps.info(this.getIdentifier()+" - "+"exec");
+
 				while (!JoinAggGroupByHelper
 						.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
 								innerJoinAggTable, aggKey, aggKeyValue,
@@ -3194,6 +3357,8 @@ public class ViewManager {
 				// remove from left: if count == 1, then delete entire row, else
 				// substract & update row
 				if (!innerJoinAggTable.equals("false")) { //
+					timestamps.info(this.getIdentifier()+" - "+"exec");
+
 					while (!JoinAggGroupByHelper
 							.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
 									innerJoinAggTable, aggKey, aggKeyValue,
@@ -3206,6 +3371,8 @@ public class ViewManager {
 
 			if (newRJRow.getMap("list_item2").size() == 1
 					&& newRJRow.getMap("list_item1").isEmpty()) {
+				timestamps.info(this.getIdentifier()+" - "+"exec");
+
 				while (!JoinAggGroupByHelper
 						.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
 								rightJoinAggTable, aggKey, aggKeyValue,
@@ -3219,6 +3386,8 @@ public class ViewManager {
 					&& newRJRow.getMap("list_item1").isEmpty()) {
 
 				if (!rightJoinAggTable.equals("false")) {
+					timestamps.info(this.getIdentifier()+" - "+"exec");
+
 					while (!JoinAggGroupByHelper.deleteElementFromRow(stream,
 							json, rightJoinAggTable, aggKey, aggKeyValue,
 							aggColValue, identifier))
@@ -3231,12 +3400,16 @@ public class ViewManager {
 					&& !newRJRow.getMap("list_item1").isEmpty()) {
 
 				if (!rightJoinAggTable.equals("false")) {
+					timestamps.info(this.getIdentifier()+" - "+"exec");
+
 					while (!JoinAggGroupByHelper.deleteElementFromRow(stream,
 							json, rightJoinAggTable, aggKey, aggKeyValue,
 							aggColValue, identifier))
 						;
 				}
 				if (!innerJoinAggTable.equals("false")) {
+					timestamps.info(this.getIdentifier()+" - "+"exec");
+
 					while (!JoinAggGroupByHelper.deleteElementFromRow(stream,
 							json, innerJoinAggTable, aggKey, aggKeyValue,
 							aggColValue, identifier))
@@ -3257,6 +3430,7 @@ public class ViewManager {
 		CustomizedRow newRJRow = stream.getReverseJoinDeleteNewRow();
 		if (newRJRow.getMap("list_item1").isEmpty()
 				&& !newRJRow.getMap("list_item2").isEmpty()) {
+			timestamps.info(this.getIdentifier()+" - "+"exec");
 
 			// remove from inner
 			if (!innerJoinAggTable.equals("false")) {
@@ -3279,9 +3453,10 @@ public class ViewManager {
 
 		if (newRJRow.getMap("list_item2").isEmpty()
 				&& !newRJRow.getMap("list_item1").isEmpty()) {
-
+			timestamps.info(this.getIdentifier()+" - "+"exec");
 			// remove from inner
 			if (!innerJoinAggTable.equals("false")) {
+				
 				JoinAggGroupByHelper.deleteListItem1FromGroupBy(stream,
 						newRJRow, index, aggKeyType, aggKey, json,
 						innerJoinAggTable, aggKeyIndex, identifier);
