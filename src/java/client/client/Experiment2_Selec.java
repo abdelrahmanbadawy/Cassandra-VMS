@@ -93,51 +93,57 @@ public class Experiment2_Selec {
 				e.printStackTrace();
 			}
 		}
+		
+		
+		
+		for(int i=802500;i<900000;i++){
+
+			try {
+				
+				int r = rn.nextInt(800000 - 41000 + 1) + 41000;
+				writer.append(String.valueOf(r));
+				writer.append(',');
+				
+				r = rn.nextInt((courseName.size()-1) - 0 + 1) + 0;
+				writer.append("'"+courseName.get(r)+"'");
+				writer.append(',');
+
+				r = rn.nextInt(4 - 1 + 1) + 1;
+				writer.append(String.valueOf(r));
+				writer.append(',');
+
+
+				r = rn.nextInt((faculty.size()-1) - 0 + 1) + 0;
+				writer.append("'"+faculty.get(r)+"'");
+
+				writer.append('\n');
+
+				//generate whatever data you want
+
+				writer.flush();
+
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	
 
 		//800001-802500 insertions that are passing
 				for(int i=800000;i<802500;i++){
 
 					try {
-						writer.append(String.valueOf(counter));
+						
+				
+						int r = rn.nextInt(40000 - 1 + 1) + 1;
+						writer.append(String.valueOf(r));
 						writer.append(',');
-						counter++;
 
-						int r = rn.nextInt((courseName.size()-1) - 0 + 1) + 0;
+						r = rn.nextInt((courseName.size()-1) - 0 + 1) + 0;
 						writer.append("'"+courseName.get(r)+"'");
 						writer.append(',');
 
 						r = rn.nextInt(1000 - 5 + 1) + 5;
-						writer.append(String.valueOf(r));
-						writer.append(',');
-
-
-						r = rn.nextInt((faculty.size()-1) - 0 + 1) + 0;
-						writer.append("'"+faculty.get(r)+"'");
-
-						writer.append('\n');
-
-						//generate whatever data you want
-
-						writer.flush();
-
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
-
-				for(int i=802500;i<900000;i++){
-
-					try {
-						writer.append(String.valueOf(counter));
-						writer.append(',');
-						counter++;
-
-						int r = rn.nextInt((courseName.size()-1) - 0 + 1) + 0;
-						writer.append("'"+courseName.get(r)+"'");
-						writer.append(',');
-
-						r = rn.nextInt(4 - 1 + 1) + 1;
 						writer.append(String.valueOf(r));
 						writer.append(',');
 
@@ -162,7 +168,27 @@ public class Experiment2_Selec {
 					try {
 						
 
-						int r = rn.nextInt(39000 - 1 + 1) + 1;
+						int r = rn.nextInt(40000 - 1 + 1) + 1;
+						writer.append(String.valueOf(r));
+						
+						writer.append('\n');
+
+						//generate whatever data you want
+
+						writer.flush();
+
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+				
+				for(int i=902500;i<1000000;i++){
+
+					try {
+						
+
+						int r = rn.nextInt(800000 - 41000 + 1) + 41000;
 						writer.append(String.valueOf(r));
 						
 						writer.append('\n');
