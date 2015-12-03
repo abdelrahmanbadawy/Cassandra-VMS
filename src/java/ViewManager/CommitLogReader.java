@@ -290,7 +290,7 @@ public class CommitLogReader{
 		//	System.out.println("CL file has changed");
 
 		String raw;
-		int counter = 0;
+		//int counter = 0;
 
 		long oldPtr = -1;
 		try {
@@ -298,13 +298,13 @@ public class CommitLogReader{
 			if(readPtr==-1){
 				raw = raf.readLine();
 				readPtr = raf.getFilePointer();
-				counter++;
+				//counter++;
 			}else{
 				raf.seek(readPtr);
 				raw = raf.readLine();
 				oldPtr = readPtr;
 				readPtr = raf.getFilePointer();
-				counter++;
+				//counter++;
 			}
 
 			while (raw != null) {
@@ -341,12 +341,13 @@ public class CommitLogReader{
 
 				td.processRequest(json,type,table, readPtr, vm_index, fileName);
 
-				if(counter<10){
+			//	if(counter<10){
 					raw = raf.readLine();
+					oldPtr = readPtr;
 					readPtr = raf.getFilePointer();
-				}else{
-					raw = null;
-				}
+//				}else{
+//					raw = null;
+//				}
 			}
 
 			//check eof because no more updates or move to another file
