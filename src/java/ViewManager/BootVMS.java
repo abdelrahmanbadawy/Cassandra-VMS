@@ -48,7 +48,7 @@ public class BootVMS {
 		// virtual nodes replicas 50
 		ConsistentHash<String> consistentHashing = new ConsistentHash<String>(hf, 50, vm_identifiers);
 		
-		  final CommitLogReader cmr = new CommitLogReader(consistentHashing,  vm_identifiers, false);
+		  final CommitLogReader cmr = new CommitLogReader(consistentHashing,  vm_identifiers, false, args[0]);
 		
 		//recovery mode
 	
