@@ -96,6 +96,7 @@ public class CalculateThroughput {
 			
 		}
 		
+		int x = 0;
 		for(int i=0; i< Integer.parseInt(args[0]); i++){
 			
 			
@@ -105,9 +106,10 @@ public class CalculateThroughput {
 			
 			System.out.println("VM"+(i+1) +" start "+start[i].toString()+" end "+timestamps[i].toString() );
 			System.out.println(operations[i]);
+			x+=operations[i];
 			System.out.println(computeDiff(date1, date2));
 		}
-	
+	System.out.println("Total Operations "+x);
 		
 	}
 	
