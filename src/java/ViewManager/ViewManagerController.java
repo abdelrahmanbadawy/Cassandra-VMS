@@ -206,7 +206,7 @@ public class ViewManagerController implements Runnable {
 		// tables
 		// preagg tables hold all column values, hence they have to be updated
 
-		int position = deltaTableName.indexOf("delta_"
+	/*	int position = deltaTableName.indexOf("delta_"
 				+ (String) json.get("table"));
 
 		if (position != -1) {
@@ -494,7 +494,7 @@ public class ViewManagerController implements Runnable {
 			stream.resetReverseJoinRows();
 
 			cursor += nrOfTables;
-		}
+		}*/
 
 		stream.resetDeltaRows();
 
@@ -572,7 +572,7 @@ public class ViewManagerController implements Runnable {
 		// tables
 		// preagg tables hold all column values, hence they have to be updated
 
-		int position = deltaTableName.indexOf("delta_"
+	/*	int position = deltaTableName.indexOf("delta_"
 				+ (String) json.get("table"));
 
 		if (position != -1) {
@@ -609,7 +609,7 @@ public class ViewManagerController implements Runnable {
 		} else {
 			System.out.println("No Preaggregation table for this delta table "
 					+ " delta_" + (String) json.get("table") + " available");
-		}
+		}*/
 
 		stream.resetPreaggregationRows();
 
@@ -679,7 +679,7 @@ public class ViewManagerController implements Runnable {
 		// ==========================================================================================================================
 		// 4. reverse joins
 
-		if (deleteOperation) {
+	/*	if (deleteOperation) {
 
 			// check for rj mappings after updating delta
 			int cursor = 0;
@@ -722,7 +722,7 @@ public class ViewManagerController implements Runnable {
 			stream.resetDeltaRows();
 		}
 
-		System.out.println("saving execPtr "+ json.get("readPtr").toString());
+		System.out.println("saving execPtr "+ json.get("readPtr").toString());*/
 
 
 		if(json.get("recovery_mode").equals("off") || json.get("recovery_mode").equals("last_recovery_line")){
@@ -780,7 +780,7 @@ public class ViewManagerController implements Runnable {
 			}
 
 			try {
-				Thread.sleep(100);
+				Thread.sleep(50);
 			} catch (InterruptedException e) {
 				// We've been interrupted: no more messages.
 				return;

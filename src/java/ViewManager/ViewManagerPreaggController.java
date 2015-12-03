@@ -269,7 +269,7 @@ public class ViewManagerPreaggController implements Runnable{
 			}
 
 			try {
-				Thread.sleep(100);
+				Thread.sleep(50);
 			} catch (InterruptedException e) {
 				// We've been interrupted: no more messages.
 				return;
