@@ -19,7 +19,7 @@ import com.datastax.driver.core.policies.TokenAwarePolicy;
 public class JoinAggregationHelper {
 
 
-	static Cluster currentCluster = Cluster
+/*	static Cluster currentCluster = Cluster
 			.builder()
 			.addContactPoint(
 					XmlHandler.getInstance().getClusterConfig()
@@ -27,13 +27,13 @@ public class JoinAggregationHelper {
 					.withRetryPolicy(DefaultRetryPolicy.INSTANCE)
 					.withLoadBalancingPolicy(
 							new TokenAwarePolicy(new DCAwareRoundRobinPolicy()))
-							.build();
+							.build();*/
 
-	public static boolean insertStatement(Float sum, int count, Float avg, Float min, Float max, String key, String keyValue,
-			String joinAggTable, JSONObject json, String identifier){
+	public static boolean insertStatement(Session session, Float sum, int count, Float avg, Float min, Float max, String key,
+			String keyValue, String joinAggTable, JSONObject json, String identifier){
 
 		if(json.get("recovery_mode").equals("on") || json.get("recovery_mode").equals("last_recovery_line")){
-			Row rs = selectStatement(key, keyValue, joinAggTable, json);
+			Row rs = selectStatement(session, key, keyValue, joinAggTable, json);
 
 			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier).split(":")[1])
 					>= Long.parseLong(json.get("readPtr").toString().split(":")[1]))
@@ -52,9 +52,9 @@ public class JoinAggregationHelper {
 
 		try {
 
-			Session session = currentCluster.connect();
+			//Session session = currentCluster.connect();
 			session.execute(insertQueryAgg.toString());
-			session.close();
+			//session.close();
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -67,14 +67,14 @@ public class JoinAggregationHelper {
 	}
 
 
-	public static boolean insertStatement(JSONObject json, String joinAggTable,CustomizedRow row, String identifier){
+	public static boolean insertStatement(Session session, JSONObject json,String joinAggTable, CustomizedRow row, String identifier){
 
 		String aggKeyName = row.getName(0);
 		String aggKeyType = row.getType(0);
 		String aggKeyValue = Utils.getColumnValueFromDeltaStream(row, aggKeyName, aggKeyType, "");
 
 		if(json.get("recovery_mode").equals("on") || json.get("recovery_mode").equals("last_recovery_line")){
-			Row rs = selectStatement(aggKeyName, aggKeyValue, joinAggTable, json);
+			Row rs = selectStatement(session, aggKeyName, aggKeyValue, joinAggTable, json);
 
 			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier).split(":")[1])
 					>= Long.parseLong(json.get("readPtr").toString().split(":")[1]))
@@ -102,11 +102,11 @@ public class JoinAggregationHelper {
 
 	}
 
-	public static boolean updateStatement(Float sum, int count, Float avg, Float min, Float max, String key, String keyValue,
-			String joinAggTable, JSONObject json, Float oldSum, String identifier){
+	public static boolean updateStatement(Session session, Float sum, int count, Float avg, Float min, Float max, String key,
+			String keyValue, String joinAggTable, JSONObject json, Float oldSum, String identifier){
 
 		if(json.get("recovery_mode").equals("on") || json.get("recovery_mode").equals("last_recovery_line")){
-			Row rs = selectStatement(key, keyValue, joinAggTable, json);
+			Row rs = selectStatement(session, key, keyValue, joinAggTable, json);
 
 			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier).split(":")[1])
 					>= Long.parseLong(json.get("readPtr").toString().split(":")[1]))
@@ -128,9 +128,9 @@ public class JoinAggregationHelper {
 		Row updated ;
 		try {
 
-			Session session = currentCluster.connect();
+//			Session session = currentCluster.connect();
 			updated = session.execute(updateQuery.toString()).one();
-			session.close();
+	//		session.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
@@ -144,7 +144,7 @@ public class JoinAggregationHelper {
 
 	}
 
-	public static Row selectStatement(String key, String keyValue, String joinAggTable, JSONObject json){
+	public static Row selectStatement(Session session, String key, String keyValue, String joinAggTable, JSONObject json){
 		StringBuilder selectQuery1 = new StringBuilder(
 				"SELECT ").append(key)
 				.append(", sum, ").append("count, ")
@@ -159,10 +159,10 @@ public class JoinAggregationHelper {
 		System.out.println(selectQuery1);
 		Row theRow = null;
 		try {
-			Session session = currentCluster.connect();
+			//Session session = currentCluster.connect();
 			theRow = session.execute(
 					selectQuery1.toString()).one();
-			session.close();
+			//session.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -171,10 +171,10 @@ public class JoinAggregationHelper {
 
 	}
 
-	public static boolean UpdateOldRowBySubtracting(Stream stream,String listItem,CustomizedRow deltaRow, JSONObject json,String joinAggTable, String joinKey,String joinKeyValue, String aggColName, String aggColValue, CustomizedRow newRow, String identifier){
+	public static boolean UpdateOldRowBySubtracting(Session session,Stream stream,String listItem, CustomizedRow deltaRow,JSONObject json, String joinAggTable,String joinKey, String joinKeyValue, String aggColName, String aggColValue, CustomizedRow newRow, String identifier){
 
 
-		Row theRow = selectStatement(joinKey, joinKeyValue, joinAggTable, json);
+		Row theRow = selectStatement(session, joinKey, joinKeyValue, joinAggTable, json);
 
 		if(theRow!=null){
 
@@ -249,15 +249,15 @@ public class JoinAggregationHelper {
 
 			}
 
-			if(!updateStatement(sum, count, avg, min, max, joinKey , joinKeyValue, joinAggTable, json, theRow.getFloat("sum"), identifier))
+			if(!updateStatement(session, sum, count, avg, min, max , joinKey, joinKeyValue, joinAggTable, json, theRow.getFloat("sum"), identifier))
 				return false;
 		}
 
 		if(joinAggTable.contains("inner")){
-			CustomizedRow crow = new CustomizedRow(selectStatement(joinKey, joinKeyValue, joinAggTable, json));
+			CustomizedRow crow = new CustomizedRow(selectStatement(session, joinKey, joinKeyValue, joinAggTable, json));
 			stream.setInnerJoinAggUpdatedOldRow(crow);
 		}else{
-			CustomizedRow crow = new CustomizedRow(selectStatement(joinKey, joinKeyValue, joinAggTable, json));
+			CustomizedRow crow = new CustomizedRow(selectStatement(session, joinKey, joinKeyValue, joinAggTable, json));
 			stream.setLeftOrRightJoinAggUpdatedOldRow(crow);		
 		}
 
@@ -265,9 +265,9 @@ public class JoinAggregationHelper {
 
 	}
 
-	public static boolean updateNewRowByAddingNewElement(Stream stream,String joinKeyName,String joinKeyValue, JSONObject json,String joinAggTable,String aggColValue, String identifier){
+	public static boolean updateNewRowByAddingNewElement(Session session,Stream stream,String joinKeyName,String joinKeyValue, JSONObject json,String joinAggTable,String aggColValue, String identifier){
 
-		Row theRow = selectStatement(joinKeyName, joinKeyValue, joinAggTable, json);
+		Row theRow = selectStatement(session, joinKeyName, joinKeyValue, joinAggTable, json);
 
 		Float sum = theRow.getFloat("sum");
 		sum += Float.parseFloat(aggColValue);
@@ -294,23 +294,23 @@ public class JoinAggregationHelper {
 		}
 
 		
-		if(!updateStatement(sum, count, avg, min, max, joinKeyName , joinKeyValue, joinAggTable, json, theRow.getFloat("sum"), identifier))
+		if(!updateStatement(session, sum, count, avg, min, max , joinKeyName, joinKeyValue, joinAggTable, json, theRow.getFloat("sum"), identifier))
 			return false;
 
 		if(joinAggTable.contains("inner")){
-			CustomizedRow crow = new CustomizedRow(selectStatement(joinKeyName, joinKeyValue, joinAggTable, json));
+			CustomizedRow crow = new CustomizedRow(selectStatement(session, joinKeyName, joinKeyValue, joinAggTable, json));
 			stream.setInnerJoinAggNewRow(crow);
 		}else{
-			CustomizedRow crow = new CustomizedRow(selectStatement(joinKeyName, joinKeyValue, joinAggTable, json));
+			CustomizedRow crow = new CustomizedRow(selectStatement(session, joinKeyName, joinKeyValue, joinAggTable, json));
 			stream.setLeftOrRightJoinAggNewRow(crow);
 		}
 		return true;
 	}
 
-	public static boolean updateAggColValueOfNewRow(Stream stream, String listItem, CustomizedRow newRJRow, JSONObject json, String joinKeyName, String joinKeyValue,String joinAggTable, String aggColName, String aggColValue, String oldAggColValue, CustomizedRow oldRJRow, String identifier){
+	public static boolean updateAggColValueOfNewRow(Session session,Stream stream, String listItem, CustomizedRow newRJRow, JSONObject json, String joinKeyName, String joinKeyValue,String joinAggTable, String aggColName, String aggColValue, String oldAggColValue, CustomizedRow oldRJRow, String identifier){
 
 
-		Row theRow = selectStatement(joinKeyName, joinKeyValue, joinAggTable, json);
+		Row theRow = selectStatement(null, joinKeyName, joinKeyValue, joinAggTable, json);
 
 		Float sum = theRow.getFloat("sum");
 
@@ -415,25 +415,25 @@ public class JoinAggregationHelper {
 
 		}
 
-		if(!updateStatement(sum, count, avg, min, max, joinKeyName, joinKeyValue, joinAggTable, json, theRow.getFloat("sum"), identifier))
+		if(!updateStatement(session, sum, count, avg, min, max, joinKeyName, joinKeyValue, joinAggTable, json, theRow.getFloat("sum"), identifier))
 			return false;
 
 		if(joinAggTable.contains("inner")) {
-			CustomizedRow crow = new CustomizedRow(selectStatement(joinKeyName, joinKeyValue, joinAggTable, json));
+			CustomizedRow crow = new CustomizedRow(selectStatement(session, joinKeyName, joinKeyValue, joinAggTable, json));
 			stream.setInnerJoinAggUpdatedOldRow(crow);
 		}else {
-			CustomizedRow crow = new CustomizedRow(selectStatement(joinKeyName, joinKeyValue, joinAggTable, json));
+			CustomizedRow crow = new CustomizedRow(selectStatement(session, joinKeyName, joinKeyValue, joinAggTable, json));
 			stream.setLeftOrRightJoinAggUpdatedOldRow(crow);
 		}
 		return true;
 
 	}
 
-	public static void moveRowsToInnerJoinAgg(Stream stream,String joinAggTable,String innerJoinAggTable,String joinKeyName,String joinKeyValue,JSONObject json, String identifier){
+	public static void moveRowsToInnerJoinAgg(Session session,Stream stream,String joinAggTable,String innerJoinAggTable,String joinKeyName,String joinKeyValue,JSONObject json, String identifier){
 
 		if (!joinAggTable.equals("false")) {
 
-			Row theRow = selectStatement(joinKeyName, joinKeyValue, joinAggTable, json);
+			Row theRow = selectStatement(session, joinKeyName, joinKeyValue, joinAggTable, json);
 
 			Float sum = theRow.getFloat("sum");
 			int count = theRow.getInt("count");
@@ -441,13 +441,13 @@ public class JoinAggregationHelper {
 			Float min = theRow.getFloat("min");
 			Float max = theRow.getFloat("max");
 
-			insertStatement(sum, count, avg, min, max, joinKeyName, joinKeyValue, innerJoinAggTable, json,  identifier);
-			CustomizedRow crow = new CustomizedRow(selectStatement(joinKeyName, joinKeyValue, innerJoinAggTable, json));
+			insertStatement(session, sum, count, avg, min, max, joinKeyName, joinKeyValue, innerJoinAggTable,  json, identifier);
+			CustomizedRow crow = new CustomizedRow(selectStatement(session, joinKeyName, joinKeyValue, innerJoinAggTable, json));
 			stream.setInnerJoinAggNewRow(crow);
 		}
 	}
 
-	public static void addRowsToInnerJoinAgg(Stream stream,String listItem,CustomizedRow newRJRow,int aggColIndexInList,String innerJoinAggTable,JSONObject json,String joinKey,String joinKeyValue, String identifier){
+	public static void addRowsToInnerJoinAgg(Session session,Stream stream,String listItem,CustomizedRow newRJRow,int aggColIndexInList,String innerJoinAggTable,JSONObject json,String joinKey,String joinKeyValue, String identifier){
 
 		Float sum = 0.0f;
 		Float avg = 0.0f;
@@ -482,8 +482,8 @@ public class JoinAggregationHelper {
 
 		avg = sum/count;
 
-		insertStatement(sum, count, avg, min, max, joinKey, joinKeyValue,innerJoinAggTable,json, identifier);
-		CustomizedRow crow = new CustomizedRow(selectStatement(joinKey, joinKeyValue, innerJoinAggTable, json));
+		insertStatement(session, sum, count, avg, min, max, joinKey,joinKeyValue,innerJoinAggTable, json, identifier);
+		CustomizedRow crow = new CustomizedRow(selectStatement(session, joinKey, joinKeyValue, innerJoinAggTable, json));
 		stream.setInnerJoinAggNewRow(crow);
 	}
 

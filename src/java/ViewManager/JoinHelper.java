@@ -18,7 +18,7 @@ import com.datastax.driver.core.policies.TokenAwarePolicy;
 
 public class JoinHelper {
 
-	static Cluster currentCluster = Cluster
+	/*static Cluster currentCluster = Cluster
 			.builder()
 			.addContactPoint(
 					XmlHandler.getInstance().getClusterConfig()
@@ -26,9 +26,9 @@ public class JoinHelper {
 					.withRetryPolicy(DefaultRetryPolicy.INSTANCE)
 					.withLoadBalancingPolicy(
 							new TokenAwarePolicy(new DCAwareRoundRobinPolicy()))
-							.build();
+							.build();*/
 
-	public static void insertStatementUpdateLeft(JSONObject json,String leftJName,String joinTablePk,String colNames,String tuple,String leftList,String nullValues){
+	public static void insertStatementUpdateLeft(Session session,JSONObject json,String leftJName,String joinTablePk,String colNames,String tuple,String leftList,String nullValues){
 
 		StringBuilder insertQuery = new StringBuilder("INSERT INTO ");
 		insertQuery.append((String) json.get("keyspace")).append(".")
@@ -44,16 +44,16 @@ public class JoinHelper {
 
 		try {
 
-			Session session = currentCluster.connect();
+			//Session session = currentCluster.connect();
 			session.execute(insertQuery.toString());
-			session.close();
+			//session.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 
 		}
 	}
 
-	public static boolean updateLeftJoinTable(Stream stream,String leftJName, CustomizedRow theRow,
+	public static boolean updateLeftJoinTable(Session session,Stream stream,String leftJName, CustomizedRow theRow,
 			JSONObject json) {
 
 		// 3. Read Left Join xml, get leftPkName, leftPkType, get pk of join
@@ -116,7 +116,7 @@ public class JoinHelper {
 			}
 			insertQuery.deleteCharAt(insertQuery.length() - 2);
 
-			JoinHelper.insertStatementUpdateLeft(json, leftJName, joinTablePk, colNames, tuple, leftList, insertQuery.toString());
+			JoinHelper.insertStatementUpdateLeft(session,json, leftJName, joinTablePk, colNames, tuple, leftList, insertQuery.toString());
 
 		}
 
@@ -124,7 +124,7 @@ public class JoinHelper {
 	}
 
 
-	public static boolean removeLeftCrossRight(Stream stream, JSONObject json, String innerJTableName) {
+	public static boolean removeLeftCrossRight(Session session,Stream stream, JSONObject json, String innerJTableName) {
 
 		// 1. get old row updated by reverse join
 		CustomizedRow theRow = stream.getReverseJoinUpadteOldRow();
@@ -198,7 +198,7 @@ public class JoinHelper {
 
 				String tuple = "(" + leftPkValue + "," + rightPkValue + ")";
 
-				Utils.deleteEntireRowWithPK((String) json.get("keyspace"), innerJTableName, joinTablePk, tuple);
+				Utils.deleteEntireRowWithPK(session,(String) json.get("keyspace"), innerJTableName, joinTablePk, tuple);
 
 			}
 		}
@@ -207,7 +207,7 @@ public class JoinHelper {
 	}
 
 
-	public static boolean addAllToRightJoinTable(String rightJName,
+	public static boolean addAllToRightJoinTable(Session session,String rightJName,
 			Map<String, String> myMap2, JSONObject json) {
 
 	
@@ -280,7 +280,7 @@ public class JoinHelper {
 				insertQuery.deleteCharAt(insertQuery.length() - 2);
 				
 
-				JoinHelper.insertStatementUpdateLeft(json, rightJName, joinTablePk, colNames, tuple,insertQuery.toString(),rightList);
+				JoinHelper.insertStatementUpdateLeft(session,json, rightJName, joinTablePk, colNames, tuple,insertQuery.toString(),rightList);
 
 			}
 
@@ -288,7 +288,7 @@ public class JoinHelper {
 		return true;
 	}
 
-	public static boolean updateRightJoinTable(Stream stream,String rightJName, CustomizedRow theRow,
+	public static boolean updateRightJoinTable(Session session,Stream stream,String rightJName, CustomizedRow theRow,
 			JSONObject json) {
 
 		int position = VmXmlHandler.getInstance().getrJSchema()
@@ -357,9 +357,9 @@ public class JoinHelper {
 
 			try {
 
-				Session session = currentCluster.connect();
+				//Session session = currentCluster.connect();
 				session.execute(insertQuery.toString());
-				session.close();
+				//session.close();
 			} catch (Exception e) {
 				e.printStackTrace();
 				return false;
@@ -369,7 +369,7 @@ public class JoinHelper {
 		return true;
 	}
 
-	public static boolean removeRightCrossLeft(Stream stream,JSONObject json, String innerJTableName) {
+	public static boolean removeRightCrossLeft(Session session,Stream stream,JSONObject json, String innerJTableName) {
 
 		// 1. get row updated by reverse join
 		CustomizedRow theRow = stream.getReverseJoinUpadteOldRow();
@@ -456,9 +456,9 @@ public class JoinHelper {
 
 				try {
 
-					Session session = currentCluster.connect();
+					//Session session = currentCluster.connect();
 					session.execute(deleteQuery.toString());
-					session.close();
+					//session.close();
 				} catch (Exception e) {
 					e.printStackTrace();
 					return false;
@@ -469,7 +469,7 @@ public class JoinHelper {
 		return true;
 	}
 	
-	public static boolean addAllToLeftJoinTable(String leftJName,
+	public static boolean addAllToLeftJoinTable(Session session,String leftJName,
 			Map<String, String> myMap1, JSONObject json) {
 
 		int position = VmXmlHandler.getInstance().getlJSchema()
@@ -550,9 +550,9 @@ public class JoinHelper {
 
 				try {
 
-					Session session = currentCluster.connect();
+					//Session session = currentCluster.connect();
 					session.execute(insertQuery.toString());
-					session.close();
+					//session.close();
 				} catch (Exception e) {
 					e.printStackTrace();
 					return false;

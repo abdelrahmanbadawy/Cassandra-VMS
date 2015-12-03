@@ -19,7 +19,7 @@ import com.datastax.driver.core.policies.TokenAwarePolicy;
 
 public class Utils {
 
-	static Cluster currentCluster = Cluster
+	/*static Cluster currentCluster = Cluster
 			.builder()
 			.addContactPoint(
 					XmlHandler.getInstance().getClusterConfig()
@@ -27,10 +27,10 @@ public class Utils {
 					.withRetryPolicy(DefaultRetryPolicy.INSTANCE)
 					.withLoadBalancingPolicy(
 							new TokenAwarePolicy(new DCAwareRoundRobinPolicy()))
-							.build();
+							.build();*/
 
 	
-	public static boolean deleteEntireRowWithPK(String keyspace, String tableName,
+	public static boolean deleteEntireRowWithPK(Session session,String keyspace, String tableName,
 			String pk, String pkValue,int count,float sum) {
 	
 		Row updated;
@@ -45,9 +45,9 @@ public class Utils {
 		System.out.println(deleteQuery.toString());
 		try {
 
-			Session session = currentCluster.connect();
+			//Session session = currentCluster.connect();
 			updated = session.execute(deleteQuery.toString()).one();
-			session.close();
+			//session.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
@@ -62,7 +62,7 @@ public class Utils {
 	
 	
 	//delete row from a table with primary key
-	public static boolean deleteEntireRowWithPK(String keyspace, String tableName,
+	public static boolean deleteEntireRowWithPK(Session session,String keyspace, String tableName,
 			String pk, String pkValue) {
 
 		StringBuilder deleteQuery = new StringBuilder("delete from ");
@@ -73,9 +73,9 @@ public class Utils {
 		System.out.println(deleteQuery.toString());
 		try {
 
-			Session session = currentCluster.connect();
+			//Session session = currentCluster.connect();
 			session.execute(deleteQuery.toString());
-			session.close();
+			//session.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
@@ -84,7 +84,7 @@ public class Utils {
 		return true;
 	}
 	
-	public static boolean deleteEntireRowWithPK(String keyspace, String tableName,
+	public static boolean deleteEntireRowWithPK(Session session,String keyspace, String tableName,
 			String pk, String pkValue, int counter) {
 
 		StringBuilder deleteQuery = new StringBuilder("delete from ");
@@ -95,9 +95,9 @@ public class Utils {
 		System.out.println(deleteQuery.toString());
 		try {
 
-			Session session = currentCluster.connect();
+		//	Session session = currentCluster.connect();
 			session.execute(deleteQuery.toString());
-			session.close();
+		//	session.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
@@ -106,7 +106,7 @@ public class Utils {
 		return true;
 	}
 
-	public static Row selectAllStatement(String keyspace,String table,String pk,String pkValue ){
+	public static Row selectAllStatement(Session session, String keyspace,String table,String pk,String pkValue ){
 
 		StringBuilder selectQuery1 = new StringBuilder("SELECT * ")
 		.append(" FROM ").append(keyspace).append(".")
@@ -118,9 +118,9 @@ public class Utils {
 
 		ResultSet rs = null;
 		try {
-			Session session = currentCluster.connect();
+			//Session session = currentCluster.connect();
 			rs = session.execute(selectQuery1.toString());
-			session.close();
+			//session.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 
@@ -130,7 +130,7 @@ public class Utils {
 	}
 
 
-	public static ResultSet selectStatement(String selectColNames,String keyspace,String table, String pk, String pkValue){
+	public static ResultSet selectStatement(Session session,String selectColNames,String keyspace,String table, String pk, String pkValue){
 
 		StringBuilder selectQuery = new StringBuilder("SELECT ")
 		.append(selectColNames);
@@ -144,9 +144,9 @@ public class Utils {
 		ResultSet result = null;
 
 		try {
-			Session session = currentCluster.connect();
+		//	Session session = currentCluster.connect();
 			result = session.execute(selectQuery.toString());
-			session.close();
+		//	session.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 
@@ -157,7 +157,7 @@ public class Utils {
 
 
 
-	public static void insertStatement(String keyspace,String table, String colNames, String colValues){
+	public static void insertStatement(Session s,String keyspace,String table, String colNames, String colValues){
 
 		StringBuilder insertQueryAgg = new StringBuilder("INSERT INTO ");
 		insertQueryAgg.append(keyspace).append(".")
@@ -168,9 +168,9 @@ public class Utils {
 
 
 		try {
-			Session session = currentCluster.connect();
-			session.execute(insertQueryAgg.toString());
-			session.close();
+			//Session session = currentCluster.connect();
+			s.execute(insertQueryAgg.toString());
+			//session.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -487,7 +487,7 @@ public class Utils {
 		return eval;
 	}
 	
-	public static boolean updateSignature(String rowKey, String keyValue,
+	public static boolean updateSignature(Session session,String rowKey, String keyValue,
 			String table, JSONObject json, String mapKey, String value){
 
 		StringBuilder updateQuery = new StringBuilder("UPDATE ");
@@ -502,9 +502,9 @@ public class Utils {
 		
 		try {
 
-			Session session = currentCluster.connect();
+			//Session session = currentCluster.connect();
 			session.execute(updateQuery.toString()).one();
-			session.close();
+			//session.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
