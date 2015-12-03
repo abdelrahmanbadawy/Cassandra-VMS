@@ -163,8 +163,8 @@ public class ViewManagerPreaggController implements Runnable{
 		System.out.println("saving execPtrPreagg "+ ptr);
 		if(json.get("recovery_mode").equals("off") || json.get("recovery_mode").equals("last_recovery_line")){
 			timestamps.info(vm.getIdentifier()+" - "+"preagg");
-			VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtrPreagg", ptr);
-			VmXmlHandler.getInstance().save(VmXmlHandler.getInstance().getVMProperties().getFile());
+//			VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtrPreagg", ptr);
+//			VmXmlHandler.getInstance().save(VmXmlHandler.getInstance().getVMProperties().getFile());
 		}
 	}
 
@@ -253,8 +253,8 @@ public class ViewManagerPreaggController implements Runnable{
 
 		if(json.get("recovery_mode").equals("off") || json.get("recovery_mode").equals("last_recovery_line")){
 			timestamps.info(vm.getIdentifier()+" - "+"preagg");
-			VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtrPreagg", ptr);
-			VmXmlHandler.getInstance().save(VmXmlHandler.getInstance().getVMProperties().getFile());
+//			VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtrPreagg", ptr);
+//			VmXmlHandler.getInstance().save(VmXmlHandler.getInstance().getVMProperties().getFile());
 		}
 	}
 
@@ -269,7 +269,7 @@ public class ViewManagerPreaggController implements Runnable{
 			}
 
 			try {
-				Thread.sleep(1000);
+				Thread.sleep(100);
 			} catch (InterruptedException e) {
 				// We've been interrupted: no more messages.
 				return;

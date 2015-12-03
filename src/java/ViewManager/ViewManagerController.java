@@ -461,7 +461,7 @@ public class ViewManagerController implements Runnable {
 							// 1. retrieve the row to be deleted from delta
 							// table
 
-							Row selecRow = Utils.selectAllStatement((String)json.get("keyspace"), "delta_" + json.get("table"), baseTablePrimaryKey, pkVAlue);
+							Row selecRow = Utils.selectAllStatement(vm.getSession(),(String)json.get("keyspace"), "delta_" + json.get("table"), baseTablePrimaryKey, pkVAlue);
 
 							// 2. set DeltaDeletedRow variable for streaming
 							//vm.setDeltaDeletedRow(selectionResult.one());
@@ -506,8 +506,8 @@ public class ViewManagerController implements Runnable {
 
 			timestamps.info(vm.getIdentifier()+" - "+"delta");
 
-			VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtr1", json.get("readPtr").toString());
-			VmXmlHandler.getInstance().save(VmXmlHandler.getInstance().getVMProperties().getFile());
+//			VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtr1", json.get("readPtr").toString());
+//			VmXmlHandler.getInstance().save(VmXmlHandler.getInstance().getVMProperties().getFile());
 
 
 		}
@@ -729,8 +729,8 @@ public class ViewManagerController implements Runnable {
 
 			timestamps.info(vm.getIdentifier()+" - "+"delta");
 
-			VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtr1", json.get("readPtr").toString());
-			VmXmlHandler.getInstance().save(VmXmlHandler.getInstance().getVMProperties().getFile());
+//			VmXmlHandler.getInstance().getVMProperties().setProperty("vm("+identifier_index+").execPtr1", json.get("readPtr").toString());
+//			VmXmlHandler.getInstance().save(VmXmlHandler.getInstance().getVMProperties().getFile());
 		}
 
 	}
@@ -774,13 +774,13 @@ public class ViewManagerController implements Runnable {
 
 		while(true){
 
-			if(!td.deltaQueues.get(identifier_index).isEmpty()){
+			while(!td.deltaQueues.get(identifier_index).isEmpty()){
 				JSONObject head = td.deltaQueues.get(identifier_index).remove();
 				decide(head);
 			}
 
 			try {
-				Thread.sleep(1000);
+				Thread.sleep(100);
 			} catch (InterruptedException e) {
 				// We've been interrupted: no more messages.
 				return;
