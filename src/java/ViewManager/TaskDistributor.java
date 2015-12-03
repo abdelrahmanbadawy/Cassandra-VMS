@@ -41,9 +41,9 @@ public class TaskDistributor {
 
 
 
-	public TaskDistributor(ArrayList<String> vm_identifiers){
+	public TaskDistributor(ArrayList<String> vm_identifiers, String ip){
 
-		connectToCluster();
+		connectToCluster(ip);
 
 
 		//initialize the lists
@@ -151,13 +151,11 @@ public class TaskDistributor {
 		}
 	}
 
-	private void connectToCluster() {
+	private void connectToCluster(String ip) {
 
 		setCurrentCluster(Cluster
 				.builder()
-				.addContactPoint(
-						XmlHandler.getInstance().getClusterConfig()
-						.getString("config.host.localhost"))
+				.addContactPoint(ip)
 						.withRetryPolicy(DefaultRetryPolicy.INSTANCE)
 						.withLoadBalancingPolicy(
 								new TokenAwarePolicy(new DCAwareRoundRobinPolicy()))

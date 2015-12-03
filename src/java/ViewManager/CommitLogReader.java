@@ -32,7 +32,7 @@ public class CommitLogReader{
 	ConsistentHash<String> consistentHashing;
 	ArrayList<String> vm_identifiers;
 
-	public CommitLogReader(ConsistentHash<String> ch, ArrayList<String> vm_identifiers, boolean recovery) {
+	public CommitLogReader(ConsistentHash<String> ch, ArrayList<String> vm_identifiers, boolean recovery, String ip) {
 
 		try {
 			
@@ -46,7 +46,7 @@ public class CommitLogReader{
 			}
 		
 			
-			td = new TaskDistributor(vm_identifiers);
+			td = new TaskDistributor(vm_identifiers, ip);
 			this.consistentHashing = ch;
 			this.vm_identifiers = vm_identifiers;
 
@@ -149,6 +149,7 @@ public class CommitLogReader{
 			while(min[0].equals(max[0]) && min[1].equals(max[1])){
 				
 			String raw = raf.readLine();
+			
 			min[1] = raf.getFilePointer()+"";
 
 			if(raw==null){
