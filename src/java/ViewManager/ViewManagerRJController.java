@@ -126,7 +126,7 @@ public class ViewManagerRJController implements Runnable{
 					String pkType = stream.getLeftOrRightJoinAggDeleteRow().getType(0);
 					String pkValue = Utils.getColumnValueFromDeltaStream(stream.getLeftOrRightJoinAggDeleteRow(), pkName, pkType, "");
 					timestamps.info(vm.getIdentifier()+" - "+"exec");
-					Utils.deleteEntireRowWithPK((String)json.get("keyspace"), havingTableName.get(j), pkName,pkValue);
+					Utils.deleteEntireRowWithPK(vm.getSession(),(String)json.get("keyspace"), havingTableName.get(j), pkName,pkValue);
 					//}
 				}
 
@@ -134,7 +134,7 @@ public class ViewManagerRJController implements Runnable{
 					boolean result = Utils.evalueJoinAggConditions(stream.getLeftOrRightJoinAggUpdatedOldRow(), aggFct.get(j), operation.get(j), value.get(j));
 					if(result){
 						timestamps.info(vm.getIdentifier()+" - "+"exec");
-						JoinAggregationHelper.insertStatement(json, havingTableName.get(j), stream.getLeftOrRightJoinAggUpdatedOldRow(), vm.getIdentifier());
+						JoinAggregationHelper.insertStatement(vm.getSession(), json, havingTableName.get(j), stream.getLeftOrRightJoinAggUpdatedOldRow(), vm.getIdentifier());
 
 					}else{
 						String pkName = stream.getLeftOrRightJoinAggUpdatedOldRow().getName(0);
@@ -142,7 +142,7 @@ public class ViewManagerRJController implements Runnable{
 						String pkValue = Utils.getColumnValueFromDeltaStream(stream.getLeftOrRightJoinAggUpdatedOldRow(), pkName, pkType, "");
 						timestamps.info(vm.getIdentifier()+" - "+"exec");
 
-						Utils.deleteEntireRowWithPK((String)json.get("keyspace"), havingTableName.get(j), pkName,pkValue);
+						Utils.deleteEntireRowWithPK(vm.getSession(),(String)json.get("keyspace"), havingTableName.get(j), pkName,pkValue);
 					}
 				}
 
@@ -151,14 +151,14 @@ public class ViewManagerRJController implements Runnable{
 					if(result){
 						timestamps.info(vm.getIdentifier()+" - "+"exec");
 
-						JoinAggregationHelper.insertStatement(json, havingTableName.get(j), stream.getLeftOrRightJoinAggNewRow(), vm.getIdentifier());
+						JoinAggregationHelper.insertStatement(vm.getSession(), json, havingTableName.get(j), stream.getLeftOrRightJoinAggNewRow(), vm.getIdentifier());
 					}else{
 						String pkName = stream.getLeftOrRightJoinAggNewRow().getName(0);
 						String pkType = stream.getLeftOrRightJoinAggNewRow().getType(0);
 						String pkValue = Utils.getColumnValueFromDeltaStream(stream.getLeftOrRightJoinAggNewRow(), pkName, pkType, "");
 						timestamps.info(vm.getIdentifier()+" - "+"exec");
 
-						Utils.deleteEntireRowWithPK((String)json.get("keyspace"), havingTableName.get(j), pkName,pkValue);
+						Utils.deleteEntireRowWithPK(vm.getSession(),(String)json.get("keyspace"), havingTableName.get(j), pkName,pkValue);
 					}
 				}
 			}
@@ -205,19 +205,19 @@ public class ViewManagerRJController implements Runnable{
 					String pkValue = Utils.getColumnValueFromDeltaStream(stream.getInnerJoinAggDeleteRow(), pkName, pkType, "");
 					timestamps.info(vm.getIdentifier()+" - "+"exec");
 
-					Utils.deleteEntireRowWithPK((String)json.get("keyspace"), innerHaving.get(j), pkName,pkValue);
+					Utils.deleteEntireRowWithPK(vm.getSession(),(String)json.get("keyspace"), innerHaving.get(j), pkName,pkValue);
 					//}
 				}
 
 				if(stream.getInnerJoinAggUpdatedOldRow()!=null){
 					boolean result = Utils.evalueJoinAggConditions(stream.getInnerJoinAggUpdatedOldRow(), aggFct.get(j), operation.get(j), value.get(j));
 					if(result){
-						JoinAggregationHelper.insertStatement(json, innerHaving.get(j), stream.getInnerJoinAggUpdatedOldRow(), vm.getIdentifier());
+						JoinAggregationHelper.insertStatement(vm.getSession(), json, innerHaving.get(j), stream.getInnerJoinAggUpdatedOldRow(), vm.getIdentifier());
 					}else{
 						String pkName = stream.getInnerJoinAggUpdatedOldRow().getName(0);
 						String pkType = stream.getInnerJoinAggUpdatedOldRow().getType(0);
 						String pkValue = Utils.getColumnValueFromDeltaStream(stream.getInnerJoinAggUpdatedOldRow(), pkName, pkType, "");
-						Utils.deleteEntireRowWithPK((String)json.get("keyspace"), innerHaving.get(j), pkName,pkValue);
+						Utils.deleteEntireRowWithPK(vm.getSession(),(String)json.get("keyspace"), innerHaving.get(j), pkName,pkValue);
 					}
 				}
 
@@ -226,14 +226,14 @@ public class ViewManagerRJController implements Runnable{
 					if(result){
 						timestamps.info(vm.getIdentifier()+" - "+"exec");
 
-						JoinAggregationHelper.insertStatement(json, innerHaving.get(j), stream.getInnerJoinAggNewRow(), vm.getIdentifier());
+						JoinAggregationHelper.insertStatement(vm.getSession(), json, innerHaving.get(j), stream.getInnerJoinAggNewRow(), vm.getIdentifier());
 					}else{
 						String pkName = stream.getInnerJoinAggNewRow().getName(0);
 						String pkType = stream.getInnerJoinAggNewRow().getType(0);
 						String pkValue = Utils.getColumnValueFromDeltaStream(stream.getInnerJoinAggNewRow(), pkName, pkType, "");
 						timestamps.info(vm.getIdentifier()+" - "+"exec");
 
-						Utils.deleteEntireRowWithPK((String)json.get("keyspace"), innerHaving.get(j), pkName,pkValue);
+						Utils.deleteEntireRowWithPK(vm.getSession(),(String)json.get("keyspace"), innerHaving.get(j), pkName,pkValue);
 					}
 				}
 			}

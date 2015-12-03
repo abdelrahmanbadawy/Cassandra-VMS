@@ -15,7 +15,7 @@ import com.datastax.driver.core.policies.TokenAwarePolicy;
 
 public class ReverseJoinHelper {
 
-	static Cluster currentCluster = Cluster
+/*	static Cluster currentCluster = Cluster
 			.builder()
 			.addContactPoint(
 					XmlHandler.getInstance().getClusterConfig()
@@ -24,8 +24,8 @@ public class ReverseJoinHelper {
 					.withLoadBalancingPolicy(
 							new TokenAwarePolicy(new DCAwareRoundRobinPolicy()))
 							.build();
-
-	public static boolean insertStatement(String joinTable,String keyspace,String joinKeyName,String joinKeyValue, int column,HashMap<String, String> myMap, Stream stream, int counter){
+*/
+	public static boolean insertStatement(Session session,String joinTable,String keyspace,String joinKeyName,String joinKeyValue, int column,HashMap<String, String> myMap, Stream stream, int counter){
 
 		if(counter == -1){
 			StringBuilder insertQuery = new StringBuilder("INSERT INTO ")
@@ -34,11 +34,11 @@ public class ReverseJoinHelper {
 			.append(", stream, counter) VALUES (").append(joinKeyValue).append(", ?, ").append(Serialize.serializeStream2(stream))
 			.append(", ").append((counter+1)).append(") IF NOT EXISTS;");
 
-			Session session = currentCluster.connect();
+			//Session session = currentCluster.connect();
 			PreparedStatement statement = session.prepare(insertQuery.toString());
 			BoundStatement boundStatement = new BoundStatement(statement);
 			Row inserted = session.execute(boundStatement.bind(myMap)).one();
-			session.close();
+			//session.close();
 			System.out.println(insertQuery);
 
 
@@ -63,11 +63,11 @@ public class ReverseJoinHelper {
 			Row updated ;
 			try {
 
-				Session session = currentCluster.connect();
+				//Session session = currentCluster.connect();
 				PreparedStatement statement = session.prepare(updateQuery.toString());
 				BoundStatement boundStatement = new BoundStatement(statement);
 				updated = session.execute(boundStatement.bind(myMap)).one();
-				session.close();
+				//session.close();
 			} catch (Exception e) {
 				e.printStackTrace();
 				return false;

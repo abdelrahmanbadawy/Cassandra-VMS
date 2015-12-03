@@ -40,6 +40,7 @@ public class ViewManager {
 	Cluster currentCluster = null;
 	private String reverseJoinTableName;
 	private String identifier;
+	static Session mySession = null;
 
 	final static Logger timestamps = Logger.getLogger("BootVMS");  
 
@@ -47,6 +48,16 @@ public class ViewManager {
 		this.currentCluster = currenCluster;
 		this.identifier = identifier;
 	}
+	
+	public static void createSession(Cluster cluster){
+		mySession = cluster.connect();
+	}
+	
+	public static Session getSession(){
+		return mySession;
+	}
+	
+	
 
 	public boolean updateDelta(Stream stream, JSONObject json,
 			int indexBaseTableName, String baseTablePrimaryKey) {
@@ -86,7 +97,7 @@ public class ViewManager {
 		// 1. Retrieve from the delta table the _new column values of columns
 		// retrieved from json having the baseTablePrimaryKey
 
-		ResultSet result = Utils.selectStatement(
+		ResultSet result = Utils.selectStatement(getSession(),
 				selectStatement_new.toString(), keyspace, table,
 				baseTablePrimaryKey, data.get(baseTablePrimaryKey).toString());
 
@@ -103,7 +114,7 @@ public class ViewManager {
 			// 3. Execute insertion statement in delta
 			org.apache.commons.lang.StringUtils.join(
 					selectStatement_new_values, ", ");
-			Utils.insertStatement(keyspace, "delta_" + table,
+			Utils.insertStatement(getSession(),keyspace, "delta_" + table,
 					selectStatement_new.toString(), selectStatement_new_values
 					.toString().replace("[", "").replace("]", ""));
 			timestamps.info(this.getIdentifier()+" - "+"exec");
@@ -169,7 +180,7 @@ public class ViewManager {
 			}
 
 			// 4. Execute insertion statement in delta
-			Utils.insertStatement(
+			Utils.insertStatement(getSession(),
 					keyspace,
 					"delta_" + table,
 					selectStatement_new.toString() + ", " + selectStatement_old,
@@ -184,7 +195,7 @@ public class ViewManager {
 		// 5. get the entire row from delta where update has happened
 		// 5.a save the row and send bk to controller
 
-		Row row = Utils.selectAllStatement(keyspace, "delta_" + table,
+		Row row = Utils.selectAllStatement(getSession(),keyspace, "delta_" + table,
 				baseTablePrimaryKey, data.get(baseTablePrimaryKey).toString());
 
 		CustomizedRow crow = new CustomizedRow(row);
@@ -203,7 +214,7 @@ public class ViewManager {
 		Object[] hm = condition.keySet().toArray();
 
 		// 1. retrieve the row to be deleted from delta table
-		Row row = Utils.selectAllStatement((String) json.get("keyspace"),
+		Row row = Utils.selectAllStatement(getSession(),(String) json.get("keyspace"),
 				"delta_" + json.get("table"), hm[0].toString(),
 				condition.get(hm[0]).toString());
 
@@ -212,7 +223,7 @@ public class ViewManager {
 		stream.setDeltaDeletedRow(crow);
 
 		// 3. delete row from delta
-		Utils.deleteEntireRowWithPK((String) json.get("keyspace"), "delta_"
+		Utils.deleteEntireRowWithPK(getSession(),(String) json.get("keyspace"), "delta_"
 				+ json.get("table"), hm[0].toString(), condition.get(hm[0])
 				.toString());
 
@@ -248,7 +259,7 @@ public class ViewManager {
 				.getDeltaDeletedRow(), stream.getDeltaDeletedRow().getName(0)
 				.toString(), stream.getDeltaDeletedRow().getType(0), "");
 
-		Row theRow = PreaggregationHelper.selectStatement(json, preaggTable,
+		Row theRow = PreaggregationHelper.selectStatement(getSession(),json, preaggTable,
 				aggKey, aggKeyValue).one();
 
 
@@ -275,7 +286,7 @@ public class ViewManager {
 				stream.setDeleteOperation(true);
 				String blob = Serialize.serializeStream2(stream);
 
-				if(PreaggregationHelper.insertStatementToDelete(json, preaggTable,
+				if(PreaggregationHelper.insertStatementToDelete(getSession(),json, preaggTable,
 						aggKey, aggKeyValue, blob, identifier,crow)){
 
 					timestamps.info(this.getIdentifier()+" - "+"exec");
@@ -360,10 +371,10 @@ public class ViewManager {
 				String buffer_new = Serialize.serializeStream2(stream);
 
 				timestamps.info(this.getIdentifier()+" - "+"exec");
-				while (!PreaggregationHelper.updateStatement(sum, (int) count,
+				while (!PreaggregationHelper.updateStatement(getSession(),sum, (int) count,
 						average, min, max, myMap, aggKey, aggKeyValue,
 						preaggTable, json, blob_old, buffer_new, identifier)) {
-					Row row = PreaggregationHelper.selectStatement(json,
+					Row row = PreaggregationHelper.selectStatement(getSession(),json,
 							preaggTable, aggKey, aggKeyValue).one();
 					blob_old = row.getBytes("stream");
 				}
@@ -386,9 +397,9 @@ public class ViewManager {
 		System.out.println(deleteQuery.toString());
 		try {
 
-			Session session = currentCluster.connect();
-			session.execute(deleteQuery.toString());
-			session.close();
+			//Session session = currentCluster.connect();
+			getSession().execute(deleteQuery.toString());
+			//session.close();
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -522,7 +533,7 @@ public class ViewManager {
 					stream.setUpdatedPreaggRowDeleted(null);
 				}
 
-				ResultSet rs = PreaggregationHelper.selectStatement(json,
+				ResultSet rs = PreaggregationHelper.selectStatement(getSession(),json,
 						preaggTable, aggKey, aggKeyValue);
 				Row theRow1 = rs.one();
 				HashMap<String, String> myMap = new HashMap<>();
@@ -540,7 +551,7 @@ public class ViewManager {
 					timestamps.info(this.getIdentifier()+" - "+"exec");
 
 					if (PreaggregationHelper
-							.firstInsertion(aggKeyType,stream, myList, aggColValue, json,
+							.firstInsertion(getSession(),aggKeyType,stream, myList, aggColValue, json,
 									preaggTable, aggKey, aggKeyValue, identifier,pk)) {
 						loop = false;
 					} else {
@@ -557,7 +568,7 @@ public class ViewManager {
 					System.out.println("sameKeyValue "+sameKeyValue);
 
 					timestamps.info(this.getIdentifier()+" - "+"exec");
-					if (PreaggregationHelper.updateAggColValue(aggKeyType,stream, myList,
+					if (PreaggregationHelper.updateAggColValue(getSession(),aggKeyType,stream, myList,
 							aggColValue, aggColValue_old, theRow1,
 							aggColIndexInList, json, preaggTable, aggKey,
 							aggKeyValue, blob_old, identifier,pk)) {
@@ -576,7 +587,7 @@ public class ViewManager {
 			// was retrieved above in aggKeyValue_old variable
 
 			// 2. select row with old aggkeyValue from delta stream
-			ResultSet PreAggMap = PreaggregationHelper.selectStatement(json,
+			ResultSet PreAggMap = PreaggregationHelper.selectStatement(getSession(),json,
 					preaggTable, aggKey, aggKeyValue_old);
 
 			Row theRow = PreAggMap.one();
@@ -606,13 +617,13 @@ public class ViewManager {
 					stream.setUpdatedPreaggRowDeleted(crow);
 					stream.setDeleteOperation(true);
 					String blob = Serialize.serializeStream2(stream);
-					if(PreaggregationHelper.insertStatementToDelete(json,
+					if(PreaggregationHelper.insertStatementToDelete(getSession(),json,
 							preaggTable, aggKey, aggKeyValue_old, blob, identifier,crow)){
 
 						timestamps.info(this.getIdentifier()+" - "+"exec");
 						timestamps.info(this.getIdentifier()+" - "+"exec");
 						// 4. delete the whole row
-						Utils.deleteEntireRowWithPK((String) json.get("keyspace"),
+						Utils.deleteEntireRowWithPK(getSession(),(String) json.get("keyspace"),
 								preaggTable, aggKey, aggKeyValue_old);
 
 					}
@@ -637,12 +648,12 @@ public class ViewManager {
 					ByteBuffer blob_old = theRow.getBytes("stream");
 
 					timestamps.info(this.getIdentifier()+" - "+"exec");
-					while (!PreaggregationHelper.subtractOldAggColValue(aggKeyType,stream,
+					while (!PreaggregationHelper.subtractOldAggColValue(getSession(),aggKeyType,stream,
 							myList, aggColValue_old, myMap, theRow,
 							aggColIndexInList, json, preaggTable, aggKey,
 							aggKeyValue_old, blob_old, identifier)) {
 
-						PreAggMap = PreaggregationHelper.selectStatement(json,
+						PreAggMap = PreaggregationHelper.selectStatement(getSession(),json,
 								preaggTable, aggKey, aggKeyValue_old);
 						theRow = PreAggMap.one();
 						blob_old = theRow.getBytes("stream");
@@ -687,7 +698,7 @@ public class ViewManager {
 		String oldJoinKeyValue = Utils.getColumnValueFromDeltaStream(
 				deltaUpdatedRow, joinKeyName, joinKeyType, "_old");
 
-		Row theRow = Utils.selectAllStatement(keyspace, joinTable, joinKeyName,
+		Row theRow = Utils.selectAllStatement(getSession(),keyspace, joinTable, joinKeyName,
 				joinKeyValue);
 
 		ArrayList<String> myList = new ArrayList<String>();
@@ -766,7 +777,7 @@ public class ViewManager {
 			while(loop){
 
 				// The row that contains the old join key value
-				Row row_old_join_value = Utils.selectAllStatement(keyspace,
+				Row row_old_join_value = Utils.selectAllStatement(getSession(),keyspace,
 						joinTable, joinKeyName, oldJoinKeyValue);
 				CustomizedRow crow = new CustomizedRow(row_old_join_value);
 				if(row_old_join_value==null){
@@ -816,7 +827,7 @@ public class ViewManager {
 				stream.setChangeInJoinKey(true);
 
 
-				boolean tempBool = ReverseJoinHelper.insertStatement(joinTable, keyspace, joinKeyName,
+				boolean tempBool = ReverseJoinHelper.insertStatement(getSession(),joinTable, keyspace, joinKeyName,
 						oldJoinKeyValue, column, myMap2, stream, counter2);
 
 				if(!tempBool)
@@ -850,7 +861,7 @@ public class ViewManager {
 				// all entries are nulls
 				if (allNull) {
 					timestamps.info(this.getIdentifier()+" - "+"exec");
-					Utils.deleteEntireRowWithPK(keyspace, joinTable, joinKeyName,
+					Utils.deleteEntireRowWithPK(getSession(),keyspace, joinTable, joinKeyName,
 							oldJoinKeyValue, counter2+1);
 				}
 			}
@@ -896,14 +907,14 @@ public class ViewManager {
 			stream.setReverseJoinUpdateNewRow(newcr);
 
 
-			if(ReverseJoinHelper.insertStatement(joinTable, keyspace, joinKeyName,
+			if(ReverseJoinHelper.insertStatement(getSession(),joinTable, keyspace, joinKeyName,
 					joinKeyValue, column, myMap, stream, counter)){
 				loop = false;
 				timestamps.info(this.getIdentifier()+" - "+"exec");
 			}
 			else{
 
-				theRow = Utils.selectAllStatement(keyspace, joinTable, joinKeyName,
+				theRow = Utils.selectAllStatement(getSession(),keyspace, joinTable, joinKeyName,
 						joinKeyValue);
 
 				myList = new ArrayList<String>();
@@ -1003,7 +1014,7 @@ public class ViewManager {
 						.size()) {
 					timestamps.info(this.getIdentifier()+" - "+"exec");
 					if (!leftJName.equals("false"))
-						JoinHelper.updateLeftJoinTable(stream, leftJName,
+						JoinHelper.updateLeftJoinTable(getSession(),stream, leftJName,
 								newRow, json);
 				}
 				// decrease --> item removed
@@ -1033,7 +1044,7 @@ public class ViewManager {
 
 						timestamps.info(this.getIdentifier()+" - "+"exec");
 
-						Utils.deleteEntireRowWithPK(json.get("keyspace")
+						Utils.deleteEntireRowWithPK(getSession(),json.get("keyspace")
 								.toString(), leftJName, joinTablePk, pkValue);
 					}
 				}
@@ -1056,7 +1067,7 @@ public class ViewManager {
 						myMap2.putAll(tempMapImmutable2_new);
 						timestamps.info(this.getIdentifier()+" - "+"exec");
 
-						DeleteJoinHelper.deleteFromRightJoinTable(stream,myMap2,
+						DeleteJoinHelper.deleteFromRightJoinTable(getSession(),stream,myMap2,
 								rightJName, json, false);
 					}
 
@@ -1085,7 +1096,7 @@ public class ViewManager {
 						
 						timestamps.info(this.getIdentifier()+" - "+"exec");
 
-						Utils.deleteEntireRowWithPK(json.get("keyspace")
+						Utils.deleteEntireRowWithPK(getSession(),json.get("keyspace")
 								.toString(), leftJName, joinTablePk, pkValue);
 					}
 
@@ -1095,13 +1106,13 @@ public class ViewManager {
 				else {
 					timestamps.info(this.getIdentifier()+" - "+"exec");
 
-					JoinHelper.removeLeftCrossRight(stream, json, innerJName);
+					JoinHelper.removeLeftCrossRight(getSession(),stream, json, innerJName);
 
 					if (tempMapImmutable1_new.isEmpty()
 							&& !rightJName.equals("false")) {
 						timestamps.info(this.getIdentifier()+" - "+"exec");
 
-						JoinHelper.addAllToRightJoinTable(rightJName,
+						JoinHelper.addAllToRightJoinTable(getSession(),rightJName,
 								newRow.getMap("list_item2"), json);
 					}
 
@@ -1128,7 +1139,7 @@ public class ViewManager {
 					timestamps.info(this.getIdentifier()+" - "+"exec");
 
 					if (!rightJName.equals("false"))
-						JoinHelper.updateRightJoinTable(stream, rightJName,
+						JoinHelper.updateRightJoinTable(getSession(),stream, rightJName,
 								newRow, json);
 				}
 				// decrease --> item removed
@@ -1158,7 +1169,7 @@ public class ViewManager {
 
 						timestamps.info(this.getIdentifier()+" - "+"exec");
 
-						Utils.deleteEntireRowWithPK(json.get("keyspace")
+						Utils.deleteEntireRowWithPK(getSession(),json.get("keyspace")
 								.toString(), rightJName, joinTablePk, pkValue);
 					}
 				}
@@ -1179,7 +1190,7 @@ public class ViewManager {
 						myMap1.putAll(tempMapImmutable1_new);
 						timestamps.info(this.getIdentifier()+" - "+"exec");
 
-						DeleteJoinHelper.deleteFromLeftJoinTable(myMap1,
+						DeleteJoinHelper.deleteFromLeftJoinTable(getSession(),myMap1,
 								leftJName, json, false);
 					}
 
@@ -1208,7 +1219,7 @@ public class ViewManager {
 
 						timestamps.info(this.getIdentifier()+" - "+"exec");
 
-						Utils.deleteEntireRowWithPK(json.get("keyspace")
+						Utils.deleteEntireRowWithPK(getSession(),json.get("keyspace")
 								.toString(), rightJName, joinTablePk, pkValue);
 					}
 
@@ -1217,13 +1228,13 @@ public class ViewManager {
 				else {
 					timestamps.info(this.getIdentifier()+" - "+"exec");
 
-					JoinHelper.removeRightCrossLeft(stream, json, innerJName);
+					JoinHelper.removeRightCrossLeft(getSession(),stream, json, innerJName);
 
 					if (tempMapImmutable2_new.isEmpty()
 							&& !leftJName.equals("false")) {
 						timestamps.info(this.getIdentifier()+" - "+"exec");
 
-						JoinHelper.addAllToLeftJoinTable(leftJName,
+						JoinHelper.addAllToLeftJoinTable(getSession(),leftJName,
 								newRow.getMap("list_item1"), json);
 					}
 
@@ -1313,7 +1324,7 @@ public class ViewManager {
 		insertion.deleteCharAt(insertion.length() - 2);
 		insertionValues.deleteCharAt(insertionValues.length() - 2);
 
-		Utils.insertStatement(keyspace, selecTable, insertion.toString(),
+		Utils.insertStatement(getSession(),keyspace, selecTable, insertion.toString(),
 				insertionValues.toString());
 
 		return true;
@@ -1326,11 +1337,11 @@ public class ViewManager {
 
 			JSONObject condition = (JSONObject) json.get("condition");
 			Object[] hm = condition.keySet().toArray();
-			Utils.deleteEntireRowWithPK(keyspace, selecTable,
+			Utils.deleteEntireRowWithPK(getSession(),keyspace, selecTable,
 					baseTablePrimaryKey, condition.get(hm[0]).toString());
 		} else {
 			JSONObject data = (JSONObject) json.get("data");
-			Utils.deleteEntireRowWithPK(keyspace, selecTable,
+			Utils.deleteEntireRowWithPK(getSession(),keyspace, selecTable,
 					baseTablePrimaryKey, data.get(baseTablePrimaryKey)
 					.toString());
 		}
@@ -1448,9 +1459,9 @@ public class ViewManager {
 
 				try {
 
-					Session session = currentCluster.connect();
-					session.execute(insertQuery.toString());
-					session.close();
+					//Session session = currentCluster.connect();
+					getSession().execute(insertQuery.toString());
+					//session.close();
 				} catch (Exception e) {
 					e.printStackTrace();
 					return false;
@@ -1562,9 +1573,9 @@ public class ViewManager {
 
 				try {
 
-					Session session = currentCluster.connect();
-					session.execute(insertQuery.toString());
-					session.close();
+					//Session session = currentCluster.connect();
+					getSession().execute(insertQuery.toString());
+					//session.close();
 				} catch (Exception e) {
 					e.printStackTrace();
 					return false;
@@ -1597,7 +1608,7 @@ public class ViewManager {
 		while(loop){
 
 
-			Row theRow = Utils.selectAllStatement(keyspace, joinTable, joinKeyName,
+			Row theRow = Utils.selectAllStatement(getSession(),keyspace, joinTable, joinKeyName,
 					joinKeyValue);
 
 
@@ -1652,7 +1663,7 @@ public class ViewManager {
 
 				stream.setDeleteOperation(true);
 
-				boolean tempBool = ReverseJoinHelper.insertStatement(joinTable, keyspace, joinKeyName,
+				boolean tempBool = ReverseJoinHelper.insertStatement(getSession(),joinTable, keyspace, joinKeyName,
 						joinKeyValue, column, myMap, stream, counter);
 
 				stream.setDeleteOperation(false);
@@ -1684,7 +1695,7 @@ public class ViewManager {
 
 				// all entries are nulls
 				if (allNull) {
-					Utils.deleteEntireRowWithPK(keyspace, joinTable, joinKeyName,
+					Utils.deleteEntireRowWithPK(getSession(),keyspace, joinTable, joinKeyName,
 							joinKeyValue, counter+1);
 					timestamps.info(this.getIdentifier()+" - "+"exec");
 				}
@@ -1720,7 +1731,7 @@ public class ViewManager {
 		// Case 1 : delete from left join table if item_list2 is empty
 		// !leftJName.equals(false) meaning : no left join wanted, only right
 		if (updateLeft && myMap2.size() == 0 && !leftJName.equals("false")) {
-			DeleteJoinHelper.deleteElementFromLeftJoinTable(stream,myMap1, leftJName, json,
+			DeleteJoinHelper.deleteElementFromLeftJoinTable(getSession(),stream,myMap1, leftJName, json,
 					true);
 			timestamps.info(this.getIdentifier()+" - "+"exec");
 			return true;
@@ -1729,7 +1740,7 @@ public class ViewManager {
 		// Case 2: delete from right join table if item_list1 is empty
 		// !rightName.equals(false) meaning : no right join wanted, only left
 		if (updateRight && myMap1.size() == 0 && !rightJName.equals("false")) {
-			DeleteJoinHelper.deleteElementFromRightJoinTable(stream,myMap2, rightJName, json,
+			DeleteJoinHelper.deleteElementFromRightJoinTable(getSession(),stream,myMap2, rightJName, json,
 					true);
 			timestamps.info(this.getIdentifier()+" - "+"exec");
 			
@@ -1742,13 +1753,13 @@ public class ViewManager {
 		// remove cross product from innerjoin
 		if (updateLeft && myMap2.size() > 0) {
 
-			DeleteJoinHelper.removeDeleteLeftCrossRight(stream, json,
+			DeleteJoinHelper.removeDeleteLeftCrossRight(getSession(),stream, json,
 					innerJName, myMap2);
 
 			// delete happened in left and new list_item 1 is empty
 			// add all list_item2 to right join
 			if (newDeletedRow.getMap("list_item1").size() == 0) {
-				JoinHelper.addAllToRightJoinTable(rightJName,
+				JoinHelper.addAllToRightJoinTable(getSession(),rightJName,
 						newDeletedRow.getMap("list_item2"), json);
 			}
 
@@ -1759,13 +1770,13 @@ public class ViewManager {
 		if (updateRight && myMap1.size() > 0) {
 
 			// removeRightCrossLeft(json, innerJName);
-			DeleteJoinHelper.removeDeleteRightCrossLeft(stream, json,
+			DeleteJoinHelper.removeDeleteRightCrossLeft(getSession(),stream, json,
 					innerJName, myMap1);
 
 			// delete happened in right and new list_item 2 is empty
 			// add all list_item1 to left join
 			if (newDeletedRow.getMap("list_item2").size() == 0) {
-				JoinHelper.addAllToLeftJoinTable(leftJName,
+				JoinHelper.addAllToLeftJoinTable(getSession(),leftJName,
 						newDeletedRow.getMap("list_item1"), json);
 			}
 
@@ -1792,7 +1803,7 @@ public class ViewManager {
 		String pkVAlue = Utils.getColumnValueFromDeltaStream(preagRow, pkName,
 				pkType, "");
 
-		PreaggregationHelper.insertStatement(json, havingTable, pkName,
+		PreaggregationHelper.insertStatement(getSession(),json, havingTable, pkName,
 				pkVAlue, myMap, sum, count, min, max, average, identifier);
 
 		return true;
@@ -1807,7 +1818,7 @@ public class ViewManager {
 		String pkVAlue = Utils.getColumnValueFromDeltaStream(preagRow, pkName,
 				pkType, "");
 
-		Utils.deleteEntireRowWithPK(keyspace, havingTable, pkName, pkVAlue);
+		Utils.deleteEntireRowWithPK(getSession(),keyspace, havingTable, pkName, pkVAlue);
 
 		return true;
 	}
@@ -1860,14 +1871,14 @@ public class ViewManager {
 						timestamps.info(this.getIdentifier()+" - "+"exec");
 
 						JoinAggregationHelper.insertStatement(
-								Float.valueOf(sum), count,
-								Float.valueOf(avg), Float.valueOf(min),
-								Float.valueOf(max), joinKeyName,
-								joinKeyValue, leftJoinAggTable, json, identifier);
+								getSession(), Float.valueOf(sum),
+								count, Float.valueOf(avg),
+								Float.valueOf(min), Float.valueOf(max),
+								joinKeyName, joinKeyValue, leftJoinAggTable, json, identifier);
 						CustomizedRow crow = new CustomizedRow(
 								JoinAggregationHelper.selectStatement(
-										joinKeyName, joinKeyValue,
-										leftJoinAggTable, json));
+										getSession(), joinKeyName,
+										joinKeyValue, leftJoinAggTable, json));
 
 						stream.setLeftOrRightJoinAggNewRow(crow);
 					}
@@ -1881,7 +1892,7 @@ public class ViewManager {
 									"list_item1").size())
 								
 								while (!JoinAggregationHelper
-										.updateAggColValueOfNewRow(stream,
+										.updateAggColValueOfNewRow(getSession(),stream,
 												"list_item1", newRJRow, json,
 												joinKeyName, joinKeyValue,
 												leftJoinAggTable, aggColName,
@@ -1889,7 +1900,7 @@ public class ViewManager {
 												oldRJRow, identifier))
 									;
 							else
-								while(!JoinAggregationHelper.updateNewRowByAddingNewElement(stream, joinKeyName, joinKeyValue, json, leftJoinAggTable, aggColValue, identifier));
+								while(!JoinAggregationHelper.updateNewRowByAddingNewElement(getSession(),stream, joinKeyName, joinKeyValue, json, leftJoinAggTable, aggColValue, identifier));
 
 						}
 					}
@@ -1917,14 +1928,14 @@ public class ViewManager {
 							timestamps.info(this.getIdentifier()+" - "+"exec");
 
 							JoinAggregationHelper.insertStatement(
-									Float.valueOf(sum), count,
-									Float.valueOf(avg), Float.valueOf(min),
-									Float.valueOf(max), joinKeyName,
-									joinKeyValue, leftJoinAggTable, json, identifier);
+									getSession(), Float.valueOf(sum),
+									count, Float.valueOf(avg),
+									Float.valueOf(min), Float.valueOf(max),
+									joinKeyName, joinKeyValue, leftJoinAggTable, json, identifier);
 							CustomizedRow crow = new CustomizedRow(
 									JoinAggregationHelper.selectStatement(
-											joinKeyName, joinKeyValue,
-											leftJoinAggTable, json));
+											getSession(), joinKeyName,
+											joinKeyValue, leftJoinAggTable, json));
 							stream.setLeftOrRightJoinAggNewRow(crow);
 						}
 
@@ -1932,14 +1943,14 @@ public class ViewManager {
 							timestamps.info(this.getIdentifier()+" - "+"exec");
 
 							JoinAggregationHelper.insertStatement(
-									Float.valueOf(sum), count,
-									Float.valueOf(avg), Float.valueOf(min),
-									Float.valueOf(max), joinKeyName,
-									joinKeyValue, innerJoinAggTable, json, identifier);
+									getSession(), Float.valueOf(sum),
+									count, Float.valueOf(avg),
+									Float.valueOf(min), Float.valueOf(max),
+									joinKeyName, joinKeyValue, innerJoinAggTable, json, identifier);
 							CustomizedRow crow = new CustomizedRow(
 									JoinAggregationHelper.selectStatement(
-											joinKeyName, joinKeyValue,
-											innerJoinAggTable, json));
+											getSession(), joinKeyName,
+											joinKeyValue, innerJoinAggTable, json));
 							stream.setInnerJoinAggNewRow(crow);
 						}
 
@@ -1953,7 +1964,7 @@ public class ViewManager {
 							if(newRJRow.getMap("list_item1").size() == oldRJRow.getMap(
 									"list_item1").size())
 								while (!JoinAggregationHelper
-										.updateAggColValueOfNewRow(stream,
+										.updateAggColValueOfNewRow(getSession(),stream,
 												"list_item1", newRJRow, json,
 												joinKeyName, joinKeyValue,
 												leftJoinAggTable, aggColName,
@@ -1961,7 +1972,7 @@ public class ViewManager {
 												oldRJRow, identifier))
 									;
 							else
-								while(!JoinAggregationHelper.updateNewRowByAddingNewElement(stream, joinKeyName, joinKeyValue, json, leftJoinAggTable, aggColValue, identifier));
+								while(!JoinAggregationHelper.updateNewRowByAddingNewElement(getSession(),stream, joinKeyName, joinKeyValue, json, leftJoinAggTable, aggColValue, identifier));
 
 
 						}
@@ -1972,7 +1983,7 @@ public class ViewManager {
 							if(newRJRow.getMap("list_item1").size() == oldRJRow.getMap(
 									"list_item1").size())
 								while (!JoinAggregationHelper
-										.updateAggColValueOfNewRow(stream,
+										.updateAggColValueOfNewRow(getSession(),stream,
 												"list_item1", newRJRow, json,
 												joinKeyName, joinKeyValue,
 												innerJoinAggTable, aggColName,
@@ -1981,7 +1992,7 @@ public class ViewManager {
 									;
 
 							else
-								while(!JoinAggregationHelper.updateNewRowByAddingNewElement(stream, joinKeyName, joinKeyValue, json, innerJoinAggTable, aggColValue, identifier));
+								while(!JoinAggregationHelper.updateNewRowByAddingNewElement(getSession(),stream, joinKeyName, joinKeyValue, json, innerJoinAggTable, aggColValue, identifier));
 
 						}
 
@@ -2002,7 +2013,7 @@ public class ViewManager {
 					if(!leftJoinAggTable.equals("false")) {
 						timestamps.info(this.getIdentifier()+" - "+"exec");
 
-						Utils.deleteEntireRowWithPK(json.get("keyspace")
+						Utils.deleteEntireRowWithPK(getSession(),json.get("keyspace")
 								.toString(), leftJoinAggTable, joinKeyName,
 								joinKeyValue);
 					}
@@ -2012,12 +2023,12 @@ public class ViewManager {
 						timestamps.info(this.getIdentifier()+" - "+"exec");
 
 						while (!JoinAggregationHelper
-								.UpdateOldRowBySubtracting(stream,
-										"list_item1",
-										stream.getDeltaUpdatedRow(), json,
-										leftJoinAggTable, joinKeyName,
-										joinKeyValue, aggColName,
-										oldAggColValue, newRJRow, identifier))
+								.UpdateOldRowBySubtracting(getSession(),
+										stream,
+										"list_item1", stream.getDeltaUpdatedRow(),
+										json, leftJoinAggTable,
+										joinKeyName, joinKeyValue,
+										aggColName, oldAggColValue, newRJRow, identifier))
 							;
 					}
 				}
@@ -2031,12 +2042,12 @@ public class ViewManager {
 					timestamps.info(this.getIdentifier()+" - "+"exec");
 
 					if(!leftJoinAggTable.equals("false")){
-						Utils.deleteEntireRowWithPK(json.get("keyspace")
+						Utils.deleteEntireRowWithPK(getSession(),json.get("keyspace")
 								.toString(), leftJoinAggTable, joinKeyName,
 								joinKeyValue);
 					}
 					if(!innerJoinAggTable.equals("false")){
-						Utils.deleteEntireRowWithPK(json.get("keyspace")
+						Utils.deleteEntireRowWithPK(getSession(),json.get("keyspace")
 								.toString(), innerJoinAggTable, joinKeyName,
 								joinKeyValue);
 					}
@@ -2046,12 +2057,12 @@ public class ViewManager {
 						timestamps.info(this.getIdentifier()+" - "+"exec");
 
 						while (!JoinAggregationHelper
-								.UpdateOldRowBySubtracting(stream,
-										"list_item1",
-										stream.getDeltaUpdatedRow(), json,
-										leftJoinAggTable, joinKeyName,
-										joinKeyValue, aggColName,
-										oldAggColValue, newRJRow, identifier))
+								.UpdateOldRowBySubtracting(getSession(),
+										stream,
+										"list_item1", stream.getDeltaUpdatedRow(),
+										json, leftJoinAggTable,
+										joinKeyName, joinKeyValue,
+										aggColName, oldAggColValue, newRJRow, identifier))
 							;
 					}
 
@@ -2059,12 +2070,12 @@ public class ViewManager {
 						timestamps.info(this.getIdentifier()+" - "+"exec");
 
 						while (!JoinAggregationHelper
-								.UpdateOldRowBySubtracting(stream,
-										"list_item1",
-										stream.getDeltaUpdatedRow(), json,
-										innerJoinAggTable, joinKeyName,
-										joinKeyValue, aggColName,
-										oldAggColValue, newRJRow, identifier))
+								.UpdateOldRowBySubtracting(getSession(),
+										stream,
+										"list_item1", stream.getDeltaUpdatedRow(),
+										json, innerJoinAggTable,
+										joinKeyName, joinKeyValue,
+										aggColName, oldAggColValue, newRJRow, identifier))
 							;
 
 					}
@@ -2120,14 +2131,14 @@ public class ViewManager {
 						String max = aggColValue;
 
 						JoinAggregationHelper.insertStatement(
-								Float.valueOf(sum), count,
-								Float.valueOf(avg), Float.valueOf(min),
-								Float.valueOf(max), joinKeyName,
-								joinKeyValue, rightJoinAggTable, json, identifier);
+								getSession(), Float.valueOf(sum),
+								count, Float.valueOf(avg),
+								Float.valueOf(min), Float.valueOf(max),
+								joinKeyName, joinKeyValue, rightJoinAggTable, json, identifier);
 						CustomizedRow crow = new CustomizedRow(
 								JoinAggregationHelper.selectStatement(
-										joinKeyName, joinKeyValue,
-										rightJoinAggTable, json));
+										getSession(), joinKeyName,
+										joinKeyValue, rightJoinAggTable, json));
 
 						stream.setLeftOrRightJoinAggNewRow(crow);
 					}
@@ -2139,7 +2150,7 @@ public class ViewManager {
 							if(newRJRow.getMap("list_item2").size() == oldRJRow.getMap(
 									"list_item2").size())
 								while (!JoinAggregationHelper
-										.updateAggColValueOfNewRow(stream,
+										.updateAggColValueOfNewRow(getSession(),stream,
 												"list_item2", newRJRow, json,
 												joinKeyName, joinKeyValue,
 												rightJoinAggTable, aggColName,
@@ -2147,7 +2158,7 @@ public class ViewManager {
 												oldRJRow, identifier))
 									;
 							else
-								while(!JoinAggregationHelper.updateNewRowByAddingNewElement(stream, joinKeyName, joinKeyValue, json, rightJoinAggTable, aggColValue, identifier));
+								while(!JoinAggregationHelper.updateNewRowByAddingNewElement(getSession(),stream, joinKeyName, joinKeyValue, json, rightJoinAggTable, aggColValue, identifier));
 
 						}
 					}
@@ -2173,27 +2184,27 @@ public class ViewManager {
 
 						if (!rightJoinAggTable.equals("false")) {
 							JoinAggregationHelper.insertStatement(
-									Float.valueOf(sum), count,
-									Float.valueOf(avg), Float.valueOf(min),
-									Float.valueOf(max), joinKeyName,
-									joinKeyValue, rightJoinAggTable, json, identifier);
+									getSession(), Float.valueOf(sum),
+									count, Float.valueOf(avg),
+									Float.valueOf(min), Float.valueOf(max),
+									joinKeyName, joinKeyValue, rightJoinAggTable, json, identifier);
 							CustomizedRow crow = new CustomizedRow(
 									JoinAggregationHelper.selectStatement(
-											joinKeyName, joinKeyValue,
-											rightJoinAggTable, json));
+											getSession(), joinKeyName,
+											joinKeyValue, rightJoinAggTable, json));
 							stream.setLeftOrRightJoinAggNewRow(crow);
 						}
 
 						if (!innerJoinAggTable.equals("false")) {
 							JoinAggregationHelper.insertStatement(
-									Float.valueOf(sum), count,
-									Float.valueOf(avg), Float.valueOf(min),
-									Float.valueOf(max), joinKeyName,
-									joinKeyValue, innerJoinAggTable, json, identifier);
+									getSession(), Float.valueOf(sum),
+									count, Float.valueOf(avg),
+									Float.valueOf(min), Float.valueOf(max),
+									joinKeyName, joinKeyValue, innerJoinAggTable, json, identifier);
 							CustomizedRow crow = new CustomizedRow(
 									JoinAggregationHelper.selectStatement(
-											joinKeyName, joinKeyValue,
-											innerJoinAggTable, json));
+											getSession(), joinKeyName,
+											joinKeyValue, innerJoinAggTable, json));
 							stream.setInnerJoinAggNewRow(crow);
 						}
 
@@ -2205,7 +2216,7 @@ public class ViewManager {
 							if(newRJRow.getMap("list_item2").size() == oldRJRow.getMap(
 									"list_item2").size())
 								while (!JoinAggregationHelper
-										.updateAggColValueOfNewRow(stream,
+										.updateAggColValueOfNewRow(getSession(),stream,
 												"list_item2", newRJRow, json,
 												joinKeyName, joinKeyValue,
 												rightJoinAggTable, aggColName,
@@ -2213,7 +2224,7 @@ public class ViewManager {
 												oldRJRow, identifier))
 									;
 							else
-								while(!JoinAggregationHelper.updateNewRowByAddingNewElement(stream, joinKeyName, joinKeyValue, json, rightJoinAggTable, aggColValue, identifier));
+								while(!JoinAggregationHelper.updateNewRowByAddingNewElement(getSession(),stream, joinKeyName, joinKeyValue, json, rightJoinAggTable, aggColValue, identifier));
 
 
 						}
@@ -2222,7 +2233,7 @@ public class ViewManager {
 							if(newRJRow.getMap("list_item2").size() == oldRJRow.getMap(
 									"list_item2").size())
 								while (!JoinAggregationHelper
-										.updateAggColValueOfNewRow(stream,
+										.updateAggColValueOfNewRow(getSession(),stream,
 												"list_item2", newRJRow, json,
 												joinKeyName, joinKeyValue,
 												innerJoinAggTable, aggColName,
@@ -2231,7 +2242,7 @@ public class ViewManager {
 									;
 
 							else
-								while(!JoinAggregationHelper.updateNewRowByAddingNewElement(stream, joinKeyName, joinKeyValue, json, innerJoinAggTable, aggColValue, identifier));
+								while(!JoinAggregationHelper.updateNewRowByAddingNewElement(getSession(),stream, joinKeyName, joinKeyValue, json, innerJoinAggTable, aggColValue, identifier));
 
 						}
 
@@ -2248,19 +2259,19 @@ public class ViewManager {
 				if (newRJRow.getMap("list_item2").isEmpty()) {
 					// delete it from left
 					if(!rightJoinAggTable.equals("false")){
-						Utils.deleteEntireRowWithPK(json.get("keyspace")
+						Utils.deleteEntireRowWithPK(getSession(),json.get("keyspace")
 								.toString(), rightJoinAggTable, joinKeyName,
 								joinKeyValue);
 					}
 				} else {
 					if(!rightJoinAggTable.equals("false")){
 						while (!JoinAggregationHelper
-								.UpdateOldRowBySubtracting(stream,
-										"list_item2",
-										stream.getDeltaUpdatedRow(), json,
-										rightJoinAggTable, joinKeyName,
-										joinKeyValue, aggColName,
-										oldAggColValue, newRJRow, identifier))
+								.UpdateOldRowBySubtracting(getSession(),
+										stream,
+										"list_item2", stream.getDeltaUpdatedRow(),
+										json, rightJoinAggTable,
+										joinKeyName, joinKeyValue,
+										aggColName, oldAggColValue, newRJRow, identifier))
 							;
 					}
 				}
@@ -2272,13 +2283,13 @@ public class ViewManager {
 				if (newRJRow.getMap("list_item2").isEmpty()) {
 					// delete it from left
 					if(!rightJoinAggTable.equals("false")){
-						Utils.deleteEntireRowWithPK(json.get("keyspace")
+						Utils.deleteEntireRowWithPK(getSession(),json.get("keyspace")
 								.toString(), rightJoinAggTable, joinKeyName,
 								joinKeyValue);
 					}
 
 					if(!innerJoinAggTable.equals("false")){
-						Utils.deleteEntireRowWithPK(json.get("keyspace")
+						Utils.deleteEntireRowWithPK(getSession(),json.get("keyspace")
 								.toString(), innerJoinAggTable, joinKeyName,
 								joinKeyValue);
 					}
@@ -2286,22 +2297,22 @@ public class ViewManager {
 				} else {
 					if(!rightJoinAggTable.equals("false")){
 						while (!JoinAggregationHelper
-								.UpdateOldRowBySubtracting(stream,
-										"list_item2",
-										stream.getDeltaUpdatedRow(), json,
-										rightJoinAggTable, joinKeyName,
-										joinKeyValue, aggColName,
-										oldAggColValue, newRJRow, identifier))
+								.UpdateOldRowBySubtracting(getSession(),
+										stream,
+										"list_item2", stream.getDeltaUpdatedRow(),
+										json, rightJoinAggTable,
+										joinKeyName, joinKeyValue,
+										aggColName, oldAggColValue, newRJRow, identifier))
 							;
 					}
 					if(!innerJoinAggTable.equals("false")){
 						while (!JoinAggregationHelper
-								.UpdateOldRowBySubtracting(stream,
-										"list_item2",
-										stream.getDeltaUpdatedRow(), json,
-										innerJoinAggTable, joinKeyName,
-										joinKeyValue, aggColName,
-										oldAggColValue, newRJRow, identifier))
+								.UpdateOldRowBySubtracting(getSession(),
+										stream,
+										"list_item2", stream.getDeltaUpdatedRow(),
+										json, innerJoinAggTable,
+										joinKeyName, joinKeyValue,
+										aggColName, oldAggColValue, newRJRow, identifier))
 							;
 					}
 				}
@@ -2342,13 +2353,13 @@ public class ViewManager {
 				// otherwise u must loop on new.list_item2
 				if (!innerJoinAggTable.equals("false")
 						&& !rightJoinAggTable.equals("false")) {
-					JoinAggregationHelper.moveRowsToInnerJoinAgg(stream,
+					JoinAggregationHelper.moveRowsToInnerJoinAgg(getSession(),stream,
 							rightJoinAggTable, innerJoinAggTable, joinKeyName,
 							joinKeyValue, json, identifier);
 
 				} else {
 
-					JoinAggregationHelper.addRowsToInnerJoinAgg(stream,
+					JoinAggregationHelper.addRowsToInnerJoinAgg(getSession(),stream,
 							"list_item2", newRJRow, aggColIndexInList,
 							innerJoinAggTable, json, joinKeyName, joinKeyValue, identifier);
 				}
@@ -2361,7 +2372,7 @@ public class ViewManager {
 					&& !newRJRow.getMap("list_item2").isEmpty()) {
 
 				if(!innerJoinAggTable.equals("false")) {
-					Utils.deleteEntireRowWithPK((String) json.get("keyspace"),
+					Utils.deleteEntireRowWithPK(getSession(),(String) json.get("keyspace"),
 							innerJoinAggTable, joinKeyName, joinKeyValue);
 
 				}
@@ -2398,12 +2409,12 @@ public class ViewManager {
 
 				if (!innerJoinAggTable.equals("false")
 						&& !leftJoinAggTable.equals("false")) {
-					JoinAggregationHelper.moveRowsToInnerJoinAgg(stream,
+					JoinAggregationHelper.moveRowsToInnerJoinAgg(getSession(),stream,
 							leftJoinAggTable, innerJoinAggTable, joinKeyName,
 							joinKeyValue, json, identifier);
 
 				} else {
-					JoinAggregationHelper.addRowsToInnerJoinAgg(stream,
+					JoinAggregationHelper.addRowsToInnerJoinAgg(getSession(),stream,
 							"list_item1", newRJRow, aggColIndexInList,
 							innerJoinAggTable, json, joinKeyName, joinKeyValue, identifier);
 				}
@@ -2418,7 +2429,7 @@ public class ViewManager {
 				timestamps.info(this.getIdentifier()+" - "+"exec");
 
 				if(!innerJoinAggTable.equals("false")){
-					Utils.deleteEntireRowWithPK((String) json.get("keyspace"),
+					Utils.deleteEntireRowWithPK(getSession(),(String) json.get("keyspace"),
 							innerJoinAggTable, joinKeyName, joinKeyValue);
 				}
 			}
@@ -2466,7 +2477,7 @@ public class ViewManager {
 			if (!leftJoinAggTable.equals("false")) {
 				timestamps.info(this.getIdentifier()+" - "+"exec");
 
-				while (!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(stream,
+				while (!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(getSession(),stream,
 						json, leftJoinAggTable, aggKey, aggKeyValue,
 						aggColValue, oldAggColValue, oldAggKeyValue,changeJK, identifier))
 					;
@@ -2476,7 +2487,7 @@ public class ViewManager {
 				if (!innerJoinAggTable.equals("false")) {
 					timestamps.info(this.getIdentifier()+" - "+"exec");
 
-					while (!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(
+					while (!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(getSession(),
 							stream, json, innerJoinAggTable, aggKey,
 							aggKeyValue, aggColValue, oldAggColValue,
 							oldAggKeyValue,changeJK, identifier))
@@ -2494,7 +2505,7 @@ public class ViewManager {
 				timestamps.info(this.getIdentifier()+" - "+"exec");
 
 				while (!JoinAggGroupByHelper
-						.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
+						.searchAndDeleteRowFromJoinAggGroupBy(getSession(),stream, json,
 								leftJoinAggTable, aggKey, oldAggKeyValue,
 								oldAggColValue, identifier))
 					;
@@ -2505,7 +2516,7 @@ public class ViewManager {
 					timestamps.info(this.getIdentifier()+" - "+"exec");
 
 					while (!JoinAggGroupByHelper
-							.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
+							.searchAndDeleteRowFromJoinAggGroupBy(getSession(),stream, json,
 									innerJoinAggTable, aggKey, oldAggKeyValue,
 									oldAggColValue, identifier))
 						;
@@ -2521,7 +2532,7 @@ public class ViewManager {
 					timestamps.info(this.getIdentifier()+" - "+"exec");
 
 					while (!JoinAggGroupByHelper
-							.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
+							.searchAndDeleteRowFromJoinAggGroupBy(getSession(),stream, json,
 									leftJoinAggTable, aggKey, oldAggKeyValue,
 									oldAggColValue, identifier))
 						;
@@ -2530,7 +2541,7 @@ public class ViewManager {
 				if (newRJRow.getMap("list_item2").size() > 0) {
 					if (!innerJoinAggTable.equals("false")) {
 						while (!JoinAggGroupByHelper
-								.searchAndDeleteRowFromJoinAggGroupBy(stream,
+								.searchAndDeleteRowFromJoinAggGroupBy(getSession(),stream,
 										json, innerJoinAggTable, aggKey,
 										oldAggKeyValue, oldAggColValue, identifier))
 							;
@@ -2540,7 +2551,7 @@ public class ViewManager {
 				if (!leftJoinAggTable.equals("false")) {
 					timestamps.info(this.getIdentifier()+" - "+"exec");
 
-					while (!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(
+					while (!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(getSession(),
 							stream, json, leftJoinAggTable, aggKey,
 							aggKeyValue, aggColValue, oldAggColValue,
 							oldAggKeyValue,changeJK, identifier))
@@ -2552,7 +2563,7 @@ public class ViewManager {
 
 					if (!innerJoinAggTable.equals("false")) {
 						while (!JoinAggGroupByHelper
-								.JoinAggGroupByChangeAddRow(stream, json,
+								.JoinAggGroupByChangeAddRow(getSession(),stream, json,
 										innerJoinAggTable, aggKey, aggKeyValue,
 										aggColValue, oldAggColValue,
 										oldAggKeyValue,changeJK, identifier))
@@ -2566,7 +2577,7 @@ public class ViewManager {
 				if (!leftJoinAggTable.equals("false")) {
 					timestamps.info(this.getIdentifier()+" - "+"exec");
 
-					while (!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(
+					while (!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(getSession(),
 							stream, json, leftJoinAggTable, aggKey,
 							aggKeyValue, aggColValue, oldAggColValue,
 							oldAggKeyValue,changeJK, identifier))
@@ -2578,7 +2589,7 @@ public class ViewManager {
 						timestamps.info(this.getIdentifier()+" - "+"exec");
 
 						while (!JoinAggGroupByHelper
-								.JoinAggGroupByChangeAddRow(stream, json,
+								.JoinAggGroupByChangeAddRow(getSession(),stream, json,
 										innerJoinAggTable, aggKey, aggKeyValue,
 										aggColValue, oldAggColValue,
 										oldAggKeyValue,changeJK, identifier))
@@ -2606,7 +2617,7 @@ public class ViewManager {
 			if (!innerJoinAggTable.equals("false")) {
 				timestamps.info(this.getIdentifier()+" - "+"exec");
 
-				JoinAggGroupByHelper.deleteListItem1FromGroupBy(stream,
+				JoinAggGroupByHelper.deleteListItem1FromGroupBy(getSession(),stream,
 						oldRJRow, index, keyType, key, json, innerJoinAggTable,
 						aggKeyIndex, identifier);
 			}
@@ -2617,7 +2628,7 @@ public class ViewManager {
 			if (!innerJoinAggTable.equals("false")) {
 				timestamps.info(this.getIdentifier()+" - "+"exec");
 
-				JoinAggGroupByHelper.addListItem1toInnerJoinGroupBy(stream,
+				JoinAggGroupByHelper.addListItem1toInnerJoinGroupBy(getSession(),stream,
 						stream.getDeltaUpdatedRow(), aggColName,
 						leftJoinAggTable, newRJRow, index, keyType, key, json,
 						innerJoinAggTable, aggKeyIndex, identifier);
@@ -2664,7 +2675,7 @@ public class ViewManager {
 			if (!rightJoinAggTable.equals("false")) {
 				timestamps.info(this.getIdentifier()+" - "+"exec");
 
-				while (!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(stream,
+				while (!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(getSession(),stream,
 						json, rightJoinAggTable, aggKey, aggKeyValue,
 						aggColValue, oldAggColValue, oldAggKeyValue,changeJK, identifier))
 					;
@@ -2674,7 +2685,7 @@ public class ViewManager {
 				if (!innerJoinAggTable.equals("false")) {
 					timestamps.info(this.getIdentifier()+" - "+"exec");
 
-					while (!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(
+					while (!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(getSession(),
 							stream, json, innerJoinAggTable, aggKey,
 							aggKeyValue, aggColValue, oldAggColValue,
 							oldAggKeyValue,changeJK, identifier))
@@ -2692,7 +2703,7 @@ public class ViewManager {
 				timestamps.info(this.getIdentifier()+" - "+"exec");
 
 				while (!JoinAggGroupByHelper
-						.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
+						.searchAndDeleteRowFromJoinAggGroupBy(getSession(),stream, json,
 								rightJoinAggTable, aggKey, oldAggKeyValue,
 								oldAggColValue, identifier))
 					;
@@ -2703,7 +2714,7 @@ public class ViewManager {
 					timestamps.info(this.getIdentifier()+" - "+"exec");
 
 					while (!JoinAggGroupByHelper
-							.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
+							.searchAndDeleteRowFromJoinAggGroupBy(getSession(),stream, json,
 									innerJoinAggTable, aggKey, oldAggKeyValue,
 									oldAggColValue, identifier))
 						;
@@ -2718,7 +2729,7 @@ public class ViewManager {
 
 				if (!rightJoinAggTable.equals("false")) {
 					while (!JoinAggGroupByHelper
-							.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
+							.searchAndDeleteRowFromJoinAggGroupBy(getSession(),stream, json,
 									rightJoinAggTable, aggKey, oldAggKeyValue,
 									oldAggColValue, identifier))
 						;
@@ -2729,7 +2740,7 @@ public class ViewManager {
 
 					if (!innerJoinAggTable.equals("false")) {
 						while (!JoinAggGroupByHelper
-								.searchAndDeleteRowFromJoinAggGroupBy(stream,
+								.searchAndDeleteRowFromJoinAggGroupBy(getSession(),stream,
 										json, innerJoinAggTable, aggKey,
 										oldAggKeyValue, oldAggColValue, identifier))
 							;
@@ -2739,7 +2750,7 @@ public class ViewManager {
 				if (!rightJoinAggTable.equals("false")) {
 					timestamps.info(this.getIdentifier()+" - "+"exec");
 
-					while (!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(
+					while (!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(getSession(),
 							stream, json, rightJoinAggTable, aggKey,
 							aggKeyValue, aggColValue, oldAggColValue,
 							oldAggKeyValue,changeJK, identifier))
@@ -2751,7 +2762,7 @@ public class ViewManager {
 
 					if (!innerJoinAggTable.equals("false")) {
 						while (!JoinAggGroupByHelper
-								.JoinAggGroupByChangeAddRow(stream, json,
+								.JoinAggGroupByChangeAddRow(getSession(),stream, json,
 										innerJoinAggTable, aggKey, aggKeyValue,
 										aggColValue, oldAggColValue,
 										oldAggKeyValue,changeJK, identifier))
@@ -2765,7 +2776,7 @@ public class ViewManager {
 				if (!rightJoinAggTable.equals("false")) {
 					timestamps.info(this.getIdentifier()+" - "+"exec");
 
-					while (!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(
+					while (!JoinAggGroupByHelper.JoinAggGroupByChangeAddRow(getSession(),
 							stream, json, rightJoinAggTable, aggKey,
 							aggKeyValue, aggColValue, oldAggColValue,
 							oldAggKeyValue,changeJK, identifier))
@@ -2777,7 +2788,7 @@ public class ViewManager {
 						timestamps.info(this.getIdentifier()+" - "+"exec");
 
 						while (!JoinAggGroupByHelper
-								.JoinAggGroupByChangeAddRow(stream, json,
+								.JoinAggGroupByChangeAddRow(getSession(),stream, json,
 										innerJoinAggTable, aggKey, aggKeyValue,
 										aggColValue, oldAggColValue,
 										oldAggKeyValue,changeJK, identifier))
@@ -2806,7 +2817,7 @@ public class ViewManager {
 			if (!innerJoinAggTable.equals("false")) {
 				timestamps.info(this.getIdentifier()+" - "+"exec");
 
-				JoinAggGroupByHelper.deleteListItem2FromGroupBy(stream,
+				JoinAggGroupByHelper.deleteListItem2FromGroupBy(getSession(),stream,
 						oldRJRow, index, keyType, key, json, innerJoinAggTable,
 						aggKeyIndex, identifier);
 			}
@@ -2817,7 +2828,7 @@ public class ViewManager {
 			if (!innerJoinAggTable.equals("false")) {
 				timestamps.info(this.getIdentifier()+" - "+"exec");
 
-				JoinAggGroupByHelper.addListItem2toInnerJoinGroupBy(stream,
+				JoinAggGroupByHelper.addListItem2toInnerJoinGroupBy(getSession(),stream,
 						stream.getDeltaUpdatedRow(), aggColName,
 						rightJoinAggTable, newRJRow, index, keyType, key, json,
 						innerJoinAggTable, aggKeyIndex, identifier);
@@ -2844,20 +2855,20 @@ public class ViewManager {
 			if (!leftJoinAggTable.equals("false")) {
 
 				CustomizedRow crow = new CustomizedRow(
-						JoinAggregationHelper.selectStatement(joinKeyName,
-								joinKeyValue, leftJoinAggTable, json));
+						JoinAggregationHelper.selectStatement(getSession(),
+								joinKeyName, joinKeyValue, leftJoinAggTable, json));
 
 				stream.setLeftOrRightJoinAggDeleteRow(crow);
-				Utils.deleteEntireRowWithPK(json.get("keyspace").toString(),
+				Utils.deleteEntireRowWithPK(getSession(),json.get("keyspace").toString(),
 						leftJoinAggTable, joinKeyName, joinKeyValue);
 			}
 			if (!innerJoinAggTable.equals("false")) {
 				CustomizedRow crow = new CustomizedRow(
-						JoinAggregationHelper.selectStatement(joinKeyName,
-								joinKeyValue, innerJoinAggTable, json));
+						JoinAggregationHelper.selectStatement(getSession(),
+								joinKeyName, joinKeyValue, innerJoinAggTable, json));
 
 				stream.setInnerJoinAggDeleteRow(crow);
-				Utils.deleteEntireRowWithPK(json.get("keyspace").toString(),
+				Utils.deleteEntireRowWithPK(getSession(),json.get("keyspace").toString(),
 						innerJoinAggTable, joinKeyName, joinKeyValue);
 			}
 			return true;
@@ -2874,10 +2885,10 @@ public class ViewManager {
 				// remove from left
 				if (!leftJoinAggTable.equals("false")) {
 					CustomizedRow crow = new CustomizedRow(
-							JoinAggregationHelper.selectStatement(joinKeyName,
-									joinKeyValue, leftJoinAggTable, json));
+							JoinAggregationHelper.selectStatement(getSession(),
+									joinKeyName, joinKeyValue, leftJoinAggTable, json));
 					stream.setLeftOrRightJoinAggDeleteRow(crow);
-					Utils.deleteEntireRowWithPK(
+					Utils.deleteEntireRowWithPK(getSession(),
 							json.get("keyspace").toString(), leftJoinAggTable,
 							joinKeyName, joinKeyValue);
 				}
@@ -2887,9 +2898,9 @@ public class ViewManager {
 						&& !aggColValue.equals("null")
 						&& !aggColValue.equals("'null'")) {
 					while (!JoinAggregationHelper.UpdateOldRowBySubtracting(
-							stream, "list_item1", stream.getDeltaDeletedRow(),
-							json, leftJoinAggTable, joinKeyName, joinKeyValue,
-							aggColName, aggColValue, newRJRow, identifier))
+							null, stream, "list_item1",
+							stream.getDeltaDeletedRow(), json, leftJoinAggTable, joinKeyName,
+							joinKeyValue, aggColName, aggColValue, newRJRow, identifier))
 						;
 					// JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item1",
 					// stream.getDeltaDeletedRow(), json, leftJoinAggTable,
@@ -2905,11 +2916,11 @@ public class ViewManager {
 				if (!leftJoinAggTable.equals("false")) {
 
 					CustomizedRow crow = new CustomizedRow(
-							JoinAggregationHelper.selectStatement(joinKeyName,
-									joinKeyValue, leftJoinAggTable, json));
+							JoinAggregationHelper.selectStatement(getSession(),
+									joinKeyName, joinKeyValue, leftJoinAggTable, json));
 
 					stream.setLeftOrRightJoinAggDeleteRow(crow);
-					Utils.deleteEntireRowWithPK(
+					Utils.deleteEntireRowWithPK(getSession(),
 							json.get("keyspace").toString(), leftJoinAggTable,
 							joinKeyName, joinKeyValue);
 				}
@@ -2917,11 +2928,11 @@ public class ViewManager {
 				if (!innerJoinAggTable.equals("false")) {
 
 					CustomizedRow crow = new CustomizedRow(
-							JoinAggregationHelper.selectStatement(joinKeyName,
-									joinKeyValue, innerJoinAggTable, json));
+							JoinAggregationHelper.selectStatement(getSession(),
+									joinKeyName, joinKeyValue, innerJoinAggTable, json));
 
 					stream.setInnerJoinAggDeleteRow(crow);
-					Utils.deleteEntireRowWithPK(
+					Utils.deleteEntireRowWithPK(getSession(),
 							json.get("keyspace").toString(), innerJoinAggTable,
 							joinKeyName, joinKeyValue);
 				}
@@ -2935,12 +2946,12 @@ public class ViewManager {
 
 					if (!leftJoinAggTable.equals("false")) {
 						while (!JoinAggregationHelper
-								.UpdateOldRowBySubtracting(stream,
-										"list_item1",
-										stream.getDeltaDeletedRow(), json,
-										leftJoinAggTable, joinKeyName,
-										joinKeyValue, aggColName, aggColValue,
-										newRJRow, identifier))
+								.UpdateOldRowBySubtracting(null,
+										stream,
+										"list_item1", stream.getDeltaDeletedRow(),
+										json, leftJoinAggTable,
+										joinKeyName, joinKeyValue, aggColName,
+										aggColValue, newRJRow, identifier))
 							;
 						// JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item1",
 						// stream.getDeltaDeletedRow(), json, leftJoinAggTable,
@@ -2950,12 +2961,12 @@ public class ViewManager {
 
 					if (!innerJoinAggTable.equals("false")) {
 						while (!JoinAggregationHelper
-								.UpdateOldRowBySubtracting(stream,
-										"list_item1",
-										stream.getDeltaDeletedRow(), json,
-										innerJoinAggTable, joinKeyName,
-										joinKeyValue, aggColName, aggColValue,
-										newRJRow, identifier))
+								.UpdateOldRowBySubtracting(null,
+										stream,
+										"list_item1", stream.getDeltaDeletedRow(),
+										json, innerJoinAggTable,
+										joinKeyName, joinKeyValue, aggColName,
+										aggColValue, newRJRow, identifier))
 							;
 						// JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item1",
 						// stream.getDeltaDeletedRow(), json, innerJoinAggTable,
@@ -2983,24 +2994,24 @@ public class ViewManager {
 		if (stream.getReverseJoinDeleteNewRow() == null) {
 			if (!rightJoinAggTable.equals("false")) {
 				CustomizedRow crow = new CustomizedRow(
-						JoinAggregationHelper.selectStatement(joinKeyName,
-								joinKeyValue, rightJoinAggTable, json));
+						JoinAggregationHelper.selectStatement(getSession(),
+								joinKeyName, joinKeyValue, rightJoinAggTable, json));
 
 				stream.setLeftOrRightJoinAggDeleteRow(crow);
 				timestamps.info(this.getIdentifier()+" - "+"exec");
 				
-				Utils.deleteEntireRowWithPK(json.get("keyspace").toString(),
+				Utils.deleteEntireRowWithPK(getSession(),json.get("keyspace").toString(),
 						rightJoinAggTable, joinKeyName, joinKeyValue);
 			}
 			if (!innerJoinAggTable.equals("false")) {
 				CustomizedRow crow = new CustomizedRow(
-						JoinAggregationHelper.selectStatement(joinKeyName,
-								joinKeyValue, innerJoinAggTable, json));
+						JoinAggregationHelper.selectStatement(getSession(),
+								joinKeyName, joinKeyValue, innerJoinAggTable, json));
 
 				stream.setInnerJoinAggDeleteRow(crow);
 				timestamps.info(this.getIdentifier()+" - "+"exec");
 				
-				Utils.deleteEntireRowWithPK(json.get("keyspace").toString(),
+				Utils.deleteEntireRowWithPK(getSession(),json.get("keyspace").toString(),
 						innerJoinAggTable, joinKeyName, joinKeyValue);
 			}
 			return true;
@@ -3016,13 +3027,13 @@ public class ViewManager {
 				if (!rightJoinAggTable.equals("false")) {
 
 					CustomizedRow crow = new CustomizedRow(
-							JoinAggregationHelper.selectStatement(joinKeyName,
-									joinKeyValue, rightJoinAggTable, json));
+							JoinAggregationHelper.selectStatement(getSession(),
+									joinKeyName, joinKeyValue, rightJoinAggTable, json));
 
 					stream.setLeftOrRightJoinAggDeleteRow(crow);
 					timestamps.info(this.getIdentifier()+" - "+"exec");
 					
-					Utils.deleteEntireRowWithPK(
+					Utils.deleteEntireRowWithPK(getSession(),
 							json.get("keyspace").toString(), rightJoinAggTable,
 							joinKeyName, joinKeyValue);
 				}
@@ -3034,9 +3045,9 @@ public class ViewManager {
 					timestamps.info(this.getIdentifier()+" - "+"exec");
 					
 					while (!JoinAggregationHelper.UpdateOldRowBySubtracting(
-							stream, "list_item2", stream.getDeltaDeletedRow(),
-							json, rightJoinAggTable, joinKeyName, joinKeyValue,
-							aggColName, aggColValue, newRJRow, identifier))
+							getSession(), stream, "list_item2",
+							stream.getDeltaDeletedRow(), json, rightJoinAggTable, joinKeyName,
+							joinKeyValue, aggColName, aggColValue, newRJRow, identifier))
 						;
 					// JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item2",
 					// stream.getDeltaDeletedRow(), json, rightJoinAggTable,
@@ -3051,24 +3062,24 @@ public class ViewManager {
 				// remove from left and inner
 				if (!rightJoinAggTable.equals("false")) {
 					CustomizedRow crow = new CustomizedRow(
-							JoinAggregationHelper.selectStatement(joinKeyName,
-									joinKeyValue, rightJoinAggTable, json));
+							JoinAggregationHelper.selectStatement(getSession(),
+									joinKeyName, joinKeyValue, rightJoinAggTable, json));
 					stream.setLeftOrRightJoinAggDeleteRow(crow);
 					timestamps.info(this.getIdentifier()+" - "+"exec");
 					
-					Utils.deleteEntireRowWithPK(
+					Utils.deleteEntireRowWithPK(getSession(),
 							json.get("keyspace").toString(), rightJoinAggTable,
 							joinKeyName, joinKeyValue);
 				}
 
 				if (!innerJoinAggTable.equals("false")) {
 					CustomizedRow crow = new CustomizedRow(
-							JoinAggregationHelper.selectStatement(joinKeyName,
-									joinKeyValue, innerJoinAggTable, json));
+							JoinAggregationHelper.selectStatement(getSession(),
+									joinKeyName, joinKeyValue, innerJoinAggTable, json));
 					stream.setInnerJoinAggDeleteRow(crow);
 					timestamps.info(this.getIdentifier()+" - "+"exec");
 					
-					Utils.deleteEntireRowWithPK(
+					Utils.deleteEntireRowWithPK(getSession(),
 							json.get("keyspace").toString(), innerJoinAggTable,
 							joinKeyName, joinKeyValue);
 				}
@@ -3086,12 +3097,12 @@ public class ViewManager {
 						timestamps.info(this.getIdentifier()+" - "+"exec");
 						
 						while (!JoinAggregationHelper
-								.UpdateOldRowBySubtracting(stream,
-										"list_item2",
-										stream.getDeltaDeletedRow(), json,
-										rightJoinAggTable, joinKeyName,
-										joinKeyValue, aggColName, aggColValue,
-										newRJRow, identifier))
+								.UpdateOldRowBySubtracting(getSession(),
+										stream,
+										"list_item2", stream.getDeltaDeletedRow(),
+										json, rightJoinAggTable,
+										joinKeyName, joinKeyValue, aggColName,
+										aggColValue, newRJRow, identifier))
 							;
 						// JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item2",
 						// stream.getDeltaDeletedRow(), json, rightJoinAggTable,
@@ -3103,12 +3114,12 @@ public class ViewManager {
 						timestamps.info(this.getIdentifier()+" - "+"exec");
 						
 						while (!JoinAggregationHelper
-								.UpdateOldRowBySubtracting(stream,
-										"list_item2",
-										stream.getDeltaDeletedRow(), json,
-										innerJoinAggTable, joinKeyName,
-										joinKeyValue, aggColName, aggColValue,
-										newRJRow, identifier))
+								.UpdateOldRowBySubtracting(getSession(),
+										stream,
+										"list_item2", stream.getDeltaDeletedRow(),
+										json, innerJoinAggTable,
+										joinKeyName, joinKeyValue, aggColName,
+										aggColValue, newRJRow, identifier))
 							;
 						// JoinAggregationHelper.UpdateOldRowBySubtracting(stream,"list_item2",
 						// stream.getDeltaDeletedRow(), json, innerJoinAggTable,
@@ -3135,13 +3146,13 @@ public class ViewManager {
 		if (stream.getReverseJoinDeleteNewRow() == null) {
 			if (!rightJoinAggTable.equals("false")) {
 				CustomizedRow crow = new CustomizedRow(
-						JoinAggregationHelper.selectStatement(joinKeyName,
-								joinKeyValue, rightJoinAggTable, json));
+						JoinAggregationHelper.selectStatement(getSession(),
+								joinKeyName, joinKeyValue, rightJoinAggTable, json));
 
 				timestamps.info(this.getIdentifier()+" - "+"exec");
 				
 				stream.setLeftOrRightJoinAggDeleteRow(crow);
-				Utils.deleteEntireRowWithPK(json.get("keyspace").toString(),
+				Utils.deleteEntireRowWithPK(getSession(),json.get("keyspace").toString(),
 						rightJoinAggTable, joinKeyName, joinKeyValue);
 			}
 			return true;
@@ -3156,12 +3167,12 @@ public class ViewManager {
 			// remove from inner
 			if (!innerJoinAggTable.equals("false")) {
 				CustomizedRow crow = new CustomizedRow(
-						JoinAggregationHelper.selectStatement(joinKeyName,
-								joinKeyValue, innerJoinAggTable, json));
+						JoinAggregationHelper.selectStatement(getSession(),
+								joinKeyName, joinKeyValue, innerJoinAggTable, json));
 				stream.setInnerJoinAggDeleteRow(crow);
 				timestamps.info(this.getIdentifier()+" - "+"exec");
 				
-				Utils.deleteEntireRowWithPK(json.get("keyspace").toString(),
+				Utils.deleteEntireRowWithPK(getSession(),json.get("keyspace").toString(),
 						innerJoinAggTable, joinKeyName, joinKeyValue);
 			}
 		}
@@ -3181,10 +3192,10 @@ public class ViewManager {
 		if (stream.getReverseJoinDeleteNewRow() == null) {
 			if (!leftJoinAggTable.equals("false")) {
 				CustomizedRow crow = new CustomizedRow(
-						JoinAggregationHelper.selectStatement(joinKeyName,
-								joinKeyValue, leftJoinAggTable, json));
+						JoinAggregationHelper.selectStatement(getSession(),
+								joinKeyName, joinKeyValue, leftJoinAggTable, json));
 				stream.setLeftOrRightJoinAggDeleteRow(crow);
-				Utils.deleteEntireRowWithPK(json.get("keyspace").toString(),
+				Utils.deleteEntireRowWithPK(getSession(),json.get("keyspace").toString(),
 						leftJoinAggTable, joinKeyName, joinKeyValue);
 			}
 			return true;
@@ -3198,11 +3209,11 @@ public class ViewManager {
 			// remove from inner
 			if (!innerJoinAggTable.equals("false")) {
 				CustomizedRow crow = new CustomizedRow(
-						JoinAggregationHelper.selectStatement(joinKeyName,
-								joinKeyValue, innerJoinAggTable, json));
+						JoinAggregationHelper.selectStatement(getSession(),
+								joinKeyName, joinKeyValue, innerJoinAggTable, json));
 
 				stream.setInnerJoinAggDeleteRow(crow);
-				Utils.deleteEntireRowWithPK(json.get("keyspace").toString(),
+				Utils.deleteEntireRowWithPK(getSession(),json.get("keyspace").toString(),
 						innerJoinAggTable, joinKeyName, joinKeyValue);
 			}
 		}
@@ -3229,7 +3240,7 @@ public class ViewManager {
 				timestamps.info(this.getIdentifier()+" - "+"exec");
 				
 				while (!JoinAggGroupByHelper
-						.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
+						.searchAndDeleteRowFromJoinAggGroupBy(getSession(),stream, json,
 								leftJoinAggTable, aggkey, aggKeyValue,
 								aggColValue, identifier))
 					;
@@ -3238,7 +3249,7 @@ public class ViewManager {
 				timestamps.info(this.getIdentifier()+" - "+"exec");
 				
 				while (!JoinAggGroupByHelper
-						.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
+						.searchAndDeleteRowFromJoinAggGroupBy(getSession(),stream, json,
 								innerJoinAggTable, aggkey, aggKeyValue,
 								aggColValue, identifier))
 					;
@@ -3254,7 +3265,7 @@ public class ViewManager {
 					timestamps.info(this.getIdentifier()+" - "+"exec");
 					
 					while (!JoinAggGroupByHelper
-							.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
+							.searchAndDeleteRowFromJoinAggGroupBy(getSession(),stream, json,
 									innerJoinAggTable, aggkey, aggKeyValue,
 									aggColValue, identifier))
 						;
@@ -3267,7 +3278,7 @@ public class ViewManager {
 				timestamps.info(this.getIdentifier()+" - "+"exec");
 				
 				while (!JoinAggGroupByHelper
-						.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
+						.searchAndDeleteRowFromJoinAggGroupBy(getSession(),stream, json,
 								leftJoinAggTable, aggkey, aggKeyValue,
 								aggColValue, identifier))
 					;
@@ -3281,7 +3292,7 @@ public class ViewManager {
 
 				if (!leftJoinAggTable.equals("false")) {
 					timestamps.info(this.getIdentifier()+" - "+"exec");
-					while (!JoinAggGroupByHelper.deleteElementFromRow(stream,
+					while (!JoinAggGroupByHelper.deleteElementFromRow(getSession(),stream,
 							json, leftJoinAggTable, aggkey, aggKeyValue,
 							aggColValue, identifier))
 						;
@@ -3296,7 +3307,7 @@ public class ViewManager {
 				if (!leftJoinAggTable.equals("false")) {
 					timestamps.info(this.getIdentifier()+" - "+"exec");
 					
-					while (!JoinAggGroupByHelper.deleteElementFromRow(stream,
+					while (!JoinAggGroupByHelper.deleteElementFromRow(getSession(),stream,
 							json, leftJoinAggTable, aggkey, aggKeyValue,
 							aggColValue, identifier))
 						;
@@ -3304,7 +3315,7 @@ public class ViewManager {
 				if (!innerJoinAggTable.equals("false")) {
 					timestamps.info(this.getIdentifier()+" - "+"exec");
 					
-					while (!JoinAggGroupByHelper.deleteElementFromRow(stream,
+					while (!JoinAggGroupByHelper.deleteElementFromRow(getSession(),stream,
 							json, innerJoinAggTable, aggkey, aggKeyValue,
 							aggColValue, identifier))
 						;
@@ -3335,7 +3346,7 @@ public class ViewManager {
 				timestamps.info(this.getIdentifier()+" - "+"exec");
 
 				while (!JoinAggGroupByHelper
-						.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
+						.searchAndDeleteRowFromJoinAggGroupBy(getSession(),stream, json,
 								rightJoinAggTable, aggKey, aggKeyValue,
 								aggColValue, identifier))
 					;
@@ -3344,7 +3355,7 @@ public class ViewManager {
 				timestamps.info(this.getIdentifier()+" - "+"exec");
 
 				while (!JoinAggGroupByHelper
-						.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
+						.searchAndDeleteRowFromJoinAggGroupBy(getSession(),stream, json,
 								innerJoinAggTable, aggKey, aggKeyValue,
 								aggColValue, identifier))
 					;
@@ -3360,7 +3371,7 @@ public class ViewManager {
 					timestamps.info(this.getIdentifier()+" - "+"exec");
 
 					while (!JoinAggGroupByHelper
-							.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
+							.searchAndDeleteRowFromJoinAggGroupBy(getSession(),stream, json,
 									innerJoinAggTable, aggKey, aggKeyValue,
 									aggColValue, identifier))
 						;
@@ -3374,7 +3385,7 @@ public class ViewManager {
 				timestamps.info(this.getIdentifier()+" - "+"exec");
 
 				while (!JoinAggGroupByHelper
-						.searchAndDeleteRowFromJoinAggGroupBy(stream, json,
+						.searchAndDeleteRowFromJoinAggGroupBy(getSession(),stream, json,
 								rightJoinAggTable, aggKey, aggKeyValue,
 								aggColValue, identifier))
 					;
@@ -3388,7 +3399,7 @@ public class ViewManager {
 				if (!rightJoinAggTable.equals("false")) {
 					timestamps.info(this.getIdentifier()+" - "+"exec");
 
-					while (!JoinAggGroupByHelper.deleteElementFromRow(stream,
+					while (!JoinAggGroupByHelper.deleteElementFromRow(getSession(),stream,
 							json, rightJoinAggTable, aggKey, aggKeyValue,
 							aggColValue, identifier))
 						;
@@ -3402,7 +3413,7 @@ public class ViewManager {
 				if (!rightJoinAggTable.equals("false")) {
 					timestamps.info(this.getIdentifier()+" - "+"exec");
 
-					while (!JoinAggGroupByHelper.deleteElementFromRow(stream,
+					while (!JoinAggGroupByHelper.deleteElementFromRow(getSession(),stream,
 							json, rightJoinAggTable, aggKey, aggKeyValue,
 							aggColValue, identifier))
 						;
@@ -3410,7 +3421,7 @@ public class ViewManager {
 				if (!innerJoinAggTable.equals("false")) {
 					timestamps.info(this.getIdentifier()+" - "+"exec");
 
-					while (!JoinAggGroupByHelper.deleteElementFromRow(stream,
+					while (!JoinAggGroupByHelper.deleteElementFromRow(getSession(),stream,
 							json, innerJoinAggTable, aggKey, aggKeyValue,
 							aggColValue, identifier))
 						;
@@ -3434,7 +3445,7 @@ public class ViewManager {
 
 			// remove from inner
 			if (!innerJoinAggTable.equals("false")) {
-				JoinAggGroupByHelper.deleteListItem2FromGroupBy(stream,
+				JoinAggGroupByHelper.deleteListItem2FromGroupBy(getSession(),stream,
 						newRJRow, index, aggKeyType, aggKey, json,
 						innerJoinAggTable, aggKeyIndex, identifier);
 			}
@@ -3457,7 +3468,7 @@ public class ViewManager {
 			// remove from inner
 			if (!innerJoinAggTable.equals("false")) {
 				
-				JoinAggGroupByHelper.deleteListItem1FromGroupBy(stream,
+				JoinAggGroupByHelper.deleteListItem1FromGroupBy(getSession(),stream,
 						newRJRow, index, aggKeyType, aggKey, json,
 						innerJoinAggTable, aggKeyIndex, identifier);
 			}

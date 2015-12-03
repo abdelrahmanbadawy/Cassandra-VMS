@@ -461,7 +461,7 @@ public class ViewManagerController implements Runnable {
 							// 1. retrieve the row to be deleted from delta
 							// table
 
-							Row selecRow = Utils.selectAllStatement((String)json.get("keyspace"), "delta_" + json.get("table"), baseTablePrimaryKey, pkVAlue);
+							Row selecRow = Utils.selectAllStatement(vm.getSession(),(String)json.get("keyspace"), "delta_" + json.get("table"), baseTablePrimaryKey, pkVAlue);
 
 							// 2. set DeltaDeletedRow variable for streaming
 							//vm.setDeltaDeletedRow(selectionResult.one());
