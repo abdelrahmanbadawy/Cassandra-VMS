@@ -16,7 +16,7 @@ public class BootVMS {
 	    
 	    try {  
 	        // This block configure the logger with handler and formatter  
-	        fh = new FileHandler("experiment_logs/%g.log", 50 * 1024 * 1024, 50);
+	        fh = new FileHandler("experiment_logs/%g.log", 200 * 1024 * 1024, 50);
 	        MyFormatter formatter = new MyFormatter();
 	        fh.setFormatter(formatter); 
 	        logger.setUseParentHandlers(false);
