@@ -18,6 +18,8 @@ public class Serialize {
 		try {
 			o = new ObjectOutputStream(b);
 			o.writeObject(ms);
+			o.close();
+			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -34,6 +36,7 @@ public class Serialize {
 		try {
 			o = new ObjectOutputStream(b);
 			o.writeObject(ms);
+			o.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -57,6 +60,8 @@ public class Serialize {
 		try {
 			o = new ObjectInputStream(b);
 			stream = (Stream) o.readObject();
+			o.close();
+			
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (ClassNotFoundException e) {
