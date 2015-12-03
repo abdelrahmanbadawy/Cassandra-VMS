@@ -67,6 +67,7 @@ public class TaskDistributor {
 
 			//view manager
 			ViewManager vm = new ViewManager(getCurrentCluster(), vm_identifiers.get(i));
+			vm.createSession(getCurrentCluster());
 			viewManagers.add(vm);
 
 			//Queues

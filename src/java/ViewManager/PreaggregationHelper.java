@@ -22,7 +22,7 @@ import com.datastax.driver.core.policies.TokenAwarePolicy;
 
 public class PreaggregationHelper {
 
-	static Cluster currentCluster = Cluster
+/*	static Cluster currentCluster = Cluster
 			.builder()
 			.addContactPoint(
 					XmlHandler.getInstance().getClusterConfig()
@@ -30,9 +30,9 @@ public class PreaggregationHelper {
 					.withRetryPolicy(DefaultRetryPolicy.INSTANCE)
 					.withLoadBalancingPolicy(
 							new TokenAwarePolicy(new DCAwareRoundRobinPolicy()))
-							.build();
+							.build();*/
 
-	public static ResultSet selectStatement(JSONObject json,String preaggTable,String aggKey,String aggKeyValue){
+	public static ResultSet selectStatement(Session session,JSONObject json,String preaggTable,String aggKey,String aggKeyValue){
 
 		StringBuilder selectPreaggQuery1 = new StringBuilder("SELECT ")
 		.append(aggKey + ", ").append("list_item, ").append("sum, ").append("count, ")
@@ -48,9 +48,9 @@ public class PreaggregationHelper {
 		ResultSet PreAggMap = null;
 		try {
 
-			Session session = currentCluster.connect();
+			//Session session = currentCluster.connect();
 			PreAggMap = session.execute(selectPreaggQuery1.toString());
-			session.close();
+			//session.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -58,7 +58,7 @@ public class PreaggregationHelper {
 		return PreAggMap;
 	}
 
-	public static ResultSet selectStatementSignature(JSONObject json,String preaggTable,String aggKey,String aggKeyValue){
+	public static ResultSet selectStatementSignature(Session session,JSONObject json,String preaggTable,String aggKey,String aggKeyValue){
 
 		StringBuilder selectPreaggQuery1 = new StringBuilder("SELECT ")
 		.append("signature");
@@ -73,9 +73,9 @@ public class PreaggregationHelper {
 		ResultSet PreAggMap = null;
 		try {
 
-			Session session = currentCluster.connect();
+			//Session session = currentCluster.connect();
 			PreAggMap = session.execute(selectPreaggQuery1.toString());
-			session.close();
+			//session.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -83,7 +83,7 @@ public class PreaggregationHelper {
 		return PreAggMap;
 	}
 
-	public static boolean firstInsertion(String aggKeyType,Stream stream,ArrayList<String> colValues, float aggColValue, JSONObject json, String preaggTable, String aggKey, String aggKeyValue, String identifier,String pk){
+	public static boolean firstInsertion(Session session,String aggKeyType,Stream stream,ArrayList<String> colValues, float aggColValue, JSONObject json, String preaggTable, String aggKey, String aggKeyValue, String identifier,String pk){
 
 		// 2.c.1 create a map, add pk and list with delta _new values
 		// 2.c.2 set the agg col values
@@ -119,15 +119,15 @@ public class PreaggregationHelper {
 		System.out.println(insertQueryAgg.toString());
 
 		try{
-			Session session1 = currentCluster.connect();
+			//Session session1 = currentCluster.connect();
 
-			PreparedStatement statement1 = session1.prepare(insertQueryAgg
+			PreparedStatement statement1 = session.prepare(insertQueryAgg
 					.toString());
 			BoundStatement boundStatement = new BoundStatement(statement1);
-			rs = session1.execute(boundStatement.bind(myMap));
+			rs = session.execute(boundStatement.bind(myMap));
 
 			System.out.println(boundStatement.toString());
-			session1.close();
+			//session1.close();
 		}catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -140,11 +140,11 @@ public class PreaggregationHelper {
 
 	}
 
-	public static boolean insertStatementToDelete(JSONObject json,String preaggTable,String aggKey,String aggKeyValue,String blob, String identifier,CustomizedRow crow){
+	public static boolean insertStatementToDelete(Session session,JSONObject json,String preaggTable,String aggKey,String aggKeyValue,String blob, String identifier,CustomizedRow crow){
 
 
 		if(json.get("recovery_mode").equals("on") || json.get("recovery_mode").equals("last_recovery_line")){
-			Row rs = selectStatementSignature(json, preaggTable, aggKey, aggKeyValue).one();
+			Row rs = selectStatementSignature(session,json, preaggTable, aggKey, aggKeyValue).one();
 
 			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier).split(":")[1])
 					>= Long.parseLong(json.get("readPtr").toString().split(":")[1]))
@@ -165,9 +165,9 @@ public class PreaggregationHelper {
 		Row updated;
 		
 		try{
-			Session session = currentCluster.connect();
+			//Session session = currentCluster.connect();
 			updated = session.execute(insertQueryAgg.toString()).one();
-			session.close();
+			//session.close();
 		}catch (Exception e) {
 			e.printStackTrace();
 			return false;
@@ -179,10 +179,10 @@ public class PreaggregationHelper {
 			return false;
 	}
 
-	public static void insertStatement(JSONObject json,String preaggTable,String aggKey,String aggKeyValue,Map<String, String> myMap,float sum,float count,float min,float max,float average, String identifier){
+	public static void insertStatement(Session session,JSONObject json,String preaggTable,String aggKey,String aggKeyValue,Map<String, String> myMap,float sum,float count,float min,float max,float average, String identifier){
 
 		if(json.get("recovery_mode").equals("on") || json.get("recovery_mode").equals("last_recovery_line")){
-			Row rs = selectStatementSignature(json, preaggTable, aggKey, aggKeyValue).one();
+			Row rs = selectStatementSignature(session,json, preaggTable, aggKey, aggKeyValue).one();
 
 			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier).split(":")[1])
 					>= Long.parseLong(json.get("readPtr").toString().split(":")[1]))
@@ -202,23 +202,23 @@ public class PreaggregationHelper {
 		System.out.println(updateQuery);
 
 		try {
-			Session session = currentCluster.connect();
+			//Session session = currentCluster.connect();
 			PreparedStatement statement1 = session.prepare(updateQuery
 					.toString());
 			BoundStatement boundStatement = new BoundStatement(statement1);
 			System.out.println(boundStatement.toString());
 			session.execute(boundStatement.bind(myMap));
-			session.close();
+			//session.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
-	public static boolean updateStatement(Float sum, int count, Float avg, Float min, Float max, Map<String, String> myMap, String key, String keyValue,
+	public static boolean updateStatement(Session session,Float sum, int count, Float avg, Float min, Float max, Map<String, String> myMap, String key, String keyValue,
 			String preaggTable, JSONObject json, ByteBuffer blob_old,String blob_new, String identifier){
 
 		if(json.get("recovery_mode").equals("on") || json.get("recovery_mode").equals("last_recovery_line")){
-			Row rs = selectStatementSignature(json, preaggTable, key, keyValue).one();
+			Row rs = selectStatementSignature(session,json, preaggTable, key, keyValue).one();
 
 			if(rs!= null && Long.parseLong(rs.getMap("signature", String.class, String.class).get(identifier).split(":")[1])
 					>= Long.parseLong(json.get("readPtr").toString().split(":")[1]))
@@ -240,13 +240,13 @@ public class PreaggregationHelper {
 		Row updated ;
 		try {
 
-			Session session = currentCluster.connect();
+			//Session session = currentCluster.connect();
 			PreparedStatement statement1 = session.prepare(updateQuery
 					.toString());
 			BoundStatement boundStatement = new BoundStatement(statement1);
 			System.out.println(boundStatement.toString());
 			updated = session.execute(boundStatement.bind(myMap,blob_old)).one();
-			session.close();
+			//session.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
@@ -260,7 +260,7 @@ public class PreaggregationHelper {
 
 	}
 
-	public static boolean updateAggColValue(String aggKeyType,Stream stream, ArrayList<String> myList,float aggColValue,float aggColValue_old,Row theRow, int aggColIndexInList,JSONObject json, String preaggTable,String aggKey,String aggKeyValue, ByteBuffer buffer_old, String identifier,String pk){
+	public static boolean updateAggColValue(Session session,String aggKeyType,Stream stream, ArrayList<String> myList,float aggColValue,float aggColValue_old,Row theRow, int aggColIndexInList,JSONObject json, String preaggTable,String aggKey,String aggKeyValue, ByteBuffer buffer_old, String identifier,String pk){
 
 		float sum = 0;
 		int count = 0;
@@ -321,7 +321,7 @@ public class PreaggregationHelper {
 		String buffer_new = Serialize.serializeStream2(stream);
 
 		//insertStatement(json, preaggTable, aggKey, aggKeyValue, myMap, sum, count, min, max, average);
-		if(updateStatement(sum, count, average, min, max, myMap, aggKey, aggKeyValue, preaggTable, json, buffer_old,buffer_new,identifier))
+		if(updateStatement(session,sum, count, average, min, max, myMap, aggKey, aggKeyValue, preaggTable, json, buffer_old,buffer_new,identifier))
 			return true;
 		else
 			return false;
@@ -329,7 +329,7 @@ public class PreaggregationHelper {
 
 	}
 
-	public static boolean subtractOldAggColValue(String aggKeyType, Stream stream,ArrayList<String> myList, float aggColValue_old,Map<String, String> myMap,Row theRow, int aggColIndexInList,JSONObject json, String preaggTable,String aggKey,String aggKeyValue,ByteBuffer blob_old, String identifier){
+	public static boolean subtractOldAggColValue(Session session,String aggKeyType, Stream stream,ArrayList<String> myList, float aggColValue_old,Map<String, String> myMap,Row theRow, int aggColIndexInList,JSONObject json, String preaggTable,String aggKey,String aggKeyValue,ByteBuffer blob_old, String identifier){
 
 		String pk = myList.get(0);
 		myList.remove(0);
@@ -364,7 +364,7 @@ public class PreaggregationHelper {
 		String blob_new = Serialize.serializeStream2(stream);
 
 		//insertStatement(json, preaggTable, aggKey, aggKeyValue, myMap, sum, count, min, max, average);
-		if(updateStatement(sum, count, average, min, max, myMap, aggKey, aggKeyValue, preaggTable, json, blob_old,blob_new, identifier))
+		if(updateStatement(session,sum, count, average, min, max, myMap, aggKey, aggKeyValue, preaggTable, json, blob_old,blob_new, identifier))
 			return true;
 		else
 			return false;

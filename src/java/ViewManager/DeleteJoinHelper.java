@@ -15,7 +15,7 @@ import com.datastax.driver.core.policies.TokenAwarePolicy;
 
 public class DeleteJoinHelper {
 
-	static Cluster currentCluster = Cluster
+	/*static Cluster currentCluster = Cluster
 			.builder()
 			.addContactPoint(
 					XmlHandler.getInstance().getClusterConfig()
@@ -23,10 +23,10 @@ public class DeleteJoinHelper {
 					.withRetryPolicy(DefaultRetryPolicy.INSTANCE)
 					.withLoadBalancingPolicy(
 							new TokenAwarePolicy(new DCAwareRoundRobinPolicy()))
-							.build();
+							.build();*/
 
 
-	public static boolean deleteFromLeftJoinTable(HashMap<String, String> myMap1,
+	public static boolean deleteFromLeftJoinTable(Session session,HashMap<String, String> myMap1,
 			String leftJName, JSONObject json, boolean fromDelete) {
 
 		int position = VmXmlHandler.getInstance().getlJSchema()
@@ -67,14 +67,14 @@ public class DeleteJoinHelper {
 
 				String tuple = "(" + leftPkValue + "," + 0 + ")";
 
-				Utils.deleteEntireRowWithPK((String) json.get("keyspace"), leftJName, leftPkName, tuple);
+				Utils.deleteEntireRowWithPK(session,(String) json.get("keyspace"), leftJName, leftPkName, tuple);
 			}
 		}
 		return true;
 	}
 
 
-	public static boolean deleteElementFromRightJoinTable(Stream stream,HashMap<String, String> myMap2,
+	public static boolean deleteElementFromRightJoinTable(Session session,Stream stream,HashMap<String, String> myMap2,
 			String rightJName, JSONObject json, boolean fromDelete) {
 
 		int position = VmXmlHandler.getInstance().getrJSchema()
@@ -103,14 +103,14 @@ public class DeleteJoinHelper {
 
 			String tuple = "(" + 0 + "," + rightPkValue + ")";
 
-			Utils.deleteEntireRowWithPK((String) json.get("keyspace"), rightJName, rightPkName, tuple);
+			Utils.deleteEntireRowWithPK(session,(String) json.get("keyspace"), rightJName, rightPkName, tuple);
 
 		}
 		return true;
 	}
 
 
-	public static boolean deleteElementFromLeftJoinTable(Stream stream,HashMap<String, String> myMap1,
+	public static boolean deleteElementFromLeftJoinTable(Session session,Stream stream,HashMap<String, String> myMap1,
 			String leftJName, JSONObject json, boolean fromDelete) {
 
 		int position = VmXmlHandler.getInstance().getlJSchema()
@@ -136,14 +136,14 @@ public class DeleteJoinHelper {
 
 			String tuple = "(" + leftPkValue + "," + 0 + ")";
 
-			Utils.deleteEntireRowWithPK((String) json.get("keyspace"), leftJName, leftPkName, tuple);
+			Utils.deleteEntireRowWithPK(session,(String) json.get("keyspace"), leftJName, leftPkName, tuple);
 
 		}
 		return true;
 	}
 
 
-	public static boolean deleteFromRightJoinTable(Stream stream,HashMap<String, String> myMap2,
+	public static boolean deleteFromRightJoinTable(Session session,Stream stream,HashMap<String, String> myMap2,
 			String rightJName, JSONObject json, boolean fromDelete) {
 
 		int position = VmXmlHandler.getInstance().getrJSchema()
@@ -192,7 +192,7 @@ public class DeleteJoinHelper {
 
 				String tuple = "(" + 0 + "," + rightPkValue + ")";
 
-				Utils.deleteEntireRowWithPK((String) json.get("keyspace"), rightJName, rightPkName, tuple);
+				Utils.deleteEntireRowWithPK(session,(String) json.get("keyspace"), rightJName, rightPkName, tuple);
 			}
 
 		}
@@ -200,7 +200,7 @@ public class DeleteJoinHelper {
 	}
 
 
-	public static boolean removeDeleteLeftCrossRight(Stream stream,JSONObject json,
+	public static boolean removeDeleteLeftCrossRight(Session session,Stream stream,JSONObject json,
 			String innerJName, Map<String, String> myMap2) {
 
 		String type = stream.getDeltaDeletedRow().getType(0);
@@ -227,14 +227,15 @@ public class DeleteJoinHelper {
 
 			}
 
-			Utils.deleteEntireRowWithPK((String)json.get("keyspace"), innerJName, joinTablePk, tuple);
+			
+			Utils.deleteEntireRowWithPK(session,(String)json.get("keyspace"), innerJName, joinTablePk, tuple);
 
 		}
 		return true;
 	}
 
 
-	public static boolean removeDeleteRightCrossLeft(Stream stream,JSONObject json,
+	public static boolean removeDeleteRightCrossLeft(Session session,Stream stream,JSONObject json,
 			String innerJName, Map<String, String> myMap1) {
 
 		String type = stream.getDeltaDeletedRow().getType(0);
@@ -262,7 +263,7 @@ public class DeleteJoinHelper {
 
 			}
 
-			Utils.deleteEntireRowWithPK((String)json.get("keyspace"), innerJName, joinTablePk, tuple);
+			Utils.deleteEntireRowWithPK(session,(String)json.get("keyspace"), innerJName, joinTablePk, tuple);
 		}
 
 		return true;
